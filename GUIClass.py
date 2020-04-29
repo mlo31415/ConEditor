@@ -1,201 +1,211 @@
 # -*- coding: utf-8 -*-
 
 ###########################################################################
-## Python code generated with wxFormBuilder (version Jun 17 2015)
+## Python code generated with wxFormBuilder (version Oct 26 2018)
 ## http://www.wxformbuilder.org/
 ##
-## PLEASE DO "NOT" EDIT THIS FILE!
+## PLEASE DO *NOT* EDIT THIS FILE!
 ###########################################################################
 
 import wx
 import wx.xrc
 import wx.grid
 
-
 ###########################################################################
 ## Class MainFrame
 ###########################################################################
 
-class GUIClass(wx.Frame):
+class MainFrame ( wx.Frame ):
 
-    def __init__(self, parent):
-        wx.Frame.__init__(self, parent, id=wx.ID_ANY, title=wx.EmptyString, pos=wx.DefaultPosition, size=wx.Size(1000, 700), style=wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL)
+	def __init__( self, parent ):
+		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 1020,776 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 
-        self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
+		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
-        self.m_toolBar2=self.CreateToolBar(wx.TB_HORIZONTAL, wx.ID_ANY)
-        self.mLoadNewIssues=wx.Button(self.m_toolBar2, wx.ID_ANY, u"Load New Issue(s)", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.m_toolBar2.AddControl(self.mLoadNewIssues)
-        self.bLoadNewLSTFile=wx.Button(self.m_toolBar2, wx.ID_ANY, u"Load New LST File", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.m_toolBar2.AddControl(self.bLoadNewLSTFile)
-        self.bSaveLSTFile=wx.Button(self.m_toolBar2, wx.ID_ANY, u"Save LST File", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.m_toolBar2.AddControl(self.bSaveLSTFile)
-        self.m_toolBar2.Realize()
+		self.m_toolBar2 = self.CreateToolBar( wx.TB_HORIZONTAL, wx.ID_ANY )
+		self.mLoadNewIssues = wx.Button( self.m_toolBar2, wx.ID_ANY, u"Load New Issue(s)", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_toolBar2.AddControl( self.mLoadNewIssues )
+		self.bLoadNewLSTFile = wx.Button( self.m_toolBar2, wx.ID_ANY, u"Load New LST File", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_toolBar2.AddControl( self.bLoadNewLSTFile )
+		self.bSaveLSTFile = wx.Button( self.m_toolBar2, wx.ID_ANY, u"Save LST File", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_toolBar2.AddControl( self.bSaveLSTFile )
+		self.m_toolBar2.Realize()
 
-        bSizer1=wx.BoxSizer(wx.VERTICAL)
+		bSizerMainBox = wx.BoxSizer( wx.VERTICAL )
 
-        bSizer3=wx.BoxSizer(wx.HORIZONTAL)
+		bSizerConSeries = wx.BoxSizer( wx.HORIZONTAL )
 
-        self.m_staticText1=wx.StaticText(self, wx.ID_ANY, u"Top matter:", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.m_staticText1.Wrap(-1)
-        bSizer3.Add(self.m_staticText1, 0, wx.ALL, 5)
+		self.m_staticText1 = wx.StaticText( self, wx.ID_ANY, u"Convention Series", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText1.Wrap( -1 )
 
-        self.tTopMatter=wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(800, -1), 0)
-        bSizer3.Add(self.tTopMatter, 0, wx.ALL|wx.EXPAND, 5)
+		bSizerConSeries.Add( self.m_staticText1, 0, wx.ALL, 5 )
 
-        bSizer1.Add(bSizer3, 1, wx.EXPAND, 5)
+		self.tTopMatter = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 800,-1 ), 0 )
+		bSizerConSeries.Add( self.tTopMatter, 0, wx.ALL|wx.EXPAND, 5 )
 
-        fgSizer2=wx.FlexGridSizer(2, 2, 0, 0)
-        fgSizer2.AddGrowableCol(1)
-        fgSizer2.AddGrowableRow(1)
-        fgSizer2.SetFlexibleDirection(wx.BOTH)
-        fgSizer2.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_SPECIFIED)
 
-        self.m_staticText2=wx.StaticText(self, wx.ID_ANY, u"<P>Comments</P>:", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.m_staticText2.Wrap(-1)
-        fgSizer2.Add(self.m_staticText2, 0, wx.ALL, 5)
+		bSizerMainBox.Add( bSizerConSeries, 1, wx.EXPAND, 5 )
 
-        self.tPText=wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_MULTILINE)
-        self.tPText.SetMinSize(wx.Size(-1, 100))
+		bSizerTopMatter = wx.BoxSizer( wx.HORIZONTAL )
 
-        fgSizer2.Add(self.tPText, 1, wx.ALL|wx.EXPAND, 5)
+		self.m_staticText11 = wx.StaticText( self, wx.ID_ANY, u"Top matter:", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText11.Wrap( -1 )
 
-        bSizer1.Add(fgSizer2, 1, wx.ALL|wx.EXPAND, 5)
+		bSizerTopMatter.Add( self.m_staticText11, 0, wx.ALL, 5 )
 
-        theIssueGrid=wx.BoxSizer(wx.VERTICAL)
+		self.tTopMatter1 = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 800,-1 ), 0 )
+		bSizerTopMatter.Add( self.tTopMatter1, 0, wx.ALL|wx.EXPAND, 5 )
 
-        self.gRowGrid=wx.grid.Grid(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0)
 
-        # Grid
-        self.gRowGrid.CreateGrid(300, 30)
-        self.gRowGrid.EnableEditing(True)
-        self.gRowGrid.EnableGridLines(True)
-        self.gRowGrid.EnableDragGridSize(False)
-        self.gRowGrid.SetMargins(0, 0)
+		bSizerMainBox.Add( bSizerTopMatter, 1, wx.EXPAND, 5 )
 
-        # Columns
-        self.gRowGrid.AutoSizeColumns()
-        self.gRowGrid.EnableDragColMove(True)
-        self.gRowGrid.EnableDragColSize(True)
-        self.gRowGrid.SetColLabelSize(30)
-        self.gRowGrid.SetColLabelAlignment(wx.ALIGN_CENTRE, wx.ALIGN_CENTRE)
+		fgSizerComments = wx.FlexGridSizer( 1, 2, 0, 0 )
+		fgSizerComments.AddGrowableCol( 1 )
+		fgSizerComments.AddGrowableRow( 0 )
+		fgSizerComments.SetFlexibleDirection( wx.BOTH )
+		fgSizerComments.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
-        # Rows
-        self.gRowGrid.AutoSizeRows()
-        self.gRowGrid.EnableDragRowSize(True)
-        self.gRowGrid.SetRowLabelSize(80)
-        self.gRowGrid.SetRowLabelAlignment(wx.ALIGN_CENTRE, wx.ALIGN_CENTRE)
+		self.m_staticText2 = wx.StaticText( self, wx.ID_ANY, u"<P>Comments</P>:", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText2.Wrap( -1 )
 
-        # Label Appearance
+		fgSizerComments.Add( self.m_staticText2, 1, wx.ALL, 5 )
 
-        # Cell Defaults
-        self.gRowGrid.SetDefaultCellAlignment(wx.ALIGN_LEFT, wx.ALIGN_TOP)
-        self.m_popupMenu1=wx.Menu()
-        self.m_menuItemCopy=wx.MenuItem(self.m_popupMenu1, wx.ID_ANY, u"Copy", wx.EmptyString, wx.ITEM_NORMAL)
-        self.m_popupMenu1.Append(self.m_menuItemCopy)
-        self.m_menuItemPaste=wx.MenuItem(self.m_popupMenu1, wx.ID_ANY, u"Paste", wx.EmptyString, wx.ITEM_NORMAL)
-        self.m_popupMenu1.Append        (self.m_menuItemPaste)
-        self.m_menuItemDeleteColumn=wx.MenuItem(self.m_popupMenu1, wx.ID_ANY, u"Delete Column", wx.EmptyString, wx.ITEM_NORMAL)
-        self.m_popupMenu1.Append        (self.m_menuItemDeleteColumn)
-        self.m_menuItemAddColumn=wx.MenuItem(self.m_popupMenu1, wx.ID_ANY, u"Insert Column to Left", wx.EmptyString, wx.ITEM_NORMAL)
-        self.m_popupMenu1.Append(self.m_menuItemAddColumn)
-        self.m_menuItemExtractScanner=wx.MenuItem(self.m_popupMenu1, wx.ID_ANY, u"Extract Scanner", wx.EmptyString, wx.ITEM_NORMAL)
-        self.m_popupMenu1.Append        (self.m_menuItemExtractScanner)
-        self.m_menuItemMoveColRight=wx.MenuItem(self.m_popupMenu1, wx.ID_ANY, u"Move Column Right", wx.EmptyString, wx.ITEM_NORMAL)
-        self.m_popupMenu1.Append        (self.m_menuItemMoveColRight)
-        self.m_menuItemMoveColLeft=wx.MenuItem(self.m_popupMenu1, wx.ID_ANY, u"Move Column Left", wx.EmptyString, wx.ITEM_NORMAL)
-        self.m_popupMenu1.Append        (self.m_menuItemMoveColLeft)
-        self.m_menuItemMoveSelectionRight=wx.MenuItem(self.m_popupMenu1, wx.ID_ANY, u"Move Selection Right", wx.EmptyString, wx.ITEM_NORMAL)
-        self.m_popupMenu1.Append        (self.m_menuItemMoveSelectionRight)
-        self.m_menuItemMoveSelectionLeft=wx.MenuItem(self.m_popupMenu1, wx.ID_ANY, u"Move Selection Left", wx.EmptyString, wx.ITEM_NORMAL)
-        self.m_popupMenu1.Append        (self.m_menuItemMoveSelectionLeft)
-        self.gRowGrid.Bind(wx.EVT_RIGHT_DOWN, self.gRowGridOnContextMenu)
+		self.tPText = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_MULTILINE )
+		self.tPText.SetMinSize( wx.Size( -1,80 ) )
 
-        theIssueGrid.Add(self.gRowGrid, 0, wx.ALL|wx.EXPAND, 5)
+		fgSizerComments.Add( self.tPText, 1, wx.ALL|wx.EXPAND, 5 )
 
-        bSizer1.Add(theIssueGrid, 1, wx.EXPAND, 5)
 
-        self.SetSizer(bSizer1)
-        self.Layout()
+		bSizerMainBox.Add( fgSizerComments, 1, wx.ALL|wx.EXPAND, 5 )
 
-        self.Centre(wx.BOTH)
+		theIssueGrid = wx.BoxSizer( wx.VERTICAL )
 
-        # Connect Events
-        self.mLoadNewIssues.Bind(wx.EVT_BUTTON, self.OnLoadNewIssues)
-        self.bLoadNewLSTFile.Bind(wx.EVT_BUTTON, self.OnLoadNewLSTFile)
-        self.bSaveLSTFile.Bind(wx.EVT_BUTTON, self.OnSaveLSTFile)
-        self.tTopMatter.Bind(wx.EVT_TEXT, self.OnTextTopMatter)
-        self.tPText.Bind(wx.EVT_TEXT, self.OnTextComments)
-        self.gRowGrid.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.OnGridCellChanged)
-        self.gRowGrid.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnGridCellRightClick)
-        self.gRowGrid.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
-        self.gRowGrid.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
-        self.Bind(wx.EVT_MENU, self.OnPopupCopy, id=self.m_menuItemCopy.GetId())
-        self.Bind(wx.EVT_MENU, self.OnPopupPaste, id=self.m_menuItemPaste.GetId())
-        self.Bind(wx.EVT_MENU, self.OnPopupDeleteColumn, id=self.m_menuItemDeleteColumn.GetId())
-        self.Bind(wx.EVT_MENU, self.OnPopupAddColumnToLeft, id=self.m_menuItemAddColumn.GetId())
-        self.Bind(wx.EVT_MENU, self.OnPopupExtractScanner, id=self.m_menuItemExtractScanner.GetId())
-        self.Bind(wx.EVT_MENU, self.OnPopupMoveColRight, id=self.m_menuItemMoveColRight.GetId())
-        self.Bind(wx.EVT_MENU, self.OnPopupMoveColLeft, id=self.m_menuItemMoveColLeft.GetId())
-        self.Bind(wx.EVT_MENU, self.OnPopupMoveSelectionRight, id=self.m_menuItemMoveSelectionRight.GetId())
-        self.Bind(wx.EVT_MENU, self.OnPopupMoveSelectionLeft, id=self.m_menuItemMoveSelectionLeft.GetId())
+		self.gRowGrid = wx.grid.Grid( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
 
-    def __del__(self):
-        pass
+		# Grid
+		self.gRowGrid.CreateGrid( 100, 15 )
+		self.gRowGrid.EnableEditing( True )
+		self.gRowGrid.EnableGridLines( True )
+		self.gRowGrid.EnableDragGridSize( False )
+		self.gRowGrid.SetMargins( 0, 0 )
 
-    # Virtual event handlers, overide them in your derived class
-    def OnLoadNewIssues(self, event):
-        event.Skip()
+		# Columns
+		self.gRowGrid.AutoSizeColumns()
+		self.gRowGrid.EnableDragColMove( True )
+		self.gRowGrid.EnableDragColSize( True )
+		self.gRowGrid.SetColLabelSize( 30 )
+		self.gRowGrid.SetColLabelAlignment( wx.ALIGN_CENTER, wx.ALIGN_CENTER )
 
-    def OnLoadNewLSTFile(self, event):
-        event.Skip()
+		# Rows
+		self.gRowGrid.AutoSizeRows()
+		self.gRowGrid.EnableDragRowSize( False )
+		self.gRowGrid.SetRowLabelSize( 80 )
+		self.gRowGrid.SetRowLabelAlignment( wx.ALIGN_CENTER, wx.ALIGN_CENTER )
 
-    def OnSaveLSTFile(self, event):
-        event.Skip()
+		# Label Appearance
 
-    def OnTextTopMatter(self, event):
-        event.Skip()
+		# Cell Defaults
+		self.gRowGrid.SetDefaultCellAlignment( wx.ALIGN_LEFT, wx.ALIGN_TOP )
+		self.m_menu1 = wx.Menu()
+		self.m_menuItemCopy = wx.MenuItem( self.m_menu1, wx.ID_ANY, u"Copy", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_menu1.Append( self.m_menuItemCopy )
 
-    def OnTextComments(self, event):
-        event.Skip()
+		self.m_menuItemPaste = wx.MenuItem( self.m_menu1, wx.ID_ANY, u"Paste", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_menu1.Append( self.m_menuItemPaste )
 
-    def OnGridCellChanged(self, event):
-        event.Skip()
+		self.gRowGrid.Bind( wx.EVT_RIGHT_DOWN, self.gRowGridOnContextMenu )
 
-    def OnKeyDown(self, event):
-        event.Skip()
+		theIssueGrid.Add( self.gRowGrid, 0, wx.ALL|wx.EXPAND, 5 )
 
-    def OnKeyUp(self, event):
-        event.Skip()
 
-    def OnPopupCopy(self, event):
-        event.Skip()
+		bSizerMainBox.Add( theIssueGrid, 1, wx.EXPAND, 5 )
 
-    def OnPopupPaste(self, event):
-        event.Skip()
 
-    def OnPopupDeleteColumn(self, event):
-        event.Skip()
+		self.SetSizer( bSizerMainBox )
+		self.Layout()
+		self.m_menuPopup = wx.Menu()
+		self.m_popupMoveColRight = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Move Column Right", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_menuPopup.Append( self.m_popupMoveColRight )
 
-    def OnPopupAddColumnToLeft(self, event):
-        event.Skip()
+		self.m_popupMoveColLeft = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Move Column Left", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_menuPopup.Append( self.m_popupMoveColLeft )
 
-    def OnPopupExtractScanner(self, event):
-        event.Skip()
+		self.m_popupDelCol = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Delete Column", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_menuPopup.Append( self.m_popupDelCol )
 
-    def OnPopupMoveColRight(self, event):
-        event.Skip()
+		self.m_popupInsertColLeft = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Insert Column to Left", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_menuPopup.Append( self.m_popupInsertColLeft )
 
-    def OnPopupMoveColLeft(self, event):
-        event.Skip()
+		self.m_popupCopy = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Copy", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_menuPopup.Append( self.m_popupCopy )
 
-    def OnPopupMoveSelectionRight(self, event):
-        event.Skip()
+		self.m_popupPaste = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Paste", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_menuPopup.Append( self.m_popupPaste )
 
-    def OnPopupMoveSelectionLeft(self, event):
-        event.Skip()
+		self.m_popupMoveSelRight = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Move Selection Right", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_menuPopup.Append( self.m_popupMoveSelRight )
 
-    def gRowGridOnContextMenu(self, event):
-        self.gRowGrid.PopupMenu(self.m_popupMenu1, event.GetPosition())
+		self.m_popupMoveSelLeft = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Move Selection Left", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_menuPopup.Append( self.m_popupMoveSelLeft )
+
+		self.Bind( wx.EVT_RIGHT_DOWN, self.MainFrameOnContextMenu )
+
+
+		self.Centre( wx.BOTH )
+
+		# Connect Events
+		self.mLoadNewIssues.Bind( wx.EVT_BUTTON, self.OnLoadNewIssues )
+		self.bLoadNewLSTFile.Bind( wx.EVT_BUTTON, self.OnLoadNewLSTFile )
+		self.bSaveLSTFile.Bind( wx.EVT_BUTTON, self.OnSaveLSTFile )
+		self.tTopMatter.Bind( wx.EVT_TEXT, self.OnTextTopMatter )
+		self.tTopMatter1.Bind( wx.EVT_TEXT, self.OnTextTopMatter )
+		self.tPText.Bind( wx.EVT_TEXT, self.OnTextComments )
+		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnGridCellRightClick )
+		self.gRowGrid.Bind( wx.EVT_KEY_DOWN, self.OnKeyDown )
+		self.gRowGrid.Bind( wx.EVT_KEY_UP, self.OnKeyUp )
+		self.Bind( wx.EVT_MENU, self.OnPopupCopy, id = self.m_menuItemCopy.GetId() )
+		self.Bind( wx.EVT_MENU, self.OnPopupPaste, id = self.m_menuItemPaste.GetId() )
+
+	def __del__( self ):
+		pass
+
+
+	# Virtual event handlers, overide them in your derived class
+	def OnLoadNewIssues( self, event ):
+		event.Skip()
+
+	def OnLoadNewLSTFile( self, event ):
+		event.Skip()
+
+	def OnSaveLSTFile( self, event ):
+		event.Skip()
+
+	def OnTextTopMatter( self, event ):
+		event.Skip()
+
+
+	def OnTextComments( self, event ):
+		event.Skip()
+
+	def OnGridCellRightClick( self, event ):
+		event.Skip()
+
+	def OnKeyDown( self, event ):
+		event.Skip()
+
+	def OnKeyUp( self, event ):
+		event.Skip()
+
+	def OnPopupCopy( self, event ):
+		event.Skip()
+
+	def OnPopupPaste( self, event ):
+		event.Skip()
+
+	def gRowGridOnContextMenu( self, event ):
+		self.gRowGrid.PopupMenu( self.m_menu1, event.GetPosition() )
+
+	def MainFrameOnContextMenu( self, event ):
+		self.PopupMenu( self.m_menuPopup, event.GetPosition() )
 
 
