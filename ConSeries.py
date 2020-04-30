@@ -73,6 +73,7 @@ class ConSeries:
     def __init__(self):
         self._name: str=""
         self._series: List[Con]=[]
+        self._text: str=""
         self._colheaders: List[str]=["Seq", "Name", "Dates", "Locale", "GoHs"]
 
     #------------
@@ -83,6 +84,15 @@ class ConSeries:
     @Name.setter
     def Name(self, val: str) -> None:
         self._name=val
+
+    #------------
+    @property
+    def Text(self) -> str:
+        return self._text
+
+    @Text.setter
+    def Text(self, val: str) -> None:
+        self._text=val
 
     #------------
     @property

@@ -6,11 +6,13 @@ import wx
 import wx.grid
 import math
 import sys
-import re
+from bs4 import BeautifulSoup
+
 from GUIClass import MainFrame
 
-from HelpersPackage import Bailout, CanonicizeColumnHeaders
+from HelpersPackage import Bailout, CanonicizeColumnHeaders, StripExternalTags
 from Log import LogOpen
+from FanzineIssueSpecPackage import FanzineDateRange
 
 from ConSeries import ConSeries, Con
 
@@ -105,8 +107,9 @@ class MainWindow(MainFrame):
         self.cntlDown: bool=False
         self.rightClickedColumn: Optional[int]=None
         self.conSeriesData: ConSeries=ConSeries()
+        self.filename: str=""
+        self.dirname: str=""
 
-        self.dirname: str=''
         if len(sys.argv) > 1:
             self.dirname=os.getcwd()
 
@@ -119,7 +122,7 @@ class MainWindow(MainFrame):
 
     #------------------
     # Download a ConSeries
-    def LoadConSeries(self):
+    def ReadConSeries(self):
 
         # Clear out any old information
         self.conSeriesData=ConSeries()
@@ -128,7 +131,7 @@ class MainWindow(MainFrame):
                 self.DGrid.Set(i, j, "")
 
         # Call the File Open dialog to get an LST file
-        dlg=wx.FileDialog(self, "Select LST file to load", self.dirname, "", "*.LST", wx.FD_OPEN)
+        dlg=wx.FileDialog(self, "Select con series file to load", self.dirname, "", "*.html", wx.FD_OPEN)
         dlg.SetWindowStyle(wx.STAY_ON_TOP)
 
         if dlg.ShowModal() != wx.ID_OK:
@@ -136,9 +139,33 @@ class MainWindow(MainFrame):
             dlg.Destroy()
             return
 
-        self.lstFilename=dlg.GetFilename()
+        self.filename=dlg.GetFilename()
         self.dirname=dlg.GetDirectory()
         dlg.Destroy()
+
+        file=None
+        with open(os.path.join(self.dirname, self.filename)) as f:
+            file=f.read()
+
+        soup=BeautifulSoup(file, 'html.parser')
+
+        # We need to extract three things:
+        #   The convention series name
+        #   The convention series text
+        #   The convention series table
+        self.conSeriesData.Name=soup.find("abc").text
+        self.conSeriesData.Text=soup.find("xyz").text
+        header=[l.text for l in soup.table.tr.contents if l != "\n"]
+        rows=[[m for m in l if m != "\n"] for l in soup.table.tbody if l != "\n"]
+        for r in rows:
+            r=[StripExternalTags(str(l)) for l in r]
+            con=Con()
+            con.Seq=int(r[0])
+            con.Name=r[1]
+            con.Dates=FanzineDateRange().Match(r[2])
+            con.Locale=r[3]
+            con.GoHs=r[4]
+            self.conSeriesData.Rows.append(con)
 
         # Insert the row data into the grid
         self.RefreshGridFromData()
@@ -146,7 +173,7 @@ class MainWindow(MainFrame):
 
     #------------------
     def OnLoadConSeries(self, event):
-        self.LoadConSeries()
+        self.ReadConSeries()
         pass
 
 
@@ -194,13 +221,13 @@ class MainWindow(MainFrame):
     # Save an LSTFile object to disk.
     def OnSaveLSTFile(self, event):
         # Rename the old file
-        oldname=os.path.join(self.dirname, self.lstFilename)
-        newname=os.path.join(self.dirname, os.path.splitext(self.lstFilename)[0]+"-old.LST")
+        oldname=os.path.join(self.dirname, self.filename)
+        newname=os.path.join(self.dirname, os.path.splitext(self.filename)[0]+"-old.LST")
         try:
             i=0
             while os.path.exists(newname):
                 i+=1
-                newname=os.path.join(self.dirname, os.path.splitext(self.lstFilename)[0]+"-old-"+str(i)+".LST")
+                newname=os.path.join(self.dirname, os.path.splitext(self.filename)[0]+"-old-"+str(i)+".LST")
 
             os.rename(oldname, newname)
         except:
