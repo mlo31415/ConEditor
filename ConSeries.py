@@ -1,21 +1,79 @@
 from __future__ import annotations
-from typing import Union, Tuple, Optional, List
+from typing import Optional, List
+
+from FanzineIssueSpecPackage import FanzineDateRange
 
 
+####################################################################################
 class Con:
     def __init__(self):
         self._seq: Optional[int]=None       # Sequence number starting from from 1 or 0
         self._name: str=""                  # Name including number designation
-        self._locale: Optional[str]=None    # Name of locale where the con was held
-        self._date: Optional[str]=None      # Date of con   #TODO: Change to a date range
+        self._locale: str=""                # Name of locale where the con was held
+        self._dates: Optional[FanzineDateRange]=None      # Date range of the con
+        self._gohs: str=""                  # A list of the con's GoHs
+
+    @property
+    def Seq(self) ->Optional[int]:
+        return self._seq
+
+    @Seq.setter
+    def Seq(self, val: int):
+        self._seq=val
+
+    @property
+    def Name(self) -> str:
+        return self._name
+
+    @Name.setter
+    def Name(self, val: str):
+        self._name=val
+
+    @property
+    def GoHs(self) -> str:
+        return self._gohs
+
+    @GoHs.setter
+    def GoHs(self, val: str):
+        self._gohs=val
+
+    @property
+    def Locale(self) -> str:
+        return self._locale
+
+    @Locale.setter
+    def Locale(self, val: str):
+        self._locale=val
+
+    @property
+    def Dates(self) -> Optional[FanzineDateRange]:
+        return self._dates
+
+    @Dates.setter
+    def Dates(self, val: FanzineDateRange):
+        self._dates=val
+
+    def Val(self, name: str) -> str:
+        # (Could use return eval("self."+name))
+        if name == "Seq":
+            return str(self.Seq)
+        if name == "Name":
+            return self.Name
+        if name == "Dates":
+            return str(self.Dates)
+        if name == "Locale":
+            return self.Locale
+        if name == "GoHs":
+            return self.GoHs
+        return "Can't interpret '"+name+"'"
 
 
-
+####################################################################################
 class ConSeries:
     def __init__(self):
-        self._name: Optional[str]=None
+        self._name: str=""
         self._series: List[Con]=[]
-        self._colheaders: List[str]=[]
+        self._colheaders: List[str]=["Seq", "Name", "Dates", "Locale", "GoHs"]
 
     #------------
     @property
@@ -37,40 +95,27 @@ class ConSeries:
 
     #------------
     @property
-    def Series(self) -> Optional[List[Con]]:
+    def Rows(self) -> List[Con]:
         return self._series
 
-    @Series.setter
-    def Series(self, val: Optional[List[Con]]) -> None:
+    @Rows.setter
+    def Rows(self, val: List[Con]) -> None:
         self._series=val
 
-    #?????????????
+    #------------------------------
     @property
-    def TopTextLines(self):
-        return None
-    @TopTextLines.setter
-    def TopTextLines(self, val):
-        pass
-    @property
-    def BottomTextLines(self):
-        return None
-    @BottomTextLines.setter
-    def BottomTextLines(self, val):
-        pass
-    @property
-    def FirstLine(self):
-        return None
-    @FirstLine.setter
-    def FirstLine(self, val):
-        pass
-    @property
-    def Rows(self):
-        return None
+    def NumRows(self) -> int:
+        return len(self._series)
+
 
     def IdentifyColumnHeaders(self):
-        return None
-    def Save(self):
-        return None
+        assert(False)
+    def Save(self, name: str) -> None:
+        assert(False)
+
+
+
+
 
 # ---------------------------------
 # Look through the data and determine the likely column we're sorted on.

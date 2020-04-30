@@ -23,8 +23,8 @@ class MainFrame ( wx.Frame ):
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
 		self.m_toolBar2 = self.CreateToolBar( wx.TB_HORIZONTAL, wx.ID_ANY )
-		self.mLoadNewIssues = wx.Button( self.m_toolBar2, wx.ID_ANY, u"Load New Issue(s)", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_toolBar2.AddControl( self.mLoadNewIssues )
+		self.bCreateConSeries = wx.Button( self.m_toolBar2, wx.ID_ANY, u"New Con Series", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_toolBar2.AddControl( self.bCreateConSeries )
 		self.bLoadNewLSTFile = wx.Button( self.m_toolBar2, wx.ID_ANY, u"Load New LST File", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_toolBar2.AddControl( self.bLoadNewLSTFile )
 		self.bSaveLSTFile = wx.Button( self.m_toolBar2, wx.ID_ANY, u"Save LST File", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -154,8 +154,8 @@ class MainFrame ( wx.Frame ):
 		self.Centre( wx.BOTH )
 
 		# Connect Events
-		self.mLoadNewIssues.Bind( wx.EVT_BUTTON, self.OnLoadNewIssues )
-		self.bLoadNewLSTFile.Bind( wx.EVT_BUTTON, self.OnLoadNewLSTFile )
+		self.bCreateConSeries.Bind( wx.EVT_BUTTON, self.OnCreateConSeries )
+		self.bLoadNewLSTFile.Bind(wx.EVT_BUTTON, self.OnLoadConSeries)
 		self.bSaveLSTFile.Bind( wx.EVT_BUTTON, self.OnSaveLSTFile )
 		self.tTopMatter.Bind( wx.EVT_TEXT, self.OnTextTopMatter )
 		self.tTopMatter1.Bind( wx.EVT_TEXT, self.OnTextTopMatter )
@@ -171,10 +171,10 @@ class MainFrame ( wx.Frame ):
 
 
 	# Virtual event handlers, overide them in your derived class
-	def OnLoadNewIssues( self, event ):
+	def OnCreateConSeries( self, event ):
 		event.Skip()
 
-	def OnLoadNewLSTFile( self, event ):
+	def OnLoadConSeries(self, event):
 		event.Skip()
 
 	def OnSaveLSTFile( self, event ):

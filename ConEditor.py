@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Union, Tuple, Optional, List
+from typing import Optional, List
 
 import os
 import wx
@@ -14,23 +14,41 @@ from Log import LogOpen
 
 from ConSeries import ConSeries, Con
 
+# Define some RGB color constants
+colorLabelGray=wx.Colour(230, 230, 230)
+colorPink=wx.Colour(255, 230, 230)
+colorLightGreen=wx.Colour(240, 255, 240)
+colorLightBlue=wx.Colour(240, 230, 255)
+colorWhite=wx.Colour(255, 255, 255)
+
+
 def ValidateData(a, b):
     return True
 
 
+# The class hides the machinations needed to handle the row and column headers
 class Grid():
 
-    def __init__(self, grid):
-        self._grid=grid
+    def __init__(self, grid: wx.grid.Grid):
+        self._grid: wx.grid.Grid=grid
 
     def Refresh(self, cs: ConSeries):
-        pass
+        assert(False)
 
-    def Set(self, col: int, row: int, val: str) -> None:
+    # Set using raw row and column numbers (raw includes the row and column headers as index 0)
+    def RawSet(self, row: int, col: int, val: str) ->None:
+        if row >= self.Numrows:
+            self.AppendEmptyRows(self.Numrows-row+1)
+        if col >= self.Numcols:
+            self.AppendEmptyCols((self.Numcols-col+1))
         self._grid.SetCellValue(row, col, val)
 
+    # This only gives access to the actual cells
+    def Set(self, row: int, col: int, val: str) -> None:
+        self.RawSet(row+1, col+1, val)
+
     def Get(self, row: int, col: int) -> str:
-        return ""
+        return self._grid.GetCellValue(row, col)
 
     @property
     def Numcols(self) -> int:
@@ -44,8 +62,39 @@ class Grid():
     def Grid(self):
         return self._grid
 
+    def AppendRows(self, rows):
+        assert(False)
+
+    def AppendEmptyRows(self, nrows: int) ->None:
+        self._grid.AppendRows(nrows)
+
+    def AppendEmptyCols(self, ncols: int) -> None:
+        self._grid.AppendCols(ncols)
+
+    def SetColHeaders(self, headers: List[str]) -> None:
+        # Color all the column headers white before coloring the ones that actually exist gray.  (This handles cases where a column has been deleted.)
+        for i in range(0, self.Numcols-1):
+            self.Grid.SetCellBackgroundColour(0, i, colorWhite)
+
+        # Add the column headers
+        self.Grid.SetCellValue(0, 0, "")
+        i=1
+        for colhead in headers:
+            self.RawSet(0, i, colhead)               # Set the column header number
+            self.Grid.SetCellBackgroundColour(0, i, colorLabelGray)  # Set the column header background
+            i+=1
+        self.Grid.SetCellBackgroundColour(0, 0, colorLabelGray)
+        self.Grid.SetCellBackgroundColour(0, 1, colorLabelGray)
+
+    def SetRowNumbers(self, num: int) -> None:
+        # Make the first grid column contain editable row numbers
+        for i in range(1, self.Numrows):    # The 0,0 cell is left blank
+            self.RawSet(i, 0, str(i))
+            self.Grid.SetCellBackgroundColour(i, 0, colorLabelGray)
+        self.Grid.SetCellBackgroundColour(0, 0, colorLabelGray)
 
 
+#####################################################################################
 class MainWindow(MainFrame):
     def __init__(self, parent, title):
         MainFrame.__init__(self, parent)
@@ -61,10 +110,7 @@ class MainWindow(MainFrame):
         if len(sys.argv) > 1:
             self.dirname=os.getcwd()
 
-        self._grid: wx.grid.Grid=Grid(self.gRowGrid)
-
-        # Read the LST file
-        self.LoadLSTFile()
+        self._grid: Grid=Grid(self.gRowGrid)
 
         self.Show(True)
 
@@ -73,15 +119,13 @@ class MainWindow(MainFrame):
         return self._grid
 
     #------------------
-    # Given a LST file of disk load it into self
-    def LoadLSTFile(self):
+    # Download a ConSeries
+    def LoadConSeries(self):
 
         # Clear out any old information
         self.conSeriesData=ConSeries()
-        self.tTopMatter.SetValue("")
-        self.tPText.SetValue("")
-        for i in range(0, self.DGrid.Numcols):
-            for j in range(0, self.DGrid.Numrows):
+        for i in range(0, self.DGrid.Numrows):
+            for j in range(0, self.DGrid.Numcols):
                 self.DGrid.Set(i, j, "")
 
         # Call the File Open dialog to get an LST file
@@ -97,105 +141,55 @@ class MainWindow(MainFrame):
         self.dirname=dlg.GetDirectory()
         dlg.Destroy()
 
-        # Read the lst file
-        pathname=os.path.join(self.dirname, self.lstFilename)
-        try:
-            self.conSeriesData.Read(pathname)
-        except Exception as e:
-            Bailout(e, "MainWindow: Failure reading LST file '"+pathname+"'", "LSTError")
+        # Insert the row data into the grid
+        self.RefreshGridFromData()
 
-        # Fill in the upper stuff
-        self.tTopMatter.SetValue(self.conSeriesData.FirstLine)
-        if len(self.conSeriesData.TopTextLines) > 0:
-            self.tPText.SetValue("\n".join(self.conSeriesData.TopTextLines))
-        elif len(self.conSeriesData.BottomTextLines) > 0:
-            self.tPText.SetValue("\n".join(self.conSeriesData.BottomTextLines))
+
+    #------------------
+    def OnLoadConSeries(self, event):
+        self.LoadConSeries()
+        pass
+
+
+    #------------------
+    # The LSTFile object has the official information. This function refreshes the display from it.
+    def RefreshGridFromData(self):
+        self.DGrid.EvtHandlerEnabled=False
+        self.DGrid.Grid.ClearGrid()
 
         # The grid is a bit non-standard, since I want to be able to edit row numbers and column headers
         # The row and column labels are actually the (editable) 1st column and 1st row of the spreadsheet (they're colored gray)
         # and the "real" row and column labels are hidden.
-        self.DGrid.HideRowLabels()
-        self.DGrid.HideColLabels()
+        self.gRowGrid.HideRowLabels()
+        self.gRowGrid.HideColLabels()
 
-        # And now determine the identities of the column headers. (There are many ways to label a column that amount to the same thing.)
-        self.conSeriesData.IdentifyColumnHeaders()
+        self.DGrid.SetColHeaders(self.conSeriesData.Colheaders)
+        self.DGrid.SetRowNumbers(self.DGrid.Numrows)
 
-        # Insert the row data into the grid
-        self.RefreshGridFromLSTData()
-
-
-    #------------------
-    def OnLoadNewLSTFile(self, event):
-        self.LoadLSTFile()
-        pass
-
-    # Define some RGB color constants
-    labelGray=wx.Colour(230, 230, 230)
-    pink=wx.Colour(255, 230, 230)
-    lightGreen=wx.Colour(240, 255, 240)
-    lightBlue=wx.Colour(240, 230, 255)
-    white=wx.Colour(255, 255, 255)
-
-    #------------------
-    # The LSTFile object has the official information. This function refreshes the display from it.
-    def RefreshGridFromLSTData(self):
-        self.DGrid.EvtHandlerEnabled=False
-        self.DGrid.ClearGrid()
-
-        # In effect, this makes all row and col references to data (as opposed to the labels) to be 1-based
-
-        # Color all the column headers white before coloring the ones that actually exist gray.  (This handles cases where a column has been deleted.)
-        for i in range(0, self.DGrid.NumberCols-1):
-            self.DGrid.SetCellBackgroundColour(0, i, self.white)
-
-        # Add the column headers
-        self.DGrid.SetCellValue(0, 0, "")
-        self.DGrid.SetCellValue(0, 1, "First Page")
-        i=2
-        for colhead in self.conSeriesData.Colheaders:
-            self.DGrid.SetCellValue(0, i, colhead)               # Set the column header number
-            self.DGrid.SetCellBackgroundColour(0, i, self.labelGray)  # Set the column header background
-            i+=1
-        self.DGrid.SetCellBackgroundColour(0, 0, self.labelGray)
-        self.DGrid.SetCellBackgroundColour(0, 1, self.labelGray)
-
-        # Make the first grid column contain editable row numbers
-        for i in range(1, grid.GetNumberRows()):
-            self.DGrid.SetCellValue(i, 0, str(i))
-            self.DGrid.SetCellBackgroundColour(i, 0, self.labelGray)
-        self.DGrid.SetCellBackgroundColour(0, 0, self.labelGray)
-
-        # Now insert the row data
-        self.DGrid.AppendRows(len(self.conSeriesData.Rows))
-        i=1
-        for row in self.conSeriesData.Rows:
-            j=1
-            for cell in row:
-                self.DGrid.SetCellValue(i, j, cell)
-                j+=1
-            i+=1
+        # Fill in the cells
+        for i in range(self.conSeriesData.NumRows):
+            for j in range(len(self.conSeriesData.Colheaders)):
+                self.DGrid.Set(i, j, self.conSeriesData.Rows[i].Val(self.conSeriesData.Colheaders[j]))
 
         self.ColorCellByValue()
-        self.DGrid.ForceRefresh()
-        self.DGrid.AutoSizeColumns()
+        self.DGrid.Grid.ForceRefresh()
+        self.DGrid.Grid.AutoSizeColumns()
         self.DGrid.EvtHandlerEnabled=True
 
 
     def ColorCellByValue(self):
         # Analyze the data and highlight cells where the data type doesn't match the header.  (E.g., Volume='August', Month='17', year='20')
         # We walk the columns.  For each column we decide on the proper type. Then we ewalk the rows checking the type of data in that column.
-        for iCol in range(0, len(self.conSeriesData.Colheaders)+1):        # Because of that damned doubled 1st column...
-            colhead=self.conSeriesData.Colheaders[iCol-1]      # Because of that damned doubled 1st column...
+        for iCol in range(0, len(self.conSeriesData.Colheaders)):
+            colhead=self.conSeriesData.Colheaders[iCol]
             coltype=CanonicizeColumnHeaders(colhead)
             for iRow in range(0, len(self.conSeriesData.Rows)):
-                row=self.conSeriesData.Rows[iRow]
-                if iCol >= len(row):
-                    continue
-                cell=row[iCol]
-                color=self.white
-                if len(cell) > 0 and not ValidateData(cell, coltype):
-                    color=self.pink
-                self.DGrid.SetCellBackgroundColour(iRow+1, iCol+1, color)
+                val=self.conSeriesData.DataByIndex(iRow, iCol)
+#                self.conSeriesData.Rows[iRow]=val
+                color=colorWhite
+                if len(val) > 0 and not ValidateData(val, coltype):
+                    color=colorPink
+                self.DGrid.Grid.SetCellBackgroundColour(iRow, iCol, color)
 
     #------------------
     # Save an LSTFile object to disk.
@@ -220,66 +214,11 @@ class MainWindow(MainFrame):
 
 
     #------------------
-    # We load a bunch of files, including one or more.issue files.
-    # The .issue files tell us what image files we have present.
-    # Add one row for each .issue file
-    def OnLoadNewIssues(self, event):
-        # Call the File Open dialog to get the .issue files
-        self.dirname=''
-        dlg=wx.FileDialog(self, "Select .issue files to load", self.dirname, "", "*.issue", wx.FD_OPEN|wx.FD_MULTIPLE)
-        if dlg.ShowModal() != wx.ID_OK:
-            dlg.Destroy()
-            return
-        files=dlg.GetFilenames()
-        dlg.Destroy()
-        for file in files:
-            # Decode the file name to get the row info.
-            # The filename consists of:
-            #       A first section (ending in $$) which is the prefix of the associated image files
-            #       A number of space-delimited segments consisting of a capital letter followed by data
-            row=self.DecodeIssueFileName(file)
-            bestColTypes=self.conSeriesData.GetInsertCol(row)
-            fIndex=self.conSeriesData.GetBestRowIndex(bestColTypes, row)  # "findex" to remind me this is probably a floating point number to indicate an insertion between two rows
-            self.conSeriesData.Rows.append(row)
-            self.MoveRow(len(self.conSeriesData.Rows)-1, fIndex)
-            self.highlightRows.append(row[0][1:])   # Add this row's fanzine name to the list of newly-added rows.
-
-        self.RefreshGridFromLSTData()
+    # Create a new, empty, con series
+    def OnCreateConSeries(self, event):
+        self.conSeriesData=ConSeries()
+        self.RefreshGridFromData()
         pass
-
-
-    #------------------
-    def DecodeIssueFileName(self, filename: str):
-        if filename is None or len(filename) == 0:
-            return None
-
-        # Start by dividing on the "$$"
-        sections=filename.split("$$")
-        if len(sections) != 2:
-            Bailout(ValueError, "ConEditor.DecodeIssueFileName: Missing $$ in '"+filename+"'", "LSTError")
-        namePrefix=sections[0].strip()
-
-        # Now remove the extension and divide the balance of the name by spaces
-        balance=os.path.splitext(sections[1])[0]    # Get the filename and then drop the extension
-        rest=[r for r in balance.split(" ") if len(r) > 0]
-
-        # We have the table of column headers types in lstData.ColumnHeaderTypes
-        # Match them up and create the new row with the right stuff in each column.
-        row=[""]*len(self.conSeriesData.Colheaders)    # Create an empty list of the correct size
-        for val in rest:
-            if len(val) > 1:
-                valtype=val[0]
-                val=val[1:]     # The value is the part after the initial character (which is the val type)
-                if not valtype.isupper():
-                    continue
-                try:
-                    index=self.conSeriesData.ColumnHeaderTypes.index(valtype)
-                    row[index]=val
-                except:
-                    pass    # Just ignore the error and the column
-        row[0]=namePrefix
-        return row
-
 
     #------------------
     def OnTextTopMatter(self, event):
@@ -297,10 +236,10 @@ class MainWindow(MainFrame):
     #------------------
     def OnGridCellDoubleclick(self, event):
         if event.GetRow() == 0 and event.GetCol() == 0:
-            self.DGrid.AutoSize()
+            self.DGrid.Grid.AutoSize()
             return
         if event.GetRow() == 0 and event.GetCol() > 0:
-            self.DGrid.AutoSizeColumn(event.GetCol())
+            self.DGrid.Grid.AutoSizeColumn(event.GetCol())
 
     #------------------
     def OnGridCellRightClick(self, event):
@@ -344,21 +283,6 @@ class MainWindow(MainFrame):
         mi=self.m_menuPopup.FindItemById(self.m_menuPopup.FindItem("Paste"))
         mi.Enabled=self.clipboard is not None and len(self.clipboard) > 0 and len(self.clipboard[0]) > 0  # Enable only if the clipboard contains actual content
 
-        # We only enable Extract Scanner when we're in the Notes column and there's something to extract.
-        mi=self.m_menuPopup.FindItemById(self.m_menuPopup.FindItem("Extract Scanner"))
-        if self.rightClickedColumn < len(self.conSeriesData.Colheaders)+2:
-            if self.conSeriesData.Colheaders[self.rightClickedColumn-2] == "Notes":
-                # We only want to enable the Notes column if it contains scanned by information
-                for row in self.conSeriesData.Rows:
-                    if len(row) > self.rightClickedColumn-1:
-                        note=row[self.rightClickedColumn-1].lower()
-                        if "scan by" in note or \
-                                "scans by" in note or \
-                                "scanned by" in note or \
-                                "scanning by" in note or \
-                                "scanned at" in note:
-                            mi.Enable(True)
-
         # We enable the move selection right and left commands only if there is a selection that begins in col 2 or later
         # Enable the MoveColRight item if we're in the 2nd data column or later
         top, left, bottom, right=self.LocateSelection()
@@ -382,21 +306,21 @@ class MainWindow(MainFrame):
     #   There is a SelectedCells defined
     #   There is a GridCursor location
     def LocateSelection(self):
-        if len(self.DGrid.SelectionBlockTopLeft) > 0 and len(self.DGrid.SelectionBlockBottomRight) > 0:
-            top, left=self.DGrid.SelectionBlockTopLeft[0]
-            bottom, right=self.DGrid.SelectionBlockBottomRight[0]
-        elif len(self.DGrid.SelectedCells) > 0:
-            top, left=self.DGrid.SelectedCells[0]
+        if len(self.DGrid.Grid.SelectionBlockTopLeft) > 0 and len(self.DGrid.Grid.SelectionBlockBottomRight) > 0:
+            top, left=self.DGrid.Grid.SelectionBlockTopLeft[0]
+            bottom, right=self.DGrid.Grid.SelectionBlockBottomRight[0]
+        elif len(self.DGrid.Grid.SelectedCells) > 0:
+            top, left=self.DGrid.Grid.SelectedCells[0]
             bottom, right=top, left
         else:
-            left=right=self.DGrid.GridCursorCol
-            top=bottom=self.DGrid.GridCursorRow
+            left=right=self.DGrid.Grid.GridCursorCol
+            top=bottom=self.DGrid.Grid.GridCursorRow
         return top, left, bottom, right
 
     def HasSelection(self):
-        if len(self.DGrid.SelectionBlockTopLeft) > 0 and len(self.DGrid.SelectionBlockBottomRight) > 0:
+        if len(self.DGrid.Grid.SelectionBlockTopLeft) > 0 and len(self.DGrid.Grid.SelectionBlockBottomRight) > 0:
             return True
-        if len(self.DGrid.SelectedCells) > 0:
+        if len(self.DGrid.Grid.SelectedCells) > 0:
             return True
 
         return False
@@ -413,7 +337,7 @@ class MainWindow(MainFrame):
         elif event.KeyCode == 308:                  # cntl
             self.cntlDown=True
         elif event.KeyCode == 68:                   # Kludge to be able to force a refresh
-            self.RefreshGridFromLSTData()
+            self.RefreshGridFromData()
         event.Skip()
 
     #-------------------
@@ -488,10 +412,10 @@ class MainWindow(MainFrame):
         num=pasteBottom-len(self.conSeriesData.Rows)-1
         if num > 0:
             for i in range(num):
-                self.conSeriesData.Rows.append(["" for x in range(len(self.conSeriesData.Rows[0]))])  # The strange contortion is to append a list of distinct empty strings
+                self.conSeriesData.Rows.append(["" for x in range(self.conSeriesData.NumRows)])  # The strange contortion is to append a list of distinct empty strings
 
         # Does the paste-to box extend beyond the right side of the availables? If so, extend the rows with more columns.
-        num=pasteRight-len(self.conSeriesData.Rows[0])-1
+        num=pasteRight-self.conSeriesData.NumRows-1
         if num > 0:
             for row in self.conSeriesData.Rows:
                 row.extend([""]*num)
@@ -504,15 +428,12 @@ class MainWindow(MainFrame):
                 self.conSeriesData.Rows[i-1][j-1]=cell  # The -1 is to deal with the 1-indexing
                 j+=1
             i+=1
-        self.RefreshGridFromLSTData()
+        self.RefreshGridFromData()
 
     #------------------
     def DeleteColumn(self, col):
-        # Some columns are sacrosanct
-        # Column 0 is the row number and col 1 is the "first page" (computerd) column
-        # We must subtract 2 from col because the real data only starts at the third column.
         col=col-2
-        if col >= len(self.conSeriesData.Rows[0]) or col < 0:
+        if col >= self.conSeriesData.NumRows or col < 0:
             return
 
         # For each row, delete the specified column
@@ -530,7 +451,7 @@ class MainWindow(MainFrame):
         del self.conSeriesData.Colheaders[col]
 
         # And redisplay
-        self.RefreshGridFromLSTData()
+        self.RefreshGridFromData()
 
     # ------------------
     def AddColumnToLeft(self, col):
@@ -542,63 +463,7 @@ class MainWindow(MainFrame):
             self.conSeriesData.Rows[i]=row
 
         # And redisplay
-        self.RefreshGridFromLSTData()
-
-    # ------------------
-    def ExtractScanner(self, col):
-        # Start by adding a Scanned column to the right of the Notes column. (We check to see if one already exists.)
-        # Located the Notes and Scanned columns, if any.
-        scannedCol=None
-        for i in range(0, len(self.conSeriesData.ColHeaders)):
-            if self.conSeriesData.ColHeaders[i] == "Scanned":
-                scannedCol=i
-                break
-        notesCol=None
-        for i in range(0, len(self.conSeriesData.ColHeaders)):
-            if self.conSeriesData.ColHeaders[i] == "Notes":
-                notesCol=i
-                break
-
-        # Add the Scanned column if needed
-        if scannedCol is None:
-            for i in range(0, len(self.conSeriesData.Rows)):
-                row=self.conSeriesData.Rows[i]
-                row=row[:notesCol+2]+[""]+row[notesCol+2:]
-                self.conSeriesData.Rows[i]=row
-            self.conSeriesData.ColHeaders=self.conSeriesData.ColHeaders[:notesCol+1]+["Scanned"]+self.conSeriesData.ColHeaders[notesCol+1:]
-            scannedCol=notesCol+1
-            notesCol=notesCol
-
-        # Now parse the notes looking for scanning information
-        # Scanning Info will look like one of the four prefixes (Scan by, Scanned by, Scanned at, Scanning by) followed by
-        #   two capitalized words
-        #   or a capitalized word, then "Mc", then a capitalized word  (e.g., "Sam McDonald")
-        #   or a capitalized word, then "Mac", then a capitalized word  (e.g., "Anne MacCaffrey")
-        #   or "O'Neill"
-        #   or a capitalized word, then a letter followed by a period, then a capitalized word  (e.g., "John W. Campbell")
-        #   or a capitalized word followed by a number
-        pattern=(
-            "[sS](can by|cans by|canned by|canned at|canning by) ([A-Z][a-z]+) ("   # A variation of "scanned by" followed by a first name;
-            #   This all followed by one of these:
-            "(?:Mc|Mac|O')[A-Z][a-z]+|"     # Celtic names
-            "[A-Z]\.[A-Z][a-z]+|"   # Middle initial
-            "[A-Z][a-z]+|" # This needs to go last because it will ignore characters after it finds a match (with "Sam McDonald" it matches "Sam Mc")
-            "[0-9]+)"       # Boskone 23
-        )
-        for i in range(0, len(self.conSeriesData.Rows)):
-            row=self.conSeriesData.Rows[i]
-            note=row[notesCol+1]
-            m=re.search(pattern, note)
-            if m is not None:
-                row[scannedCol+1]=m.groups()[1]+" "+m.groups()[2]     # Put the matched name in the scanned
-                note=re.sub(pattern, "", note)  # Delete the matched text from the note
-                # Now remove leading and trailing spans of spaces and commas from the note.
-                note=re.sub("^([ ,]*)", "", note)
-                note=re.sub("([ ,]*)$", "", note)
-                row[notesCol+1]=note
-
-        # And redisplay
-        self.RefreshGridFromLSTData()
+        self.RefreshGridFromData()
 
     #------------------
     def MoveColRight(self, rightClickedColumn):
@@ -612,7 +477,7 @@ class MainWindow(MainFrame):
         ch=self.conSeriesData.ColHeaders
         self.conSeriesData.ColHeaders=ch[:col]+ch[col+1:col+2]+ch[col:col+1]+ch[col+2:]
         # And redisplay
-        self.RefreshGridFromLSTData()
+        self.RefreshGridFromData()
 
     #------------------
     def MoveColLeft(self, rightClickedColumn):
@@ -626,7 +491,7 @@ class MainWindow(MainFrame):
         ch=self.conSeriesData.ColHeaders
         self.conSeriesData.ColHeaders=ch[:col-1]+ch[col:col+1]+ch[col-1:col]+ch[col+1:]
         # And redisplay
-        self.RefreshGridFromLSTData()
+        self.RefreshGridFromData()
 
     #------------------
     def MoveSelectionRight(self, rightClickedColumn):
@@ -638,10 +503,10 @@ class MainWindow(MainFrame):
             self.conSeriesData.Rows[i]=row
 
         # Move the selection along with it
-        self.DGrid.SelectBlock(top, left+1, bottom, right+1)
+        self.DGrid.Grid.SelectBlock(top, left+1, bottom, right+1)
 
         # And redisplay
-        self.RefreshGridFromLSTData()
+        self.RefreshGridFromData()
 
     #------------------
     # Move the selection one column to the left.  The vacated cells to the right are filled with blanks
@@ -654,16 +519,16 @@ class MainWindow(MainFrame):
             self.conSeriesData.Rows[i]=row
 
         # Move the selection along with it
-        self.DGrid.SelectBlock(top, left-1, bottom, right-1)
+        self.DGrid.Grid.SelectBlock(top, left-1, bottom, right-1)
 
         # And redisplay
-        self.RefreshGridFromLSTData()
+        self.RefreshGridFromData()
 
     #------------------
     def OnGridCellChanged(self, event):
         row=event.GetRow()
         col=event.GetCol()
-        newVal=self.DGrid.GetCellValue(row, col)
+        newVal=self.DGrid.Get(row, col)
 
         # The first row is the column headers
         if row == 0:
@@ -675,7 +540,7 @@ class MainWindow(MainFrame):
             if len(self.conSeriesData.ColumnHeaderTypes)+1 < col:
                 self.conSeriesData.ColumnHeaderTypes.extend(["" for x in range(col-len(self.conSeriesData.ColumnHeaderTypes)-1)])
             self.conSeriesData.ColumnHeaderTypes[col-2]=CanonicizeColumnHeaders(newVal)
-            self.RefreshGridFromLSTData()
+            self.RefreshGridFromData()
             return
 
         # If we're entering data in a new row or a new column, append the necessary number of new rows of columns to lstData
@@ -690,7 +555,7 @@ class MainWindow(MainFrame):
             self.DGrid.EvtHandlerEnabled=False
             self.conSeriesData.Rows[row-1][col-1]=newVal
             self.ColorCellByValue()
-            self.DGrid.AutoSizeColumns()
+            self.DGrid.Grid.AutoSizeColumns()
             self.DGrid.EvtHandlerEnabled=True
             return
 
@@ -699,7 +564,7 @@ class MainWindow(MainFrame):
         if newVal.lower() == "x":
             del self.conSeriesData.Rows[row-1]
             event.Veto()                # This is a bit of magic to prevent the event from making later changes to the grid.
-            self.RefreshGridFromLSTData()
+            self.RefreshGridFromData()
             return
 
         # If it's a number, it is tricky. We need to confirm that the user entered a new number.  (If not, we restore the old one and we're done.)
@@ -717,7 +582,7 @@ class MainWindow(MainFrame):
         # We *should* have a fractional value or an integer value out of range. Check for this.
         self.MoveRow(oldrow, newnumf)
         event.Veto()  # This is a bit of magic to prevent the event from making later changed to the grid.
-        self.RefreshGridFromLSTData()
+        self.RefreshGridFromData()
         return
 
 
@@ -755,5 +620,5 @@ class MainWindow(MainFrame):
 # Start the GUI and run the event loop
 LogOpen("Log -- ConEditor.txt", "Log (Errors) -- ConEditor.txt")
 app = wx.App(False)
-frame = MainWindow(None, "Sample editor")
+frame = MainWindow(None, "Convention series editor")
 app.MainLoop()
