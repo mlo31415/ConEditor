@@ -111,7 +111,6 @@ class MainWindow(MainFrame):
             self.dirname=os.getcwd()
 
         self._grid: Grid=Grid(self.gRowGrid)
-
         self.Show(True)
 
     @property

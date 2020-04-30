@@ -23,10 +23,10 @@ class MainFrame ( wx.Frame ):
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
 		self.m_toolBar2 = self.CreateToolBar( wx.TB_HORIZONTAL, wx.ID_ANY )
-		self.bCreateConSeries = wx.Button( self.m_toolBar2, wx.ID_ANY, u"New Con Series", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.bCreateConSeries = wx.Button( self.m_toolBar2, wx.ID_ANY, u"Create Con Series", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_toolBar2.AddControl( self.bCreateConSeries )
-		self.bLoadNewLSTFile = wx.Button( self.m_toolBar2, wx.ID_ANY, u"Load New LST File", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_toolBar2.AddControl( self.bLoadNewLSTFile )
+		self.bLoadConSeries = wx.Button( self.m_toolBar2, wx.ID_ANY, u"Load ConSeries from Site", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_toolBar2.AddControl( self.bLoadConSeries )
 		self.bSaveLSTFile = wx.Button( self.m_toolBar2, wx.ID_ANY, u"Save LST File", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_toolBar2.AddControl( self.bSaveLSTFile )
 		self.m_toolBar2.Realize()
@@ -61,7 +61,7 @@ class MainFrame ( wx.Frame ):
 
 		fgSizerComments = wx.FlexGridSizer( 1, 2, 0, 0 )
 		fgSizerComments.AddGrowableCol( 1 )
-		fgSizerComments.AddGrowableRow( 0 )
+		fgSizerComments.AddGrowableRow( 0 )		# This needs to be set by hand to ( 0 ) due to apparent bug in wxFormBuilder
 		fgSizerComments.SetFlexibleDirection( wx.BOTH )
 		fgSizerComments.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
@@ -83,7 +83,7 @@ class MainFrame ( wx.Frame ):
 		self.gRowGrid = wx.grid.Grid( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
 
 		# Grid
-		self.gRowGrid.CreateGrid( 100, 15 )
+		self.gRowGrid.CreateGrid( 100, 6 )
 		self.gRowGrid.EnableEditing( True )
 		self.gRowGrid.EnableGridLines( True )
 		self.gRowGrid.EnableDragGridSize( False )
@@ -155,7 +155,7 @@ class MainFrame ( wx.Frame ):
 
 		# Connect Events
 		self.bCreateConSeries.Bind( wx.EVT_BUTTON, self.OnCreateConSeries )
-		self.bLoadNewLSTFile.Bind(wx.EVT_BUTTON, self.OnLoadConSeries)
+		self.bLoadConSeries.Bind( wx.EVT_BUTTON, self.OnLoadConSeries )
 		self.bSaveLSTFile.Bind( wx.EVT_BUTTON, self.OnSaveLSTFile )
 		self.tTopMatter.Bind( wx.EVT_TEXT, self.OnTextTopMatter )
 		self.tTopMatter1.Bind( wx.EVT_TEXT, self.OnTextTopMatter )
@@ -174,7 +174,7 @@ class MainFrame ( wx.Frame ):
 	def OnCreateConSeries( self, event ):
 		event.Skip()
 
-	def OnLoadConSeries(self, event):
+	def OnLoadConSeries( self, event ):
 		event.Skip()
 
 	def OnSaveLSTFile( self, event ):
