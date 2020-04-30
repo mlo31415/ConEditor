@@ -173,12 +173,12 @@ class MainWindow(MainFrame):
         self.ColorCellByValue()
         self.DGrid.Grid.ForceRefresh()
         self.DGrid.Grid.AutoSizeColumns()
-        self.DGrid.EvtHandlerEnabled=True
 
 
     def ColorCellByValue(self):
         # Analyze the data and highlight cells where the data type doesn't match the header.  (E.g., Volume='August', Month='17', year='20')
         # We walk the columns.  For each column we decide on the proper type. Then we ewalk the rows checking the type of data in that column.
+        return  # Temporarily hide the rest of the function
         for iCol in range(0, len(self.conSeriesData.Colheaders)):
             colhead=self.conSeriesData.Colheaders[iCol]
             coltype=CanonicizeColumnHeaders(colhead)

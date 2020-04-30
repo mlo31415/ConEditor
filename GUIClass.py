@@ -160,6 +160,7 @@ class MainFrame ( wx.Frame ):
 		self.tTopMatter.Bind( wx.EVT_TEXT, self.OnTextTopMatter )
 		self.tTopMatter1.Bind( wx.EVT_TEXT, self.OnTextTopMatter )
 		self.tPText.Bind( wx.EVT_TEXT, self.OnTextComments )
+		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_CHANGED, self.OnGridCellChanged )
 		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnGridCellRightClick )
 		self.gRowGrid.Bind( wx.EVT_KEY_DOWN, self.OnKeyDown )
 		self.gRowGrid.Bind( wx.EVT_KEY_UP, self.OnKeyUp )
@@ -185,6 +186,9 @@ class MainFrame ( wx.Frame ):
 
 
 	def OnTextComments( self, event ):
+		event.Skip()
+
+	def OnGridCellChanged( self, event ):
 		event.Skip()
 
 	def OnGridCellRightClick( self, event ):

@@ -143,7 +143,7 @@
                     <property name="gripper">0</property>
                     <property name="hidden">0</property>
                     <property name="id">wxID_ANY</property>
-                    <property name="label">New Con Series</property>
+                    <property name="label">Create Con Series</property>
                     <property name="margins"></property>
                     <property name="markup">0</property>
                     <property name="max_size"></property>
@@ -153,7 +153,7 @@
                     <property name="minimize_button">0</property>
                     <property name="minimum_size"></property>
                     <property name="moveable">1</property>
-                    <property name="name">bNewConSeries</property>
+                    <property name="name">bCreateConSeries</property>
                     <property name="pane_border">1</property>
                     <property name="pane_position"></property>
                     <property name="pane_size"></property>
@@ -176,7 +176,7 @@
                     <property name="window_extra_style"></property>
                     <property name="window_name"></property>
                     <property name="window_style"></property>
-                    <event name="OnButtonClick">OnNewConSeries</event>
+                    <event name="OnButtonClick">OnCreateConSeries</event>
                 </object>
                 <object class="wxButton" expanded="1">
                     <property name="BottomDockable">1</property>
@@ -211,7 +211,7 @@
                     <property name="gripper">0</property>
                     <property name="hidden">0</property>
                     <property name="id">wxID_ANY</property>
-                    <property name="label">Load New LST File</property>
+                    <property name="label">Load ConSeries from Site</property>
                     <property name="margins"></property>
                     <property name="markup">0</property>
                     <property name="max_size"></property>
@@ -221,7 +221,7 @@
                     <property name="minimize_button">0</property>
                     <property name="minimum_size"></property>
                     <property name="moveable">1</property>
-                    <property name="name">bLoadNewLSTFile</property>
+                    <property name="name">bLoadConSeries</property>
                     <property name="pane_border">1</property>
                     <property name="pane_position"></property>
                     <property name="pane_size"></property>
@@ -244,7 +244,7 @@
                     <property name="window_extra_style"></property>
                     <property name="window_name"></property>
                     <property name="window_style"></property>
-                    <event name="OnButtonClick">OnLoadNewLSTFile</event>
+                    <event name="OnButtonClick">OnLoadConSeries</event>
                 </object>
                 <object class="wxButton" expanded="1">
                     <property name="BottomDockable">1</property>
@@ -777,7 +777,7 @@
                                 <property name="col_label_size">30</property>
                                 <property name="col_label_values"></property>
                                 <property name="col_label_vert_alignment">wxALIGN_CENTER</property>
-                                <property name="cols">15</property>
+                                <property name="cols">6</property>
                                 <property name="column_sizes"></property>
                                 <property name="context_help"></property>
                                 <property name="context_menu">1</property>
@@ -833,6 +833,7 @@
                                 <property name="window_extra_style"></property>
                                 <property name="window_name"></property>
                                 <property name="window_style"></property>
+                                <event name="OnGridCellChange">OnGridCellChanged</event>
                                 <event name="OnGridCellRightClick">OnGridCellRightClick</event>
                                 <event name="OnKeyDown">OnKeyDown</event>
                                 <event name="OnKeyUp">OnKeyUp</event>
