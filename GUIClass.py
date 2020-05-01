@@ -18,7 +18,7 @@ import wx.grid
 class MainFrame ( wx.Frame ):
 
 	def __init__( self, parent ):
-		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 1020,776 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 889,776 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
@@ -27,8 +27,8 @@ class MainFrame ( wx.Frame ):
 		self.m_toolBar2.AddControl( self.bCreateConSeries )
 		self.bLoadConSeries = wx.Button( self.m_toolBar2, wx.ID_ANY, u"Load ConSeries from Site", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_toolBar2.AddControl( self.bLoadConSeries )
-		self.bSaveLSTFile = wx.Button( self.m_toolBar2, wx.ID_ANY, u"Save LST File", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_toolBar2.AddControl( self.bSaveLSTFile )
+		self.bSaveConSeries = wx.Button( self.m_toolBar2, wx.ID_ANY, u"Save ConSeries", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_toolBar2.AddControl( self.bSaveConSeries )
 		self.m_toolBar2.Realize()
 
 		bSizerMainBox = wx.BoxSizer( wx.VERTICAL )
@@ -40,7 +40,7 @@ class MainFrame ( wx.Frame ):
 
 		bSizerConSeries.Add( self.m_staticText1, 0, wx.ALL, 5 )
 
-		self.tTopMatter = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 800,-1 ), 0 )
+		self.tTopMatter = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 700,-1 ), 0 )
 		bSizerConSeries.Add( self.tTopMatter, 0, wx.ALL|wx.EXPAND, 5 )
 
 
@@ -156,7 +156,7 @@ class MainFrame ( wx.Frame ):
 		# Connect Events
 		self.bCreateConSeries.Bind( wx.EVT_BUTTON, self.OnCreateConSeries )
 		self.bLoadConSeries.Bind( wx.EVT_BUTTON, self.OnLoadConSeries )
-		self.bSaveLSTFile.Bind( wx.EVT_BUTTON, self.OnSaveLSTFile )
+		self.bSaveConSeries.Bind( wx.EVT_BUTTON, self.OnSaveConSeries )
 		self.tTopMatter.Bind( wx.EVT_TEXT, self.OnTextTopMatter )
 		self.tTopMatter1.Bind( wx.EVT_TEXT, self.OnTextTopMatter )
 		self.tPText.Bind( wx.EVT_TEXT, self.OnTextComments )
@@ -178,7 +178,7 @@ class MainFrame ( wx.Frame ):
 	def OnLoadConSeries( self, event ):
 		event.Skip()
 
-	def OnSaveLSTFile( self, event ):
+	def OnSaveConSeries( self, event ):
 		event.Skip()
 
 	def OnTextTopMatter( self, event ):

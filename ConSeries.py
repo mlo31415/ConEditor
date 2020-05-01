@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Optional, List
+from typing import Optional, List, Union
 
 from FanzineIssueSpecPackage import FanzineDateRange
 
@@ -53,27 +53,45 @@ class Con:
     def Dates(self, val: FanzineDateRange):
         self._dates=val
 
-    def Val(self, name: str) -> str:
+    def Val(self, name: Union[str, int]) -> str:
         # (Could use return eval("self."+name))
-        if name == "Seq":
+        if name == "Seq" or name == 0:
             return str(self.Seq)
-        if name == "Name":
+        if name == "Name" or name == 1:
             return self.Name
-        if name == "Dates":
+        if name == "Dates" or name == 2:
             return str(self.Dates)
-        if name == "Locale":
+        if name == "Locale" or name == 3:
             return self.Locale
-        if name == "GoHs":
+        if name == "GoHs" or name == 4:
             return self.GoHs
-        return "Can't interpret '"+name+"'"
+        return "Val can't interpret '"+str(name)+"'"
 
+    def SetVal(self, name: Union[str, int], val: str):
+        # (Could use return eval("self."+name))
+        if name == "Seq" or name == 0:
+            self.Seq=val
+            return
+        if name == "Name" or name == 1:
+            self.Name=val
+            return
+        if name == "Dates" or name == 2:
+            self.Dates=val
+            return
+        if name == "Locale" or name == 3:
+            self.Locale=val
+            return
+        if name == "GoHs" or name == 4:
+            self.GoHs=val
+            return
+        return "SetVal can't interpret '"+str(name)+"'"
 
 ####################################################################################
 class ConSeries:
     def __init__(self):
         self._name: str=""
         self._series: List[Con]=[]
-        self._text: str=""
+        self._stuff: str=""
         self._colheaders: List[str]=["Seq", "Name", "Dates", "Locale", "GoHs"]
 
     #------------
@@ -87,12 +105,12 @@ class ConSeries:
 
     #------------
     @property
-    def Text(self) -> str:
-        return self._text
+    def Stuff(self) -> str:
+        return self._stuff
 
-    @Text.setter
-    def Text(self, val: str) -> None:
-        self._text=val
+    @Stuff.setter
+    def Stuff(self, val: str) -> None:
+        self._stuff=val
 
     #------------
     @property
@@ -120,10 +138,6 @@ class ConSeries:
 
     def IdentifyColumnHeaders(self):
         assert(False)
-    def Save(self, name: str) -> None:
-        assert(False)
-
-
 
 
 

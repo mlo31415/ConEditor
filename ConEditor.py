@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup
 
 from GUIClass import MainFrame
 
-from HelpersPackage import Bailout, CanonicizeColumnHeaders, StripExternalTags
+from HelpersPackage import Bailout, CanonicizeColumnHeaders, StripExternalTags, SubstituteHTML
 from Log import LogOpen
 from FanzineIssueSpecPackage import FanzineDateRange
 
@@ -121,6 +121,11 @@ class MainWindow(MainFrame):
         return self._grid
 
     #------------------
+    def OnLoadConSeries(self, event):
+        self.ReadConSeries()
+        pass
+
+    #------------------
     # Download a ConSeries
     def ReadConSeries(self):
 
@@ -130,7 +135,7 @@ class MainWindow(MainFrame):
             for j in range(0, self.DGrid.Numcols):
                 self.DGrid.Set(i, j, "")
 
-        # Call the File Open dialog to get an LST file
+        # Call the File Open dialog to get an con series HTML file
         dlg=wx.FileDialog(self, "Select con series file to load", self.dirname, "", "*.html", wx.FD_OPEN)
         dlg.SetWindowStyle(wx.STAY_ON_TOP)
 
@@ -154,7 +159,7 @@ class MainWindow(MainFrame):
         #   The convention series text
         #   The convention series table
         self.conSeriesData.Name=soup.find("abc").text
-        self.conSeriesData.Text=soup.find("xyz").text
+        self.conSeriesData.Stuff=soup.find("xyz").text
         header=[l.text for l in soup.table.tr.contents if l != "\n"]
         rows=[[m for m in l if m != "\n"] for l in soup.table.tbody if l != "\n"]
         for r in rows:
@@ -171,14 +176,47 @@ class MainWindow(MainFrame):
         self.RefreshGridFromData()
 
 
-    #------------------
-    def OnLoadConSeries(self, event):
-        self.ReadConSeries()
-        pass
+    def SaveConSeries(self, filename: str) -> None:
+        # First read in the template
+        file=None
+        with open(os.path.join(self.dirname, "Template.html")) as f:
+            file=f.read()
+
+        # We want to do substitutions, replacing whatever is there now with the new data
+        # The con's name is tagged with <abc>, the random text with "xyz"
+        file=SubstituteHTML(file, "abc", self.Name)
+        file=SubstituteHTML(file, "xyz", self.Stuff)
+
+        # Now construct the table which we'll then substitute.
+        newtable='<table class="table">\n'
+        newtable+="  <thead>\n"
+        newtable+="    <tr>\n"
+        newtable+='      <th scope="col">#</th>\n'
+        newtable+='      <th scope="col">Conventions</th>\n'
+        newtable+='      <th scope="col">Dates</th>\n'
+        newtable+='      <th scope="col">Location</th>\n'
+        newtable+='      <th scope="col">GoHs</th>\n'
+        newtable+='    </tr>\n'
+        newtable+='  </thead>\n'
+        newtable+='  <tbody>\n'
+        for row in self.conSeriesData.Rows:
+            newtable+="    <tr>\n"
+            newtable+='      <th scope="row">'+row.Seq+'</th>/n'
+            newtable+='      <td>'+row.Name+'<td>\n'
+            newtable+='      <td>'+row.Dates+'<td>\n'
+            newtable+='      <td>'+row.Locale+'<td>\n'
+            newtable+='      <td>'+row.GoHs+'<td>\n'
+            newtable+="    </tr>\n"
+        newtable+="    </tbody>\n"
+        newtable+="  </table>\n"
+
+        file=SubstituteHTML(file, "pdq", newtable)
+        with open(filename, "w+") as f:
+            f.write(file)
 
 
     #------------------
-    # The LSTFile object has the official information. This function refreshes the display from it.
+    # The ConSeries object has the official information. This function refreshes the display from it.
     def RefreshGridFromData(self):
         self.DGrid.EvtHandlerEnabled=False
         self.DGrid.Grid.ClearGrid()
@@ -218,25 +256,25 @@ class MainWindow(MainFrame):
                 self.DGrid.Grid.SetCellBackgroundColour(iRow, iCol, color)
 
     #------------------
-    # Save an LSTFile object to disk.
-    def OnSaveLSTFile(self, event):
+    # Save a con series object to disk.
+    def OnSaveConSeries(self, event):
         # Rename the old file
         oldname=os.path.join(self.dirname, self.filename)
-        newname=os.path.join(self.dirname, os.path.splitext(self.filename)[0]+"-old.LST")
+        newname=os.path.join(self.dirname, os.path.splitext(self.filename)[0]+"-old.html")
         try:
             i=0
             while os.path.exists(newname):
                 i+=1
-                newname=os.path.join(self.dirname, os.path.splitext(self.filename)[0]+"-old-"+str(i)+".LST")
+                newname=os.path.join(self.dirname, os.path.splitext(self.filename)[0]+"-old-"+str(i)+".html")
 
             os.rename(oldname, newname)
         except:
-            Bailout(PermissionError, "OnSaveLSTFile fails when trying to rename "+oldname+" to "+newname, "LSTError")
+            Bailout(PermissionError, "OnSaveConseries fails when trying to rename "+oldname+" to "+newname, "LSTError")
 
         try:
-            self.conSeriesData.Save(oldname)
+            self.SaveConSeries(oldname)
         except:
-            Bailout(PermissionError, "OnSaveLSTFile fails when trying to write file "+newname, "LSTError")
+            Bailout(PermissionError, "OnSaveConseries fails when trying to write file "+oldname, "LSTError")
 
 
     #------------------
@@ -573,13 +611,13 @@ class MainWindow(MainFrame):
         while row > len(self.conSeriesData.Rows):
             self.conSeriesData.Rows.append([""])
 
-        while col > len(self.conSeriesData.Rows[row-1]):
+        while col > len(self.conSeriesData.Colheaders):
             self.conSeriesData.Rows[row-1].append("")
 
         # Ordinary columns
         if col > 0:
             self.DGrid.EvtHandlerEnabled=False
-            self.conSeriesData.Rows[row-1][col-1]=newVal
+            self.conSeriesData.Rows[row-1].SetVal(col-1, newVal)
             self.ColorCellByValue()
             self.DGrid.Grid.AutoSizeColumns()
             self.DGrid.EvtHandlerEnabled=True
