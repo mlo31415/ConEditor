@@ -179,7 +179,7 @@ class MainWindow(MainFrame):
     def SaveConSeries(self, filename: str) -> None:
         # First read in the template
         file=None
-        with open(os.path.join(self.dirname, "Template.html")) as f:
+        with open(os.path.join(self.dirname, "Template")) as f:
             file=f.read()
 
         # We want to do substitutions, replacing whatever is there now with the new data
