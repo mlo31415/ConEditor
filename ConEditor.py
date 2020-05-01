@@ -184,8 +184,8 @@ class MainWindow(MainFrame):
 
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name is tagged with <abc>, the random text with "xyz"
-        file=SubstituteHTML(file, "abc", self.Name)
-        file=SubstituteHTML(file, "xyz", self.Stuff)
+        file=SubstituteHTML(file, "abc", self.conSeriesData.Name)
+        file=SubstituteHTML(file, "xyz", self.conSeriesData.Stuff)
 
         # Now construct the table which we'll then substitute.
         newtable='<table class="table">\n'
@@ -201,9 +201,9 @@ class MainWindow(MainFrame):
         newtable+='  <tbody>\n'
         for row in self.conSeriesData.Rows:
             newtable+="    <tr>\n"
-            newtable+='      <th scope="row">'+row.Seq+'</th>/n'
+            newtable+='      <th scope="row">'+str(row.Seq)+'</th>/n'
             newtable+='      <td>'+row.Name+'<td>\n'
-            newtable+='      <td>'+row.Dates+'<td>\n'
+            newtable+='      <td>'+str(row.Dates)+'<td>\n'
             newtable+='      <td>'+row.Locale+'<td>\n'
             newtable+='      <td>'+row.GoHs+'<td>\n'
             newtable+="    </tr>\n"
@@ -290,12 +290,12 @@ class MainWindow(MainFrame):
 
     #------------------
     def OnTextComments(self, event):
-        if self.conSeriesData.TopTextLines is not None and len(self.conSeriesData.TopTextLines) > 0:
-            self.conSeriesData.TopTextLines=self.tPText.GetValue().split("\n")
+        if self.conSeriesData.Stuff is not None and len(self.conSeriesData.Stuff) > 0:
+            self.conSeriesData.Stuff=self.tPText.GetValue().split("\n")
         elif self.conSeriesData.BottomTextLines is not None and len(self.conSeriesData.BottomTextLines) > 0:
             self.conSeriesData.BottomTextLines=self.tPText.GetValue().split("\n")
         else:
-            self.conSeriesData.TopTextLines=self.tPText.GetValue().split("\n")
+            self.conSeriesData.Stuff=self.tPText.GetValue().split("\n")
 
     #------------------
     def OnGridCellDoubleclick(self, event):
