@@ -106,7 +106,6 @@ class dlgEnterFancyNameWindow(dlgEnterFancyName):
         dlgEnterFancyName.__init__(self, parent)
         self._FancyName: str=""
         self.ShowModal()
-        self.Show(True)
 
     def OnBuCreateConSeries(self, event):
         self.Hide()
