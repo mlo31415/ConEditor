@@ -8,13 +8,15 @@ import math
 import sys
 from bs4 import BeautifulSoup
 
-from GUIClass import MainFrame
+from MainFrame import MainFrame
 
 from HelpersPackage import Bailout, CanonicizeColumnHeaders, StripExternalTags, SubstituteHTML
 from Log import LogOpen
 from FanzineIssueSpecPackage import FanzineDateRange
 
 from ConSeries import ConSeries, Con
+
+from dlgEnterFancyName import dlgEnterFancyName
 
 # Define some RGB color constants
 colorLabelGray=wx.Colour(230, 230, 230)
@@ -94,6 +96,19 @@ class Grid():
             self.RawSet(i, 0, str(i))
             self.Grid.SetCellBackgroundColour(i, 0, colorLabelGray)
         self.Grid.SetCellBackgroundColour(0, 0, colorLabelGray)
+
+
+
+
+#####################################################################################
+class dlgEnterFancyNameWindow(dlgEnterFancyName):
+    def __init__(self, parent):
+        dlgEnterFancyName.__init__(self, parent)
+        self.Show(True)
+
+    def OnBuCreateConSeries(self, event):
+        self.Hide()
+
 
 
 #####################################################################################
@@ -280,8 +295,9 @@ class MainWindow(MainFrame):
     #------------------
     # Create a new, empty, con series
     def OnCreateConSeries(self, event):
-        self.conSeriesData=ConSeries()
-        self.RefreshGridFromData()
+        self._dlgEnterFancyName=dlgEnterFancyNameWindow(None)
+        #self.conSeriesData=ConSeries()
+        #self.RefreshGridFromData()
         pass
 
     #------------------
@@ -424,37 +440,6 @@ class MainWindow(MainFrame):
         event.Skip()
 
     #------------------
-    def OnPopupDeleteColumn(self, event):
-        self.DeleteColumn(self.rightClickedColumn)
-        event.Skip()
-
-    #------------------
-    def OnPopupAddColumnToLeft(self, event):
-        self.AddColumnToLeft(self.rightClickedColumn)
-        event.Skip()
-
-    #------------------
-    def OnPopupExtractScanner(self, event):
-        self.ExtractScanner(self.rightClickedColumn)
-        event.Skip()
-
-    #------------------
-    def OnPopupMoveColRight(self, event):
-        self.MoveColRight(self.rightClickedColumn)
-
-    #------------------
-    def OnPopupMoveColLeft(self, event):
-        self.MoveColLeft(self.rightClickedColumn)
-
-    # ------------------
-    def OnPopupMoveSelectionRight(self, event):
-        self.MoveSelectionRight(self.rightClickedColumn)
-
-    # ------------------
-    def OnPopupMoveSelectionLeft(self, event):
-        self.MoveSelectionLeft(self.rightClickedColumn)
-
-    #------------------
     def CopyCells(self, top, left, bottom, right):
         self.clipboard=[]
         # We must remember that the first two data columns map to a single LST column.
@@ -478,12 +463,6 @@ class MainWindow(MainFrame):
             for i in range(num):
                 self.conSeriesData.Rows.append(["" for x in range(self.conSeriesData.NumRows)])  # The strange contortion is to append a list of distinct empty strings
 
-        # Does the paste-to box extend beyond the right side of the availables? If so, extend the rows with more columns.
-        num=pasteRight-self.conSeriesData.NumRows-1
-        if num > 0:
-            for row in self.conSeriesData.Rows:
-                row.extend([""]*num)
-
         # Copy the cells from the clipboard to the grid in lstData.
         i=pasteTop
         for row in self.clipboard:
@@ -492,100 +471,6 @@ class MainWindow(MainFrame):
                 self.conSeriesData.Rows[i-1][j-1]=cell  # The -1 is to deal with the 1-indexing
                 j+=1
             i+=1
-        self.RefreshGridFromData()
-
-    #------------------
-    def DeleteColumn(self, col):
-        col=col-2
-        if col >= self.conSeriesData.NumRows or col < 0:
-            return
-
-        # For each row, delete the specified column
-        # Note that the computed "first page" column *is* in lastData.Rows as it is editable
-        for i in range(0, len(self.conSeriesData.Rows)):
-            row=self.conSeriesData.Rows[i]
-            newrow=[]
-            if col > 0:
-                newrow.extend(row[:col+1])
-            if col < len(row)-3:
-                newrow.extend(row[col+2:])
-            self.conSeriesData.Rows[i]=newrow
-
-        # Now delete the column header
-        del self.conSeriesData.Colheaders[col]
-
-        # And redisplay
-        self.RefreshGridFromData()
-
-    # ------------------
-    def AddColumnToLeft(self, col):
-        col=col-2
-        self.conSeriesData.ColHeaders=self.conSeriesData.ColHeaders[:col]+[""]+self.conSeriesData.ColHeaders[col:]
-        for i in range(0, len(self.conSeriesData.Rows)):
-            row=self.conSeriesData.Rows[i]
-            row=row[:col+1]+[""]+row[col+1:]
-            self.conSeriesData.Rows[i]=row
-
-        # And redisplay
-        self.RefreshGridFromData()
-
-    #------------------
-    def MoveColRight(self, rightClickedColumn):
-        col=rightClickedColumn-2
-        for i in range(0, len(self.conSeriesData.Rows)):
-            row=self.conSeriesData.Rows[i]
-            if rightClickedColumn > len(row):
-                row.append([""])
-            row=row[:col+1]+row[col+2:col+3]+row[col+1:col+2]+row[col+3:]
-            self.conSeriesData.Rows[i]=row
-        ch=self.conSeriesData.ColHeaders
-        self.conSeriesData.ColHeaders=ch[:col]+ch[col+1:col+2]+ch[col:col+1]+ch[col+2:]
-        # And redisplay
-        self.RefreshGridFromData()
-
-    #------------------
-    def MoveColLeft(self, rightClickedColumn):
-        col=rightClickedColumn-2
-        for i in range(0, len(self.conSeriesData.Rows)):
-            row=self.conSeriesData.Rows[i]
-            if rightClickedColumn > len(row):
-                row.append([""])
-            row=row[:col]+row[col+1:col+2]+row[col:col+1]+row[col+2:]
-            self.conSeriesData.Rows[i]=row
-        ch=self.conSeriesData.ColHeaders
-        self.conSeriesData.ColHeaders=ch[:col-1]+ch[col:col+1]+ch[col-1:col]+ch[col+1:]
-        # And redisplay
-        self.RefreshGridFromData()
-
-    #------------------
-    def MoveSelectionRight(self, rightClickedColumn):
-        top, left, bottom, right=self.LocateSelection()
-
-        for i in range(top-1, bottom):
-            row=self.conSeriesData.Rows[i]
-            row=row[:left-1]+[""]+row[left-1:right]+row[right+1:]
-            self.conSeriesData.Rows[i]=row
-
-        # Move the selection along with it
-        self.DGrid.Grid.SelectBlock(top, left+1, bottom, right+1)
-
-        # And redisplay
-        self.RefreshGridFromData()
-
-    #------------------
-    # Move the selection one column to the left.  The vacated cells to the right are filled with blanks
-    def MoveSelectionLeft(self, rightClickedColumn):
-        top, left, bottom, right=self.LocateSelection()
-
-        for i in range(top-1, bottom):
-            row=self.conSeriesData.Rows[i]
-            row=row[:left-2]+row[left-1:right]+[""]+row[right:]
-            self.conSeriesData.Rows[i]=row
-
-        # Move the selection along with it
-        self.DGrid.Grid.SelectBlock(top, left-1, bottom, right-1)
-
-        # And redisplay
         self.RefreshGridFromData()
 
     #------------------
@@ -601,9 +486,6 @@ class MainWindow(MainFrame):
             if len(self.conSeriesData.Colheaders)+1 < col:
                 self.conSeriesData.Colheaders.extend(["" for x in range(col-len(self.conSeriesData.Colheaders)-1)])
             self.conSeriesData.Colheaders[col-2]=newVal
-            if len(self.conSeriesData.ColumnHeaderTypes)+1 < col:
-                self.conSeriesData.ColumnHeaderTypes.extend(["" for x in range(col-len(self.conSeriesData.ColumnHeaderTypes)-1)])
-            self.conSeriesData.ColumnHeaderTypes[col-2]=CanonicizeColumnHeaders(newVal)
             self.RefreshGridFromData()
             return
 
@@ -680,9 +562,16 @@ class MainWindow(MainFrame):
                 newrows.extend(self.conSeriesData.Rows[oldrow+1:])
         self.conSeriesData.Rows=newrows
 
+    def OnMyButton( self, event ):
+        frame.Hide()
+
+
+
+
 
 # Start the GUI and run the event loop
 LogOpen("Log -- ConEditor.txt", "Log (Errors) -- ConEditor.txt")
 app = wx.App(False)
 frame = MainWindow(None, "Convention series editor")
 app.MainLoop()
+
