@@ -193,7 +193,7 @@ class MainWindow(MainFrame):
             self.conSeriesData.Rows.append(con)
 
         # Insert the row data into the grid
-        self.RefreshGridFromData()
+        self.RefreshWindowFromData()
 
 
     def SaveConSeries(self, filename: str) -> None:
@@ -237,7 +237,7 @@ class MainWindow(MainFrame):
 
     #------------------
     # The ConSeries object has the official information. This function refreshes the display from it.
-    def RefreshGridFromData(self):
+    def RefreshWindowFromData(self):
         self.DGrid.EvtHandlerEnabled=False
         self.DGrid.Grid.ClearGrid()
 
@@ -258,6 +258,8 @@ class MainWindow(MainFrame):
         self.ColorCellByValue()
         self.DGrid.Grid.ForceRefresh()
         self.DGrid.Grid.AutoSizeColumns()
+
+        self.tTopMatter.Value=self.conSeriesData.Name
 
 
     def ColorCellByValue(self):
@@ -303,7 +305,7 @@ class MainWindow(MainFrame):
         self._dlgEnterFancyName=dlgEnterFancyNameWindow(None)
         self.conSeriesData=ConSeries()
         self.conSeriesData.Name=self._dlgEnterFancyName._FancyName
-        self.RefreshGridFromData()
+        self.RefreshWindowFromData()
         pass
 
     #------------------
@@ -423,7 +425,7 @@ class MainWindow(MainFrame):
         elif event.KeyCode == 308:                  # cntl
             self.cntlDown=True
         elif event.KeyCode == 68:                   # Kludge to be able to force a refresh
-            self.RefreshGridFromData()
+            self.RefreshWindowFromData()
         event.Skip()
 
     #-------------------
@@ -477,7 +479,7 @@ class MainWindow(MainFrame):
                 self.conSeriesData.Rows[i-1][j-1]=cell  # The -1 is to deal with the 1-indexing
                 j+=1
             i+=1
-        self.RefreshGridFromData()
+        self.RefreshWindowFromData()
 
     #------------------
     def OnGridCellChanged(self, event):
@@ -492,7 +494,7 @@ class MainWindow(MainFrame):
             if len(self.conSeriesData.Colheaders)+1 < col:
                 self.conSeriesData.Colheaders.extend(["" for x in range(col-len(self.conSeriesData.Colheaders)-1)])
             self.conSeriesData.Colheaders[col-2]=newVal
-            self.RefreshGridFromData()
+            self.RefreshWindowFromData()
             return
 
         # If we're entering data in a new row or a new column, append the necessary number of new rows of columns to lstData
@@ -516,7 +518,7 @@ class MainWindow(MainFrame):
         if newVal.lower() == "x":
             del self.conSeriesData.Rows[row-1]
             event.Veto()                # This is a bit of magic to prevent the event from making later changes to the grid.
-            self.RefreshGridFromData()
+            self.RefreshWindowFromData()
             return
 
         # If it's a number, it is tricky. We need to confirm that the user entered a new number.  (If not, we restore the old one and we're done.)
@@ -534,7 +536,7 @@ class MainWindow(MainFrame):
         # We *should* have a fractional value or an integer value out of range. Check for this.
         self.MoveRow(oldrow, newnumf)
         event.Veto()  # This is a bit of magic to prevent the event from making later changed to the grid.
-        self.RefreshGridFromData()
+        self.RefreshWindowFromData()
         return
 
 
