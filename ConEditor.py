@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup
 
 from MainFrame import MainFrame
 
-from HelpersPackage import Bailout, CanonicizeColumnHeaders, StripExternalTags, SubstituteHTML
+from HelpersPackage import Bailout, IsInt, StripExternalTags, SubstituteHTML
 from Log import LogOpen
 from FanzineIssueSpecPackage import FanzineDateRange
 
@@ -96,6 +96,9 @@ class Grid():
             self.RawSet(i, 0, str(i))
             self.Grid.SetCellBackgroundColour(i, 0, colorLabelGray)
         self.Grid.SetCellBackgroundColour(0, 0, colorLabelGray)
+
+    def SetCellBackgroundColor(self, row, col, color):
+        self.Grid.SetCellBackgroundColour(row+1, col+1, color)
 
 
 
@@ -252,7 +255,7 @@ class MainWindow(MainFrame):
         # Fill in the cells
         for i in range(self.conSeriesData.NumRows):
             for j in range(len(self.conSeriesData.Colheaders)):
-                self.DGrid.Set(i, j, self.conSeriesData.Rows[i].Val(self.conSeriesData.Colheaders[j]))
+                self.DGrid.Set(i, j, self.conSeriesData.Rows[i].GetVal(self.conSeriesData.Colheaders[j]))
 
         self.ColorCellByValue()
         self.DGrid.Grid.ForceRefresh()
@@ -263,18 +266,19 @@ class MainWindow(MainFrame):
 
     def ColorCellByValue(self):
         # Analyze the data and highlight cells where the data type doesn't match the header.  (E.g., Volume='August', Month='17', year='20')
-        # We walk the columns.  For each column we decide on the proper type. Then we ewalk the rows checking the type of data in that column.
-        return  # Temporarily hide the rest of the function
-        for iCol in range(0, len(self.conSeriesData.Colheaders)):
-            colhead=self.conSeriesData.Colheaders[iCol]
-            coltype=CanonicizeColumnHeaders(colhead)
-            for iRow in range(0, len(self.conSeriesData.Rows)):
-                val=self.conSeriesData.DataByIndex(iRow, iCol)
-#                self.conSeriesData.Rows[iRow]=val
-                color=colorWhite
-                if len(val) > 0 and not ValidateData(val, coltype):
-                    color=colorPink
-                self.DGrid.Grid.SetCellBackgroundColour(iRow, iCol, color)
+        # Col 0 is a number and 3 is a date and the rest are strings.   We walk the rows checking the type of data in that column.
+        for iRow in range(0, len(self.conSeriesData.Rows)):
+            val=self.conSeriesData.Rows[iRow].GetVal(0)
+            color=colorWhite
+            if val is not None and val != "None" and not IsInt(val):
+                color=colorPink
+            self.DGrid.SetCellBackgroundColor(iRow, 0, color)
+
+            val=self.conSeriesData.Rows[iRow].GetVal(2)
+            color=colorWhite
+            if val is not None and val != "None" and FanzineDateRange().Match(val).IsEmpty():
+                color=colorPink
+            self.DGrid.SetCellBackgroundColor(iRow, 2, color)
 
     #------------------
     # Save a con series object to disk.
@@ -498,7 +502,7 @@ class MainWindow(MainFrame):
 
         # If we're entering data in a new row or a new column, append the necessary number of new rows of columns to lstData
         while row > len(self.conSeriesData.Rows):
-            self.conSeriesData.Rows.append([""])
+            self.conSeriesData.Rows.append(Con())
 
         while col > len(self.conSeriesData.Colheaders):
             self.conSeriesData.Rows[row-1].append("")
