@@ -8,7 +8,7 @@ import math
 import sys
 from bs4 import BeautifulSoup
 
-from MainFrame import MainFrame
+from MainConSeriesFrame import MainConSeriesFrame
 
 from HelpersPackage import Bailout, IsInt, StripExternalTags, SubstituteHTML
 from Log import LogOpen
@@ -119,9 +119,9 @@ class dlgEnterFancyNameWindow(dlgEnterFancyName):
 
 
 #####################################################################################
-class MainWindow(MainFrame):
+class MainWindow(MainConSeriesFrame):
     def __init__(self, parent, title):
-        MainFrame.__init__(self, parent)
+        MainConSeriesFrame.__init__(self, parent)
 
         self.highlightRows=[]       # A List of the names of fanzines in highlighted rows
         self.clipboard=None         # The grid's clipboard

@@ -12,10 +12,10 @@ import wx.xrc
 import wx.grid
 
 ###########################################################################
-## Class MainFrame
+## Class MainConSeriesFrame
 ###########################################################################
 
-class MainFrame ( wx.Frame ):
+class MainConSeriesFrame ( wx.Frame ):
 
 	def __init__( self, parent ):
 		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Edit Convention Series", pos = wx.DefaultPosition, size = wx.Size( 729,776 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
@@ -135,7 +135,7 @@ class MainFrame ( wx.Frame ):
 		self.m_popupCreateNewPage = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Create New Page", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_menuPopup.Append( self.m_popupCreateNewPage )
 
-		self.Bind( wx.EVT_RIGHT_DOWN, self.MainFrameOnContextMenu )
+		self.Bind( wx.EVT_RIGHT_DOWN, self.MainConSeriesFrameOnContextMenu )
 
 
 		self.Centre( wx.BOTH )
@@ -200,5 +200,7 @@ class MainFrame ( wx.Frame ):
 	def gRowGridOnContextMenu( self, event ):
 		self.gRowGrid.PopupMenu( self.m_menu1, event.GetPosition() )
 
-	def MainFrameOnContextMenu( self, event ):
+	def MainConSeriesFrameOnContextMenu( self, event ):
 		self.PopupMenu( self.m_menuPopup, event.GetPosition() )
+
+
