@@ -104,10 +104,15 @@ class Grid():
 class dlgEnterFancyNameWindow(dlgEnterFancyName):
     def __init__(self, parent):
         dlgEnterFancyName.__init__(self, parent)
+        self._FancyName: str=""
+        self.ShowModal()
         self.Show(True)
 
     def OnBuCreateConSeries(self, event):
         self.Hide()
+
+    def OnTextChanged(self, event):
+        self._FancyName=self.m_textCtrl4.Value
 
 
 
@@ -296,8 +301,9 @@ class MainWindow(MainFrame):
     # Create a new, empty, con series
     def OnCreateConSeries(self, event):
         self._dlgEnterFancyName=dlgEnterFancyNameWindow(None)
-        #self.conSeriesData=ConSeries()
-        #self.RefreshGridFromData()
+        self.conSeriesData=ConSeries()
+        self.conSeriesData.Name=self._dlgEnterFancyName._FancyName
+        self.RefreshGridFromData()
         pass
 
     #------------------
