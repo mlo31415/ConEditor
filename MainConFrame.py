@@ -63,7 +63,7 @@ class MainConFrame ( wx.Frame ):
 
 		fgSizerComments = wx.FlexGridSizer( 1, 2, 0, 0 )
 		fgSizerComments.AddGrowableCol( 1 )
-		fgSizerComments.AddGrowableRow( 1 )
+		fgSizerComments.AddGrowableRow( 0 )		# Bug in wxFormBuilder
 		fgSizerComments.SetFlexibleDirection( wx.BOTH )
 		fgSizerComments.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 

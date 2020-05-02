@@ -17,6 +17,7 @@ from FanzineIssueSpecPackage import FanzineDateRange
 from ConSeries import ConSeries, Con
 
 from dlgEnterFancyName import dlgEnterFancyName
+from MainConFrame import MainConFrame
 
 # Define some RGB color constants
 colorLabelGray=wx.Colour(230, 230, 230)
@@ -115,6 +116,15 @@ class dlgEnterFancyNameWindow(dlgEnterFancyName):
 
     def OnTextChanged(self, event):
         self._FancyName=self.m_textCtrl4.Value
+
+
+#####################################################################################
+class MainConFrameClass(MainConFrame):
+    def __init__(self, parent):
+        MainConFrame.__init__(self, parent)
+        self._FancyName: str=""
+        self.Show()
+
 
 
 
@@ -301,6 +311,10 @@ class MainWindow(MainConSeriesFrame):
         except:
             Bailout(PermissionError, "OnSaveConseries fails when trying to write file "+oldname, "LSTError")
 
+    #------------------
+    def OnAddConToSeries(self, event):
+        pass
+
 
     #------------------
     # Create a new, empty, con series
@@ -310,6 +324,11 @@ class MainWindow(MainConSeriesFrame):
         self.conSeriesData.Name=self._dlgEnterFancyName._FancyName
         self.RefreshWindowFromData()
         pass
+
+    #------------------
+    def OnCreateNewConPage(self, event):
+        frame=MainConFrameClass(None)
+        frame.Show()
 
     #------------------
     def OnTextTopMatter(self, event):
@@ -344,47 +363,18 @@ class MainWindow(MainConSeriesFrame):
         if self.rightClickedColumn > len(self.conSeriesData.Colheaders)+1 or self.rightClickedColumn == 0:
             return
 
-        # We enable the Delete Column item if we're on a deletable column
-        if self.rightClickedColumn > 1 and self.rightClickedColumn < len(self.conSeriesData.Colheaders)+1:
-            mi=self.m_menuPopup.FindItemById(self.m_menuPopup.FindItem("Delete Column"))
-            mi.Enable(True)
-
-        # Enable the MoveColRight item if we're in the 2nd data column or later
-        if self.rightClickedColumn > 2:
-            mi=self.m_menuPopup.FindItemById(self.m_menuPopup.FindItem("Move Column Right"))
-            mi.Enable(True)
-
-        # Enable the MoveColLeft item if we're in the 2nd data column or later
-        if self.rightClickedColumn > 2:
-            mi=self.m_menuPopup.FindItemById(self.m_menuPopup.FindItem("Move Column Left"))
-            mi.Enable(True)
-
         # We enable the Copy item if have a selection
         sel=self.LocateSelection()
         if sel[0] != 0 or sel[1] != 0 or sel[2] != 0 or sel[3] != 0:
             mi=self.m_menuPopup.FindItemById(self.m_menuPopup.FindItem("Copy"))
             mi.Enable(True)
 
-        # We enable the Add Column to Left item if we're on a column to the left of the first -- it can be off the right and a column will be added to the right
-        if self.rightClickedColumn > 1:
-            mi=self.m_menuPopup.FindItemById(self.m_menuPopup.FindItem("Insert Column to Left"))
-            mi.Enable(True)
-
         # We enable the Paste popup menu item if there is something to paste
         mi=self.m_menuPopup.FindItemById(self.m_menuPopup.FindItem("Paste"))
         mi.Enabled=self.clipboard is not None and len(self.clipboard) > 0 and len(self.clipboard[0]) > 0  # Enable only if the clipboard contains actual content
 
-        # We enable the move selection right and left commands only if there is a selection that begins in col 2 or later
-        # Enable the MoveColRight item if we're in the 2nd data column or later
-        top, left, bottom, right=self.LocateSelection()
-        if self.HasSelection():
-            mi=self.m_menuPopup.FindItemById(self.m_menuPopup.FindItem("Move Selection Right"))
-            mi.Enable(True)
-
-        # Enable the MoveColLeft item if we're in the 2nd data column or later
-        if left > 1 and self.HasSelection():
-            mi=self.m_menuPopup.FindItemById(self.m_menuPopup.FindItem("Move Selection Left"))
-            mi.Enable(True)
+        mi=self.m_menuPopup.FindItemById(self.m_menuPopup.FindItem("Create New Con Page"))
+        mi.Enabled=True
 
         # Pop the menu up.
         self.PopupMenu(self.m_menuPopup)

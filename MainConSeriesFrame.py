@@ -132,8 +132,11 @@ class MainConSeriesFrame ( wx.Frame ):
 		self.m_popupPaste = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Paste", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_menuPopup.Append( self.m_popupPaste )
 
-		self.m_popupCreateNewPage = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Create New Page", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menuPopup.Append( self.m_popupCreateNewPage )
+		self.m_popupAddCon = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Add Con to Series", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_menuPopup.Append( self.m_popupAddCon )
+
+		self.m_popupCreateNewConPage = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Create New Con Page", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_menuPopup.Append( self.m_popupCreateNewConPage )
 
 		self.Bind( wx.EVT_RIGHT_DOWN, self.MainConSeriesFrameOnContextMenu )
 
@@ -154,6 +157,8 @@ class MainConSeriesFrame ( wx.Frame ):
 		self.gRowGrid.Bind( wx.EVT_KEY_UP, self.OnKeyUp )
 		self.Bind( wx.EVT_MENU, self.OnPopupCopy, id = self.m_menuItemCopy.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupPaste, id = self.m_menuItemPaste.GetId() )
+		self.Bind( wx.EVT_MENU, self.OnAddConToSeries, id = self.m_popupAddCon.GetId() )
+		self.Bind( wx.EVT_MENU, self.OnCreateNewConPage, id = self.m_popupCreateNewConPage.GetId() )
 
 	def __del__( self ):
 		pass
@@ -195,6 +200,12 @@ class MainConSeriesFrame ( wx.Frame ):
 		event.Skip()
 
 	def OnPopupPaste( self, event ):
+		event.Skip()
+
+	def OnAddConToSeries( self, event ):
+		event.Skip()
+
+	def OnCreateNewConPage( self, event ):
 		event.Skip()
 
 	def gRowGridOnContextMenu( self, event ):
