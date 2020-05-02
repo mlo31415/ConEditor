@@ -657,7 +657,7 @@
                                 <property name="window_extra_style"></property>
                                 <property name="window_name"></property>
                                 <property name="window_style"></property>
-                                <event name="OnText">OnTextTopMatter</event>
+                                <event name="OnText">OnTextFancyURL</event>
                             </object>
                         </object>
                     </object>
@@ -980,25 +980,12 @@
                     <property name="help"></property>
                     <property name="id">wxID_ANY</property>
                     <property name="kind">wxITEM_NORMAL</property>
-                    <property name="label">Add Con to Series</property>
-                    <property name="name">m_popupAddCon</property>
-                    <property name="permission">none</property>
-                    <property name="shortcut"></property>
-                    <property name="unchecked_bitmap"></property>
-                    <event name="OnMenuSelection">OnAddConToSeries</event>
-                </object>
-                <object class="wxMenuItem" expanded="1">
-                    <property name="bitmap"></property>
-                    <property name="checked">0</property>
-                    <property name="enabled">1</property>
-                    <property name="help"></property>
-                    <property name="id">wxID_ANY</property>
-                    <property name="kind">wxITEM_NORMAL</property>
                     <property name="label">Create New Con Page</property>
                     <property name="name">m_popupCreateNewConPage</property>
                     <property name="permission">none</property>
                     <property name="shortcut"></property>
                     <property name="unchecked_bitmap"></property>
+                    <event name="OnMenuSelection">OnCreateNewConPage</event>
                 </object>
             </object>
         </object>
@@ -1029,7 +1016,7 @@
             <property name="window_name"></property>
             <property name="window_style">wxTAB_TRAVERSAL</property>
             <property name="xrc_skip_sizer">1</property>
-            <object class="wxToolBar" expanded="1">
+            <object class="wxToolBar" expanded="0">
                 <property name="BottomDockable">1</property>
                 <property name="LeftDockable">1</property>
                 <property name="RightDockable">1</property>
@@ -1085,7 +1072,7 @@
                 <property name="window_extra_style"></property>
                 <property name="window_name"></property>
                 <property name="window_style"></property>
-                <object class="wxButton" expanded="1">
+                <object class="wxButton" expanded="0">
                     <property name="BottomDockable">1</property>
                     <property name="LeftDockable">1</property>
                     <property name="RightDockable">1</property>
@@ -1153,7 +1140,7 @@
                     <property name="window_style"></property>
                     <event name="OnButtonClick">OnLoadConSeries</event>
                 </object>
-                <object class="wxButton" expanded="1">
+                <object class="wxButton" expanded="0">
                     <property name="BottomDockable">1</property>
                     <property name="LeftDockable">1</property>
                     <property name="RightDockable">1</property>
@@ -1221,7 +1208,7 @@
                     <property name="window_style"></property>
                     <event name="OnButtonClick">OnSaveConSeries</event>
                 </object>
-                <object class="wxButton" expanded="1">
+                <object class="wxButton" expanded="0">
                     <property name="BottomDockable">1</property>
                     <property name="LeftDockable">1</property>
                     <property name="RightDockable">1</property>
@@ -1289,7 +1276,7 @@
                     <property name="window_style"></property>
                     <event name="OnButtonClick">OnCreateConSeries</event>
                 </object>
-                <object class="wxButton" expanded="1">
+                <object class="wxButton" expanded="0">
                     <property name="BottomDockable">1</property>
                     <property name="LeftDockable">1</property>
                     <property name="RightDockable">1</property>
@@ -1367,16 +1354,23 @@
                     <property name="border">5</property>
                     <property name="flag">wxEXPAND</property>
                     <property name="proportion">1</property>
-                    <object class="wxBoxSizer" expanded="1">
-                        <property name="minimum_size"></property>
-                        <property name="name">bSizerConSeries</property>
-                        <property name="orient">wxHORIZONTAL</property>
+                    <object class="wxFlexGridSizer" expanded="1">
+                        <property name="cols">2</property>
+                        <property name="flexible_direction">wxBOTH</property>
+                        <property name="growablecols"></property>
+                        <property name="growablerows"></property>
+                        <property name="hgap">0</property>
+                        <property name="minimum_size">-1,-1</property>
+                        <property name="name">fgSizer4</property>
+                        <property name="non_flexible_grow_mode">wxFLEX_GROWMODE_SPECIFIED</property>
                         <property name="permission">none</property>
-                        <object class="sizeritem" expanded="1">
+                        <property name="rows">2</property>
+                        <property name="vgap">0</property>
+                        <object class="sizeritem" expanded="0">
                             <property name="border">5</property>
                             <property name="flag">wxALL</property>
                             <property name="proportion">0</property>
-                            <object class="wxStaticText" expanded="1">
+                            <object class="wxStaticText" expanded="0">
                                 <property name="BottomDockable">1</property>
                                 <property name="LeftDockable">1</property>
                                 <property name="RightDockable">1</property>
@@ -1404,7 +1398,7 @@
                                 <property name="gripper">0</property>
                                 <property name="hidden">0</property>
                                 <property name="id">wxID_ANY</property>
-                                <property name="label">Convention Series</property>
+                                <property name="label">Convention Series:</property>
                                 <property name="markup">0</property>
                                 <property name="max_size"></property>
                                 <property name="maximize_button">0</property>
@@ -1433,11 +1427,11 @@
                                 <property name="wrap">-1</property>
                             </object>
                         </object>
-                        <object class="sizeritem" expanded="1">
+                        <object class="sizeritem" expanded="0">
                             <property name="border">5</property>
                             <property name="flag">wxALL|wxEXPAND</property>
                             <property name="proportion">0</property>
-                            <object class="wxTextCtrl" expanded="1">
+                            <object class="wxTextCtrl" expanded="0">
                                 <property name="BottomDockable">1</property>
                                 <property name="LeftDockable">1</property>
                                 <property name="RightDockable">1</property>
@@ -1473,7 +1467,7 @@
                                 <property name="minimize_button">0</property>
                                 <property name="minimum_size"></property>
                                 <property name="moveable">1</property>
-                                <property name="name">tTopMatter</property>
+                                <property name="name">tConSeries</property>
                                 <property name="pane_border">1</property>
                                 <property name="pane_position"></property>
                                 <property name="pane_size"></property>
@@ -1495,25 +1489,13 @@
                                 <property name="window_extra_style"></property>
                                 <property name="window_name"></property>
                                 <property name="window_style"></property>
-                                <event name="OnText">OnTextTopMatter</event>
                             </object>
                         </object>
-                    </object>
-                </object>
-                <object class="sizeritem" expanded="1">
-                    <property name="border">5</property>
-                    <property name="flag">wxEXPAND</property>
-                    <property name="proportion">1</property>
-                    <object class="wxBoxSizer" expanded="1">
-                        <property name="minimum_size"></property>
-                        <property name="name">bSizerTopMatter</property>
-                        <property name="orient">wxHORIZONTAL</property>
-                        <property name="permission">none</property>
-                        <object class="sizeritem" expanded="1">
+                        <object class="sizeritem" expanded="0">
                             <property name="border">5</property>
                             <property name="flag">wxALL</property>
                             <property name="proportion">0</property>
-                            <object class="wxStaticText" expanded="1">
+                            <object class="wxStaticText" expanded="0">
                                 <property name="BottomDockable">1</property>
                                 <property name="LeftDockable">1</property>
                                 <property name="RightDockable">1</property>
@@ -1541,7 +1523,7 @@
                                 <property name="gripper">0</property>
                                 <property name="hidden">0</property>
                                 <property name="id">wxID_ANY</property>
-                                <property name="label">URL on Fancyclopedia</property>
+                                <property name="label">Convention Name:</property>
                                 <property name="markup">0</property>
                                 <property name="max_size"></property>
                                 <property name="maximize_button">0</property>
@@ -1570,11 +1552,11 @@
                                 <property name="wrap">-1</property>
                             </object>
                         </object>
-                        <object class="sizeritem" expanded="1">
+                        <object class="sizeritem" expanded="0">
                             <property name="border">5</property>
                             <property name="flag">wxALL|wxEXPAND</property>
                             <property name="proportion">0</property>
-                            <object class="wxTextCtrl" expanded="1">
+                            <object class="wxTextCtrl" expanded="0">
                                 <property name="BottomDockable">1</property>
                                 <property name="LeftDockable">1</property>
                                 <property name="RightDockable">1</property>
@@ -1610,7 +1592,7 @@
                                 <property name="minimize_button">0</property>
                                 <property name="minimum_size"></property>
                                 <property name="moveable">1</property>
-                                <property name="name">tFancyURL</property>
+                                <property name="name">tConName</property>
                                 <property name="pane_border">1</property>
                                 <property name="pane_position"></property>
                                 <property name="pane_size"></property>
@@ -1619,7 +1601,7 @@
                                 <property name="pos"></property>
                                 <property name="resize">Resizable</property>
                                 <property name="show">1</property>
-                                <property name="size">9999,-1</property>
+                                <property name="size">300,-1</property>
                                 <property name="style"></property>
                                 <property name="subclass"></property>
                                 <property name="toolbar_pane">0</property>
@@ -1632,16 +1614,16 @@
                                 <property name="window_extra_style"></property>
                                 <property name="window_name"></property>
                                 <property name="window_style"></property>
-                                <event name="OnText">OnTextTopMatter</event>
+                                <event name="OnText">OnTextConName</event>
                             </object>
                         </object>
                     </object>
                 </object>
-                <object class="sizeritem" expanded="1">
+                <object class="sizeritem" expanded="0">
                     <property name="border">5</property>
                     <property name="flag">wxALL|wxEXPAND</property>
                     <property name="proportion">1</property>
-                    <object class="wxFlexGridSizer" expanded="1">
+                    <object class="wxFlexGridSizer" expanded="0">
                         <property name="cols">2</property>
                         <property name="flexible_direction">wxBOTH</property>
                         <property name="growablecols">1</property>
@@ -1653,11 +1635,11 @@
                         <property name="permission">none</property>
                         <property name="rows">1</property>
                         <property name="vgap">0</property>
-                        <object class="sizeritem" expanded="1">
+                        <object class="sizeritem" expanded="0">
                             <property name="border">5</property>
                             <property name="flag">wxALL</property>
                             <property name="proportion">1</property>
-                            <object class="wxStaticText" expanded="1">
+                            <object class="wxStaticText" expanded="0">
                                 <property name="BottomDockable">1</property>
                                 <property name="LeftDockable">1</property>
                                 <property name="RightDockable">1</property>
@@ -1714,11 +1696,11 @@
                                 <property name="wrap">-1</property>
                             </object>
                         </object>
-                        <object class="sizeritem" expanded="1">
+                        <object class="sizeritem" expanded="0">
                             <property name="border">5</property>
                             <property name="flag">wxALL|wxEXPAND</property>
                             <property name="proportion">1</property>
-                            <object class="wxTextCtrl" expanded="1">
+                            <object class="wxTextCtrl" expanded="0">
                                 <property name="BottomDockable">1</property>
                                 <property name="LeftDockable">1</property>
                                 <property name="RightDockable">1</property>
@@ -1781,20 +1763,20 @@
                         </object>
                     </object>
                 </object>
-                <object class="sizeritem" expanded="1">
+                <object class="sizeritem" expanded="0">
                     <property name="border">5</property>
                     <property name="flag">wxEXPAND</property>
                     <property name="proportion">1</property>
-                    <object class="wxBoxSizer" expanded="1">
+                    <object class="wxBoxSizer" expanded="0">
                         <property name="minimum_size"></property>
                         <property name="name">theIssueGrid</property>
                         <property name="orient">wxVERTICAL</property>
                         <property name="permission">none</property>
-                        <object class="sizeritem" expanded="1">
+                        <object class="sizeritem" expanded="0">
                             <property name="border">5</property>
                             <property name="flag">wxALL|wxEXPAND</property>
                             <property name="proportion">0</property>
-                            <object class="wxGrid" expanded="1">
+                            <object class="wxGrid" expanded="0">
                                 <property name="BottomDockable">1</property>
                                 <property name="LeftDockable">1</property>
                                 <property name="RightDockable">1</property>
@@ -1880,11 +1862,11 @@
                                 <event name="OnGridCellRightClick">OnGridCellRightClick</event>
                                 <event name="OnKeyDown">OnKeyDown</event>
                                 <event name="OnKeyUp">OnKeyUp</event>
-                                <object class="wxMenu" expanded="1">
+                                <object class="wxMenu" expanded="0">
                                     <property name="label">MyMenu</property>
                                     <property name="name">m_menu1</property>
                                     <property name="permission">protected</property>
-                                    <object class="wxMenuItem" expanded="1">
+                                    <object class="wxMenuItem" expanded="0">
                                         <property name="bitmap"></property>
                                         <property name="checked">0</property>
                                         <property name="enabled">1</property>
@@ -1898,7 +1880,7 @@
                                         <property name="unchecked_bitmap"></property>
                                         <event name="OnMenuSelection">OnPopupCopy</event>
                                     </object>
-                                    <object class="wxMenuItem" expanded="1">
+                                    <object class="wxMenuItem" expanded="0">
                                         <property name="bitmap"></property>
                                         <property name="checked">0</property>
                                         <property name="enabled">1</property>
@@ -1918,11 +1900,11 @@
                     </object>
                 </object>
             </object>
-            <object class="wxMenu" expanded="1">
+            <object class="wxMenu" expanded="0">
                 <property name="label">MyMenu</property>
                 <property name="name">m_menuPopup</property>
                 <property name="permission">protected</property>
-                <object class="wxMenuItem" expanded="1">
+                <object class="wxMenuItem" expanded="0">
                     <property name="bitmap"></property>
                     <property name="checked">0</property>
                     <property name="enabled">1</property>
@@ -1935,7 +1917,7 @@
                     <property name="shortcut"></property>
                     <property name="unchecked_bitmap"></property>
                 </object>
-                <object class="wxMenuItem" expanded="1">
+                <object class="wxMenuItem" expanded="0">
                     <property name="bitmap"></property>
                     <property name="checked">0</property>
                     <property name="enabled">1</property>
@@ -1948,7 +1930,7 @@
                     <property name="shortcut"></property>
                     <property name="unchecked_bitmap"></property>
                 </object>
-                <object class="wxMenuItem" expanded="1">
+                <object class="wxMenuItem" expanded="0">
                     <property name="bitmap"></property>
                     <property name="checked">0</property>
                     <property name="enabled">1</property>
