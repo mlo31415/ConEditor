@@ -296,9 +296,9 @@ class MainWindow(MainConSeriesFrame):
         top, left, bottom, right=self.LocateSelection()
 
         if event.KeyCode == 67 and self.cntlDown:   # cntl-C
-            self.CopyCells(top, left, bottom, right)
+            self._grid.CopyCells(top, left, bottom, right)
         elif event.KeyCode == 86 and self.cntlDown and self.clipboard is not None and len(self.clipboard) > 0: # cntl-V
-            self.PasteCells(top, left)
+            self._grid.PasteCells(top, left)
         elif event.KeyCode == 308:                  # cntl
             self.cntlDown=True
         elif event.KeyCode == 68:                   # Kludge to be able to force a refresh (press "d")
@@ -316,48 +316,14 @@ class MainWindow(MainConSeriesFrame):
         # We need to copy the selected cells into the clipboard object.
         # (We can't simply store the coordinates because the user might edit the cells before pasting.)
         top, left, bottom, right=self.LocateSelection()
-        self.CopyCells(top, left, bottom, right)
+        self._grid.CopyCells(top, left, bottom, right)
         event.Skip()
 
     #------------------
     def OnPopupPaste(self, event):
         top, left, bottom, right=self.LocateSelection()
-        self.PasteCells(top, left)
+        self._grid.PasteCells(top, left)
         event.Skip()
-
-    #------------------
-    def CopyCells(self, top, left, bottom, right):
-        self.clipboard=[]
-        # We must remember that the first two data columns map to a single LST column.
-        for row in self._datasource.Rows[top-1: bottom]:
-            self.clipboard.append(row[left-1: right])
-
-    #------------------
-    def PasteCells(self, top, left):
-        # We paste the clipboard data into the block of the same size with the upper-left at the mouse's position
-        # Might some of the new material be outside the current bounds?  If so, add some blank rows and/or columns
-
-        # Define the bounds of the paste-to box
-        pasteTop=top
-        pasteBottom=top+len(self.clipboard)
-        pasteLeft=left
-        pasteRight=left+len(self.clipboard[0])
-
-        # Does the paste-to box extend beyond the end of the available rows?  If so, extend the available rows.
-        num=pasteBottom-len(self._datasource.Rows)-1
-        if num > 0:
-            for i in range(num):
-                self._datasource.Rows.append(["" for x in range(self._datasource.NumRows)])  # The strange contortion is to append a list of distinct empty strings
-
-        # Copy the cells from the clipboard to the grid in lstData.
-        i=pasteTop
-        for row in self.clipboard:
-            j=pasteLeft
-            for cell in row:
-                self._datasource.Rows[i-1][j-1]=cell  # The -1 is to deal with the 1-indexing
-                j+=1
-            i+=1
-        self._grid.RefreshWindowFromData()
 
     #------------------
     def OnGridCellChanged(self, event):
@@ -414,41 +380,11 @@ class MainWindow(MainConSeriesFrame):
         oldrow=rowR-1
 
         # We *should* have a fractional value or an integer value out of range. Check for this.
-        self.MoveRow(oldrow, newnumf)
+        self._grid.MoveRow(oldrow, newnumf)
         event.Veto()  # This is a bit of magic to prevent the event from making later changed to the grid.
         self._grid.RefreshWindowFromData()
         return
 
-
-    #------------------
-    def MoveRow(self, oldrow, newnumf):
-        newrows=[]
-        if newnumf < 0:
-            # Ok, it's being moved to the beginning
-            newrows.append(self._grid._datasource.Rows[oldrow])
-            newrows.extend(self._grid._datasource.Rows[0:oldrow])
-            newrows.extend(self._grid._datasource.Rows[oldrow+1:])
-        elif newnumf > len(self._grid._datasource.Rows):
-            # OK, it's being moved to the end
-            newrows.extend(self._grid._datasource.Rows[0:oldrow])
-            newrows.extend(self._grid._datasource.Rows[oldrow+1:])
-            newrows.append(self._grid._datasource.Rows[oldrow])
-        else:
-            # OK, it've being moved internally
-            newrow=math.ceil(newnumf)-1
-            if oldrow < newrow:
-                # Moving later
-                newrows.extend(self._grid._datasource.Rows[0:oldrow])
-                newrows.extend(self._grid._datasource.Rows[oldrow+1:newrow])
-                newrows.append(self._grid._datasource.Rows[oldrow])
-                newrows.extend(self._grid._datasource.Rows[newrow:])
-            else:
-                # Moving earlier
-                newrows.extend(self._grid._datasource.Rows[0:newrow])
-                newrows.append(self._grid._datasource.Rows[oldrow])
-                newrows.extend(self._grid._datasource.Rows[newrow:oldrow])
-                newrows.extend(self._grid._datasource.Rows[oldrow+1:])
-        self._grid._datasource.Rows=newrows
 
 
 

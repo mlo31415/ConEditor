@@ -59,11 +59,11 @@ class Con:
     def GetVal(self, name: Union[str, int]) -> str:
         # (Could use return eval("self."+name))
         if name == "Seq" or name == 0:
-            return str(self.Seq)
+            return self.Seq
         if name == "Name" or name == 1:
             return self.Name
         if name == "Dates" or name == 2:
-            return str(self.Dates)
+            return self.Dates
         if name == "Locale" or name == 3:
             return self.Locale
         if name == "GoHs" or name == 4:

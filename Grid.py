@@ -3,6 +3,7 @@ from typing import List
 
 import wx
 import wx.grid
+import math
 
 from HelpersPackage import Color, IsInt
 from FanzineIssueSpecPackage import FanzineDateRange, FanzineDate
@@ -209,3 +210,67 @@ class Grid():
 
         #TODO: How to virtualize this?
         self.tConName="missing name"#self._conPage._name
+        
+    #------------------
+    def MoveRow(self, oldrow, newnumf):
+        newrows=[]
+        if newnumf < 0:
+            # Ok, it's being moved to the beginning
+            newrows.append(self._datasource.Rows[oldrow])
+            newrows.extend(self._datasource.Rows[0:oldrow])
+            newrows.extend(self._datasource.Rows[oldrow+1:])
+        elif newnumf > len(self._datasource.Rows):
+            # OK, it's being moved to the end
+            newrows.extend(self._datasource.Rows[0:oldrow])
+            newrows.extend(self._datasource.Rows[oldrow+1:])
+            newrows.append(self._datasource.Rows[oldrow])
+        else:
+            # OK, it've being moved internally
+            newrow=math.ceil(newnumf)-1
+            if oldrow < newrow:
+                # Moving later
+                newrows.extend(self._datasource.Rows[0:oldrow])
+                newrows.extend(self._datasource.Rows[oldrow+1:newrow])
+                newrows.append(self._datasource.Rows[oldrow])
+                newrows.extend(self._datasource.Rows[newrow:])
+            else:
+                # Moving earlier
+                newrows.extend(self._datasource.Rows[0:newrow])
+                newrows.append(self._datasource.Rows[oldrow])
+                newrows.extend(self._datasource.Rows[newrow:oldrow])
+                newrows.extend(self._datasource.Rows[oldrow+1:])
+        self._datasource.Rows=newrows
+
+    # ------------------
+    def CopyCells(self, top, left, bottom, right):
+        self.clipboard=[]
+        # We must remember that the first two data columns map to a single LST column.
+        for row in self._datasource.Rows[top-1: bottom]:
+            self.clipboard.append(row[left-1: right])
+
+    # ------------------
+    def PasteCells(self, top, left):
+        # We paste the clipboard data into the block of the same size with the upper-left at the mouse's position
+        # Might some of the new material be outside the current bounds?  If so, add some blank rows and/or columns
+
+        # Define the bounds of the paste-to box
+        pasteTop=top
+        pasteBottom=top+len(self.clipboard)
+        pasteLeft=left
+        pasteRight=left+len(self.clipboard[0])
+
+        # Does the paste-to box extend beyond the end of the available rows?  If so, extend the available rows.
+        num=pasteBottom-len(self._datasource.Rows)-1
+        if num > 0:
+            for i in range(num):
+                self._datasource.Rows.append(["" for x in range(self._datasource.NumRows)])  # The strange contortion is to append a list of distinct empty strings
+
+        # Copy the cells from the clipboard to the grid in lstData.
+        i=pasteTop
+        for row in self.clipboard:
+            j=pasteLeft
+            for cell in row:
+                self._datasource.Rows[i-1][j-1]=cell  # The -1 is to deal with the 1-indexing
+                j+=1
+            i+=1
+        self.RefreshWindowFromData()
