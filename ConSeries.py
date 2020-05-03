@@ -94,6 +94,7 @@ class ConSeries(GridDataSource):
     _colheaders: List[str]=["Seq", "Name", "Dates", "Locale", "GoHs"]
     _coltypes: List[str]=["int", "str", "date range", "str", "str"]
     _colminwidths: List[str]=[30, 30, 30, 30, 30]
+    _element=Con
 
     def __init__(self):
         self._name: str=""

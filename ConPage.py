@@ -15,6 +15,7 @@ class ConPage(GridDataSource):
     _colheaders=["Title", "Description"]
     _colminwidths=[50, 100]
     _coltypes=["str", "str"]
+    _element=ConFile
 
     def __init__(self):
         self._conFileList: List[ConFile]=[]

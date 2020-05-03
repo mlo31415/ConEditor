@@ -11,6 +11,10 @@ from FanzineIssueSpecPackage import FanzineDateRange, FanzineDate
 class GridDataSource():
 
     @property
+    def Element(self):
+        return self._element
+
+    @property
     def ColHeaders(self) -> List[str]:
         return []
 
@@ -274,3 +278,64 @@ class Grid():
                 j+=1
             i+=1
         self.RefreshWindowFromData()
+
+
+    #------------------
+    def OnGridCellChanged(self, event):
+        rowR=event.GetRow()
+        colR=event.GetCol()
+        newVal=self.Get(rowR, colR)
+
+        # The first row is the column headers
+        if rowR == 0:
+            event.Veto()  # This is a bit of magic to prevent the event from making later changes to the grid.
+            # Note that the Column Colheaders is offset by *2*. (The first column is the row number column and is blank; the second is the weird filename thingie and is untitled.)
+            #TODO: Fix this
+            if len(self._datasource.ColHeaders)+1 < colR:
+                self._datasource.ColHeaders.extend(["" for x in range(colR-len(self._datasource.ColHeaders)-1)])
+            self._datasource.ColHeaders[colR-2]=newVal
+            self.RefreshWindowFromData()
+            return
+
+        # If we're entering data in a new row or a new column, append the necessary number of new rows of columns to lstData
+        while rowR > len(self._datasource.Rows):
+            self._datasource.Rows.append(self._datasource.Element())
+
+        while colR > len(self._datasource.ColHeaders):
+            self._datasource.Rows[rowR-1].append("")
+
+        # Ordinary columns
+        if colR > 0:
+            self.EvtHandlerEnabled=False
+            self._datasource.Rows[rowR-1].SetVal(colR-1, newVal)
+            self.ColorCellByValue(rowR-1, colR-1)
+            self.AutoSizeColumns()
+            #self.DGrid.Grid.ForceRefresh()
+            self.EvtHandlerEnabled=True
+            return
+
+        # What's left is column zero and thus the user is editing a row number
+        # If it's an "X", the row has been deleted.
+        if newVal.lower() == "x":
+            del self._datasource.Rows[rowR-1]
+            event.Veto()                # This is a bit of magic to prevent the event from making later changes to the grid.
+            self.RefreshWindowFromData()
+            return
+
+        # If it's a number, it is tricky. We need to confirm that the user entered a new number.  (If not, we restore the old one and we're done.)
+        # If there is a new number, we re-arrange the rows and then renumber them.
+        try:
+            newnumf=float(newVal)
+        except:
+            self.Set(rowR, 0, rowR)    # Restore the old value
+            return
+        newnumf-=0.00001    # When the user supplies an integer, we drop the row *just* before that integer. No overwriting!
+
+        # The indexes the user sees start with 1, but the rows list is 0-based.  Adjust accordingly.
+        oldrow=rowR-1
+
+        # We *should* have a fractional value or an integer value out of range. Check for this.
+        self.MoveRow(oldrow, newnumf)
+        event.Veto()  # This is a bit of magic to prevent the event from making later changed to the grid.
+        self.RefreshWindowFromData()
+        return
