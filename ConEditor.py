@@ -48,7 +48,6 @@ class MainWindow(MainConSeriesFrame):
         self.userSelection=None
         self.cntlDown: bool=False
         self.rightClickedColumn: Optional[int]=None
-        self.conSeriesData: ConSeries=ConSeries()
         self.filename: str=""
         self.dirname: str=""
 
@@ -56,9 +55,10 @@ class MainWindow(MainConSeriesFrame):
             self.dirname=os.getcwd()
 
         self._grid: Grid=Grid(self.gRowGrid)
-        self._grid.SetColHeaders(ConSeries._colheaders)
+        self._grid._datasource=ConSeries()
+        self._grid.SetColHeaders(self._grid._datasource.ColHeaders)
         self._grid.SetColTypes(ConSeries._coltypes)
-        self.RefreshWindowFromData()
+        self._grid.RefreshWindowFromData()
         self.Show(True)
 
     @property
@@ -75,10 +75,10 @@ class MainWindow(MainConSeriesFrame):
     def ReadConSeries(self):
 
         # Clear out any old information
-        self.conSeriesData=ConSeries()
-        for i in range(0, self.DGrid.NumrowsR):
-            for j in range(0, self.DGrid.NumcolsR):
-                self.DGrid.Set(i, j, "")
+        self._datasource=ConSeries()
+        # for i in range(0, self.DGrid.NumrowsR):
+        #     for j in range(0, self.DGrid.NumcolsR):
+        #         self.DGrid.Set(i, j, "")
 
         # Call the File Open dialog to get an con series HTML file
         dlg=wx.FileDialog(self, "Select con series file to load", self.dirname, "", "*.html", wx.FD_OPEN)
@@ -93,7 +93,6 @@ class MainWindow(MainConSeriesFrame):
         self.dirname=dlg.GetDirectory()
         dlg.Destroy()
 
-        file=None
         with open(os.path.join(self.dirname, self.filename)) as f:
             file=f.read()
 
@@ -103,8 +102,8 @@ class MainWindow(MainConSeriesFrame):
         #   The convention series name
         #   The convention series text
         #   The convention series table
-        self.conSeriesData.Name=soup.find("abc").text
-        self.conSeriesData.Stuff=soup.find("xyz").text
+        self._datasource.Name=soup.find("abc").text
+        self._datasource.Stuff=soup.find("xyz").text
         header=[l.text for l in soup.table.tr.contents if l != "\n"]
         rows=[[m for m in l if m != "\n"] for l in soup.table.tbody if l != "\n"]
         for r in rows:
@@ -115,10 +114,10 @@ class MainWindow(MainConSeriesFrame):
             con.Dates=FanzineDateRange().Match(r[2])
             con.Locale=r[3]
             con.GoHs=r[4]
-            self.conSeriesData.Rows.append(con)
+            self._datasource.Rows.append(con)
 
         # Insert the row data into the grid
-        self.RefreshWindowFromData()
+        self._grid.RefreshWindowFromData()
 
 
     def SaveConSeries(self, filename: str) -> None:
@@ -129,8 +128,8 @@ class MainWindow(MainConSeriesFrame):
 
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name is tagged with <abc>, the random text with "xyz"
-        file=SubstituteHTML(file, "abc", self.conSeriesData.Name)
-        file=SubstituteHTML(file, "xyz", self.conSeriesData.Stuff)
+        file=SubstituteHTML(file, "abc", self._datasource.Name)
+        file=SubstituteHTML(file, "xyz", self._datasource.Stuff)
 
         # Now construct the table which we'll then substitute.
         newtable='<table class="table">\n'
@@ -144,7 +143,7 @@ class MainWindow(MainConSeriesFrame):
         newtable+='    </tr>\n'
         newtable+='  </thead>\n'
         newtable+='  <tbody>\n'
-        for row in self.conSeriesData.Rows:
+        for row in self._datasource.Rows:
             newtable+="    <tr>\n"
             newtable+='      <th scope="row">'+str(row.Seq)+'</th>/n'
             newtable+='      <td>'+row.Name+'<td>\n'
@@ -160,25 +159,25 @@ class MainWindow(MainConSeriesFrame):
             f.write(file)
 
 
-    #------------------
-    # The ConSeries object has the official information. This function refreshes the display from it.
-    def RefreshWindowFromData(self):
-        self.DGrid.EvtHandlerEnabled=False
-        self.DGrid.Grid.ClearGrid()
-
-        self.DGrid.SetColHeaders(self.conSeriesData.Colheaders)
-        self.DGrid.FillInRowNumbers(self.DGrid.NumrowsR)
-
-        # Fill in the cells
-        for i in range(self.conSeriesData.NumRows):
-            for j in range(len(self.conSeriesData.Colheaders)):
-                self.DGrid.Set(i, j, self.conSeriesData.Rows[i].GetVal(self.conSeriesData.Colheaders[j]))
-
-        self.DGrid.ColorCellsByValue()
-        #self.DGrid.Grid.ForceRefresh()
-        self.DGrid.AutoSizeColumns()
-
-        self.tTopMatter.Value=self.conSeriesData.Name
+    # #------------------
+    # # The ConSeries object has the official information. This function refreshes the display from it.
+    # def RefreshWindowFromData(self):
+    #     self.DGrid.EvtHandlerEnabled=False
+    #     self.DGrid.Grid.ClearGrid()
+    #
+    #     self.DGrid.SetColHeaders(self.conSeriesData.Colheaders)
+    #     self.DGrid.FillInRowNumbers(self.DGrid.NumrowsR)
+    #
+    #     # Fill in the cells
+    #     for i in range(self.conSeriesData.NumRows):
+    #         for j in range(len(self.conSeriesData.Colheaders)):
+    #             self.DGrid.Set(i, j, self.conSeriesData.Rows[i].GetVal(self.conSeriesData.Colheaders[j]))
+    #
+    #     self.DGrid.ColorCellsByValue()
+    #     #self.DGrid.Grid.ForceRefresh()
+    #     self.DGrid.AutoSizeColumns()
+    #
+    #     self.tTopMatter.Value=self.conSeriesData.Name
 
 
     #------------------
@@ -206,9 +205,9 @@ class MainWindow(MainConSeriesFrame):
     # Create a new, empty, con series
     def OnCreateConSeries(self, event):
         self._dlgEnterFancyName=dlgEnterFancyNameWindow(None)
-        self.conSeriesData=ConSeries()
-        self.conSeriesData.Name=self._dlgEnterFancyName._FancyName
-        self.RefreshWindowFromData()
+        self._datasource=ConSeries()
+        self._datasource.Name=self._dlgEnterFancyName._FancyName
+        self._grid.RefreshWindowFromData()
         pass
 
     #------------------
@@ -218,16 +217,16 @@ class MainWindow(MainConSeriesFrame):
 
     #------------------
     def OnTextFancyURL(self, event):
-        self.conSeriesData.FirstLine=self.tTopMatter.GetValue()
+        self._datasource.FirstLine=self.tTopMatter.GetValue()
 
     #------------------
     def OnTextComments(self, event):
-        if self.conSeriesData.Stuff is not None and len(self.conSeriesData.Stuff) > 0:
-            self.conSeriesData.Stuff=self.tPText.GetValue().split("\n")
-        elif self.conSeriesData.BottomTextLines is not None and len(self.conSeriesData.BottomTextLines) > 0:
-            self.conSeriesData.BottomTextLines=self.tPText.GetValue().split("\n")
+        if self._datasource.Stuff is not None and len(self._datasource.Stuff) > 0:
+            self._datasource.Stuff=self.tPText.GetValue().split("\n")
+        elif self._datasource.BottomTextLines is not None and len(self._datasource.BottomTextLines) > 0:
+            self._datasource.BottomTextLines=self.tPText.GetValue().split("\n")
         else:
-            self.conSeriesData.Stuff=self.tPText.GetValue().split("\n")
+            self._datasource.Stuff=self.tPText.GetValue().split("\n")
 
     #------------------
     def OnGridCellDoubleclick(self, event):
@@ -246,7 +245,7 @@ class MainWindow(MainConSeriesFrame):
             mi.Enable(False)
 
         # Everything remains disabled when we're outside the defined columns
-        if self.rightClickedColumn > len(self.conSeriesData.Colheaders)+1 or self.rightClickedColumn == 0:
+        if self.rightClickedColumn > len(self._grid._datasource.ColHeaders)+1 or self.rightClickedColumn == 0:
             return
 
         # We enable the Copy item if have a selection
@@ -292,7 +291,6 @@ class MainWindow(MainConSeriesFrame):
 
         return False
 
-
     #-------------------
     def OnKeyDown(self, event):
         top, left, bottom, right=self.LocateSelection()
@@ -303,14 +301,15 @@ class MainWindow(MainConSeriesFrame):
             self.PasteCells(top, left)
         elif event.KeyCode == 308:                  # cntl
             self.cntlDown=True
-        elif event.KeyCode == 68:                   # Kludge to be able to force a refresh
-            self.RefreshWindowFromData()
+        elif event.KeyCode == 68:                   # Kludge to be able to force a refresh (press "d")
+            self._grid.RefreshWindowFromData()
         event.Skip()
 
     #-------------------
     def OnKeyUp(self, event):
         if event.KeyCode == 308:                    # cntl
             self.cntlDown=False
+        event.Skip()
 
     #------------------
     def OnPopupCopy(self, event):
@@ -330,7 +329,7 @@ class MainWindow(MainConSeriesFrame):
     def CopyCells(self, top, left, bottom, right):
         self.clipboard=[]
         # We must remember that the first two data columns map to a single LST column.
-        for row in self.conSeriesData.Rows[top-1: bottom]:
+        for row in self._datasource.Rows[top-1: bottom]:
             self.clipboard.append(row[left-1: right])
 
     #------------------
@@ -345,20 +344,20 @@ class MainWindow(MainConSeriesFrame):
         pasteRight=left+len(self.clipboard[0])
 
         # Does the paste-to box extend beyond the end of the available rows?  If so, extend the available rows.
-        num=pasteBottom-len(self.conSeriesData.Rows)-1
+        num=pasteBottom-len(self._datasource.Rows)-1
         if num > 0:
             for i in range(num):
-                self.conSeriesData.Rows.append(["" for x in range(self.conSeriesData.NumRows)])  # The strange contortion is to append a list of distinct empty strings
+                self._datasource.Rows.append(["" for x in range(self._datasource.NumRows)])  # The strange contortion is to append a list of distinct empty strings
 
         # Copy the cells from the clipboard to the grid in lstData.
         i=pasteTop
         for row in self.clipboard:
             j=pasteLeft
             for cell in row:
-                self.conSeriesData.Rows[i-1][j-1]=cell  # The -1 is to deal with the 1-indexing
+                self._datasource.Rows[i-1][j-1]=cell  # The -1 is to deal with the 1-indexing
                 j+=1
             i+=1
-        self.RefreshWindowFromData()
+        self._grid.RefreshWindowFromData()
 
     #------------------
     def OnGridCellChanged(self, event):
@@ -371,23 +370,23 @@ class MainWindow(MainConSeriesFrame):
             event.Veto()  # This is a bit of magic to prevent the event from making later changes to the grid.
             # Note that the Column Colheaders is offset by *2*. (The first column is the row number column and is blank; the second is the weird filename thingie and is untitled.)
             #TODO: Fix this
-            if len(self.conSeriesData.Colheaders)+1 < colR:
-                self.conSeriesData.Colheaders.extend(["" for x in range(colR-len(self.conSeriesData.Colheaders)-1)])
-            self.conSeriesData.Colheaders[colR-2]=newVal
-            self.RefreshWindowFromData()
+            if len(self._datasource.ColHeaders)+1 < colR:
+                self._datasource.ColHeaders.extend(["" for x in range(colR-len(self._datasource.ColHeaders)-1)])
+            self._datasource.ColHeaders[colR-2]=newVal
+            self._grid.RefreshWindowFromData()
             return
 
         # If we're entering data in a new row or a new column, append the necessary number of new rows of columns to lstData
-        while rowR > len(self.conSeriesData.Rows):
-            self.conSeriesData.Rows.append(Con())
+        while rowR > len(self._grid._datasource.Rows):
+            self._grid._datasource.Rows.append(Con())
 
-        while colR > len(self.conSeriesData.Colheaders):
-            self.conSeriesData.Rows[rowR-1].append("")
+        while colR > len(self._grid._datasource.ColHeaders):
+            self._grid._datasource.Rows[rowR-1].append("")
 
         # Ordinary columns
         if colR > 0:
             self.DGrid.EvtHandlerEnabled=False
-            self.conSeriesData.Rows[rowR-1].SetVal(colR-1, newVal)
+            self._grid._datasource.Rows[rowR-1].SetVal(colR-1, newVal)
             self.DGrid.ColorCellByValue(rowR-1, colR-1)
             self.DGrid.AutoSizeColumns()
             #self.DGrid.Grid.ForceRefresh()
@@ -397,9 +396,9 @@ class MainWindow(MainConSeriesFrame):
         # What's left is column zero and thus the user is editing a row number
         # If it's an "X", the row has been deleted.
         if newVal.lower() == "x":
-            del self.conSeriesData.Rows[rowR-1]
+            del self._grid._datasource.Rows[rowR-1]
             event.Veto()                # This is a bit of magic to prevent the event from making later changes to the grid.
-            self.RefreshWindowFromData()
+            self._grid.RefreshWindowFromData()
             return
 
         # If it's a number, it is tricky. We need to confirm that the user entered a new number.  (If not, we restore the old one and we're done.)
@@ -417,7 +416,7 @@ class MainWindow(MainConSeriesFrame):
         # We *should* have a fractional value or an integer value out of range. Check for this.
         self.MoveRow(oldrow, newnumf)
         event.Veto()  # This is a bit of magic to prevent the event from making later changed to the grid.
-        self.RefreshWindowFromData()
+        self._grid.RefreshWindowFromData()
         return
 
 
@@ -426,33 +425,30 @@ class MainWindow(MainConSeriesFrame):
         newrows=[]
         if newnumf < 0:
             # Ok, it's being moved to the beginning
-            newrows.append(self.conSeriesData.Rows[oldrow])
-            newrows.extend(self.conSeriesData.Rows[0:oldrow])
-            newrows.extend(self.conSeriesData.Rows[oldrow+1:])
-        elif newnumf > len(self.conSeriesData.Rows):
+            newrows.append(self._grid._datasource.Rows[oldrow])
+            newrows.extend(self._grid._datasource.Rows[0:oldrow])
+            newrows.extend(self._grid._datasource.Rows[oldrow+1:])
+        elif newnumf > len(self._grid._datasource.Rows):
             # OK, it's being moved to the end
-            newrows.extend(self.conSeriesData.Rows[0:oldrow])
-            newrows.extend(self.conSeriesData.Rows[oldrow+1:])
-            newrows.append(self.conSeriesData.Rows[oldrow])
+            newrows.extend(self._grid._datasource.Rows[0:oldrow])
+            newrows.extend(self._grid._datasource.Rows[oldrow+1:])
+            newrows.append(self._grid._datasource.Rows[oldrow])
         else:
             # OK, it've being moved internally
             newrow=math.ceil(newnumf)-1
             if oldrow < newrow:
                 # Moving later
-                newrows.extend(self.conSeriesData.Rows[0:oldrow])
-                newrows.extend(self.conSeriesData.Rows[oldrow+1:newrow])
-                newrows.append(self.conSeriesData.Rows[oldrow])
-                newrows.extend(self.conSeriesData.Rows[newrow:])
+                newrows.extend(self._grid._datasource.Rows[0:oldrow])
+                newrows.extend(self._grid._datasource.Rows[oldrow+1:newrow])
+                newrows.append(self._grid._datasource.Rows[oldrow])
+                newrows.extend(self._grid._datasource.Rows[newrow:])
             else:
                 # Moving earlier
-                newrows.extend(self.conSeriesData.Rows[0:newrow])
-                newrows.append(self.conSeriesData.Rows[oldrow])
-                newrows.extend(self.conSeriesData.Rows[newrow:oldrow])
-                newrows.extend(self.conSeriesData.Rows[oldrow+1:])
-        self.conSeriesData.Rows=newrows
-
-    def OnMyButton( self, event ):
-        frame.Hide()
+                newrows.extend(self._grid._datasource.Rows[0:newrow])
+                newrows.append(self._grid._datasource.Rows[oldrow])
+                newrows.extend(self._grid._datasource.Rows[newrow:oldrow])
+                newrows.extend(self._grid._datasource.Rows[oldrow+1:])
+        self._grid._datasource.Rows=newrows
 
 
 

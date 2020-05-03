@@ -7,14 +7,47 @@ import wx.grid
 from HelpersPackage import Color, IsInt
 from FanzineIssueSpecPackage import FanzineDateRange, FanzineDate
 
+class GridDataSource():
+
+    @property
+    def ColHeaders(self) -> List[str]:
+        return []
+
+    @property
+    def ColDataTypes(self) -> List[str]:
+        return []
+
+    @property
+    def ColMinWidths(self) -> List[int]:
+        return []
+
+    @property
+    def NumRows(self) -> int:
+        return -1
+
+    def Data(self, iRow: int, iCol: int) -> str:
+        pass
+
+    @property
+    def Rows(self) -> List:     # Types of list elements needs to be undefined since we don't know what they will be.
+        return []
+
+    @Rows.setter
+    def Rows(self, rows: List) -> None:
+        pass
+
+
 # The class hides the machinations needed to handle the row and column headers
 class Grid():
 
     def __init__(self, grid: wx.grid.Grid):
         self._grid: wx.grid.Grid=grid
-        self._colminwidths: List[int]=[]
-        self._coltypes: List[str]=[]
-        self._colheaders: List[str]=[]
+
+        self._datasource: GridDataSource=GridDataSource()
+
+        # self._colminwidths: List[int]=[]
+        # self._coltypes: List[str]=[]
+        # self._colheaders: List[str]=[]
 
         # The grid is a bit non-standard, since I want to be able to edit row numbers and column headers
         # The row and column labels are actually the (editable) 1st column and 1st row of the spreadsheet (they're colored gray)
@@ -111,9 +144,9 @@ class Grid():
 
     def AutoSizeColumns(self):
         self._grid.AutoSizeColumns()
-        if len(self._colminwidths) == self._grid.NumberCols-1:
+        if len(self._datasource.ColMinWidths) == self._grid.NumberCols-1:
             iColR=1     # Skip the first columnw hich contains the row number
-            for width in self._colminwidths:
+            for width in self._datasource.ColMinWidths:
                 w=self.Grid.GetColSize(iColR)
                 if w < width:
                     self.Grid.SetColSize(iColR, width)
@@ -157,3 +190,22 @@ class Grid():
         for iRow in range(0, self._grid.NumberRows-1):
             for iCol in range(0, self._grid.NumberCols-1):
                 self.ColorCellByValue(iRow, iCol)
+
+
+    def RefreshWindowFromData(self):
+        self.EvtHandlerEnabled=False
+        self.Grid.ClearGrid()
+
+        self.SetColHeaders(self._colheaders)
+        self.FillInRowNumbers(self.NumrowsR)
+
+        # Fill in the cells
+        for i in range(self._datasource.NumRows):
+            for j in range(len(self._colheaders)):
+                self.Set(i, j, self._datasource.Data(i, j))
+
+        self.ColorCellsByValue()      #TODO: Maybe merge these into one call?
+        self.AutoSizeColumns()
+
+        #TODO: How to virtualize this?
+        self.tConName="missing name"#self._conPage._name

@@ -1,6 +1,8 @@
 from __future__ import annotations
 from typing import Optional, List, Union
 
+from Grid import GridDataSource
+
 from FanzineIssueSpecPackage import FanzineDateRange
 
 
@@ -88,14 +90,43 @@ class Con:
         return "SetVal can't interpret '"+str(name)+"'"
 
 ####################################################################################
-class ConSeries:
+class ConSeries(GridDataSource):
     _colheaders: List[str]=["Seq", "Name", "Dates", "Locale", "GoHs"]
     _coltypes: List[str]=["int", "str", "date range", "str", "str"]
+    _colminwidths: List[str]=[30, 30, 30, 30, 30]
 
     def __init__(self):
         self._name: str=""
         self._series: List[Con]=[]
         self._stuff: str=""
+
+    # Inherited from GridDataSource
+    @property
+    def ColHeaders(self) -> List[str]:
+        return ConSeries._colheaders
+
+    @property
+    def ColTypes(self) -> List[str]:
+        return ConSeries._coltypes
+
+    @property
+    def ColMinWidths(self) -> List[str]:
+        return ConSeries._colminwidths
+
+    @property
+    def NumRows(self) -> int:
+        return len(self._series)
+
+    def Data(self, iRow: int, iCol: int) -> str:
+        return self.Rows[iRow].GetVal(self.ColHeaders[iCol])
+
+    @property
+    def Rows(self) -> List:
+        return self._series
+
+    @Rows.setter
+    def Rows(self, rows: List) -> None:
+        self._series=rows
 
     #------------
     @property
@@ -117,27 +148,12 @@ class ConSeries:
 
     #------------
     @property
-    def Colheaders(self) -> List[str]:
-        return self._colheaders
-
-    @Colheaders.setter
-    def Colheaders(self, val: List[str]) -> None:
-        self._colheaders=val
-
-    #------------
-    @property
     def Rows(self) -> List[Con]:
         return self._series
 
     @Rows.setter
     def Rows(self, val: List[Con]) -> None:
         self._series=val
-
-    #------------------------------
-    @property
-    def NumRows(self) -> int:
-        return len(self._series)
-
 
     def IdentifyColumnHeaders(self):
         assert(False)

@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import List
+from Grid import GridDataSource
 
 
 class ConFile:
@@ -9,22 +10,45 @@ class ConFile:
         self._pathname: str=""
 
 
-class ConPage:
+class ConPage(GridDataSource):
     # an array of tuples: column header, min col width, col type
-    Colheaders=["Title", "Description"]
-    ColMinWidths=[50, 100]
-    ColDataTypes=["str", "str"]
+    _colheaders=["Title", "Description"]
+    _colminwidths=[50, 100]
+    _coltypes=["str", "str"]
 
     def __init__(self):
         self._conFileList: List[ConFile]=[]
         self._name=""
 
+
+    # Inherited from GridDataSource
+    @property
+    def ColHeaders(self) -> List[str]:
+        return self._colheaders
+
+    @property
+    def Rows(self) -> List:
+        return self._conFileList
+
+    @Rows.setter
+    def Rows(self, rows: List) -> None:
+        self._conFileList=rows
+
+    @property
+    def ColDataTypes(self) -> List[str]:
+        return self._coltypes
+
+    @property
+    def ColMinWidths(self) -> List[int]:
+        return self._colminwidths
+
     @property
     def NumRows(self) -> int:
         return len(self._conFileList)
 
-    @property
-    def Rows(self):
-        return self._conFileList
+    def Data(self, iRow: int, iCol: int) -> str:
+        return "Data"
+
+
 
 
