@@ -29,8 +29,6 @@ class MainConSeriesFrame ( wx.Frame ):
 		self.m_toolBar2.AddControl( self.bSaveConSeries )
 		self.bCreateConSeries = wx.Button( self.m_toolBar2, wx.ID_ANY, u"Create New ConSeries", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_toolBar2.AddControl( self.bCreateConSeries )
-		self.m_button4 = wx.Button( self.m_toolBar2, wx.ID_ANY, u"MyButton", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_toolBar2.AddControl( self.m_button4 )
 		self.m_toolBar2.Realize()
 
 		bSizerMainBox = wx.BoxSizer( wx.VERTICAL )
@@ -132,9 +130,6 @@ class MainConSeriesFrame ( wx.Frame ):
 		self.m_popupPaste = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Paste", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_menuPopup.Append( self.m_popupPaste )
 
-		self.m_popupAddCon = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Add Con to Series", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menuPopup.Append( self.m_popupAddCon )
-
 		self.m_popupCreateNewConPage = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Create New Con Page", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_menuPopup.Append( self.m_popupCreateNewConPage )
 
@@ -147,9 +142,8 @@ class MainConSeriesFrame ( wx.Frame ):
 		self.bLoadConSeries.Bind( wx.EVT_BUTTON, self.OnLoadConSeries )
 		self.bSaveConSeries.Bind( wx.EVT_BUTTON, self.OnSaveConSeries )
 		self.bCreateConSeries.Bind( wx.EVT_BUTTON, self.OnCreateConSeries )
-		self.m_button4.Bind( wx.EVT_BUTTON, self.OnMyButton )
 		self.tTopMatter.Bind( wx.EVT_TEXT, self.OnTextTopMatter )
-		self.tFancyURL.Bind( wx.EVT_TEXT, self.OnTextTopMatter )
+		self.tFancyURL.Bind( wx.EVT_TEXT, self.OnTextFancyURL )
 		self.tPText.Bind( wx.EVT_TEXT, self.OnTextComments )
 		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_CHANGED, self.OnGridCellChanged )
 		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnGridCellRightClick )
@@ -157,7 +151,6 @@ class MainConSeriesFrame ( wx.Frame ):
 		self.gRowGrid.Bind( wx.EVT_KEY_UP, self.OnKeyUp )
 		self.Bind( wx.EVT_MENU, self.OnPopupCopy, id = self.m_menuItemCopy.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupPaste, id = self.m_menuItemPaste.GetId() )
-		self.Bind( wx.EVT_MENU, self.OnAddConToSeries, id = self.m_popupAddCon.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnCreateNewConPage, id = self.m_popupCreateNewConPage.GetId() )
 
 	def __del__( self ):
@@ -174,12 +167,11 @@ class MainConSeriesFrame ( wx.Frame ):
 	def OnCreateConSeries( self, event ):
 		event.Skip()
 
-	def OnMyButton( self, event ):
-		event.Skip()
-
 	def OnTextTopMatter( self, event ):
 		event.Skip()
 
+	def OnTextFancyURL( self, event ):
+		event.Skip()
 
 	def OnTextComments( self, event ):
 		event.Skip()
@@ -200,9 +192,6 @@ class MainConSeriesFrame ( wx.Frame ):
 		event.Skip()
 
 	def OnPopupPaste( self, event ):
-		event.Skip()
-
-	def OnAddConToSeries( self, event ):
 		event.Skip()
 
 	def OnCreateNewConPage( self, event ):

@@ -10,99 +10,18 @@ from bs4 import BeautifulSoup
 
 from MainConSeriesFrame import MainConSeriesFrame
 
-from HelpersPackage import Bailout, IsInt, StripExternalTags, SubstituteHTML
+from HelpersPackage import Bailout, IsInt, StripExternalTags, SubstituteHTML, Color
 from Log import LogOpen
 from FanzineIssueSpecPackage import FanzineDateRange
 
 from ConSeries import ConSeries, Con
+from Grid import Grid
 
 from dlgEnterFancyName import dlgEnterFancyName
-from MainConFrame import MainConFrame
-
-# Define some RGB color constants
-colorLabelGray=wx.Colour(230, 230, 230)
-colorPink=wx.Colour(255, 230, 230)
-colorLightGreen=wx.Colour(240, 255, 240)
-colorLightBlue=wx.Colour(240, 230, 255)
-colorWhite=wx.Colour(255, 255, 255)
-
+from ConFramePage import MainConFrameClass
 
 def ValidateData(a, b):
     return True
-
-
-# The class hides the machinations needed to handle the row and column headers
-class Grid():
-
-    def __init__(self, grid: wx.grid.Grid):
-        self._grid: wx.grid.Grid=grid
-
-    def Refresh(self, cs: ConSeries):
-        assert(False)
-
-    # Set using raw row and column numbers (raw includes the row and column headers as index 0)
-    def RawSet(self, row: int, col: int, val: str) ->None:
-        if row >= self.Numrows:
-            self.AppendEmptyRows(self.Numrows-row+1)
-        if col >= self.Numcols:
-            self.AppendEmptyCols((self.Numcols-col+1))
-        self._grid.SetCellValue(row, col, val)
-
-    # This only gives access to the actual cells
-    def Set(self, row: int, col: int, val: str) -> None:
-        self.RawSet(row+1, col+1, val)
-
-    def Get(self, row: int, col: int) -> str:
-        return self._grid.GetCellValue(row, col)
-
-    @property
-    def Numcols(self) -> int:
-        return self._grid.NumberCols
-
-    @property
-    def Numrows(self) -> int:
-        return self._grid.NumberRows
-    
-    @property
-    def Grid(self):
-        return self._grid
-
-    def AppendRows(self, rows):
-        assert(False)
-
-    def AppendEmptyRows(self, nrows: int) ->None:
-        self._grid.AppendRows(nrows)
-
-    def AppendEmptyCols(self, ncols: int) -> None:
-        self._grid.AppendCols(ncols)
-
-    def SetColHeaders(self, headers: List[str]) -> None:
-        # Color all the column headers white before coloring the ones that actually exist gray.  (This handles cases where a column has been deleted.)
-        for i in range(0, self.Numcols-1):
-            self.Grid.SetCellBackgroundColour(0, i, colorWhite)
-
-        # Add the column headers
-        self.Grid.SetCellValue(0, 0, "")
-        i=1
-        for colhead in headers:
-            self.RawSet(0, i, colhead)               # Set the column header number
-            self.Grid.SetCellBackgroundColour(0, i, colorLabelGray)  # Set the column header background
-            i+=1
-        self.Grid.SetCellBackgroundColour(0, 0, colorLabelGray)
-        self.Grid.SetCellBackgroundColour(0, 1, colorLabelGray)
-
-    def SetRowNumbers(self, num: int) -> None:
-        # Make the first grid column contain editable row numbers
-        for i in range(1, self.Numrows):    # The 0,0 cell is left blank
-            self.RawSet(i, 0, str(i))
-            self.Grid.SetCellBackgroundColour(i, 0, colorLabelGray)
-        self.Grid.SetCellBackgroundColour(0, 0, colorLabelGray)
-
-    def SetCellBackgroundColor(self, row, col, color):
-        self.Grid.SetCellBackgroundColour(row+1, col+1, color)
-
-
-
 
 #####################################################################################
 class dlgEnterFancyNameWindow(dlgEnterFancyName):
@@ -116,15 +35,6 @@ class dlgEnterFancyNameWindow(dlgEnterFancyName):
 
     def OnTextChanged(self, event):
         self._FancyName=self.m_textCtrl4.Value
-
-
-#####################################################################################
-class MainConFrameClass(MainConFrame):
-    def __init__(self, parent):
-        MainConFrame.__init__(self, parent)
-        self._FancyName: str=""
-        self.Show()
-
 
 
 
@@ -279,15 +189,15 @@ class MainWindow(MainConSeriesFrame):
         # Col 0 is a number and 3 is a date and the rest are strings.   We walk the rows checking the type of data in that column.
         for iRow in range(0, len(self.conSeriesData.Rows)):
             val=self.conSeriesData.Rows[iRow].GetVal(0)
-            color=colorWhite
+            color=Color.White
             if val is not None and val != "None" and not IsInt(val):
-                color=colorPink
+                color=Color.Pink
             self.DGrid.SetCellBackgroundColor(iRow, 0, color)
 
             val=self.conSeriesData.Rows[iRow].GetVal(2)
-            color=colorWhite
+            color=Color.White
             if val is not None and val != "None" and FanzineDateRange().Match(val).IsEmpty():
-                color=colorPink
+                color=Color.Pink
             self.DGrid.SetCellBackgroundColor(iRow, 2, color)
 
     #------------------
@@ -312,11 +222,6 @@ class MainWindow(MainConSeriesFrame):
             Bailout(PermissionError, "OnSaveConseries fails when trying to write file "+oldname, "LSTError")
 
     #------------------
-    def OnAddConToSeries(self, event):
-        pass
-
-
-    #------------------
     # Create a new, empty, con series
     def OnCreateConSeries(self, event):
         self._dlgEnterFancyName=dlgEnterFancyNameWindow(None)
@@ -331,7 +236,7 @@ class MainWindow(MainConSeriesFrame):
         frame.Show()
 
     #------------------
-    def OnTextTopMatter(self, event):
+    def OnTextFancyURL(self, event):
         self.conSeriesData.FirstLine=self.tTopMatter.GetValue()
 
     #------------------
