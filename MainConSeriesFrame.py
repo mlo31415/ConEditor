@@ -18,7 +18,7 @@ import wx.grid
 class MainConSeriesFrame ( wx.Frame ):
 
 	def __init__( self, parent ):
-		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Edit Convention Series", pos = wx.DefaultPosition, size = wx.Size( 729,776 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Edit Convention Series", pos = wx.Point( -1,15 ), size = wx.Size( 729,452 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
@@ -40,7 +40,9 @@ class MainConSeriesFrame ( wx.Frame ):
 
 		bSizerConSeries.Add( self.m_staticText1, 0, wx.ALL, 5 )
 
-		self.tTopMatter = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 200,-1 ), 0 )
+		self.tTopMatter = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 200,25 ), 0 )
+		self.tTopMatter.SetMaxSize( wx.Size( -1,25 ) )
+
 		bSizerConSeries.Add( self.tTopMatter, 0, wx.ALL|wx.EXPAND, 5 )
 
 
@@ -54,6 +56,8 @@ class MainConSeriesFrame ( wx.Frame ):
 		bSizerTopMatter.Add( self.m_staticText11, 0, wx.ALL, 5 )
 
 		self.tFancyURL = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 9999,-1 ), 0 )
+		self.tFancyURL.SetMaxSize( wx.Size( -1,25 ) )
+
 		bSizerTopMatter.Add( self.tFancyURL, 0, wx.ALL|wx.EXPAND, 5 )
 
 
@@ -83,7 +87,7 @@ class MainConSeriesFrame ( wx.Frame ):
 		self.gRowGrid = wx.grid.Grid( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
 
 		# Grid
-		self.gRowGrid.CreateGrid( 100, 6 )
+		self.gRowGrid.CreateGrid( 10, 6 )
 		self.gRowGrid.EnableEditing( True )
 		self.gRowGrid.EnableGridLines( True )
 		self.gRowGrid.EnableDragGridSize( False )

@@ -18,7 +18,7 @@ import wx.grid
 class MainConFrame ( wx.Frame ):
 
 	def __init__( self, parent ):
-		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Edit Convention ", pos = wx.DefaultPosition, size = wx.Size( 729,776 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Edit Convention ", pos = wx.DefaultPosition, size = wx.Size( 729,446 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
@@ -80,7 +80,7 @@ class MainConFrame ( wx.Frame ):
 		self.gRowGrid = wx.grid.Grid( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
 
 		# Grid
-		self.gRowGrid.CreateGrid( 100, 6 )
+		self.gRowGrid.CreateGrid( 10, 2 )
 		self.gRowGrid.EnableEditing( True )
 		self.gRowGrid.EnableGridLines( True )
 		self.gRowGrid.EnableDragGridSize( False )

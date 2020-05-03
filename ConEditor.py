@@ -56,6 +56,9 @@ class MainWindow(MainConSeriesFrame):
             self.dirname=os.getcwd()
 
         self._grid: Grid=Grid(self.gRowGrid)
+        self._grid.SetColHeaders(ConSeries._colheaders)
+        self._grid.SetColTypes(ConSeries._coltypes)
+        self.RefreshWindowFromData()
         self.Show(True)
 
     @property
@@ -73,8 +76,8 @@ class MainWindow(MainConSeriesFrame):
 
         # Clear out any old information
         self.conSeriesData=ConSeries()
-        for i in range(0, self.DGrid.Numrows):
-            for j in range(0, self.DGrid.Numcols):
+        for i in range(0, self.DGrid.NumrowsR):
+            for j in range(0, self.DGrid.NumcolsR):
                 self.DGrid.Set(i, j, "")
 
         # Call the File Open dialog to get an con series HTML file
@@ -163,42 +166,20 @@ class MainWindow(MainConSeriesFrame):
         self.DGrid.EvtHandlerEnabled=False
         self.DGrid.Grid.ClearGrid()
 
-        # The grid is a bit non-standard, since I want to be able to edit row numbers and column headers
-        # The row and column labels are actually the (editable) 1st column and 1st row of the spreadsheet (they're colored gray)
-        # and the "real" row and column labels are hidden.
-        self.gRowGrid.HideRowLabels()
-        self.gRowGrid.HideColLabels()
-
         self.DGrid.SetColHeaders(self.conSeriesData.Colheaders)
-        self.DGrid.SetRowNumbers(self.DGrid.Numrows)
+        self.DGrid.FillInRowNumbers(self.DGrid.NumrowsR)
 
         # Fill in the cells
         for i in range(self.conSeriesData.NumRows):
             for j in range(len(self.conSeriesData.Colheaders)):
                 self.DGrid.Set(i, j, self.conSeriesData.Rows[i].GetVal(self.conSeriesData.Colheaders[j]))
 
-        self.ColorCellByValue()
-        self.DGrid.Grid.ForceRefresh()
-        self.DGrid.Grid.AutoSizeColumns()
+        self.DGrid.ColorCellsByValue()
+        #self.DGrid.Grid.ForceRefresh()
+        self.DGrid.AutoSizeColumns()
 
         self.tTopMatter.Value=self.conSeriesData.Name
 
-
-    def ColorCellByValue(self):
-        # Analyze the data and highlight cells where the data type doesn't match the header.  (E.g., Volume='August', Month='17', year='20')
-        # Col 0 is a number and 3 is a date and the rest are strings.   We walk the rows checking the type of data in that column.
-        for iRow in range(0, len(self.conSeriesData.Rows)):
-            val=self.conSeriesData.Rows[iRow].GetVal(0)
-            color=Color.White
-            if val is not None and val != "None" and not IsInt(val):
-                color=Color.Pink
-            self.DGrid.SetCellBackgroundColor(iRow, 0, color)
-
-            val=self.conSeriesData.Rows[iRow].GetVal(2)
-            color=Color.White
-            if val is not None and val != "None" and FanzineDateRange().Match(val).IsEmpty():
-                color=Color.Pink
-            self.DGrid.SetCellBackgroundColor(iRow, 2, color)
 
     #------------------
     # Save a con series object to disk.
@@ -381,40 +362,42 @@ class MainWindow(MainConSeriesFrame):
 
     #------------------
     def OnGridCellChanged(self, event):
-        row=event.GetRow()
-        col=event.GetCol()
-        newVal=self.DGrid.Get(row, col)
+        rowR=event.GetRow()
+        colR=event.GetCol()
+        newVal=self.DGrid.Get(rowR, colR)
 
         # The first row is the column headers
-        if row == 0:
+        if rowR == 0:
             event.Veto()  # This is a bit of magic to prevent the event from making later changes to the grid.
             # Note that the Column Colheaders is offset by *2*. (The first column is the row number column and is blank; the second is the weird filename thingie and is untitled.)
-            if len(self.conSeriesData.Colheaders)+1 < col:
-                self.conSeriesData.Colheaders.extend(["" for x in range(col-len(self.conSeriesData.Colheaders)-1)])
-            self.conSeriesData.Colheaders[col-2]=newVal
+            #TODO: Fix this
+            if len(self.conSeriesData.Colheaders)+1 < colR:
+                self.conSeriesData.Colheaders.extend(["" for x in range(colR-len(self.conSeriesData.Colheaders)-1)])
+            self.conSeriesData.Colheaders[colR-2]=newVal
             self.RefreshWindowFromData()
             return
 
         # If we're entering data in a new row or a new column, append the necessary number of new rows of columns to lstData
-        while row > len(self.conSeriesData.Rows):
+        while rowR > len(self.conSeriesData.Rows):
             self.conSeriesData.Rows.append(Con())
 
-        while col > len(self.conSeriesData.Colheaders):
-            self.conSeriesData.Rows[row-1].append("")
+        while colR > len(self.conSeriesData.Colheaders):
+            self.conSeriesData.Rows[rowR-1].append("")
 
         # Ordinary columns
-        if col > 0:
+        if colR > 0:
             self.DGrid.EvtHandlerEnabled=False
-            self.conSeriesData.Rows[row-1].SetVal(col-1, newVal)
-            self.ColorCellByValue()
-            self.DGrid.Grid.AutoSizeColumns()
+            self.conSeriesData.Rows[rowR-1].SetVal(colR-1, newVal)
+            self.DGrid.ColorCellByValue(rowR-1, colR-1)
+            self.DGrid.AutoSizeColumns()
+            #self.DGrid.Grid.ForceRefresh()
             self.DGrid.EvtHandlerEnabled=True
             return
 
         # What's left is column zero and thus the user is editing a row number
         # If it's an "X", the row has been deleted.
         if newVal.lower() == "x":
-            del self.conSeriesData.Rows[row-1]
+            del self.conSeriesData.Rows[rowR-1]
             event.Veto()                # This is a bit of magic to prevent the event from making later changes to the grid.
             self.RefreshWindowFromData()
             return
@@ -424,12 +407,12 @@ class MainWindow(MainConSeriesFrame):
         try:
             newnumf=float(newVal)
         except:
-            self.DGrid.Set(row, 0, str(row))    # Restore the old value
+            self.DGrid.Set(rowR, 0, rowR)    # Restore the old value
             return
         newnumf-=0.00001    # When the user supplies an integer, we drop the row *just* before that integer. No overwriting!
 
         # The indexes the user sees start with 1, but the rows list is 0-based.  Adjust accordingly.
-        oldrow=row-1
+        oldrow=rowR-1
 
         # We *should* have a fractional value or an integer value out of range. Check for this.
         self.MoveRow(oldrow, newnumf)

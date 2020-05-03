@@ -10,7 +10,10 @@ class ConFile:
 
 
 class ConPage:
+    # an array of tuples: column header, min col width, col type
     Colheaders=["Title", "Description"]
+    ColMinWidths=[50, 100]
+    ColDataTypes=["str", "str"]
 
     def __init__(self):
         self._conFileList: List[ConFile]=[]

@@ -1713,7 +1713,7 @@
                                 <property name="row_label_values"></property>
                                 <property name="row_label_vert_alignment">wxALIGN_CENTER</property>
                                 <property name="row_sizes"></property>
-                                <property name="rows">100</property>
+                                <property name="rows">10</property>
                                 <property name="show">1</property>
                                 <property name="size"></property>
                                 <property name="subclass"></property>

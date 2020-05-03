@@ -11,6 +11,11 @@ class MainConFrameClass(MainConFrame):
         self._grid: Grid=Grid(self.gRowGrid)
         self._conPage=ConPage()
 
+        #self.DGrid.NumcolsR=len(self._conPage.Colheaders)+1
+        self.DGrid.SetColHeaders(self._conPage.Colheaders)
+        self.DGrid.SetColTypes(self._conPage.ColDataTypes)
+        self.DGrid.FillInRowNumbers(self.DGrid.NumrowsR)
+
         self.RefreshWindowFromData()
         self.Show()
 
@@ -19,30 +24,20 @@ class MainConFrameClass(MainConFrame):
     def DGrid(self) -> Grid:
         return self._grid
 
-    def ColorCellByValue(self) -> None:
-        pass
-
     def RefreshWindowFromData(self):
         self.DGrid.EvtHandlerEnabled=False
         self.DGrid.Grid.ClearGrid()
 
-        # The grid is a bit non-standard, since I want to be able to edit row numbers and column headers
-        # The row and column labels are actually the (editable) 1st column and 1st row of the spreadsheet (they're colored gray)
-        # and the "real" row and column labels are hidden.
-        self.gRowGrid.HideRowLabels()
-        self.gRowGrid.HideColLabels()
-
-        self.DGrid.Numcols=len(self._conPage.Colheaders)
-        self.DGrid.SetColHeaders(self._conPage.Colheaders)
-        self.DGrid.SetRowNumbers(self.DGrid.Numrows)
+        self.DGrid.SetColHeaders(self.DGrid._colheaders)
+        self.DGrid.FillInRowNumbers(self.DGrid.NumrowsR)
 
         # Fill in the cells
         for i in range(self._conPage.NumRows):
             for j in range(len(self._conPage.Colheaders)):
                 self.DGrid.Set(i, j, self._conPage.Rows[i].GetVal(self._conPage.Colheaders[j]))
 
-        self.ColorCellByValue()
-        self.DGrid.Grid.ForceRefresh()
-        self.DGrid.Grid.AutoSizeColumns()
+        self.DGrid.ColorCellsByValue()      #TODO: Maybe merge these into one call?
+        #self.DGrid.Grid.ForceRefresh()
+        self.DGrid.AutoSizeColumns()
 
         self.tConName=self._conPage._name

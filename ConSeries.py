@@ -89,11 +89,13 @@ class Con:
 
 ####################################################################################
 class ConSeries:
+    _colheaders: List[str]=["Seq", "Name", "Dates", "Locale", "GoHs"]
+    _coltypes: List[str]=["int", "str", "date range", "str", "str"]
+
     def __init__(self):
         self._name: str=""
         self._series: List[Con]=[]
         self._stuff: str=""
-        self._colheaders: List[str]=["Seq", "Name", "Dates", "Locale", "GoHs"]
 
     #------------
     @property
