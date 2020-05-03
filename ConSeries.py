@@ -56,7 +56,7 @@ class Con:
         self._dates=val
 
     # Get or set a value by name or column number
-    def GetVal(self, name: Union[str, int]) -> str:
+    def GetVal(self, name: Union[str, int]) -> Union[str, int, FanzineDateRange]:
         # (Could use return eval("self."+name))
         if name == "Seq" or name == 0:
             return self.Seq
