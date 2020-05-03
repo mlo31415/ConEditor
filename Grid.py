@@ -31,6 +31,16 @@ class Grid():
     def Numcols(self) -> int:
         return self._grid.NumberCols
 
+    @Numcols.setter
+    def Numcols(self, val: int) -> None:
+        val+=1      # The first column is used for the row number
+        if self._grid.NumberCols == val:
+            return
+        if self._grid.NumberCols > val:
+            self._grid.DeleteCols(val, self._grid.NumberCols-val)
+        else:
+            self._grid.AppendCols(val, self._grid.NumberCols-val)
+
     @property
     def Numrows(self) -> int:
         return self._grid.NumberRows
