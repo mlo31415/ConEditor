@@ -49,10 +49,7 @@ class Grid():
         self._grid: wx.grid.Grid=grid
 
         self._datasource: GridDataSource=GridDataSource()
-
-        # self._colminwidths: List[int]=[]
-        # self._coltypes: List[str]=[]
-        # self._colheaders: List[str]=[]
+        self.clipboard=None         # The grid's clipboard
 
         # The grid is a bit non-standard, since I want to be able to edit row numbers and column headers
         # The row and column labels are actually the (editable) 1st column and 1st row of the spreadsheet (they're colored gray)
@@ -339,3 +336,95 @@ class Grid():
         event.Veto()  # This is a bit of magic to prevent the event from making later changed to the grid.
         self.RefreshWindowFromData()
         return
+
+    #------------------
+    def OnGridCellDoubleclick(self, event):
+        if event.GetRow() == 0 and event.GetCol() == 0:
+            self.Grid.AutoSize()
+            return
+        if event.GetRow() == 0 and event.GetCol() > 0:
+            self.Grid.AutoSizeColumn(event.GetCol())
+
+    #------------------
+    def OnGridCellRightClick(self, event, m_menuPopup):
+        self.rightClickedColumn=event.GetCol()
+
+        # Set everything to disabled.
+        for mi in m_menuPopup.GetMenuItems():
+            mi.Enable(False)
+
+        # Everything remains disabled when we're outside the defined columns
+        if self.rightClickedColumn > len(self._datasource.ColHeaders)+1 or self.rightClickedColumn == 0:
+            return
+
+        # We enable the Copy item if have a selection
+        sel=self.LocateSelection()
+        if sel[0] != 0 or sel[1] != 0 or sel[2] != 0 or sel[3] != 0:
+            mi=m_menuPopup.FindItemById(m_menuPopup.FindItem("Copy"))
+            mi.Enable(True)
+
+        # We enable the Paste popup menu item if there is something to paste
+        mi=m_menuPopup.FindItemById(m_menuPopup.FindItem("Paste"))
+        mi.Enabled=self.clipboard is not None and len(self.clipboard) > 0 and len(self.clipboard[0]) > 0  # Enable only if the clipboard contains actual content
+
+
+
+    #-------------------
+    # Locate the selection, real or implied
+    # There are three cases, in descending order of preference:
+    #   There is a selection block defined
+    #   There is a SelectedCells defined
+    #   There is a GridCursor location
+    def LocateSelection(self):
+        if len(self.Grid.SelectionBlockTopLeft) > 0 and len(self.Grid.SelectionBlockBottomRight) > 0:
+            top, left=self.Grid.SelectionBlockTopLeft[0]
+            bottom, right=self.Grid.SelectionBlockBottomRight[0]
+        elif len(self.Grid.SelectedCells) > 0:
+            top, left=self.Grid.SelectedCells[0]
+            bottom, right=top, left
+        else:
+            left=right=self.Grid.GridCursorCol
+            top=bottom=self.Grid.GridCursorRow
+        return top, left, bottom, right
+
+    def HasSelection(self):
+        if len(self.Grid.SelectionBlockTopLeft) > 0 and len(self.Grid.SelectionBlockBottomRight) > 0:
+            return True
+        if len(self.Grid.SelectedCells) > 0:
+            return True
+
+        return False
+
+    #-------------------
+    def OnKeyDown(self, event):
+        top, left, bottom, right=self.LocateSelection()
+
+        if event.KeyCode == 67 and self.cntlDown:   # cntl-C
+            self.CopyCells(top, left, bottom, right)
+        elif event.KeyCode == 86 and self.cntlDown and self.clipboard is not None and len(self.clipboard) > 0: # cntl-V
+            self.PasteCells(top, left)
+        elif event.KeyCode == 308:                  # cntl
+            self.cntlDown=True
+        elif event.KeyCode == 68:                   # Kludge to be able to force a refresh (press "d")
+            self.RefreshWindowFromData()
+        event.Skip()
+
+    #-------------------
+    def OnKeyUp(self, event):
+        if event.KeyCode == 308:                    # cntl
+            self.cntlDown=False
+        event.Skip()
+
+    #------------------
+    def OnPopupCopy(self, event):
+        # We need to copy the selected cells into the clipboard object.
+        # (We can't simply store the coordinates because the user might edit the cells before pasting.)
+        top, left, bottom, right=self.LocateSelection()
+        self.CopyCells(top, left, bottom, right)
+        event.Skip()
+
+    #------------------
+    def OnPopupPaste(self, event):
+        top, left, bottom, right=self.LocateSelection()
+        self.PasteCells(top, left)
+        event.Skip()

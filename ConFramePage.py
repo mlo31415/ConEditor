@@ -11,15 +11,11 @@ class MainConFrameClass(MainConFrame):
         self._grid: Grid=Grid(self.gRowGrid)
         self._grid._datasource=ConPage()
 
-        self.DGrid.SetColHeaders(self._grid._datasource.ColHeaders)
-        self.DGrid.SetColTypes(self._grid._datasource.ColDataTypes)
-        self.DGrid.FillInRowNumbers(self.DGrid.NumrowsR)
+        self._grid.SetColHeaders(self._grid._datasource.ColHeaders)
+        self._grid.SetColTypes(self._grid._datasource.ColDataTypes)
+        self._grid.FillInRowNumbers(self._grid.NumrowsR)
 
         self._grid.RefreshWindowFromData()
         self.Show()
 
-
-    @property
-    def DGrid(self) -> Grid:
-        return self._grid
 

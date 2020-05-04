@@ -1,16 +1,15 @@
 from __future__ import annotations
-from typing import Optional, List
+from typing import Optional
 
 import os
 import wx
 import wx.grid
-import math
 import sys
 from bs4 import BeautifulSoup
 
 from MainConSeriesFrame import MainConSeriesFrame
 
-from HelpersPackage import Bailout, IsInt, StripExternalTags, SubstituteHTML, Color
+from HelpersPackage import Bailout, StripExternalTags, SubstituteHTML
 from Log import LogOpen
 from FanzineIssueSpecPackage import FanzineDateRange
 
@@ -44,7 +43,6 @@ class MainWindow(MainConSeriesFrame):
         MainConSeriesFrame.__init__(self, parent)
 
         self.highlightRows=[]       # A List of the names of fanzines in highlighted rows
-        self.clipboard=None         # The grid's clipboard
         self.userSelection=None
         self.cntlDown: bool=False
         self.rightClickedColumn: Optional[int]=None
@@ -158,28 +156,6 @@ class MainWindow(MainConSeriesFrame):
         with open(filename, "w+") as f:
             f.write(file)
 
-
-    # #------------------
-    # # The ConSeries object has the official information. This function refreshes the display from it.
-    # def RefreshWindowFromData(self):
-    #     self.DGrid.EvtHandlerEnabled=False
-    #     self.DGrid.Grid.ClearGrid()
-    #
-    #     self.DGrid.SetColHeaders(self.conSeriesData.Colheaders)
-    #     self.DGrid.FillInRowNumbers(self.DGrid.NumrowsR)
-    #
-    #     # Fill in the cells
-    #     for i in range(self.conSeriesData.NumRows):
-    #         for j in range(len(self.conSeriesData.Colheaders)):
-    #             self.DGrid.Set(i, j, self.conSeriesData.Rows[i].GetVal(self.conSeriesData.Colheaders[j]))
-    #
-    #     self.DGrid.ColorCellsByValue()
-    #     #self.DGrid.Grid.ForceRefresh()
-    #     self.DGrid.AutoSizeColumns()
-    #
-    #     self.tTopMatter.Value=self.conSeriesData.Name
-
-
     #------------------
     # Save a con series object to disk.
     def OnSaveConSeries(self, event):
@@ -229,108 +205,33 @@ class MainWindow(MainConSeriesFrame):
             self._datasource.Stuff=self.tPText.GetValue().split("\n")
 
     #------------------
-    def OnGridCellDoubleclick(self, event):
-        if event.GetRow() == 0 and event.GetCol() == 0:
-            self.DGrid.Grid.AutoSize()
-            return
-        if event.GetRow() == 0 and event.GetCol() > 0:
-            self.DGrid.Grid.AutoSizeColumn(event.GetCol())
-
-    #------------------
     def OnGridCellRightClick(self, event):
-        self.rightClickedColumn=event.GetCol()
-
-        # Set everything to disabled.
-        for mi in self.m_menuPopup.GetMenuItems():
-            mi.Enable(False)
-
-        # Everything remains disabled when we're outside the defined columns
-        if self.rightClickedColumn > len(self._grid._datasource.ColHeaders)+1 or self.rightClickedColumn == 0:
-            return
-
-        # We enable the Copy item if have a selection
-        sel=self.LocateSelection()
-        if sel[0] != 0 or sel[1] != 0 or sel[2] != 0 or sel[3] != 0:
-            mi=self.m_menuPopup.FindItemById(self.m_menuPopup.FindItem("Copy"))
-            mi.Enable(True)
-
-        # We enable the Paste popup menu item if there is something to paste
-        mi=self.m_menuPopup.FindItemById(self.m_menuPopup.FindItem("Paste"))
-        mi.Enabled=self.clipboard is not None and len(self.clipboard) > 0 and len(self.clipboard[0]) > 0  # Enable only if the clipboard contains actual content
+        self._grid.OnGridCellRightClick(event, self.m_menuPopup)
 
         mi=self.m_menuPopup.FindItemById(self.m_menuPopup.FindItem("Create New Con Page"))
         mi.Enabled=True
 
-        # Pop the menu up.
         self.PopupMenu(self.m_menuPopup)
 
 
     #-------------------
-    # Locate the selection, real or implied
-    # There are three cases, in descending order of preference:
-    #   There is a selection block defined
-    #   There is a SelectedCells defined
-    #   There is a GridCursor location
-    def LocateSelection(self):
-        if len(self.DGrid.Grid.SelectionBlockTopLeft) > 0 and len(self.DGrid.Grid.SelectionBlockBottomRight) > 0:
-            top, left=self.DGrid.Grid.SelectionBlockTopLeft[0]
-            bottom, right=self.DGrid.Grid.SelectionBlockBottomRight[0]
-        elif len(self.DGrid.Grid.SelectedCells) > 0:
-            top, left=self.DGrid.Grid.SelectedCells[0]
-            bottom, right=top, left
-        else:
-            left=right=self.DGrid.Grid.GridCursorCol
-            top=bottom=self.DGrid.Grid.GridCursorRow
-        return top, left, bottom, right
-
-    def HasSelection(self):
-        if len(self.DGrid.Grid.SelectionBlockTopLeft) > 0 and len(self.DGrid.Grid.SelectionBlockBottomRight) > 0:
-            return True
-        if len(self.DGrid.Grid.SelectedCells) > 0:
-            return True
-
-        return False
-
-    #-------------------
     def OnKeyDown(self, event):
-        top, left, bottom, right=self.LocateSelection()
-
-        if event.KeyCode == 67 and self.cntlDown:   # cntl-C
-            self._grid.CopyCells(top, left, bottom, right)
-        elif event.KeyCode == 86 and self.cntlDown and self.clipboard is not None and len(self.clipboard) > 0: # cntl-V
-            self._grid.PasteCells(top, left)
-        elif event.KeyCode == 308:                  # cntl
-            self.cntlDown=True
-        elif event.KeyCode == 68:                   # Kludge to be able to force a refresh (press "d")
-            self._grid.RefreshWindowFromData()
-        event.Skip()
+        self._grid.OnKeyDown(event)
 
     #-------------------
     def OnKeyUp(self, event):
-        if event.KeyCode == 308:                    # cntl
-            self.cntlDown=False
-        event.Skip()
+        self._grid.OnKeyUp(event)
 
     #------------------
     def OnPopupCopy(self, event):
-        # We need to copy the selected cells into the clipboard object.
-        # (We can't simply store the coordinates because the user might edit the cells before pasting.)
-        top, left, bottom, right=self.LocateSelection()
-        self._grid.CopyCells(top, left, bottom, right)
-        event.Skip()
+        self._grid.OnPopupCopy(event)
 
     #------------------
     def OnPopupPaste(self, event):
-        top, left, bottom, right=self.LocateSelection()
-        self._grid.PasteCells(top, left)
-        event.Skip()
+        self._grid.OnPopupPaste(event)
 
     def OnGridCellChanged(self, event):
         self._grid.OnGridCellChanged(event)
-
-
-
-
 
 
 # Start the GUI and run the event loop
