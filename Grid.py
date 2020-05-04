@@ -58,20 +58,41 @@ class Grid():
         self._grid.HideColLabels()
 
 
-    # Set a cell value using raw row and column numbers (raw includes the row and column headers as index 0)
-    def RawSet(self, rowR: int, colR: int, val: str) -> None:
-        if rowR >= self.NumrowsR:
-            self.AppendEmptyRows(self.NumrowsR-rowR+1)
-        if colR >= self.NumcolsR:
-            self.AppendEmptyCols((self.NumcolsR-colR+1))
-        self._grid.SetCellValue(rowR, colR, val)
+    # Set a value in the source data using logical coordinates
+    def SetSourceValue(self, iRow: int, iCol: int, val) -> None:
+        nrows=len(self._datasource.Rows)
+        if iRow >= nrows:
+            self._datasource.Rows.extend([self._datasource.Element]*(iRow-nrows+1))
+        ncols=len(self._datasource.ColHeaders)
+        assert(ncols > iCol)   # Can't extend columns this way.
 
-    # Set a cell value using logical row and column indexes (i.e., data indexing starts at 0)
-    def Set(self, row: int, col: int, val: str) -> None:
+        c=self._datasource.Rows[iRow]
+        try:
+            c.SetVal(c, iCol, val)
+        except:
+            pass
+
+    # Set a grid cell value using raw coordinates
+    def SetCellValueR(self, iRowR: int, iColR: int, val) -> None:
+        # Extend the grid if needed
+        nrows=self._grid.GetNumberRows()
+        if iRowR >= nrows:
+            self._grid.AppendRows(iRowR-nrows+1)
+        ncols=self._grid.GetNumberCols()
+        if iColR >= ncols:
+            self._grid.AppendCols(iColR-ncols+1)
+
+        # None values are replaced by empty strings
         if val is None:
-            self.RawSet(row+1, col+1, "")
-        else:
-            self.RawSet(row+1, col+1, val)
+            val=""
+        if type(val) is not str:
+            val=str(val)
+
+        self._grid.SetCellValue(iRowR, iColR, val)
+
+    # Set a grid cell value using logical coordinates
+    def SetCellValue(self, iRow: int, iCol: int, val) -> None:
+        g=self.SetCellValueR(iRow+1, iCol+1, val)
 
     # Get a cell value using raw indexing
     def Get(self, rowR: int, colR: int) -> str:
@@ -130,16 +151,16 @@ class Grid():
 
             # Add the column headers
             self.Grid.SetCellValue(0, 0, "")
-            iRowR=1
+            iColR=1
             for colhead in headers:
-                self.RawSet(0, iRowR, colhead)  # Set the column header number
-                self.Grid.SetCellBackgroundColour(0, iRowR, Color.LabelGray)  # Set the column header background
-                iRowR+=1
+                self.SetCellValueR(0, iColR, colhead)  # Set the column header number
+                self.Grid.SetCellBackgroundColour(0, iColR, Color.LabelGray)  # Set the column header background
+                iColR+=1
             self.Grid.SetCellBackgroundColour(0, 0, Color.LabelGray)
 
 
-    def SetColTypes(self, coltypes: List[str]) -> None:
-        self._coltypes=coltypes
+    def SetColTypes(self, coldatatypes: List[str]) -> None:
+        self._coldatatypes=coldatatypes
 
     def SetColMinWidths(self, defaultwidths: List[int]) -> None:
         self._colminwidths=defaultwidths
@@ -158,7 +179,7 @@ class Grid():
     def FillInRowNumbers(self, num: int) -> None:
         # Make the first grid column contain editable row numbers
         for iRowR in range(1, self.NumrowsR):  # The 0,0 cell is left blank
-            self.RawSet(iRowR, 0, str(iRowR))
+            self.SetCellValueR(iRowR, 0, str(iRowR))
             self.Grid.SetCellBackgroundColour(iRowR, 0, Color.LabelGray)
         self.Grid.SetCellBackgroundColour(0, 0, Color.LabelGray)
 
@@ -173,18 +194,18 @@ class Grid():
 
         val=self._grid.GetCellValue(row+1, col+1)
         # We skip testing for "str"-type columns since anything at all is OK in a str column
-        if self._coltypes[col] == "int":
+        if self._coldatatypes[col] == "int":
             if val is not None and val != "" and not IsInt(val):
                 self.SetCellBackgroundColor(row, col, Color.Pink)
-        elif self._coltypes[col] == "date range":
+        elif self._coldatatypes[col] == "date range":
             if val is not None and val != "" and FanzineDateRange().Match(val).IsEmpty():
                 self.SetCellBackgroundColor(row, col, Color.Pink)
-        elif self._coltypes[col] == "date":
+        elif self._coldatatypes[col] == "date":
             if val is not None and val != "" and FanzineDate().Match(val).IsEmpty():
                 self.SetCellBackgroundColor(row, col, Color.Pink)
 
     def ColorCellsByValue(self):
-        if len(self._coltypes) != self._grid.NumberCols-1:  # -1 to ignore row number column
+        if len(self._coldatatypes) != self._grid.NumberCols-1:  # -1 to ignore row number column
             return
 
         # Analyze the data and highlight cells where the data type doesn't match the header.  (E.g., Volume='August', Month='17', year='20')
@@ -204,7 +225,7 @@ class Grid():
         # Fill in the cells
         for i in range(self._datasource.NumRows):
             for j in range(len(self._colheaders)):
-                self.Set(i, j, self._datasource.Data(i, j))
+                self.SetCellValue(i, j, self._datasource.Data(i, j))
 
         self.ColorCellsByValue()      #TODO: Maybe merge these into one call?
         self.AutoSizeColumns()
@@ -324,7 +345,7 @@ class Grid():
         try:
             newnumf=float(newVal)
         except:
-            self.Set(rowR, 0, rowR)    # Restore the old value
+            self.SetCellValueR(rowR, 0, rowR)    # Restore the old value
             return
         newnumf-=0.00001    # When the user supplies an integer, we drop the row *just* before that integer. No overwriting!
 

@@ -19,9 +19,6 @@ from Grid import Grid
 from dlgEnterFancyName import dlgEnterFancyName
 from ConFramePage import MainConFrameClass
 
-def ValidateData(a, b):
-    return True
-
 #####################################################################################
 class dlgEnterFancyNameWindow(dlgEnterFancyName):
     def __init__(self, parent):
@@ -55,7 +52,7 @@ class MainWindow(MainConSeriesFrame):
         self._grid: Grid=Grid(self.gRowGrid)
         self._grid._datasource=ConSeries()
         self._grid.SetColHeaders(self._grid._datasource.ColHeaders)
-        self._grid.SetColTypes(ConSeries._coltypes)
+        self._grid.SetColTypes(ConSeries._coldatatypes)
         self._grid.RefreshWindowFromData()
         self.Show(True)
 
@@ -73,7 +70,7 @@ class MainWindow(MainConSeriesFrame):
     def ReadConSeries(self):
 
         # Clear out any old information
-        self._datasource=ConSeries()
+        self._grid._datasource=ConSeries()
         # for i in range(0, self.DGrid.NumrowsR):
         #     for j in range(0, self.DGrid.NumcolsR):
         #         self.DGrid.Set(i, j, "")
@@ -100,8 +97,8 @@ class MainWindow(MainConSeriesFrame):
         #   The convention series name
         #   The convention series text
         #   The convention series table
-        self._datasource.Name=soup.find("abc").text
-        self._datasource.Stuff=soup.find("xyz").text
+        self._grid._datasource.Name=soup.find("abc").text
+        self._grid._datasource.Stuff=soup.find("xyz").text
         header=[l.text for l in soup.table.tr.contents if l != "\n"]
         rows=[[m for m in l if m != "\n"] for l in soup.table.tbody if l != "\n"]
         for r in rows:
@@ -112,7 +109,7 @@ class MainWindow(MainConSeriesFrame):
             con.Dates=FanzineDateRange().Match(r[2])
             con.Locale=r[3]
             con.GoHs=r[4]
-            self._datasource.Rows.append(con)
+            self._grid._datasource.Rows.append(con)
 
         # Insert the row data into the grid
         self._grid.RefreshWindowFromData()

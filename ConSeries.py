@@ -70,29 +70,29 @@ class Con:
             return self.GoHs
         return "Val can't interpret '"+str(name)+"'"
 
-    def SetVal(self, name: Union[str, int], val: str):
+    def SetVal(self, nameOrColR: Union[str, int], val: Union[str, int, FanzineDateRange]) -> None:
         # (Could use return eval("self."+name))
-        if name == "Seq" or name == 0:
+        if nameOrColR == "Seq" or nameOrColR == 1:
             self.Seq=val
             return
-        if name == "Name" or name == 1:
+        if nameOrColR == "Name" or nameOrColR == 2:
             self.Name=val
             return
-        if name == "Dates" or name == 2:
+        if nameOrColR == "Dates" or nameOrColR == 3:
             self.Dates=val
             return
-        if name == "Locale" or name == 3:
+        if nameOrColR == "Locale" or nameOrColR == 4:
             self.Locale=val
             return
-        if name == "GoHs" or name == 4:
+        if nameOrColR == "GoHs" or nameOrColR == 5:
             self.GoHs=val
             return
-        return "SetVal can't interpret '"+str(name)+"'"
+        print("SetVal can't interpret '"+str(nameOrColR)+"'")
 
 ####################################################################################
 class ConSeries(GridDataSource):
     _colheaders: List[str]=["Seq", "Name", "Dates", "Locale", "GoHs"]
-    _coltypes: List[str]=["int", "str", "date range", "str", "str"]
+    _coldatatypes: List[str]=["int", "str", "date range", "str", "str"]
     _colminwidths: List[str]=[30, 30, 30, 30, 30]
     _element=Con
 
@@ -107,8 +107,8 @@ class ConSeries(GridDataSource):
         return ConSeries._colheaders
 
     @property
-    def ColTypes(self) -> List[str]:
-        return ConSeries._coltypes
+    def ColDataTypes(self) -> List[str]:
+        return ConSeries._coldatatypes
 
     @property
     def ColMinWidths(self) -> List[str]:
@@ -119,7 +119,8 @@ class ConSeries(GridDataSource):
         return len(self._series)
 
     def Data(self, iRow: int, iCol: int) -> str:
-        return self.Rows[iRow].GetVal(self.ColHeaders[iCol])
+        r=self.Rows[iRow]
+        return r.GetVal(self.ColHeaders[iCol])
 
     @property
     def Rows(self) -> List:
@@ -146,19 +147,6 @@ class ConSeries(GridDataSource):
     @Stuff.setter
     def Stuff(self, val: str) -> None:
         self._stuff=val
-
-    #------------
-    @property
-    def Rows(self) -> List[Con]:
-        return self._series
-
-    @Rows.setter
-    def Rows(self, val: List[Con]) -> None:
-        self._series=val
-
-    def IdentifyColumnHeaders(self):
-        assert(False)
-
 
 
 # ---------------------------------

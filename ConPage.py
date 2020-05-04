@@ -14,7 +14,7 @@ class ConPage(GridDataSource):
     # an array of tuples: column header, min col width, col type
     _colheaders=["Title", "Description"]
     _colminwidths=[50, 100]
-    _coltypes=["str", "str"]
+    _coldatatypes=["str", "str"]
     _element=ConFile
 
     def __init__(self):
@@ -37,7 +37,7 @@ class ConPage(GridDataSource):
 
     @property
     def ColDataTypes(self) -> List[str]:
-        return self._coltypes
+        return self._coldatatypes
 
     @property
     def ColMinWidths(self) -> List[int]:
