@@ -1,4 +1,5 @@
 import wx
+import os
 
 from MainConFrame import MainConFrame
 from Grid import Grid
@@ -20,4 +21,18 @@ class MainConFrameClass(MainConFrame):
 
 
     def OnAddFilesButton(self, event):
-        event.Skip()
+        # Call the File Open dialog to get an con series HTML file
+        dlg=wx.FileDialog(self, "Select files to upload", ".", "", "*.*", wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE | wx.FD_CHANGE_DIR)
+        dlg.SetWindowStyle(wx.STAY_ON_TOP)
+
+        if dlg.ShowModal() != wx.ID_OK:
+            dlg.Raise()
+            dlg.Destroy()
+            return
+
+        conf=ConFile()
+        conf._displayTitle=dlg.GetFilename()
+        conf._pathname=os.path.join(dlg.GetDirectory(), dlg.GetFilename())
+        self._grid._datasource.Rows.append(conf)
+        dlg.Destroy()
+        self._grid.RefreshWindowFromData()

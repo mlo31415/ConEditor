@@ -1,13 +1,32 @@
 from __future__ import annotations
-from typing import List
+from typing import List, Union
 from Grid import GridDataSource
 
 
 class ConFile:
     def __init__(self):
-        self._title: str=""
+        self._displayTitle: str=""
         self._description: str=""
         self._pathname: str=""
+
+    # Get or set a value by name or column number
+    def GetVal(self, name: Union[str, int]) -> Union[str, int]:
+        # (Could use return eval("self."+name))
+        if name == "File" or name == 0:
+            return self._displayTitle
+        if name == "Description" or name == 1:
+            return self._description
+        return "Val can't interpret '"+str(name)+"'"
+
+    def SetVal(self, nameOrColR: Union[str, int], val: Union[str, int]) -> None:
+        # (Could use return eval("self."+name))
+        if nameOrColR == "File" or nameOrColR == 1:
+            self._displayTitle=val
+            return
+        if nameOrColR == "Description" or nameOrColR == 2:
+            self._description=val
+            return
+        print("SetVal can't interpret '"+str(nameOrColR)+"'")
 
 
 class ConPage(GridDataSource):
@@ -48,8 +67,7 @@ class ConPage(GridDataSource):
         return len(self._conFileList)
 
     def Data(self, iRow: int, iCol: int) -> str:
-        return "Data"
-
-
+        r=self.Rows[iRow]
+        return r.GetVal(self.ColHeaders[iCol])
 
 
