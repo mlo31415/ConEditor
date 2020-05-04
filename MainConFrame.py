@@ -23,12 +23,10 @@ class MainConFrame ( wx.Frame ):
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
 		self.m_toolBar2 = self.CreateToolBar( wx.TB_HORIZONTAL, wx.ID_ANY )
-		self.bLoadConSeries = wx.Button( self.m_toolBar2, wx.ID_ANY, u"Load ConSeries from Fanac.org", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_toolBar2.AddControl( self.bLoadConSeries )
-		self.bSaveConSeries = wx.Button( self.m_toolBar2, wx.ID_ANY, u"Save ConSeries to Fanac.org", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_toolBar2.AddControl( self.bSaveConSeries )
-		self.bCreateConSeries = wx.Button( self.m_toolBar2, wx.ID_ANY, u"Create New ConSeries", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_toolBar2.AddControl( self.bCreateConSeries )
+		self.bSaveCon = wx.Button( self.m_toolBar2, wx.ID_ANY, u"Save Con", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_toolBar2.AddControl( self.bSaveCon )
+		self.bAddFiles = wx.Button( self.m_toolBar2, wx.ID_ANY, u"Add Files", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_toolBar2.AddControl( self.bAddFiles )
 		self.m_toolBar2.Realize()
 
 		bSizerMainBox = wx.BoxSizer( wx.VERTICAL )
@@ -37,18 +35,18 @@ class MainConFrame ( wx.Frame ):
 		fgSizer4.SetFlexibleDirection( wx.BOTH )
 		fgSizer4.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
-		self.m_staticText1 = wx.StaticText( self, wx.ID_ANY, u"Convention Series:", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText1 = wx.StaticText( self, wx.ID_ANY, u"Convention:", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText1.Wrap( -1 )
 
-		fgSizer4.Add( self.m_staticText1, 0, wx.ALL, 5 )
+		fgSizer4.Add( self.m_staticText1, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT, 5 )
 
 		self.tConSeries = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 200,-1 ), 0 )
 		fgSizer4.Add( self.tConSeries, 0, wx.ALL|wx.EXPAND, 5 )
 
-		self.m_staticText11 = wx.StaticText( self, wx.ID_ANY, u"Convention Name:", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText11 = wx.StaticText( self, wx.ID_ANY, u"Fancy URL:", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText11.Wrap( -1 )
 
-		fgSizer4.Add( self.m_staticText11, 0, wx.ALL, 5 )
+		fgSizer4.Add( self.m_staticText11, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT, 5 )
 
 		self.tConName = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 300,-1 ), 0 )
 		fgSizer4.Add( self.tConName, 0, wx.ALL|wx.EXPAND, 5 )
@@ -136,9 +134,8 @@ class MainConFrame ( wx.Frame ):
 		self.Centre( wx.BOTH )
 
 		# Connect Events
-		self.bLoadConSeries.Bind( wx.EVT_BUTTON, self.OnLoadConSeries )
-		self.bSaveConSeries.Bind( wx.EVT_BUTTON, self.OnSaveConSeries )
-		self.bCreateConSeries.Bind( wx.EVT_BUTTON, self.OnCreateConSeries )
+		self.bSaveCon.Bind( wx.EVT_BUTTON, self.OnSaveConSeries )
+		self.bAddFiles.Bind( wx.EVT_BUTTON, self.OnAddFilesButton )
 		self.tConName.Bind( wx.EVT_TEXT, self.OnTextConName )
 		self.tPText.Bind( wx.EVT_TEXT, self.OnTextComments )
 		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_CHANGED, self.OnGridCellChanged )
@@ -153,13 +150,10 @@ class MainConFrame ( wx.Frame ):
 
 
 	# Virtual event handlers, overide them in your derived class
-	def OnLoadConSeries( self, event ):
-		event.Skip()
-
 	def OnSaveConSeries( self, event ):
 		event.Skip()
 
-	def OnCreateConSeries( self, event ):
+	def OnAddFilesButton( self, event ):
 		event.Skip()
 
 	def OnTextConName( self, event ):

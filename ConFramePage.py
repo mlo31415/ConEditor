@@ -19,3 +19,5 @@ class MainConFrameClass(MainConFrame):
         self.Show()
 
 
+    def OnAddFilesButton(self, event):
+        event.Skip()

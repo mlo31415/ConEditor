@@ -12,8 +12,8 @@ class ConFile:
 
 class ConPage(GridDataSource):
     # an array of tuples: column header, min col width, col type
-    _colheaders=["Title", "Description"]
-    _colminwidths=[50, 100]
+    _colheaders=["File", "Description"]
+    _colminwidths=[50, 200]
     _coldatatypes=["str", "str"]
     _element=ConFile
 
