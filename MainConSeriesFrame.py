@@ -33,35 +33,32 @@ class MainConSeriesFrame ( wx.Frame ):
 
 		bSizerMainBox = wx.BoxSizer( wx.VERTICAL )
 
-		bSizerConSeries = wx.BoxSizer( wx.HORIZONTAL )
+		fgSizer4 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer4.SetFlexibleDirection( wx.BOTH )
+		fgSizer4.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
-		self.m_staticText1 = wx.StaticText( self, wx.ID_ANY, u"Convention Series", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText1 = wx.StaticText( self, wx.ID_ANY, u"Convention Series:", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText1.Wrap( -1 )
 
-		bSizerConSeries.Add( self.m_staticText1, 0, wx.ALL, 5 )
+		fgSizer4.Add( self.m_staticText1, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT|wx.ALL, 5 )
 
-		self.tTopMatter = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 200,25 ), 0 )
-		self.tTopMatter.SetMaxSize( wx.Size( -1,25 ) )
+		self.tConSeries = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 100,25 ), 0 )
+		self.tConSeries.SetMaxSize( wx.Size( -1,25 ) )
 
-		bSizerConSeries.Add( self.tTopMatter, 0, wx.ALL|wx.EXPAND, 5 )
-
-
-		bSizerMainBox.Add( bSizerConSeries, 1, wx.EXPAND, 5 )
-
-		bSizerTopMatter = wx.BoxSizer( wx.HORIZONTAL )
+		fgSizer4.Add( self.tConSeries, 0, wx.ALL|wx.EXPAND, 5 )
 
 		self.m_staticText11 = wx.StaticText( self, wx.ID_ANY, u"URL on Fancyclopedia", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText11.Wrap( -1 )
 
-		bSizerTopMatter.Add( self.m_staticText11, 0, wx.ALL, 5 )
+		fgSizer4.Add( self.m_staticText11, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT|wx.ALL, 5 )
 
 		self.tFancyURL = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 9999,-1 ), 0 )
 		self.tFancyURL.SetMaxSize( wx.Size( -1,25 ) )
 
-		bSizerTopMatter.Add( self.tFancyURL, 0, wx.ALL|wx.EXPAND, 5 )
+		fgSizer4.Add( self.tFancyURL, 0, wx.ALL|wx.EXPAND, 5 )
 
 
-		bSizerMainBox.Add( bSizerTopMatter, 1, wx.EXPAND, 5 )
+		bSizerMainBox.Add( fgSizer4, 1, wx.EXPAND, 5 )
 
 		fgSizerComments = wx.FlexGridSizer( 1, 2, 0, 0 )
 		fgSizerComments.AddGrowableCol( 1 )
@@ -146,7 +143,7 @@ class MainConSeriesFrame ( wx.Frame ):
 		self.bLoadConSeries.Bind( wx.EVT_BUTTON, self.OnLoadConSeries )
 		self.bSaveConSeries.Bind( wx.EVT_BUTTON, self.OnSaveConSeries )
 		self.bCreateConSeries.Bind( wx.EVT_BUTTON, self.OnCreateConSeries )
-		self.tTopMatter.Bind( wx.EVT_TEXT, self.OnTextTopMatter )
+		self.tConSeries.Bind( wx.EVT_TEXT, self.OnTextTopMatter )
 		self.tFancyURL.Bind( wx.EVT_TEXT, self.OnTextFancyURL )
 		self.tPText.Bind( wx.EVT_TEXT, self.OnTextComments )
 		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_CHANGED, self.OnGridCellChanged )
