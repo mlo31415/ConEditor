@@ -19,6 +19,7 @@ from Grid import Grid
 from dlgEnterFancyName import dlgEnterFancyName
 from ConFramePage import MainConFrameClass
 
+
 #####################################################################################
 class dlgEnterFancyNameWindow(dlgEnterFancyName):
     def __init__(self, parent):
@@ -71,9 +72,6 @@ class MainWindow(MainConSeriesFrame):
 
         # Clear out any old information
         self._grid._datasource=ConSeries()
-        # for i in range(0, self.DGrid.NumrowsR):
-        #     for j in range(0, self.DGrid.NumcolsR):
-        #         self.DGrid.Set(i, j, "")
 
         # Call the File Open dialog to get an con series HTML file
         dlg=wx.FileDialog(self, "Select con series file to load", self.dirname, "", "*.html", wx.FD_OPEN)
@@ -118,7 +116,7 @@ class MainWindow(MainConSeriesFrame):
     def SaveConSeries(self, filename: str) -> None:
         # First read in the template
         file=None
-        with open(os.path.join(self.dirname, "Template")) as f:
+        with open(os.path.join(self.dirname, "Template-ConSeries")) as f:
             file=f.read()
 
         # We want to do substitutions, replacing whatever is there now with the new data

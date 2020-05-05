@@ -2,14 +2,26 @@ from __future__ import annotations
 from typing import List, Union
 from Grid import GridDataSource
 
-
+# An individual file to be listed under a convention
 class ConFile:
     def __init__(self):
-        self._displayTitle: str=""
-        self._description: str=""
-        self._pathname: str=""
+        self._displayTitle: str=""      # The name as shown to the world
+        self._description: str=""       # The free-format description
+        self._localpathname: str=""          # The local pathname of the file
 
-    # Get or set a value by name or column number
+    @property
+    def DisplayTitle(self) -> str:
+        return self._displayTitle
+
+    @property
+    def Description(self) -> str:
+        return self._description
+
+    @property
+    def LocalPathname(self) -> str:
+        return self._localpathname
+
+    # Get or set a value by name or column number in the grid
     def GetVal(self, name: Union[str, int]) -> Union[str, int]:
         # (Could use return eval("self."+name))
         if name == "File" or name == 0:
@@ -27,6 +39,7 @@ class ConFile:
             self._description=val
             return
         print("SetVal can't interpret '"+str(nameOrColR)+"'")
+
 
 
 class ConPage(GridDataSource):
@@ -69,5 +82,4 @@ class ConPage(GridDataSource):
     def Data(self, iRow: int, iCol: int) -> str:
         r=self.Rows[iRow]
         return r.GetVal(self.ColHeaders[iCol])
-
 

@@ -1,9 +1,13 @@
 import wx
 import os
+from bs4 import BeautifulSoup
 
 from MainConFrame import MainConFrame
 from Grid import Grid
 from ConPage import ConPage, ConFile
+
+from HelpersPackage import SubstituteHTML, StripExternalTags
+from FanzineIssueSpecPackage import FanzineDateRange
 
 #####################################################################################
 class MainConFrameClass(MainConFrame):
@@ -32,7 +36,90 @@ class MainConFrameClass(MainConFrame):
 
         conf=ConFile()
         conf._displayTitle=dlg.GetFilename()
-        conf._pathname=os.path.join(dlg.GetDirectory(), dlg.GetFilename())
+        conf._localpathname=os.path.join(dlg.GetDirectory(), dlg.GetFilename())
         self._grid._datasource.Rows.append(conf)
         dlg.Destroy()
+        self._grid.RefreshWindowFromData()
+
+
+    def SaveConFilePage(self, filename: str) -> None:
+        # First read in the template
+        file=None
+        with open(os.path.join(".", "Template-ConPage.html")) as f:
+            file=f.read()
+
+        # We want to do substitutions, replacing whatever is there now with the new data
+        # The con's name is tagged with <abc>, the random text with "xyz"
+        file=SubstituteHTML(file, "abc", self._grid._datasource.Name)
+        file=SubstituteHTML(file, "xyz", self._grid._datasource.Stuff)
+
+        # Now construct the table which we'll then substitute.
+        newtable='<table class="table">\n'
+        newtable+="  <thead>\n"
+        newtable+="    <tr>\n"
+        newtable+='      <th scope="col">#</th>\n'
+        newtable+='      <th scope="col">Document</th>\n'
+        newtable+='      <th scope="col">Description</th>\n'
+        newtable+='    </tr>\n'
+        newtable+='  </thead>\n'
+        newtable+='  <tbody>\n'
+        i=1
+        for row in self._grid._datasource.Rows:
+            newtable+="    <tr>\n"
+            newtable+='      <th scope="row">'+str(1)+'</th>/n'
+            newtable+='      <td><a href="http:'+row._localpathname+'>'+row.DisplayTitle+'</a><td>\n'
+            newtable+='      <td>'+str(row.Description)+'<td>\n'
+            newtable+="    </tr>\n"
+            i+=1
+        newtable+="    </tbody>\n"
+        newtable+="  </table>\n"
+
+        file=SubstituteHTML(file, "pdq", newtable)
+        with open(filename, "w+") as f:
+            f.write(file)
+
+    #------------------
+    # Download a ConSeries
+    def ReadConFilePage(self):
+
+        # Clear out any old information
+        self._grid._datasource=ConPage()
+
+        # Call the File Open dialog to get an con series HTML file
+        dlg=wx.FileDialog(self, "Select con series file to load", self.dirname, "", "*.html", wx.FD_OPEN)
+        dlg.SetWindowStyle(wx.STAY_ON_TOP)
+
+        if dlg.ShowModal() != wx.ID_OK:
+            dlg.Raise()
+            dlg.Destroy()
+            return
+
+        self.filename=dlg.GetFilename()
+        self.dirname=dlg.GetDirectory()
+        dlg.Destroy()
+
+        with open(os.path.join(self.dirname, self.filename)) as f:
+            file=f.read()
+
+        soup=BeautifulSoup(file, 'html.parser')
+
+        # We need to extract three things:
+        #   The convention series name
+        #   The convention series text
+        #   The convention series table
+        self._grid._datasource.Name=soup.find("abc").text
+        self._grid._datasource.Stuff=soup.find("xyz").text
+        header=[l.text for l in soup.table.tr.contents if l != "\n"]
+        rows=[[m for m in l if m != "\n"] for l in soup.table.tbody if l != "\n"]
+        for r in rows:
+            r=[StripExternalTags(str(l)) for l in r]
+            con=ConPage()
+            con.Seq=int(r[0])
+            con.Name=r[1]
+            con.Dates=FanzineDateRange().Match(r[2])
+            con.Locale=r[3]
+            con.GoHs=r[4]
+            self._grid._datasource.Rows.append(con)
+
+        # Insert the row data into the grid
         self._grid.RefreshWindowFromData()
