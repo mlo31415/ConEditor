@@ -208,7 +208,6 @@ class MainWindow(MainConSeriesFrame):
 
         self.PopupMenu(self.m_menuPopup)
 
-
     #-------------------
     def OnKeyDown(self, event):
         self._grid.OnKeyDown(event)

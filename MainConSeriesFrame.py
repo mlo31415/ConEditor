@@ -152,6 +152,8 @@ class MainConSeriesFrame ( wx.Frame ):
 		self.gRowGrid.Bind( wx.EVT_KEY_UP, self.OnKeyUp )
 		self.Bind( wx.EVT_MENU, self.OnPopupCopy, id = self.m_menuItemCopy.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupPaste, id = self.m_menuItemPaste.GetId() )
+		self.Bind( wx.EVT_MENU, self.OnPopupCopy, id = self.m_popupCopy.GetId() )
+		self.Bind( wx.EVT_MENU, self.OnPopupPaste, id = self.m_popupPaste.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnCreateNewConPage, id = self.m_popupCreateNewConPage.GetId() )
 
 	def __del__( self ):
@@ -194,6 +196,8 @@ class MainConSeriesFrame ( wx.Frame ):
 
 	def OnPopupPaste( self, event ):
 		event.Skip()
+
+
 
 	def OnCreateNewConPage( self, event ):
 		event.Skip()

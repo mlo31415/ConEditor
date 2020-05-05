@@ -264,22 +264,26 @@ class Grid():
         self._datasource.Rows=newrows
 
     # ------------------
-    def CopyCells(self, top, left, bottom, right):
+    def CopyCells(self, topR, leftR, bottomR, rightR):
         self.clipboard=[]
-        # We must remember that the first two data columns map to a single LST column.
-        for row in self._datasource.Rows[top-1: bottom]:
-            self.clipboard.append(row[left-1: right])
+        for iRow in range(topR, bottomR+1):
+            v=[]
+            for jCol in range(leftR, rightR+1):
+                v.append(self._datasource.Data(iRow-1, jCol-1))
+            self.clipboard.append(v)
+
+        pass
 
     # ------------------
-    def PasteCells(self, top, left):
+    def PasteCells(self, topR, leftR):
         # We paste the clipboard data into the block of the same size with the upper-left at the mouse's position
         # Might some of the new material be outside the current bounds?  If so, add some blank rows and/or columns
 
         # Define the bounds of the paste-to box
-        pasteTop=top
-        pasteBottom=top+len(self.clipboard)
-        pasteLeft=left
-        pasteRight=left+len(self.clipboard[0])
+        pasteTop=topR
+        pasteBottom=topR+len(self.clipboard)
+        pasteLeft=leftR
+        pasteRight=leftR+len(self.clipboard[0])
 
         # Does the paste-to box extend beyond the end of the available rows?  If so, extend the available rows.
         num=pasteBottom-len(self._datasource.Rows)-1
@@ -379,15 +383,13 @@ class Grid():
             return
 
         # We enable the Copy item if have a selection
-        sel=self.LocateSelection()
-        if sel[0] != 0 or sel[1] != 0 or sel[2] != 0 or sel[3] != 0:
+        if self.HasSelection():
             mi=m_menuPopup.FindItemById(m_menuPopup.FindItem("Copy"))
             mi.Enable(True)
 
         # We enable the Paste popup menu item if there is something to paste
         mi=m_menuPopup.FindItemById(m_menuPopup.FindItem("Paste"))
         mi.Enabled=self.clipboard is not None and len(self.clipboard) > 0 and len(self.clipboard[0]) > 0  # Enable only if the clipboard contains actual content
-
 
 
     #-------------------
@@ -413,7 +415,6 @@ class Grid():
             return True
         if len(self.Grid.SelectedCells) > 0:
             return True
-
         return False
 
     #-------------------
@@ -434,6 +435,17 @@ class Grid():
     def OnKeyUp(self, event):
         if event.KeyCode == 308:                    # cntl
             self.cntlDown=False
+        if event.KeyCode == 315:                    # Up arrow
+            if self.HasSelection():
+                # Extend selection
+                tl=self.Grid.SelectionBlockTopLeft
+                br=self.Grid.SelectionBlockBottomRight
+                # Move things up
+
+        if event.KeyCode == 317:                    # Down arrow
+            if self.HasSelection():
+                # Move things up
+                pass
         event.Skip()
 
     #------------------
