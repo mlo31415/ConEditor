@@ -67,7 +67,7 @@ class ConPage(GridDataSource):
     def Rows(self, rows: List) -> None:
         self._conFileList=rows
 
-    def SetDataVal(self, irow: int, icol: int, val: Union[int, str, FanzineDateRange]) -> None:
+    def SetDataVal(self, irow: int, icol: int, val: Union[int, str]) -> None:
         self._conFileList[irow].SetVal(icol, val)
 
     @property
