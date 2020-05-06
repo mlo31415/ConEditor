@@ -95,14 +95,15 @@ class MainWindow(MainConSeriesFrame):
         self._grid._datasource.Stuff=soup.find("xyz").text
         header=[l.text for l in soup.table.tr.contents if l != "\n"]
         rows=[[m for m in l if m != "\n"] for l in soup.table.tbody if l != "\n"]
-        for r in rows:
-            r=[StripExternalTags(str(l)) for l in r]
+        for row in rows:
+            r=[StripExternalTags(str(l)) for l in row]+([None, None, None, None, None])
             con=Con()
-            con.Seq=int(r[0])
-            con.Name=r[1]
-            con.Dates=FanzineDateRange().Match(r[2])
-            con.Locale=r[3]
-            con.GoHs=r[4]
+            con.Seq=int(r[0]) if r[0] is not None else 0
+            con.Name=r[1] if r[1] is not None else ""
+            fd=FanzineDateRange().Match(r[2])
+            con.Date= fd if r[2] is not None else ""
+            con.Locale=r[3]  if r[3] is not None else ""
+            con.GoHs=r[4] if r[4] is not None else ""
             self._grid._datasource.Rows.append(con)
 
         # Insert the row data into the grid
@@ -153,20 +154,21 @@ class MainWindow(MainConSeriesFrame):
         # Rename the old file
         oldname=os.path.join(self.dirname, self.filename)
         newname=os.path.join(self.dirname, os.path.splitext(self.filename)[0]+"-old.html")
-        try:
-            i=0
-            while os.path.exists(newname):
-                i+=1
-                newname=os.path.join(self.dirname, os.path.splitext(self.filename)[0]+"-old-"+str(i)+".html")
+        if os.path.exists(oldname):
+            try:
+                i=0
+                while os.path.exists(newname):
+                    i+=1
+                    newname=os.path.join(self.dirname, os.path.splitext(self.filename)[0]+"-old-"+str(i)+".html")
 
-            os.rename(oldname, newname)
-        except:
-            Bailout(PermissionError, "OnSaveConseries fails when trying to rename "+oldname+" to "+newname, "LSTError")
+                os.rename(oldname, newname)
+            except:
+                Bailout(PermissionError, "OnSaveConseries fails when trying to rename "+oldname+" to "+newname, "ConEditorError")
 
         try:
             self.SaveConSeries(oldname)
         except:
-            Bailout(PermissionError, "OnSaveConseries fails when trying to write file "+oldname, "LSTError")
+            Bailout(PermissionError, "OnSaveConseries fails when trying to write file "+oldname, "ConEditorError")
 
     #------------------
     # Create a new, empty, con series
