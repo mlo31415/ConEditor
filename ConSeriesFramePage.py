@@ -7,7 +7,7 @@ import wx.grid
 import sys
 from bs4 import BeautifulSoup
 
-from MainConSeriesFrame import MainConSeriesFrame
+from GeneratedConSeriesFrame import MainConSeriesFrame
 
 from HelpersPackage import Bailout, StripExternalTags, SubstituteHTML
 from Log import LogOpen
@@ -17,7 +17,7 @@ from ConSeries import ConSeries, Con
 from Grid import Grid
 
 from dlgEnterFancyName import dlgEnterFancyName
-from ConFramePage import MainConFrameClass
+from ConInstanceFramePage import MainConFrameClass
 
 
 #####################################################################################

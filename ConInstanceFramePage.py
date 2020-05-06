@@ -2,9 +2,9 @@ import wx
 import os
 from bs4 import BeautifulSoup
 
-from MainConFrame import MainConFrame
+from GeneratedConInstanceFrame import MainConFrame
 from Grid import Grid
-from ConPage import ConPage, ConFile
+from ConInstance import ConPage, ConFile
 
 from HelpersPackage import SubstituteHTML, StripExternalTags
 from FanzineIssueSpecPackage import FanzineDateRange
