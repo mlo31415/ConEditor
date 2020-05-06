@@ -44,6 +44,10 @@ class GridDataSource():
     def SetDataVal(self, irow: int, icol: int, val: Union[int, str, FanzineDateRange]) -> None:
         pass
 
+    @property
+    def CanAddColumns(self) -> bool:
+        return False            # Override this if adding columns is allowed
+
 
 # The class hides the machinations needed to handle the row and column headers
 class Grid():
@@ -305,7 +309,7 @@ class Grid():
         # Does the paste-to box extend beyond the end of the available rows?  If so, extend the available rows.
         num=pasteBottomR-len(self._datasource.Rows)-1
         if num > 0:
-            for i in range(num):  #TODO: ExpandDatasource
+            for i in range(num):
                 self._datasource.Rows.append(["" for x in range(self._datasource.NumRows)])  # The strange contortion is to append a list of distinct empty strings
 
         # Copy the cells from the clipboard to the grid in lstData.
@@ -318,6 +322,18 @@ class Grid():
             i+=1
         self.RefreshWindowFromData()
 
+    # Expand the grid's data source so that the local item (irow, icol) exists.
+    def ExpandDataSource(self, irow: int, icol: int):
+        while irow >= len(self._datasource.Rows):
+            self._datasource.Rows.append(self._datasource.Element())
+
+        # Many data sources do not allow expanding the number of columns, so check that first
+        assert icol < len(self._datasource.ColHeaders) or self._datasource.CanAddColumns
+        if self._datasource.CanAddColumns:
+            while icol >= len(self._datasource.ColHeaders):
+                self._datasource.ColHeaders.append("")
+                for j in range(self._datasource.NumRows):
+                    self._datasource.Rows[j].append("")
 
     #------------------
     def OnGridCellChanged(self, event):
@@ -336,12 +352,8 @@ class Grid():
             self.RefreshWindowFromData()
             return
 
-        # If we're entering data in a new row or a new column, append the necessary number of new rows of columns to lstData
-        while rowR > len(self._datasource.Rows):
-            self._datasource.Rows.append(self._datasource.Element())
-
-        while colR > len(self._datasource.ColHeaders):
-            self._datasource.Rows[rowR-1].append("")
+        # If we're entering data in a new row or a new column, append the necessary number of new rows and/or columns to the data source
+        self.ExpandDataSource(rowR-1, colR-1)
 
         # Ordinary columns
         if colR > 0:
