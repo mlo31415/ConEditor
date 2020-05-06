@@ -30,7 +30,7 @@ class GridDataSource():
     def NumRows(self) -> int:
         return -1
 
-    def Data(self, iRow: int, iCol: int) -> str:
+    def GetData(self, iRow: int, iCol: int) -> str:
         pass
 
     @property
@@ -73,6 +73,7 @@ class Grid():
             pass
 
     # Set a grid cell value using raw coordinates
+    # Note that this does not change the underlying data
     def SetCellValueR(self, iRowR: int, iColR: int, val) -> None:
         # Extend the grid if needed
         nrows=self._grid.GetNumberRows()
@@ -234,36 +235,47 @@ class Grid():
 
         #TODO: How to virtualize this?
         self.tConName="missing name"#self._conPage._name
+
+    # Move a block of rows within the data source
+    # All row numbers are logical
+    # Oldrow is the 1st row of the block to be moved
+    # Newrow is the target position to which oldrow is moved
+    def MoveRows(self, oldrow, numrows, newrow):
+        #TODO: Allow moves beyond the last row
+        if newrow <= 0:
+            # The old rows are being moved to the beginning
+            newrows=self._datasource.Rows[oldrow:oldrow+numrows]
+            newrows.extend(self._datasource.Rows[0:oldrow])
+            newrows.extend(self._datasource.Rows[oldrow+numrows:])
+
+        elif newrow >= len(self._datasource.Rows):
+            # The old rows are being moved to the end
+            newrows=self._datasource.Rows[0:oldrow]
+            newrows.extend(self._datasource.Rows[oldrow+numrows:])
+            newrows.extend(self._datasource.Rows[oldrow:oldrow+numrows])
+
+        else:
+            # The old rows are being moved internally
+            if oldrow > newrow:
+                # Moving earlier
+                newrows=self._datasource.Rows[0:newrow]                         # Unchanged rows before newrow
+                newrows.extend(self._datasource.Rows[oldrow:oldrow+numrows])    # The moving block (numrows long)
+                newrows.extend(self._datasource.Rows[newrow:oldrow])            # Rows displaced towards the end by the move
+                newrows.extend(self._datasource.Rows[oldrow+numrows:])          # Rows after the displaced block's final position which are unaffected
+            else:
+                # Moving later
+                newrows=self._datasource.Rows[0:oldrow]                         # Unchanged rows before oldrow
+                newrows.extend(self._datasource.Rows[oldrow+numrows:newrow+numrows])        # Rows after the moving block which are displaced forward
+                newrows.extend(self._datasource.Rows[oldrow:oldrow+numrows])    # The moving block (numrows long)
+                newrows.extend(self._datasource.Rows[newrow+numrows:])          # Row after the moving block's final position which are unaffected
+
+        self._datasource.Rows=newrows
+
         
     #------------------
     def MoveRow(self, oldrow, newnumf):
-        newrows=[]
-        if newnumf < 0:
-            # Ok, it's being moved to the beginning
-            newrows.append(self._datasource.Rows[oldrow])
-            newrows.extend(self._datasource.Rows[0:oldrow])
-            newrows.extend(self._datasource.Rows[oldrow+1:])
-        elif newnumf > len(self._datasource.Rows):
-            # OK, it's being moved to the end
-            newrows.extend(self._datasource.Rows[0:oldrow])
-            newrows.extend(self._datasource.Rows[oldrow+1:])
-            newrows.append(self._datasource.Rows[oldrow])
-        else:
-            # OK, it've being moved internally
-            newrow=math.ceil(newnumf)-1
-            if oldrow < newrow:
-                # Moving later
-                newrows.extend(self._datasource.Rows[0:oldrow])
-                newrows.extend(self._datasource.Rows[oldrow+1:newrow])
-                newrows.append(self._datasource.Rows[oldrow])
-                newrows.extend(self._datasource.Rows[newrow:])
-            else:
-                # Moving earlier
-                newrows.extend(self._datasource.Rows[0:newrow])
-                newrows.append(self._datasource.Rows[oldrow])
-                newrows.extend(self._datasource.Rows[newrow:oldrow])
-                newrows.extend(self._datasource.Rows[oldrow+1:])
-        self._datasource.Rows=newrows
+        newrow=math.ceil(newnumf)-1
+        self.MoveRows(oldrow, 1, newrow)
 
     # ------------------
     def CopyCells(self, topR, leftR, bottomR, rightR):
@@ -334,7 +346,6 @@ class Grid():
             self._datasource.Rows[rowR-1].SetVal(colR-1, newVal)
             self.ColorCellByValue(rowR-1, colR-1)
             self.AutoSizeColumns()
-            #self.DGrid.Grid.ForceRefresh()
             self.EvtHandlerEnabled=True
             return
 
@@ -421,33 +432,63 @@ class Grid():
 
     #-------------------
     def OnKeyDown(self, event):
-        top, left, bottom, right=self.LocateSelection()
+        top, leftR, bottom, rightR=self.LocateSelection()
 
         if event.KeyCode == 67 and self.cntlDown:   # cntl-C
-            self.CopyCells(top, left, bottom, right)
+            self.CopyCells(top, leftR, bottom, rightR)
         elif event.KeyCode == 86 and self.cntlDown and self.clipboard is not None and len(self.clipboard) > 0: # cntl-V
-            self.PasteCells(top, left)
+            self.PasteCells(top, leftR)
         elif event.KeyCode == 308:                  # cntl
             self.cntlDown=True
         elif event.KeyCode == 68:                   # Kludge to be able to force a refresh (press "d")
             self.RefreshWindowFromData()
-        event.Skip()
+        elif event.KeyCode == 315:  # Up arrow
+            if self.HasSelection():
+                tl=self.Grid.SelectionBlockTopLeft
+                br=self.Grid.SelectionBlockBottomRight
+                # Only if there's a single selected block
+                if len(tl) == 1 and len(br) == 1:
+                    topR, leftR=tl[0]
+                    bottomR, rightR=br[0]
+                    # Can't move up if the first row selected is already the logical top row
+                    if topR > 1:
+                        # Extend the selection to be the whole row(s)
+                        leftR=0
+                        rightR=self.NumcolsR-1
+                        # And move 'em up 1
+                        self.MoveRows(topR-1, bottomR-topR+1, (topR-1)-1)   # Need to convert from raw to logical
+                        # And re-establish the selection
+                        topR-=1
+                        bottomR-=1
+                        self.Grid.SelectBlock(topR, leftR, bottomR, rightR)
+                        self.RefreshWindowFromData()
+        elif event.KeyCode == 317:  # Down arrow
+            if self.HasSelection():
+                tl=self.Grid.SelectionBlockTopLeft
+                br=self.Grid.SelectionBlockBottomRight
+                # Only if there's a single selected block
+                if len(tl) == 1 and len(br) == 1:
+                    topR, leftR=tl[0]
+                    bottomR, rightR=br[0]
+                    # Can't move down if the last row selected is already the logical last row  #TODO: Handle extending the grid/datasource
+                    if bottomR < self._grid.NumberRows:
+                        # Extend the selection to be the whole row(s)
+                        leftR=0
+                        rightR=self.NumcolsR-1
+                        # And move 'em up 1
+                        self.MoveRows(topR-1, bottomR-topR+1, (topR-1)+1)   # Need to convert from raw to logical
+                        # And re-establish the selection
+                        topR+=1
+                        bottomR+=1
+                        self.Grid.SelectBlock(topR, leftR, bottomR, rightR)
+                        self.RefreshWindowFromData()
+        else:
+            event.Skip()
 
     #-------------------
     def OnKeyUp(self, event):
         if event.KeyCode == 308:                    # cntl
             self.cntlDown=False
-        if event.KeyCode == 315:                    # Up arrow
-            if self.HasSelection():
-                # Extend selection
-                tl=self.Grid.SelectionBlockTopLeft
-                br=self.Grid.SelectionBlockBottomRight
-                # Move things up
-
-        if event.KeyCode == 317:                    # Down arrow
-            if self.HasSelection():
-                # Move things up
-                pass
         event.Skip()
 
     #------------------
