@@ -493,7 +493,7 @@ class Grid():
             if len(tl) == 1 and len(br) == 1:
                 topR, leftR=tl[0]
                 bottomR, rightR=br[0]
-                # Can't move down if the last row selected is already the logical last row  #TODO: Handle extending the grid/datasource
+                self.ExpandDataSource(bottomR, rightR-1)  # bottomR is really (bottomR-1)+1 the logical coordinate to extend by 1
                 if bottomR < self._grid.NumberRows:
                     # Extend the selection to be the whole row(s)
                     leftR=0
