@@ -123,3 +123,32 @@ class MainConFrameClass(MainConFrame):
 
         # Insert the row data into the grid
         self._grid.RefreshWindowFromData()
+
+    # ------------------
+    def OnGridCellRightClick(self, event):
+        self._grid.OnGridCellRightClick(event, self.m_menuPopup)
+
+        mi=self.m_menuPopup.FindItemById(self.m_menuPopup.FindItem("Create New Con Page"))
+        mi.Enabled=True
+
+        self.PopupMenu(self.m_menuPopup)
+
+    # -------------------
+    def OnKeyDown(self, event):
+        self._grid.OnKeyDown(event)
+
+    # -------------------
+    def OnKeyUp(self, event):
+        self._grid.OnKeyUp(event)
+
+    # ------------------
+    def OnPopupCopy(self, event):
+        self._grid.OnPopupCopy(event)
+
+    # ------------------
+    def OnPopupPaste(self, event):
+        self._grid.OnPopupPaste(event)
+
+    def OnGridCellChanged(self, event):
+        self._grid.OnGridCellChanged(event)
+
