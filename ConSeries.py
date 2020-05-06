@@ -119,6 +119,9 @@ class ConSeries(GridDataSource):
         return len(self._series)
 
     def GetData(self, iRow: int, iCol: int) -> str:
+        if iRow == -1:  # Handle logical coordinate of column headers
+            return self.ColHeaders[iCol]
+
         r=self.Rows[iRow]
         return r.GetVal(iCol)
 

@@ -69,12 +69,14 @@ class Grid():
 
 
     # Set a value in the source data using logical coordinates
+    # Note that we can handle irow== -1 indicating a column header
     def SetSourceValue(self, iRow: int, iCol: int, val) -> None:
-        nrows=len(self._datasource.Rows)
-        if iRow >= nrows:
-            self._datasource.Rows.extend([self._datasource.Element]*(iRow-nrows+1))
-        ncols=len(self._datasource.ColHeaders)
-        assert(ncols > iCol)   # Can't extend columns this way.
+        assert iCol > -1
+        self.ExpandDataSource(iRow, iCol)
+
+        if iRow == -1:
+            self._datasource.ColHeaders[iCol]=val
+            return
 
         c=self._datasource.Rows[iRow]
         try:
@@ -327,16 +329,18 @@ class Grid():
 
     # Expand the grid's data source so that the local item (irow, icol) exists.
     def ExpandDataSource(self, irow: int, icol: int):
-        while irow >= len(self._datasource.Rows):
-            self._datasource.Rows.append(self._datasource.Element())
+        if irow >= 0:   # This test is needed in case we were working on the column headers (irowR->0) and then had to pass in irowR-1
+            while irow >= len(self._datasource.Rows):
+                self._datasource.Rows.append(self._datasource.Element())
 
         # Many data sources do not allow expanding the number of columns, so check that first
         assert icol < len(self._datasource.ColHeaders) or self._datasource.CanAddColumns
-        if self._datasource.CanAddColumns:
-            while icol >= len(self._datasource.ColHeaders):
-                self._datasource.ColHeaders.append("")
-                for j in range(self._datasource.NumRows):
-                    self._datasource.Rows[j].append("")
+        if icol >= 0:   # This test is needed in case we were working on the row headers (icolR->0) and then had to pass in icolR-1
+            if self._datasource.CanAddColumns:
+                while icol >= len(self._datasource.ColHeaders):
+                    self._datasource.ColHeaders.append("")
+                    for j in range(self._datasource.NumRows):
+                        self._datasource.Rows[j].append("")
 
     #------------------
     def OnGridCellChanged(self, event):
@@ -346,12 +350,13 @@ class Grid():
 
         # The first row is the column headers
         if rowR == 0:
-            event.Veto()  # This is a bit of magic to prevent the event from making later changes to the grid.
-            # Note that the Column Colheaders is offset by *2*. (The first column is the row number column and is blank; the second is the weird filename thingie and is untitled.)
-            #TODO: Fix this
-            if len(self._datasource.ColHeaders)+1 < colR:
-                self._datasource.ColHeaders.extend(["" for x in range(colR-len(self._datasource.ColHeaders)-1)])
-            self._datasource.ColHeaders[colR-2]=newVal
+            if not self._datasource.CanEditColumnHeaders:
+                self._grid.SetCellValue(rowR, colR, self._datasource.GetData(rowR-1, colR-1))
+                return
+
+            event.Veto()  # This is a bit of magic to prevent the event from causing later grid events.
+            self.ExpandDataSource(rowR-1, colR-1)     # Expand the number of columns if needed.
+            self.SetSourceValue(-1, colR-1, newVal)
             self.RefreshWindowFromData()
             return
 
