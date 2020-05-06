@@ -225,7 +225,7 @@ class Grid():
         # Fill in the cells
         for i in range(self._datasource.NumRows):
             for j in range(len(self._colheaders)):
-                self.SetCellValue(i, j, self._datasource.Data(i, j))
+                self.SetCellValue(i, j, self._datasource.GetData(i, j))
 
         self.ColorCellsByValue()      #TODO: Maybe merge these into one call?
         self.AutoSizeColumns()
@@ -269,7 +269,7 @@ class Grid():
         for iRow in range(topR, bottomR+1):
             v=[]
             for jCol in range(leftR, rightR+1):
-                v.append(self._datasource.Data(iRow-1, jCol-1))
+                v.append(self._datasource.GetData(iRow-1, jCol-1)) # Convert to logical row & col
             self.clipboard.append(v)
 
         pass

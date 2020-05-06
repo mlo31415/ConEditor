@@ -118,9 +118,9 @@ class ConSeries(GridDataSource):
     def NumRows(self) -> int:
         return len(self._series)
 
-    def Data(self, iRow: int, iCol: int) -> str:
+    def GetData(self, iRow: int, iCol: int) -> str:
         r=self.Rows[iRow]
-        return r.GetVal(self.ColHeaders[iCol])
+        return r.GetVal(iCol)
 
     @property
     def Rows(self) -> List:

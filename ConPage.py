@@ -79,7 +79,7 @@ class ConPage(GridDataSource):
     def NumRows(self) -> int:
         return len(self._conFileList)
 
-    def Data(self, iRow: int, iCol: int) -> str:
+    def GetData(self, iRow: int, iCol: int) -> str:
         r=self.Rows[iRow]
         return r.GetVal(self.ColHeaders[iCol])
 
