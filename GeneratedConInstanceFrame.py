@@ -40,16 +40,16 @@ class MainConFrame ( wx.Frame ):
 
 		fgSizer4.Add( self.m_staticText1, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT, 5 )
 
-		self.tConSeries = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 200,-1 ), 0 )
-		fgSizer4.Add( self.tConSeries, 0, wx.ALL|wx.EXPAND, 5 )
+		self.tConInstanceName = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 200,-1 ), 0 )
+		fgSizer4.Add( self.tConInstanceName, 0, wx.ALL|wx.EXPAND, 5 )
 
 		self.m_staticText11 = wx.StaticText( self, wx.ID_ANY, u"Fancy URL:", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText11.Wrap( -1 )
 
 		fgSizer4.Add( self.m_staticText11, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT, 5 )
 
-		self.tConName = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 300,-1 ), 0 )
-		fgSizer4.Add( self.tConName, 0, wx.ALL|wx.EXPAND, 5 )
+		self.tConInstanceFancyURL = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 300,-1 ), 0 )
+		fgSizer4.Add( self.tConInstanceFancyURL, 0, wx.ALL|wx.EXPAND, 5 )
 
 
 		bSizerMainBox.Add( fgSizer4, 1, wx.EXPAND, 5 )
@@ -134,9 +134,10 @@ class MainConFrame ( wx.Frame ):
 		self.Centre( wx.BOTH )
 
 		# Connect Events
-		self.bSaveCon.Bind( wx.EVT_BUTTON, self.OnSaveConSeries )
+		self.bSaveCon.Bind( wx.EVT_BUTTON, self.OnSaveConInstance )
 		self.bAddFiles.Bind( wx.EVT_BUTTON, self.OnAddFilesButton )
-		self.tConName.Bind( wx.EVT_TEXT, self.OnTextConName )
+		self.tConInstanceName.Bind( wx.EVT_TEXT, self.OnTextConInstanceName )
+		self.tConInstanceFancyURL.Bind( wx.EVT_TEXT, self.OnTextConInstanceFancyURL )
 		self.tPText.Bind( wx.EVT_TEXT, self.OnTextComments )
 		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_CHANGED, self.OnGridCellChanged )
 		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnGridCellRightClick )
@@ -150,13 +151,16 @@ class MainConFrame ( wx.Frame ):
 
 
 	# Virtual event handlers, overide them in your derived class
-	def OnSaveConSeries( self, event ):
+	def OnSaveConInstance( self, event ):
 		event.Skip()
 
 	def OnAddFilesButton( self, event ):
 		event.Skip()
 
-	def OnTextConName( self, event ):
+	def OnTextConInstanceName( self, event ):
+		event.Skip()
+
+	def OnTextConInstanceFancyURL( self, event ):
 		event.Skip()
 
 	def OnTextComments( self, event ):

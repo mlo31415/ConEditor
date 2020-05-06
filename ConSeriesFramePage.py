@@ -182,6 +182,10 @@ class MainWindow(MainConSeriesFrame):
     #------------------
     def OnCreateNewConPage(self, event):
         frame=MainConFrameClass(None)
+        rowR=self._grid.rightClickedRow
+        colR=self._grid.rightClickedColumn
+        frame.tConInstanceName.Value=self._grid._datasource.GetData(rowR-1, colR-1)
+
         frame.Show()
 
     #------------------

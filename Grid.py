@@ -411,6 +411,7 @@ class Grid():
     #------------------
     def OnGridCellRightClick(self, event, m_menuPopup):
         self.rightClickedColumn=event.GetCol()
+        self.rightClickedRow=event.GetRow()
 
         # Set everything to disabled.
         for mi in m_menuPopup.GetMenuItems():

@@ -1259,7 +1259,7 @@
                                 <property name="minimize_button">0</property>
                                 <property name="minimum_size"></property>
                                 <property name="moveable">1</property>
-                                <property name="name">tConSeries</property>
+                                <property name="name">tConInstanceName</property>
                                 <property name="pane_border">1</property>
                                 <property name="pane_position"></property>
                                 <property name="pane_size"></property>
@@ -1281,6 +1281,7 @@
                                 <property name="window_extra_style"></property>
                                 <property name="window_name"></property>
                                 <property name="window_style"></property>
+                                <event name="OnText">OnTextConInstanceName</event>
                             </object>
                         </object>
                         <object class="sizeritem" expanded="0">
@@ -1384,7 +1385,7 @@
                                 <property name="minimize_button">0</property>
                                 <property name="minimum_size"></property>
                                 <property name="moveable">1</property>
-                                <property name="name">tConName</property>
+                                <property name="name">tConInstanceFancyURL</property>
                                 <property name="pane_border">1</property>
                                 <property name="pane_position"></property>
                                 <property name="pane_size"></property>
@@ -1406,7 +1407,7 @@
                                 <property name="window_extra_style"></property>
                                 <property name="window_name"></property>
                                 <property name="window_style"></property>
-                                <event name="OnText">OnTextConName</event>
+                                <event name="OnText">OnTextConInstanceFancyURL</event>
                             </object>
                         </object>
                     </object>

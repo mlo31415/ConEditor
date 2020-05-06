@@ -41,6 +41,8 @@ class MainConFrameClass(MainConFrame):
         dlg.Destroy()
         self._grid.RefreshWindowFromData()
 
+    def OnSaveConInstance(self, event):
+        self.SaveConFilePage(self.tConInstanceName.Value)   #TODO: Need to check for name validity and make it cannonical
 
     def SaveConFilePage(self, filename: str) -> None:
         # First read in the template
