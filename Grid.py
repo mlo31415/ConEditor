@@ -48,6 +48,9 @@ class GridDataSource():
     def CanAddColumns(self) -> bool:
         return False            # Override this if adding columns is allowed
 
+    @property
+    def CanEditColumnHeaders(self) -> bool:
+        return False            # Override this if editing the column headers is allowed
 
 # The class hides the machinations needed to handle the row and column headers
 class Grid():
