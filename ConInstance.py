@@ -60,6 +60,14 @@ class ConPage(GridDataSource):
         return self._colheaders
 
     @property
+    def ColDataTypes(self) -> List[str]:
+        return self._coldatatypes
+
+    @property
+    def ColMinWidths(self) -> List[int]:
+        return self._colminwidths
+
+    @property
     def Rows(self) -> List:
         return self._conFileList
 
@@ -70,13 +78,6 @@ class ConPage(GridDataSource):
     def SetDataVal(self, irow: int, icol: int, val: Union[int, str]) -> None:
         self._conFileList[irow].SetVal(icol, val)
 
-    @property
-    def ColDataTypes(self) -> List[str]:
-        return self._coldatatypes
-
-    @property
-    def ColMinWidths(self) -> List[int]:
-        return self._colminwidths
 
     @property
     def NumRows(self) -> int:
