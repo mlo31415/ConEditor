@@ -57,10 +57,6 @@ class MainWindow(MainConSeriesFrame):
         self._grid.RefreshWindowFromData()
         self.Show(True)
 
-    @property
-    def DGrid(self) -> Grid:
-        return self._grid
-
     #------------------
     def OnLoadConSeries(self, event):
         self.ReadConSeries()
