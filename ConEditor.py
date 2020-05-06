@@ -117,8 +117,8 @@ class MainWindow(MainConSeriesFrame):
 
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name is tagged with <abc>, the random text with "xyz"
-        file=SubstituteHTML(file, "abc", self._datasource.Name)
-        file=SubstituteHTML(file, "xyz", self._datasource.Stuff)
+        file=SubstituteHTML(file, "abc", self._grid._datasource.Name)
+        file=SubstituteHTML(file, "xyz", self._grid._datasource.Stuff)
 
         # Now construct the table which we'll then substitute.
         newtable='<table class="table">\n'
@@ -132,7 +132,7 @@ class MainWindow(MainConSeriesFrame):
         newtable+='    </tr>\n'
         newtable+='  </thead>\n'
         newtable+='  <tbody>\n'
-        for row in self._datasource.Rows:
+        for row in self._grid._datasource.Rows:
             newtable+="    <tr>\n"
             newtable+='      <th scope="row">'+str(row.Seq)+'</th>/n'
             newtable+='      <td>'+row.Name+'<td>\n'
