@@ -136,10 +136,10 @@ class MainWindow(MainConSeriesFrame):
         for row in self._grid._datasource.Rows:
             newtable+="    <tr>\n"
             newtable+='      <th scope="row">'+str(row.Seq)+'</th>\n'
-            newtable+='      <td>'+row.Name+'<td>\n'
-            newtable+='      <td>'+str(row.Dates)+'<td>\n'
-            newtable+='      <td>'+row.Locale+'<td>\n'
-            newtable+='      <td>'+row.GoHs+'<td>\n'
+            newtable+='      <td>'+row.Name+'</td>\n'
+            newtable+='      <td>'+str(row.Dates)+'</td>\n'
+            newtable+='      <td>'+row.Locale+'</td>\n'
+            newtable+='      <td>'+row.GoHs+'</td>\n'
             newtable+="    </tr>\n"
         newtable+="    </tbody>\n"
         newtable+="  </table>\n"
