@@ -91,10 +91,12 @@ class Grid():
         self._grid.SetCellValue(iRowR, iColR, val)
 
     # Set a grid cell value using logical coordinates
+    # Note that this does not change the underlying data
     def SetCellValue(self, iRow: int, iCol: int, val) -> None:
         g=self.SetCellValueR(iRow+1, iCol+1, val)
 
     # Get a cell value using raw indexing
+    # Note that this does not change the underlying data
     def Get(self, rowR: int, colR: int) -> str:
         return self._grid.GetCellValue(rowR, colR)
 
