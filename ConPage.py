@@ -30,15 +30,15 @@ class ConFile:
             return self._description
         return "Val can't interpret '"+str(name)+"'"
 
-    def SetVal(self, nameOrColR: Union[str, int], val: Union[str, int]) -> None:
+    def SetVal(self, nameOrCol: Union[str, int], val: Union[str, int]) -> None:
         # (Could use return eval("self."+name))
-        if nameOrColR == "File" or nameOrColR == 1:
+        if nameOrCol == "File" or nameOrCol == 0:
             self._displayTitle=val
             return
-        if nameOrColR == "Description" or nameOrColR == 2:
+        if nameOrCol == "Description" or nameOrCol == 1:
             self._description=val
             return
-        print("SetVal can't interpret '"+str(nameOrColR)+"'")
+        print("SetVal can't interpret '"+str(nameOrCol)+"'")
 
 
 
@@ -66,6 +66,9 @@ class ConPage(GridDataSource):
     @Rows.setter
     def Rows(self, rows: List) -> None:
         self._conFileList=rows
+
+    def SetDataVal(self, irow: int, icol: int, val: Union[int, str, FanzineDateRange]) -> None:
+        self._conFileList[irow].SetVal(icol, val)
 
     @property
     def ColDataTypes(self) -> List[str]:

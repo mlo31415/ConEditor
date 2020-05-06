@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List
+from typing import List, Union
 
 import wx
 import wx.grid
@@ -39,6 +39,9 @@ class GridDataSource():
 
     @Rows.setter
     def Rows(self, rows: List) -> None:
+        pass
+
+    def SetDataVal(self, irow: int, icol: int, val: Union[int, str, FanzineDateRange]) -> None:
         pass
 
 
@@ -294,23 +297,23 @@ class Grid():
         # Might some of the new material be outside the current bounds?  If so, add some blank rows and/or columns
 
         # Define the bounds of the paste-to box
-        pasteTop=topR
-        pasteBottom=topR+len(self.clipboard)
-        pasteLeft=leftR
+        pasteTopR=topR
+        pasteBottomR=topR+len(self.clipboard)
+        pasteLeftR=leftR
         pasteRight=leftR+len(self.clipboard[0])
 
         # Does the paste-to box extend beyond the end of the available rows?  If so, extend the available rows.
-        num=pasteBottom-len(self._datasource.Rows)-1
+        num=pasteBottomR-len(self._datasource.Rows)-1
         if num > 0:
-            for i in range(num):
+            for i in range(num):  #TODO: ExpandDatasource
                 self._datasource.Rows.append(["" for x in range(self._datasource.NumRows)])  # The strange contortion is to append a list of distinct empty strings
 
         # Copy the cells from the clipboard to the grid in lstData.
-        i=pasteTop
+        i=pasteTopR
         for row in self.clipboard:
-            j=pasteLeft
-            for cell in row:
-                self._datasource.Rows[i-1][j-1]=cell  # The -1 is to deal with the 1-indexing
+            j=pasteLeftR
+            for cellval in row:
+                self._datasource.SetDataVal(i-1, j-1, cellval)  # The -1 is to deal with the 1-indexing
                 j+=1
             i+=1
         self.RefreshWindowFromData()
@@ -432,12 +435,12 @@ class Grid():
 
     #-------------------
     def OnKeyDown(self, event):
-        top, leftR, bottom, rightR=self.LocateSelection()
+        topR, leftR, bottomR, rightR=self.LocateSelection()
 
         if event.KeyCode == 67 and self.cntlDown:   # cntl-C
-            self.CopyCells(top, leftR, bottom, rightR)
+            self.CopyCells(topR, leftR, bottomR, rightR)
         elif event.KeyCode == 86 and self.cntlDown and self.clipboard is not None and len(self.clipboard) > 0: # cntl-V
-            self.PasteCells(top, leftR)
+            self.PasteCells(topR, leftR)
         elif event.KeyCode == 308:                  # cntl
             self.cntlDown=True
         elif event.KeyCode == 68:                   # Kludge to be able to force a refresh (press "d")

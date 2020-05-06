@@ -70,24 +70,24 @@ class Con:
             return self.GoHs
         return "Val can't interpret '"+str(name)+"'"
 
-    def SetVal(self, nameOrColR: Union[str, int], val: Union[str, int, FanzineDateRange]) -> None:
+    def SetVal(self, nameOrCol: Union[str, int], val: Union[str, int, FanzineDateRange]) -> None:
         # (Could use return eval("self."+name))
-        if nameOrColR == "Seq" or nameOrColR == 1:
+        if nameOrCol == "Seq" or nameOrCol == 0:
             self.Seq=val
             return
-        if nameOrColR == "Name" or nameOrColR == 2:
+        if nameOrCol == "Name" or nameOrCol == 1:
             self.Name=val
             return
-        if nameOrColR == "Dates" or nameOrColR == 3:
+        if nameOrCol == "Dates" or nameOrCol == 2:
             self.Dates=val
             return
-        if nameOrColR == "Locale" or nameOrColR == 4:
+        if nameOrCol == "Locale" or nameOrCol == 3:
             self.Locale=val
             return
-        if nameOrColR == "GoHs" or nameOrColR == 5:
+        if nameOrCol == "GoHs" or nameOrCol == 4:
             self.GoHs=val
             return
-        print("SetVal can't interpret '"+str(nameOrColR)+"'")
+        print("SetVal can't interpret '"+str(nameOrCol)+"'")
 
 ####################################################################################
 class ConSeries(GridDataSource):
@@ -129,6 +129,9 @@ class ConSeries(GridDataSource):
     @Rows.setter
     def Rows(self, rows: List) -> None:
         self._series=rows
+
+    def SetDataVal(self, irow: int, icol: int, val: Union[int, str, FanzineDateRange]) -> None:
+        self._series[irow].SetVal(icol, val)
 
     #------------
     @property
