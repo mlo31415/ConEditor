@@ -52,6 +52,8 @@ class GridDataSource():
     def CanEditColumnHeaders(self) -> bool:
         return False            # Override this if editing the column headers is allowed
 
+
+
 # The class hides the machinations needed to handle the row and column headers
 class Grid():
 
@@ -465,46 +467,44 @@ class Grid():
             self.cntlDown=True
         elif event.KeyCode == 68:                   # Kludge to be able to force a refresh (press "d")
             self.RefreshWindowFromData()
-        elif event.KeyCode == 315:  # Up arrow
-            if self.HasSelection():
-                tl=self.Grid.SelectionBlockTopLeft
-                br=self.Grid.SelectionBlockBottomRight
-                # Only if there's a single selected block
-                if len(tl) == 1 and len(br) == 1:
-                    topR, leftR=tl[0]
-                    bottomR, rightR=br[0]
-                    # Can't move up if the first row selected is already the logical top row
-                    if topR > 1:
-                        # Extend the selection to be the whole row(s)
-                        leftR=0
-                        rightR=self.NumcolsR-1
-                        # And move 'em up 1
-                        self.MoveRows(topR-1, bottomR-topR+1, (topR-1)-1)   # Need to convert from raw to logical
-                        # And re-establish the selection
-                        topR-=1
-                        bottomR-=1
-                        self.Grid.SelectBlock(topR, leftR, bottomR, rightR)
-                        self.RefreshWindowFromData()
-        elif event.KeyCode == 317:  # Down arrow
-            if self.HasSelection():
-                tl=self.Grid.SelectionBlockTopLeft
-                br=self.Grid.SelectionBlockBottomRight
-                # Only if there's a single selected block
-                if len(tl) == 1 and len(br) == 1:
-                    topR, leftR=tl[0]
-                    bottomR, rightR=br[0]
-                    # Can't move down if the last row selected is already the logical last row  #TODO: Handle extending the grid/datasource
-                    if bottomR < self._grid.NumberRows:
-                        # Extend the selection to be the whole row(s)
-                        leftR=0
-                        rightR=self.NumcolsR-1
-                        # And move 'em up 1
-                        self.MoveRows(topR-1, bottomR-topR+1, (topR-1)+1)   # Need to convert from raw to logical
-                        # And re-establish the selection
-                        topR+=1
-                        bottomR+=1
-                        self.Grid.SelectBlock(topR, leftR, bottomR, rightR)
-                        self.RefreshWindowFromData()
+        elif event.KeyCode == 315 and self.HasSelection():      # Up arrow
+            tl=self.Grid.SelectionBlockTopLeft
+            br=self.Grid.SelectionBlockBottomRight
+            # Only if there's a single selected block
+            if len(tl) == 1 and len(br) == 1:
+                topR, leftR=tl[0]
+                bottomR, rightR=br[0]
+                # Can't move up if the first row selected is already the logical top row
+                if topR > 1:
+                    # Extend the selection to be the whole row(s)
+                    leftR=0
+                    rightR=self.NumcolsR-1
+                    # And move 'em up 1
+                    self.MoveRows(topR-1, bottomR-topR+1, (topR-1)-1)   # Need to convert from raw to logical
+                    # And re-establish the selection
+                    topR-=1
+                    bottomR-=1
+                    self.Grid.SelectBlock(topR, leftR, bottomR, rightR)
+                    self.RefreshWindowFromData()
+        elif event.KeyCode == 317 and self.HasSelection():      # Down arrow
+            tl=self.Grid.SelectionBlockTopLeft
+            br=self.Grid.SelectionBlockBottomRight
+            # Only if there's a single selected block
+            if len(tl) == 1 and len(br) == 1:
+                topR, leftR=tl[0]
+                bottomR, rightR=br[0]
+                # Can't move down if the last row selected is already the logical last row  #TODO: Handle extending the grid/datasource
+                if bottomR < self._grid.NumberRows:
+                    # Extend the selection to be the whole row(s)
+                    leftR=0
+                    rightR=self.NumcolsR-1
+                    # And move 'em up 1
+                    self.MoveRows(topR-1, bottomR-topR+1, (topR-1)+1)   # Need to convert from raw to logical
+                    # And re-establish the selection
+                    topR+=1
+                    bottomR+=1
+                    self.Grid.SelectBlock(topR, leftR, bottomR, rightR)
+                    self.RefreshWindowFromData()
         else:
             event.Skip()
 
