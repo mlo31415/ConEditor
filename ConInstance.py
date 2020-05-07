@@ -12,14 +12,23 @@ class ConFile:
     @property
     def DisplayTitle(self) -> str:
         return self._displayTitle
+    @DisplayTitle.setter
+    def DisplayTitle(self, val: str):
+        self._displayTitle=val
 
     @property
     def Description(self) -> str:
         return self._description
+    @Description.setter
+    def Description(self, val: str):
+        self._description=val
 
     @property
     def LocalPathname(self) -> str:
         return self._localpathname
+    @LocalPathname.setter
+    def LocalPathname(self, val: str):
+        self._localpathname=val
 
     # Get or set a value by name or column number in the grid
     def GetVal(self, name: Union[str, int]) -> Union[str, int]:
@@ -42,7 +51,7 @@ class ConFile:
 
 
 
-class ConPage(GridDataSource):
+class ConInstancePage(GridDataSource):
     # an array of tuples: column header, min col width, col type
     _colheaders=["File", "Description"]
     _colminwidths=[50, 200]
@@ -77,6 +86,14 @@ class ConPage(GridDataSource):
 
     def SetDataVal(self, irow: int, icol: int, val: Union[int, str]) -> None:
         self._conFileList[irow].SetVal(icol, val)
+
+    @property
+    def Name(self) -> str:
+        return self._name
+
+    @Name.setter
+    def Name(self, val: str) -> None:
+        self._name=val
 
 
     @property

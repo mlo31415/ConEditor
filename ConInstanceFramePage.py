@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 
 from GeneratedConInstanceFrame import MainConFrame
 from Grid import Grid
-from ConInstance import ConPage, ConFile
+from ConInstance import ConInstancePage, ConFile
 
 from HelpersPackage import SubstituteHTML, StripExternalTags
 from FanzineIssueSpecPackage import FanzineDateRange
@@ -14,7 +14,7 @@ class MainConFrameClass(MainConFrame):
     def __init__(self, parent):
         MainConFrame.__init__(self, parent)
         self._grid: Grid=Grid(self.gRowGrid)
-        self._grid._datasource=ConPage()
+        self._grid._datasource=ConInstancePage()
 
         self._grid.SetColHeaders(self._grid._datasource.ColHeaders)
         self._grid.SetColTypes(self._grid._datasource.ColDataTypes)
@@ -51,9 +51,9 @@ class MainConFrameClass(MainConFrame):
             return
         base=os.path.splitext(fname)[0]
         fname=base+".htm"   # We use "htm" here temporarily so it's easy to distinguish ConSeres pages from conInstance pages
-        self.SaveConFilePage(fname)   #TODO: Need to make name cannonical
+        self.SaveConInstancePage(fname)   #TODO: Need to make name cannonical
 
-    def SaveConFilePage(self, filename: str) -> None:
+    def SaveConInstancePage(self, filename: str) -> None:
         # First read in the template
         file=None
         with open(os.path.join(".", "Template-ConPage.html")) as f:
@@ -61,7 +61,8 @@ class MainConFrameClass(MainConFrame):
 
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name is tagged with <abc>, the random text with "xyz"
-        file=SubstituteHTML(file, "abc", self.ConInstanceName)
+        link='<a href="fancyclopedia.org/'+self.ConInstanceName+'.html">'+self.ConInstanceName+"</a>"
+        file=SubstituteHTML(file, "abc", link)
         file=SubstituteHTML(file, "xyz", self.ConInstanceStuff)
 
         # Now construct the table which we'll then substitute.
@@ -91,23 +92,29 @@ class MainConFrameClass(MainConFrame):
 
     #------------------
     # Download a ConSeries
-    def ReadConFilePage(self):
+    def LoadConInstancePage(self, fname:str):
 
         # Clear out any old information
-        self._grid._datasource=ConPage()
+        self._grid._datasource=ConInstancePage()
 
-        # Call the File Open dialog to get an con series HTML file
-        dlg=wx.FileDialog(self, "Select con series file to load", self.dirname, "", "*.html", wx.FD_OPEN)
-        dlg.SetWindowStyle(wx.STAY_ON_TOP)
+        # Look to see if name is the name of a file
+        if fname is not None and fname != "":
+            base=os.path.splitext(fname)[0]
+            self.filename=base+".htm"
+            self.dirname="."
+        else:
+            # Call the File Open dialog to get an con series HTML file
+            dlg=wx.FileDialog(self, "Select con series file to load", self.dirname, "", "*.htm", wx.FD_OPEN)
+            dlg.SetWindowStyle(wx.STAY_ON_TOP)
 
-        if dlg.ShowModal() != wx.ID_OK:
-            dlg.Raise()
+            if dlg.ShowModal() != wx.ID_OK:
+                dlg.Raise()
+                dlg.Destroy()
+                return
+
+            self.filename=dlg.GetFilename()
+            self.dirname=dlg.GetDirectory()
             dlg.Destroy()
-            return
-
-        self.filename=dlg.GetFilename()
-        self.dirname=dlg.GetDirectory()
-        dlg.Destroy()
 
         with open(os.path.join(self.dirname, self.filename)) as f:
             file=f.read()
@@ -124,12 +131,10 @@ class MainConFrameClass(MainConFrame):
         rows=[[m for m in l if m != "\n"] for l in soup.table.tbody if l != "\n"]
         for r in rows:
             r=[StripExternalTags(str(l)) for l in r]
-            con=ConPage()
+            con=ConFile()
             con.Seq=int(r[0])
-            con.Name=r[1]
-            con.Dates=FanzineDateRange().Match(r[2])
-            con.Locale=r[3]
-            con.GoHs=r[4]
+            con.DisplayTitle=r[1]
+            con.Description=r[2]
             self._grid._datasource.Rows.append(con)
 
         # Insert the row data into the grid
