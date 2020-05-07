@@ -124,7 +124,8 @@ class MainWindow(MainConSeriesFrame):
 
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name is tagged with <abc>, the random text with "xyz"
-        file=SubstituteHTML(file, "abc", self._textConSeries)
+        link='<a href="fancyclopedia.org/'+self._textConSeries+'.html">'+self._textConSeries+"</a>"
+        file=SubstituteHTML(file, "abc", link)
         file=SubstituteHTML(file, "xyz", self._textComments)
 
         # Now construct the table which we'll then substitute.
