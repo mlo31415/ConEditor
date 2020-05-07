@@ -193,7 +193,7 @@ class MainWindow(MainConSeriesFrame):
         if row < self._grid._datasource.NumRows:
             if "Name" in self._grid._datasource.ColHeaders:
                 col=self._grid._datasource.ColHeaders.index("Name")
-                frame.ConInstanceName=self._grid._datasource.GetData(row, col)
+                frame.tConInstanceName.Value=self._grid._datasource.GetData(row, col)
 
         frame.Show()
 
