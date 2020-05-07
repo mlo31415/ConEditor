@@ -7,7 +7,7 @@ class ConFile:
     def __init__(self):
         self._displayTitle: str=""      # The name as shown to the world
         self._description: str=""       # The free-format description
-        self._localpathname: str=""          # The local pathname of the file
+        self._localpathname: str=""     # The local pathname of the file
 
     @property
     def DisplayTitle(self) -> str:

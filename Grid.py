@@ -232,7 +232,7 @@ class Grid():
                 self.ColorCellByValue(iRow, iCol)
 
 
-    def RefreshWindowFromData(self):
+    def RefreshGridFromData(self):
         self.EvtHandlerEnabled=False
         self.Grid.ClearGrid()
 
@@ -247,8 +247,6 @@ class Grid():
         self.ColorCellsByValue()      #TODO: Maybe merge these into one call?
         self.AutoSizeColumns()
 
-        #TODO: How to virtualize this?
-        self.tConName="missing name"#self._conPage._name
 
     # Move a block of rows within the data source
     # All row numbers are logical
@@ -327,7 +325,7 @@ class Grid():
                 self._datasource.SetDataVal(i-1, j-1, cellval)  # The -1 is to deal with the 1-indexing
                 j+=1
             i+=1
-        self.RefreshWindowFromData()
+        self.RefreshGridFromData()
 
     # Expand the grid's data source so that the local item (irow, icol) exists.
     def ExpandDataSource(self, irow: int, icol: int):
@@ -359,7 +357,7 @@ class Grid():
             event.Veto()  # This is a bit of magic to prevent the event from causing later grid events.
             self.ExpandDataSource(rowR-1, colR-1)     # Expand the number of columns if needed.
             self.SetSourceValue(-1, colR-1, newVal)
-            self.RefreshWindowFromData()
+            self.RefreshGridFromData()
             return
 
         # If we're entering data in a new row or a new column, append the necessary number of new rows and/or columns to the data source
@@ -379,7 +377,7 @@ class Grid():
         if newVal.lower() == "x":
             del self._datasource.Rows[rowR-1]
             event.Veto()                # This is a bit of magic to prevent the event from making later changes to the grid.
-            self.RefreshWindowFromData()
+            self.RefreshGridFromData()
             return
 
         # If it's a number, it is tricky. We need to confirm that the user entered a new number.  (If not, we restore the old one and we're done.)
@@ -397,7 +395,7 @@ class Grid():
         # We *should* have a fractional value or an integer value out of range. Check for this.
         self.MoveRow(oldrow, newnumf)
         event.Veto()  # This is a bit of magic to prevent the event from making later changed to the grid.
-        self.RefreshWindowFromData()
+        self.RefreshGridFromData()
         return
 
     #------------------
@@ -467,7 +465,7 @@ class Grid():
         elif event.KeyCode == 308:                  # cntl
             self.cntlDown=True
         elif event.KeyCode == 68:                   # Kludge to be able to force a refresh (press "d")
-            self.RefreshWindowFromData()
+            self.RefreshGridFromData()
         elif event.KeyCode == 315 and self.HasSelection():      # Up arrow
             tl=self.Grid.SelectionBlockTopLeft
             br=self.Grid.SelectionBlockBottomRight
@@ -486,7 +484,7 @@ class Grid():
                     topR-=1
                     bottomR-=1
                     self.Grid.SelectBlock(topR, leftR, bottomR, rightR)
-                    self.RefreshWindowFromData()
+                    self.RefreshGridFromData()
         elif event.KeyCode == 317 and self.HasSelection():      # Down arrow
             tl=self.Grid.SelectionBlockTopLeft
             br=self.Grid.SelectionBlockBottomRight
@@ -505,7 +503,7 @@ class Grid():
                     topR+=1
                     bottomR+=1
                     self.Grid.SelectBlock(topR, leftR, bottomR, rightR)
-                    self.RefreshWindowFromData()
+                    self.RefreshGridFromData()
         else:
             event.Skip()
 

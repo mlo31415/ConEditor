@@ -54,7 +54,12 @@ class MainWindow(MainConSeriesFrame):
         self._grid._datasource=ConSeries()
         self._grid.SetColHeaders(self._grid._datasource.ColHeaders)
         self._grid.SetColTypes(ConSeries._coldatatypes)
-        self._grid.RefreshWindowFromData()
+        self._grid.RefreshGridFromData()
+
+        self._textConSeries: str=""
+        self._textFancyURL: str=""
+        self._textComments: str=""
+
         self.Show(True)
 
     #------------------
@@ -91,8 +96,9 @@ class MainWindow(MainConSeriesFrame):
         #   The convention series name
         #   The convention series text
         #   The convention series table
-        self._grid._datasource.Name=soup.find("abc").text
-        self._grid._datasource.Stuff=soup.find("xyz").text
+        frame.tConSeries.Value=soup.find("abc").text
+        frame.tComments.Value=soup.find("xyz").text
+
         header=[l.text for l in soup.table.tr.contents if l != "\n"]
         rows=[[m for m in l if m != "\n"] for l in soup.table.tbody if l != "\n"]
         for row in rows:
@@ -107,7 +113,7 @@ class MainWindow(MainConSeriesFrame):
             self._grid._datasource.Rows.append(con)
 
         # Insert the row data into the grid
-        self._grid.RefreshWindowFromData()
+        self._grid.RefreshGridFromData()
 
 
     def SaveConSeries(self, filename: str) -> None:
@@ -118,8 +124,8 @@ class MainWindow(MainConSeriesFrame):
 
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name is tagged with <abc>, the random text with "xyz"
-        file=SubstituteHTML(file, "abc", self._grid._datasource.Name)
-        file=SubstituteHTML(file, "xyz", self._grid._datasource.Stuff)
+        file=SubstituteHTML(file, "abc", self._textConSeries)
+        file=SubstituteHTML(file, "xyz", self._textComments)
 
         # Now construct the table which we'll then substitute.
         newtable='<table class="table">\n'
@@ -176,7 +182,7 @@ class MainWindow(MainConSeriesFrame):
         self._dlgEnterFancyName=dlgEnterFancyNameWindow(None)
         self._datasource=ConSeries()
         self._datasource.Name=self._dlgEnterFancyName._FancyName
-        self._grid.RefreshWindowFromData()
+        self._grid.RefreshGridFromData()
         pass
 
     #------------------
@@ -184,22 +190,27 @@ class MainWindow(MainConSeriesFrame):
         frame=MainConFrameClass(None)
         rowR=self._grid.rightClickedRow
         colR=self._grid.rightClickedColumn
-        frame.tConInstanceName.Value=self._grid._datasource.GetData(rowR-1, colR-1)
+        frame.ConInstanceName=self._grid._datasource.GetData(rowR-1, colR-1)
 
         frame.Show()
 
     #------------------
     def OnTextFancyURL(self, event):
-        self._datasource.FirstLine=self.tTopMatter.GetValue()
+        self._datasource.FirstLine=self.tFancyURL.GetValue()
+
+    #------------------
+    def OnTextConSeries( self, event ):
+        self._textConSeries=self.tConSeries.GetValue()
 
     #------------------
     def OnTextComments(self, event):
-        if self._datasource.Stuff is not None and len(self._datasource.Stuff) > 0:
-            self._datasource.Stuff=self.tPText.GetValue().split("\n")
-        elif self._datasource.BottomTextLines is not None and len(self._datasource.BottomTextLines) > 0:
-            self._datasource.BottomTextLines=self.tPText.GetValue().split("\n")
-        else:
-            self._datasource.Stuff=self.tPText.GetValue().split("\n")
+        self._textComments=self.tComments.GetValue()
+        # if self._grid._datasource.Stuff is not None and len(self._datasource.Stuff) > 0:
+        #     self._datasource.Stuff=self.tComments.GetValue().split("\n")
+        # elif self._datasource.BottomTextLines is not None and len(self._datasource.BottomTextLines) > 0:
+        #     self._datasource.BottomTextLines=self.tComments.GetValue().split("\n")
+        # else:
+        #     self._datasource.Stuff=self.tComments.GetValue().split("\n")
 
     #------------------
     def OnGridCellRightClick(self, event):

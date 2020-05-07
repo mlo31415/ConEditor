@@ -20,7 +20,10 @@ class MainConFrameClass(MainConFrame):
         self._grid.SetColTypes(self._grid._datasource.ColDataTypes)
         self._grid.FillInRowNumbers(self._grid.NumrowsR)
 
-        self._grid.RefreshWindowFromData()
+        self._grid.RefreshGridFromData()
+        self.ConInstanceName=""
+        self.ConInstanceStuff=""
+        self.ConInstanceFancyURL=""
         self.Show()
 
 
@@ -39,7 +42,7 @@ class MainConFrameClass(MainConFrame):
         conf._localpathname=os.path.join(dlg.GetDirectory(), dlg.GetFilename())
         self._grid._datasource.Rows.append(conf)
         dlg.Destroy()
-        self._grid.RefreshWindowFromData()
+        self._grid.RefreshGridFromData()
 
     def OnSaveConInstance(self, event):
         self.SaveConFilePage(self.tConInstanceName.Value)   #TODO: Need to check for name validity and make it cannonical
@@ -52,8 +55,8 @@ class MainConFrameClass(MainConFrame):
 
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name is tagged with <abc>, the random text with "xyz"
-        file=SubstituteHTML(file, "abc", self._grid._datasource.Name)
-        file=SubstituteHTML(file, "xyz", self._grid._datasource.Stuff)
+        file=SubstituteHTML(file, "abc", self.ConInstanceName)
+        file=SubstituteHTML(file, "xyz", self.ConInstanceStuff)
 
         # Now construct the table which we'll then substitute.
         newtable='<table class="table">\n'
@@ -109,8 +112,8 @@ class MainConFrameClass(MainConFrame):
         #   The convention series name
         #   The convention series text
         #   The convention series table
-        self._grid._datasource.Name=soup.find("abc").text
-        self._grid._datasource.Stuff=soup.find("xyz").text
+        self.tConInstanceName.Value=soup.find("abc").text
+        self.tPText.Value=soup.find("xyz").text
         header=[l.text for l in soup.table.tr.contents if l != "\n"]
         rows=[[m for m in l if m != "\n"] for l in soup.table.tbody if l != "\n"]
         for r in rows:
@@ -124,7 +127,10 @@ class MainConFrameClass(MainConFrame):
             self._grid._datasource.Rows.append(con)
 
         # Insert the row data into the grid
-        self._grid.RefreshWindowFromData()
+        self._grid.RefreshGridFromData()
+
+        self.tConInstanceFancyURL.Value=self.ConInstanceFancyURL
+
 
     # ------------------
     def OnGridCellRightClick(self, event):
@@ -154,3 +160,11 @@ class MainConFrameClass(MainConFrame):
     def OnGridCellChanged(self, event):
         self._grid.OnGridCellChanged(event)
 
+    def OnTextConInstanceName(self, event):
+        self.ConInstanceName=self.tConInstanceName.Value
+
+    def OnTextConInstanceFancyURL(self, event):
+        self.ConInstanceFancyURL=self.tConInstanceFancyURL.Value
+
+    def OnTextComments(self, event):
+        self.ConInstanceStuff=self.tPText.Value

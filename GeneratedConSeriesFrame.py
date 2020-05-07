@@ -71,10 +71,10 @@ class MainConSeriesFrame ( wx.Frame ):
 
 		fgSizerComments.Add( self.m_staticText2, 1, wx.ALL, 5 )
 
-		self.tPText = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 9999,-1 ), wx.TE_MULTILINE )
-		self.tPText.SetMinSize( wx.Size( -1,80 ) )
+		self.tComments = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 9999,-1 ), wx.TE_MULTILINE )
+		self.tComments.SetMinSize( wx.Size( -1,80 ) )
 
-		fgSizerComments.Add( self.tPText, 1, wx.ALL|wx.EXPAND, 5 )
+		fgSizerComments.Add( self.tComments, 1, wx.ALL|wx.EXPAND, 5 )
 
 
 		bSizerMainBox.Add( fgSizerComments, 1, wx.ALL|wx.EXPAND, 5 )
@@ -143,17 +143,15 @@ class MainConSeriesFrame ( wx.Frame ):
 		self.bLoadConSeries.Bind( wx.EVT_BUTTON, self.OnLoadConSeries )
 		self.bSaveConSeries.Bind( wx.EVT_BUTTON, self.OnSaveConSeries )
 		self.bCreateConSeries.Bind( wx.EVT_BUTTON, self.OnCreateConSeries )
-		self.tConSeries.Bind( wx.EVT_TEXT, self.OnTextTopMatter )
+		self.tConSeries.Bind( wx.EVT_TEXT, self.OnTextConSeries )
 		self.tFancyURL.Bind( wx.EVT_TEXT, self.OnTextFancyURL )
-		self.tPText.Bind( wx.EVT_TEXT, self.OnTextComments )
+		self.tComments.Bind( wx.EVT_TEXT, self.OnTextComments )
 		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_CHANGED, self.OnGridCellChanged )
 		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnGridCellRightClick )
 		self.gRowGrid.Bind( wx.EVT_KEY_DOWN, self.OnKeyDown )
 		self.gRowGrid.Bind( wx.EVT_KEY_UP, self.OnKeyUp )
 		self.Bind( wx.EVT_MENU, self.OnPopupCopy, id = self.m_menuItemCopy.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupPaste, id = self.m_menuItemPaste.GetId() )
-		self.Bind( wx.EVT_MENU, self.OnPopupCopy, id = self.m_popupCopy.GetId() )
-		self.Bind( wx.EVT_MENU, self.OnPopupPaste, id = self.m_popupPaste.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnCreateNewConPage, id = self.m_popupCreateNewConPage.GetId() )
 
 	def __del__( self ):
@@ -170,7 +168,7 @@ class MainConSeriesFrame ( wx.Frame ):
 	def OnCreateConSeries( self, event ):
 		event.Skip()
 
-	def OnTextTopMatter( self, event ):
+	def OnTextConSeries( self, event ):
 		event.Skip()
 
 	def OnTextFancyURL( self, event ):
@@ -196,8 +194,6 @@ class MainConSeriesFrame ( wx.Frame ):
 
 	def OnPopupPaste( self, event ):
 		event.Skip()
-
-
 
 	def OnCreateNewConPage( self, event ):
 		event.Skip()
