@@ -188,9 +188,12 @@ class MainWindow(MainConSeriesFrame):
     #------------------
     def OnCreateNewConPage(self, event):
         frame=MainConFrameClass(None)
-        rowR=self._grid.rightClickedRow
-        colR=self._grid.rightClickedColumn
-        frame.ConInstanceName=self._grid._datasource.GetData(rowR-1, colR-1)
+        row=self._grid.rightClickedRow-1   # Get logical row & col
+        col=self._grid.rightClickedColumn-1
+        if row < self._grid._datasource.NumRows:
+            if "Name" in self._grid._datasource.ColHeaders:
+                col=self._grid._datasource.ColHeaders.index("Name")
+                frame.ConInstanceName=self._grid._datasource.GetData(row, col)
 
         frame.Show()
 
