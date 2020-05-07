@@ -45,7 +45,13 @@ class MainConFrameClass(MainConFrame):
         self._grid.RefreshGridFromData()
 
     def OnSaveConInstance(self, event):
-        self.SaveConFilePage(self.tConInstanceName.Value)   #TODO: Need to check for name validity and make it cannonical
+        fname=self.tConInstanceName.Value
+        if fname is None or fname == "":
+            wx.MessageBox("No convention instance named suppled!")
+            return
+        base=os.path.splitext(fname)[0]
+        fname=base+".htm"   # We use "htm" here temporarily so it's easy to distinguish ConSeres pages from conInstance pages
+        self.SaveConFilePage(fname)   #TODO: Need to make name cannonical
 
     def SaveConFilePage(self, filename: str) -> None:
         # First read in the template
@@ -71,9 +77,9 @@ class MainConFrameClass(MainConFrame):
         i=1
         for row in self._grid._datasource.Rows:
             newtable+="    <tr>\n"
-            newtable+='      <th scope="row">'+str(1)+'</th>/n'
-            newtable+='      <td><a href="http:'+row._localpathname+'>'+row.DisplayTitle+'</a><td>\n'
-            newtable+='      <td>'+str(row.Description)+'<td>\n'
+            newtable+='      <th scope="row">'+str(1)+'</th>\n'
+            newtable+='      <td><a href="'+row._localpathname+'">'+row.DisplayTitle+'</a></td>\n'
+            newtable+='      <td>'+str(row.Description)+'</td>\n'
             newtable+="    </tr>\n"
             i+=1
         newtable+="    </tbody>\n"
