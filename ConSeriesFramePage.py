@@ -107,7 +107,7 @@ class MainWindow(MainConSeriesFrame):
             con.Seq=int(r[0]) if r[0] is not None else 0
             con.Name=r[1] if r[1] is not None else ""
             fd=FanzineDateRange().Match(r[2])
-            con.Date= fd if r[2] is not None else str(r[2])
+            con.Dates= fd if r[2] is not None else str(r[2])
             con.Locale=r[3]  if r[3] is not None else ""
             con.GoHs=r[4] if r[4] is not None else ""
             self._grid._datasource.Rows.append(con)
