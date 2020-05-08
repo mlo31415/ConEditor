@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 
 from GeneratedConSeriesFrame import MainConSeriesFrame
 
-from HelpersPackage import Bailout, StripExternalTags, SubstituteHTML
+from HelpersPackage import Bailout, StripExternalTags, SubstituteHTML, FormatLink
 from Log import LogOpen
 from FanzineIssueSpecPackage import FanzineDateRange
 
@@ -124,7 +124,7 @@ class MainWindow(MainConSeriesFrame):
 
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name is tagged with <abc>, the random text with "xyz"
-        link='<a href="fancyclopedia.org/'+self._textConSeries+'.html">'+self._textConSeries+"</a>"
+        link=FormatLink("http://fancyclopedia.org/"+self._textConSeries, self._textConSeries)
         file=SubstituteHTML(file, "abc", link)
         file=SubstituteHTML(file, "xyz", self._textComments)
 

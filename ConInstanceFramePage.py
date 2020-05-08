@@ -6,7 +6,7 @@ from GeneratedConInstanceFrame import MainConFrame
 from Grid import Grid
 from ConInstance import ConInstancePage, ConFile
 
-from HelpersPackage import SubstituteHTML, StripExternalTags
+from HelpersPackage import SubstituteHTML, StripExternalTags, FormatLink
 from FanzineIssueSpecPackage import FanzineDateRange
 
 #####################################################################################
@@ -61,7 +61,7 @@ class MainConFrameClass(MainConFrame):
 
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name is tagged with <abc>, the random text with "xyz"
-        link='<a href="fancyclopedia.org/'+self.ConInstanceName+'.html">'+self.ConInstanceName+"</a>"
+        link=FormatLink("http://fancyclopedia.org/"+self.ConInstanceName, self.ConInstanceName)
         file=SubstituteHTML(file, "abc", link)
         file=SubstituteHTML(file, "xyz", self.ConInstanceStuff)
 
@@ -79,7 +79,7 @@ class MainConFrameClass(MainConFrame):
         for row in self._grid._datasource.Rows:
             newtable+="    <tr>\n"
             newtable+='      <th scope="row">'+str(1)+'</th>\n'
-            newtable+='      <td><a href="'+row.LocalPathName+'">'+row.DisplayTitle+'</a></td>\n'
+            newtable+='      <td>'+FormatLink(row.LocalPathName, row.DisplayTitle)+'</td>\n'
             newtable+='      <td>'+str(row.Description)+'</td>\n'
             newtable+="    </tr>\n"
             i+=1
