@@ -52,7 +52,7 @@ class MainConFrame ( wx.Frame ):
 		fgSizer4.Add( self.tConInstanceFancyURL, 0, wx.ALL|wx.EXPAND, 5 )
 
 
-		bSizerMainBox.Add( fgSizer4, 1, wx.EXPAND, 5 )
+		bSizerMainBox.Add( fgSizer4, 0, wx.EXPAND, 5 )
 
 		fgSizerComments = wx.FlexGridSizer( 1, 2, 0, 0 )
 		fgSizerComments.AddGrowableCol( 1 )
@@ -71,7 +71,7 @@ class MainConFrame ( wx.Frame ):
 		fgSizerComments.Add( self.tPText, 1, wx.ALL|wx.EXPAND, 5 )
 
 
-		bSizerMainBox.Add( fgSizerComments, 1, wx.ALL|wx.EXPAND, 5 )
+		bSizerMainBox.Add( fgSizerComments, 0, wx.ALL|wx.EXPAND, 5 )
 
 		theIssueGrid = wx.BoxSizer( wx.VERTICAL )
 
