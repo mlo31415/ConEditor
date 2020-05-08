@@ -22,14 +22,25 @@ class MainConFrame ( wx.Frame ):
 
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
-		self.m_toolBar2 = self.CreateToolBar( wx.TB_HORIZONTAL, wx.ID_ANY )
-		self.bSaveCon = wx.Button( self.m_toolBar2, wx.ID_ANY, u"Save Con", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_toolBar2.AddControl( self.bSaveCon )
-		self.bAddFiles = wx.Button( self.m_toolBar2, wx.ID_ANY, u"Add Files", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_toolBar2.AddControl( self.bAddFiles )
-		self.m_toolBar2.Realize()
-
 		bSizerMainBox = wx.BoxSizer( wx.VERTICAL )
+
+		fgSizer5 = wx.FlexGridSizer( 1, 3, 0, 0 )
+		fgSizer5.SetFlexibleDirection( wx.BOTH )
+		fgSizer5.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.bSaveCon = wx.Button( self, wx.ID_ANY, u"Save Con", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer5.Add( self.bSaveCon, 0, wx.ALL, 5 )
+
+		m_radioBox1Choices = [ u"Table", u"LIst" ]
+		self.m_radioBox1 = wx.RadioBox( self, wx.ID_ANY, u"File list format", wx.Point( -1,-1 ), wx.Size( -1,-1 ), m_radioBox1Choices, 1, wx.RA_SPECIFY_ROWS )
+		self.m_radioBox1.SetSelection( 0 )
+		fgSizer5.Add( self.m_radioBox1, 0, wx.ALL, 5 )
+
+		self.bAddFiles = wx.Button( self, wx.ID_ANY, u"Add Files", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer5.Add( self.bAddFiles, 0, wx.ALL, 5 )
+
+
+		bSizerMainBox.Add( fgSizer5, 0, wx.EXPAND, 5 )
 
 		fgSizer4 = wx.FlexGridSizer( 2, 2, 0, 0 )
 		fgSizer4.SetFlexibleDirection( wx.BOTH )
@@ -118,6 +129,9 @@ class MainConFrame ( wx.Frame ):
 
 		self.SetSizer( bSizerMainBox )
 		self.Layout()
+		self.m_toolBar2 = self.CreateToolBar( wx.TB_HORIZONTAL, wx.ID_ANY )
+		self.m_toolBar2.Realize()
+
 		self.m_menuPopup = wx.Menu()
 		self.m_popupCopy = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Copy", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_menuPopup.Append( self.m_popupCopy )
@@ -134,7 +148,7 @@ class MainConFrame ( wx.Frame ):
 		self.Centre( wx.BOTH )
 
 		# Connect Events
-		self.bSaveCon.Bind( wx.EVT_BUTTON, self.OnSaveConSeries )
+		self.bSaveCon.Bind( wx.EVT_BUTTON, self.OnSaveConInstance )
 		self.bAddFiles.Bind( wx.EVT_BUTTON, self.OnAddFilesButton )
 		self.tConInstanceName.Bind( wx.EVT_TEXT, self.OnTextConInstanceName )
 		self.tConInstanceFancyURL.Bind( wx.EVT_TEXT, self.OnTextConInstanceFancyURL )
@@ -152,7 +166,7 @@ class MainConFrame ( wx.Frame ):
 
 
 	# Virtual event handlers, overide them in your derived class
-	def OnSaveConSeries( self, event ):
+	def OnSaveConInstance( self, event ):
 		event.Skip()
 
 	def OnAddFilesButton( self, event ):

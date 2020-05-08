@@ -65,26 +65,33 @@ class MainConFrameClass(MainConFrame):
         file=SubstituteHTML(file, "abc", link)
         file=SubstituteHTML(file, "xyz", self.ConInstanceStuff)
 
-        # Now construct the table which we'll then substitute.
-        newtable='<table class="table">\n'
-        newtable+="  <thead>\n"
-        newtable+="    <tr>\n"
-        newtable+='      <th scope="col">#</th>\n'
-        newtable+='      <th scope="col">Document</th>\n'
-        newtable+='      <th scope="col">Description</th>\n'
-        newtable+='    </tr>\n'
-        newtable+='  </thead>\n'
-        newtable+='  <tbody>\n'
-        i=1
-        for row in self._grid._datasource.Rows:
+        if self.m_radioBox1.GetSelection() == 0:
+            # Now construct the table which we'll then substitute.
+            newtable='<table class="table">\n'
+            newtable+="  <thead>\n"
             newtable+="    <tr>\n"
-            newtable+='      <th scope="row">'+str(1)+'</th>\n'
-            newtable+='      <td>'+FormatLink(row.LocalPathName, row.DisplayTitle)+'</td>\n'
-            newtable+='      <td>'+str(row.Description)+'</td>\n'
-            newtable+="    </tr>\n"
-            i+=1
-        newtable+="    </tbody>\n"
-        newtable+="  </table>\n"
+            newtable+='      <th scope="col">#</th>\n'
+            newtable+='      <th scope="col">Document</th>\n'
+            newtable+='      <th scope="col">Description</th>\n'
+            newtable+='    </tr>\n'
+            newtable+='  </thead>\n'
+            newtable+='  <tbody>\n'
+            i=1
+            for row in self._grid._datasource.Rows:
+                newtable+="    <tr>\n"
+                newtable+='      <th scope="row">'+str(1)+'</th>\n'
+                newtable+='      <td>'+FormatLink(row.LocalPathname, row.DisplayTitle)+'</td>\n'
+                newtable+='      <td>'+str(row.Description)+'</td>\n'
+                newtable+="    </tr>\n"
+                i+=1
+            newtable+="    </tbody>\n"
+            newtable+="  </table>\n"
+        else:
+            # Construct a list which we'll then substitute.
+            newtable="<ul>"
+            for row in self._grid._datasource.Rows:
+                newtable+="    <li>"+FormatLink(row.LocalPathname, row.DisplayTitle)+"&nbsp;&nbsp;"+str(row.Description)+"</li>\n"
+            newtable+="  </ul>\n"
 
         file=SubstituteHTML(file, "pdq", newtable)
         with open(filename, "w+") as f:

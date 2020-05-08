@@ -7,7 +7,7 @@ class ConFile:
     def __init__(self):
         self._displayTitle: str=""      # The name as shown to the world
         self._description: str=""       # The free-format description
-        self._localpathname: str=""     # The local pathname of the file
+        self._localpathname: str="."     # The local pathname of the file
 
     @property
     def DisplayTitle(self) -> str:
@@ -95,7 +95,6 @@ class ConInstancePage(GridDataSource):
     def Name(self, val: str) -> None:
         self._name=val
 
-
     @property
     def NumRows(self) -> int:
         return len(self._conFileList)
@@ -103,4 +102,5 @@ class ConInstancePage(GridDataSource):
     def GetData(self, iRow: int, iCol: int) -> str:
         r=self.Rows[iRow]
         return r.GetVal(self.ColHeaders[iCol])
+
 
