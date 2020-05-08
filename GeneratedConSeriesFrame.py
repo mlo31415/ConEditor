@@ -58,7 +58,7 @@ class MainConSeriesFrame ( wx.Frame ):
 		fgSizer4.Add( self.tFancyURL, 0, wx.ALL|wx.EXPAND, 5 )
 
 
-		bSizerMainBox.Add( fgSizer4, 1, wx.EXPAND, 5 )
+		bSizerMainBox.Add( fgSizer4, 0, wx.EXPAND, 5 )
 
 		fgSizerComments = wx.FlexGridSizer( 1, 2, 0, 0 )
 		fgSizerComments.AddGrowableCol( 1 )
@@ -77,7 +77,7 @@ class MainConSeriesFrame ( wx.Frame ):
 		fgSizerComments.Add( self.tComments, 1, wx.ALL|wx.EXPAND, 5 )
 
 
-		bSizerMainBox.Add( fgSizerComments, 1, wx.ALL|wx.EXPAND, 5 )
+		bSizerMainBox.Add( fgSizerComments, 0, wx.ALL|wx.EXPAND, 5 )
 
 		theIssueGrid = wx.BoxSizer( wx.VERTICAL )
 
@@ -147,6 +147,7 @@ class MainConSeriesFrame ( wx.Frame ):
 		self.tFancyURL.Bind( wx.EVT_TEXT, self.OnTextFancyURL )
 		self.tComments.Bind( wx.EVT_TEXT, self.OnTextComments )
 		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_CHANGED, self.OnGridCellChanged )
+		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_LEFT_DCLICK, self.OnGridCellDoubleClick )
 		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnGridCellRightClick )
 		self.gRowGrid.Bind( wx.EVT_KEY_DOWN, self.OnKeyDown )
 		self.gRowGrid.Bind( wx.EVT_KEY_UP, self.OnKeyUp )
@@ -178,6 +179,9 @@ class MainConSeriesFrame ( wx.Frame ):
 		event.Skip()
 
 	def OnGridCellChanged( self, event ):
+		event.Skip()
+
+	def OnGridCellDoubleClick( self, event ):
 		event.Skip()
 
 	def OnGridCellRightClick( self, event ):

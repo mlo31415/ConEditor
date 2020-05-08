@@ -34,18 +34,18 @@ class ConFile:
     def GetVal(self, name: Union[str, int]) -> Union[str, int]:
         # (Could use return eval("self."+name))
         if name == "File" or name == 0:
-            return self._displayTitle
+            return self.DisplayTitle
         if name == "Description" or name == 1:
-            return self._description
+            return self.Description
         return "Val can't interpret '"+str(name)+"'"
 
     def SetVal(self, nameOrCol: Union[str, int], val: Union[str, int]) -> None:
         # (Could use return eval("self."+name))
         if nameOrCol == "File" or nameOrCol == 0:
-            self._displayTitle=val
+            self.DisplayTitle=val
             return
         if nameOrCol == "Description" or nameOrCol == 1:
-            self._description=val
+            self.Description=val
             return
         print("SetVal can't interpret '"+str(nameOrCol)+"'")
 

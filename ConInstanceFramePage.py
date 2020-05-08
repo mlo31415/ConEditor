@@ -38,8 +38,8 @@ class MainConFrameClass(MainConFrame):
             return
 
         conf=ConFile()
-        conf._displayTitle=dlg.GetFilename()
-        conf._localpathname=os.path.join(dlg.GetDirectory(), dlg.GetFilename())
+        conf.DisplayTitle=dlg.GetFilename()
+        conf.LocalPathname=os.path.join(dlg.GetDirectory(), dlg.GetFilename())
         self._grid._datasource.Rows.append(conf)
         dlg.Destroy()
         self._grid.RefreshGridFromData()
@@ -79,7 +79,7 @@ class MainConFrameClass(MainConFrame):
         for row in self._grid._datasource.Rows:
             newtable+="    <tr>\n"
             newtable+='      <th scope="row">'+str(1)+'</th>\n'
-            newtable+='      <td><a href="'+row._localpathname+'">'+row.DisplayTitle+'</a></td>\n'
+            newtable+='      <td><a href="'+row.LocalPathName+'">'+row.DisplayTitle+'</a></td>\n'
             newtable+='      <td>'+str(row.Description)+'</td>\n'
             newtable+="    </tr>\n"
             i+=1

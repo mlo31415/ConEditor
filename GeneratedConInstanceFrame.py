@@ -134,12 +134,13 @@ class MainConFrame ( wx.Frame ):
 		self.Centre( wx.BOTH )
 
 		# Connect Events
-		self.bSaveCon.Bind( wx.EVT_BUTTON, self.OnSaveConInstance )
+		self.bSaveCon.Bind( wx.EVT_BUTTON, self.OnSaveConSeries )
 		self.bAddFiles.Bind( wx.EVT_BUTTON, self.OnAddFilesButton )
 		self.tConInstanceName.Bind( wx.EVT_TEXT, self.OnTextConInstanceName )
 		self.tConInstanceFancyURL.Bind( wx.EVT_TEXT, self.OnTextConInstanceFancyURL )
 		self.tPText.Bind( wx.EVT_TEXT, self.OnTextComments )
 		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_CHANGED, self.OnGridCellChanged )
+		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_LEFT_DCLICK, self.OnGridCellDoubleClick )
 		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnGridCellRightClick )
 		self.gRowGrid.Bind( wx.EVT_KEY_DOWN, self.OnKeyDown )
 		self.gRowGrid.Bind( wx.EVT_KEY_UP, self.OnKeyUp )
@@ -151,7 +152,7 @@ class MainConFrame ( wx.Frame ):
 
 
 	# Virtual event handlers, overide them in your derived class
-	def OnSaveConInstance( self, event ):
+	def OnSaveConSeries( self, event ):
 		event.Skip()
 
 	def OnAddFilesButton( self, event ):
@@ -167,6 +168,9 @@ class MainConFrame ( wx.Frame ):
 		event.Skip()
 
 	def OnGridCellChanged( self, event ):
+		event.Skip()
+
+	def OnGridCellDoubleClick( self, event ):
 		event.Skip()
 
 	def OnGridCellRightClick( self, event ):

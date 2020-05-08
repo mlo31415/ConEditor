@@ -189,8 +189,8 @@ class MainWindow(MainConSeriesFrame):
     #------------------
     def OnCreateNewConPage(self, event):
         frame=MainConFrameClass(None)
-        row=self._grid.rightClickedRow-1  # Get logical row & col
-        col=self._grid.rightClickedColumn-1
+        row=self.rightClickedRow-1  # Get logical row & col
+        col=self.rightClickedColumn-1
         name=""
         if row < self._grid._datasource.NumRows:
             if "Name" in self._grid._datasource.ColHeaders:
@@ -220,12 +220,19 @@ class MainWindow(MainConSeriesFrame):
 
     #------------------
     def OnGridCellRightClick(self, event):
-        self._grid.OnGridCellRightClick(event, self.m_menuPopup)
-
         mi=self.m_menuPopup.FindItemById(self.m_menuPopup.FindItem("Create New Con Page"))
         mi.Enabled=True
 
+        self._grid.OnGridCellRightClick(event, self.m_menuPopup)
         self.PopupMenu(self.m_menuPopup)
+
+
+    # ------------------
+    def OnGridCellDoubleClick(self, event):
+        self.rightClickedColumn=event.GetCol()
+        self.rightClickedRow=event.GetRow()
+        self.OnCreateNewConPage(event)
+
 
     #-------------------
     def OnKeyDown(self, event):

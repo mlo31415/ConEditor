@@ -428,6 +428,8 @@ class Grid():
         mi=m_menuPopup.FindItemById(m_menuPopup.FindItem("Paste"))
         mi.Enabled=self.clipboard is not None and len(self.clipboard) > 0 and len(self.clipboard[0]) > 0  # Enable only if the clipboard contains actual content
 
+    def OnGridCellDoubleClick(self):
+        pass
 
     #-------------------
     # Locate the selection, real or implied
