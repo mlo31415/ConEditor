@@ -10,7 +10,7 @@ import json
 
 from GeneratedConSeriesFrame import MainConSeriesFrame
 
-from HelpersPackage import Bailout, StripExternalTags, SubstituteHTML, FormatLink
+from HelpersPackage import Bailout, StripExternalTags, SubstituteHTML, FormatLink, FindBracketedText
 from Log import LogOpen
 from FanzineIssueSpecPackage import FanzineDateRange
 
@@ -84,12 +84,12 @@ class MainWindow(MainConSeriesFrame):
 
     #------------------
     def OnLoadConSeries(self, event):
-        self.ReadConSeries()
+        self.LoadConSeries()
         pass
 
     #------------------
     # Download a ConSeries
-    def ReadConSeries(self):
+    def LoadConSeries(self):
 
         # Clear out any old information
         self._grid._datasource=ConSeries()
@@ -110,27 +110,34 @@ class MainWindow(MainConSeriesFrame):
         with open(os.path.join(self.dirname, self.filename)) as f:
             file=f.read()
 
-        soup=BeautifulSoup(file, 'html.parser')
+        # Get the JSON
+        j=FindBracketedText(file, "fanac-json")[0]
+        if j is not None and j != "":
+            self.FromJson(j)
 
-        # We need to extract three things:
-        #   The convention series name
-        #   The convention series text
-        #   The convention series table
-        frame.tConSeries.Value=soup.find("abc").text
-        frame.tComments.Value=soup.find("xyz").text
+        else:
 
-        header=[l.text for l in soup.table.tr.contents if l != "\n"]
-        rows=[[m for m in l if m != "\n"] for l in soup.table.tbody if l != "\n"]
-        for row in rows:
-            r=[StripExternalTags(str(l)) for l in row]+([None, None, None, None, None])
-            con=Con()
-            con.Seq=int(r[0]) if r[0] is not None else 0
-            con.Name=r[1] if r[1] is not None else ""
-            fd=FanzineDateRange().Match(r[2])
-            con.Dates= fd if r[2] is not None else str(r[2])
-            con.Locale=r[3]  if r[3] is not None else ""
-            con.GoHs=r[4] if r[4] is not None else ""
-            self._grid._datasource.Rows.append(con)
+            soup=BeautifulSoup(file, 'html.parser')
+
+            # We need to extract three things:
+            #   The convention series name
+            #   The convention series text
+            #   The convention series table
+            frame.tConSeries.Value=soup.find("abc").text
+            frame.tComments.Value=soup.find("xyz").text
+
+            header=[l.text for l in soup.table.tr.contents if l != "\n"]
+            rows=[[m for m in l if m != "\n"] for l in soup.table.tbody if l != "\n"]
+            for row in rows:
+                r=[StripExternalTags(str(l)) for l in row]+([None, None, None, None, None])
+                con=Con()
+                con.Seq=int(r[0]) if r[0] is not None else 0
+                con.Name=r[1] if r[1] is not None else ""
+                fd=FanzineDateRange().Match(r[2])
+                con.Dates= fd if r[2] is not None else str(r[2])
+                con.Locale=r[3]  if r[3] is not None else ""
+                con.GoHs=r[4] if r[4] is not None else ""
+                self._grid._datasource.Rows.append(con)
 
         # Insert the row data into the grid
         self._grid.RefreshGridFromData()
@@ -223,7 +230,7 @@ class MainWindow(MainConSeriesFrame):
 
     #------------------
     def OnTextFancyURL(self, event):
-        self._datasource.FirstLine=self.tFancyURL.GetValue()
+        self._grid._datasource.FirstLine=self.tFancyURL.GetValue()
 
     #------------------
     def OnTextConSeries( self, event ):
