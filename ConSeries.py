@@ -15,6 +15,7 @@ class Con:
         self._locale: str=""                # Name of locale where the con was held
         self._dates: Optional[FanzineDateRange]=None      # Date range of the con
         self._gohs: str=""                  # A list of the con's GoHs
+        self._URL: str=""                   # The URL of the individual con page, if any
 
     # Serialize and deserialize
     def ToJson(self) -> str:
@@ -23,6 +24,7 @@ class Con:
            "_name": self._name,
            "_locale": self._locale,
            "_dates": str(self._dates),
+           "_URL": self._URL,
            "_gohs": self._gohs}
         return json.dumps(d)
 
@@ -35,14 +37,14 @@ class Con:
             self._gohs=d["_gohs"]
         if d["ver"] == 1:
             self._dates=FanzineDateRange().FromJson(d["_dates"])
-        if d["ver"] == 2:
+        if d["ver"] == 2:   # Ver 2 stores the date range is text to eliminate clutter in the json string
             self._dates=FanzineDateRange().Match(d["_dates"])
         return self
+
 
     @property
     def Seq(self) ->Optional[int]:
         return self._seq
-
     @Seq.setter
     def Seq(self, val: int):
         self._seq=val
@@ -50,7 +52,6 @@ class Con:
     @property
     def Name(self) -> str:
         return self._name
-
     @Name.setter
     def Name(self, val: str):
         self._name=val
@@ -58,7 +59,6 @@ class Con:
     @property
     def GoHs(self) -> str:
         return self._gohs
-
     @GoHs.setter
     def GoHs(self, val: str):
         self._gohs=val
@@ -66,7 +66,6 @@ class Con:
     @property
     def Locale(self) -> str:
         return self._locale
-
     @Locale.setter
     def Locale(self, val: str):
         self._locale=val
@@ -74,10 +73,16 @@ class Con:
     @property
     def Dates(self) -> Optional[FanzineDateRange]:
         return self._dates
-
     @Dates.setter
     def Dates(self, val: FanzineDateRange):
         self._dates=val
+
+    @property
+    def URL(self) -> str:
+        return self._URL
+    @URL.setter
+    def URL(self, val: str):
+        self._URL=val
 
     # Get or set a value by name or column number
     def GetVal(self, name: Union[str, int]) -> Union[str, int, FanzineDateRange]:
@@ -212,37 +217,3 @@ class ConSeries(GridDataSource):
     @Stuff.setter
     def Stuff(self, val: str) -> None:
         self._stuff=val
-
-
-# ---------------------------------
-# Look through the data and determine the likely column we're sorted on.
-# The column will be (mostly) filled and will be in ascending order.
-# This is necessarily based on heuristics and is inexact.
-# TODO: For the moment we're going to ignore whether the selected column is in fact sorted. We need to fix this later.
-def MeasureSortColumns(self) -> None:
-    # A sort column must either be the title or have a type code
-    # Start by looking through the columns that have a type code and seeing which are mostly or completely filled.  Do it in order of perceived importance.
-    fW=self.CountFilledCells("Whole")
-    fV=self.CountFilledCells("Volume")
-    fN=self.CountFilledCells("Number")
-    fY=self.CountFilledCells("Year")
-    fM=self.CountFilledCells("Month")
-
-    self.SortColumn={"Whole": fW, "Vol+Num": fV*fN, "Year&Month": fY*fM}
-
-
-# ---------------------------------
-# Count the number of filled cells in the column with the specified type code
-# Returns a floating point fraction between 0 and 1
-def CountFilledCells(self, colType: str) -> float:
-    try:
-        index=self.ColumnHeaderTypes.index(colType)
-    except:
-        return 0
-
-    # Count the number of filled-in values for this type
-    num=0
-    for row in self.Rows:
-        if index < len(row) and row[index] is not None and len(row[index]) > 0:
-            num+=1
-    return num/len(self.Rows)
