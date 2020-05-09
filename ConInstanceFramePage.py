@@ -47,18 +47,18 @@ class MainConFrameClass(MainConFrame):
 
     def OnAddFilesButton(self, event):
         # Call the File Open dialog to get an con series HTML file
-        dlg=wx.FileDialog(self, "Select files to upload", ".", "", "*.*", wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE | wx.FD_CHANGE_DIR)
-        dlg.SetWindowStyle(wx.STAY_ON_TOP)
+        dlg=wx.FileDialog(self, "Select files to upload", ".", "", "*.*", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE | wx.FD_CHANGE_DIR)
 
         if dlg.ShowModal() != wx.ID_OK:
             dlg.Raise()
             dlg.Destroy()
             return
 
-        conf=ConFile()
-        conf.DisplayTitle=dlg.GetFilename()
-        conf.LocalPathname=os.path.join(dlg.GetDirectory(), dlg.GetFilename())
-        self._grid._datasource.Rows.append(conf)
+        for fn in dlg.GetFilenames():
+            conf=ConFile()
+            conf.DisplayTitle=fn
+            conf.LocalPathname=os.path.join(dlg.GetDirectory(), fn)
+            self._grid._datasource.Rows.append(conf)
         dlg.Destroy()
         self._grid.RefreshGridFromData()
 
