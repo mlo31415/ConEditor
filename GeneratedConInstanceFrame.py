@@ -12,10 +12,10 @@ import wx.xrc
 import wx.grid
 
 ###########################################################################
-## Class MainConFrame
+## Class MainConDialog
 ###########################################################################
 
-class MainConFrame ( wx.Dialog ):
+class MainConDialog ( wx.Dialog ):
 
 	def __init__( self, parent ):
 		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.DefaultSize, style = wx.DEFAULT_DIALOG_STYLE )
@@ -140,7 +140,7 @@ class MainConFrame ( wx.Dialog ):
 		self.m_popupCreateNewPage = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Create New Page", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_menuPopup.Append( self.m_popupCreateNewPage )
 
-		self.Bind( wx.EVT_RIGHT_DOWN, self.MainConFrameOnContextMenu )
+		self.Bind( wx.EVT_RIGHT_DOWN, self.MainConDialogOnContextMenu )
 
 
 		self.Centre( wx.BOTH )
@@ -203,7 +203,7 @@ class MainConFrame ( wx.Dialog ):
 	def gRowGridOnContextMenu( self, event ):
 		self.gRowGrid.PopupMenu( self.m_menu1, event.GetPosition() )
 
-	def MainConFrameOnContextMenu( self, event ):
+	def MainConDialogOnContextMenu( self, event ):
 		self.PopupMenu( self.m_menuPopup, event.GetPosition() )
 
 
