@@ -15,10 +15,10 @@ import wx.grid
 ## Class MainConFrame
 ###########################################################################
 
-class MainConFrame ( wx.Frame ):
+class MainConFrame ( wx.Dialog ):
 
 	def __init__( self, parent ):
-		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Edit Convention ", pos = wx.DefaultPosition, size = wx.Size( 729,446 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.DefaultSize, style = wx.DEFAULT_DIALOG_STYLE )
 
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
@@ -67,7 +67,7 @@ class MainConFrame ( wx.Frame ):
 
 		fgSizerComments = wx.FlexGridSizer( 1, 2, 0, 0 )
 		fgSizerComments.AddGrowableCol( 1 )
-		fgSizerComments.AddGrowableRow( 0 )		# Bug in wxFormBuilder
+		fgSizerComments.AddGrowableRow( 0)		# Due to a bug in wxFormBuilder the argument needs to be re-set to 0
 		fgSizerComments.SetFlexibleDirection( wx.BOTH )
 		fgSizerComments.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
@@ -129,9 +129,7 @@ class MainConFrame ( wx.Frame ):
 
 		self.SetSizer( bSizerMainBox )
 		self.Layout()
-		self.m_toolBar2 = self.CreateToolBar( wx.TB_HORIZONTAL, wx.ID_ANY )
-		self.m_toolBar2.Realize()
-
+		bSizerMainBox.Fit( self )
 		self.m_menuPopup = wx.Menu()
 		self.m_popupCopy = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Copy", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_menuPopup.Append( self.m_popupCopy )

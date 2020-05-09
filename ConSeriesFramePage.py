@@ -178,7 +178,10 @@ class MainWindow(MainConSeriesFrame):
         for row in self._grid._datasource.Rows:
             newtable+="    <tr>\n"
             newtable+='      <th scope="row">'+str(row.Seq)+'</th>\n'
-            newtable+='      <td>'+FormatLink(row.URL, row.Name)+'</td>\n'
+            if row.URL is None or row.URL == "":
+                newtable+='      <td>'+row.Name+'</td>\n'
+            else:
+                newtable+='      <td>'+FormatLink(row.URL+".htm", row.Name)+'</td>\n'
             newtable+='      <td>'+str(row.Dates)+'</td>\n'
             newtable+='      <td>'+row.Locale+'</td>\n'
             newtable+='      <td>'+row.GoHs+'</td>\n'
@@ -224,17 +227,19 @@ class MainWindow(MainConSeriesFrame):
 
     #------------------
     def OnCreateNewConPage(self, event):
-        frame=MainConFrameClass(None)
+        dlg=MainConFrameClass(None)
         row=self.rightClickedRow-1  # Get logical row & col
-        col=self.rightClickedColumn-1
         name=""
         if row < self._grid._datasource.NumRows:
             if "Name" in self._grid._datasource.ColHeaders:
                 col=self._grid._datasource.ColHeaders.index("Name")
                 name=self._grid._datasource.GetData(row, col)
-        frame.tConInstanceName.Value=name
-        frame.LoadConInstancePage(name)
-        frame.Show()
+        dlg.tConInstanceName.Value=name
+        dlg.LoadConInstancePage(name)
+        dlg.ShowModal()
+        fname=dlg.tConInstanceName.Value
+        self._grid._datasource.Rows[row].URL=fname
+        pass
 
     #------------------
     def OnTextFancyURL(self, event):

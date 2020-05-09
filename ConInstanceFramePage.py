@@ -25,7 +25,6 @@ class MainConFrameClass(MainConFrame):
         self.ConInstanceStuff=""
         self.ConInstanceFancyURL=""
 
-        self.Show()
 
     # Serialize and deserialize
     def ToJson(self) -> str:
