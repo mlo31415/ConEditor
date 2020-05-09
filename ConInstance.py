@@ -90,7 +90,6 @@ class ConInstancePage(GridDataSource):
            "_colminwidths": self._colminwidths,
            "_coldatatypes": self._coldatatypes,
            "_name": self._name,
-           "numConFiles": len(self._conFileList),
            "_conFileList": dl}
         return json.dumps(d)
 
@@ -101,7 +100,6 @@ class ConInstancePage(GridDataSource):
             self._colminwidths=d["_colminwidths"]
             self._coldatatypes=d["_coldatatypes"]
             self._name=d["_name"]
-            numConFiles=d["numConFiles"]
             cfld=d["_conFileList"]
             self._conFileList=[]
             for c in cfld:

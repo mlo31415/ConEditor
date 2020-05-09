@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Optional, List, Union
+import json
 
 from Grid import GridDataSource
 
@@ -14,6 +15,26 @@ class Con:
         self._locale: str=""                # Name of locale where the con was held
         self._dates: Optional[FanzineDateRange]=None      # Date range of the con
         self._gohs: str=""                  # A list of the con's GoHs
+
+    # Serialize and deserialize
+    def ToJson(self) -> str:
+        d={"version": 1,
+           "_seq": self._seq,
+           "_name": self._name,
+           "_locale": self._locale,
+           "_dates": self._dates.ToJson(),
+           "_gohs": self._gohs}
+        return json.dumps(d)
+
+    def FromJson(self, val: str) -> Con:
+        d=json.loads(val)
+        if d["version"] == 1:
+            self._seq=d["_seq"]
+            self._name=d["_name"]
+            self._locale=d["_locale"]
+            self._gohs=d["_gohs"]
+            self._dates=FanzineDateRange().FromJson(d["_dates"])
+        return self
 
     @property
     def Seq(self) ->Optional[int]:
@@ -100,6 +121,34 @@ class ConSeries(GridDataSource):
         self._name: str=""
         self._series: List[Con]=[]
         self._stuff: str=""
+
+    # Serialize and deserialize
+    def ToJson(self) -> str:
+        dl=[]
+        for s in self._series:
+            dl.append(s.ToJson())
+        d={"version": 1,
+           "_colheaders": self._colheaders,
+           "_coldatatypes": self._coldatatypes,
+           "_colminwidths": self._colminwidths,
+           "_name": self._name,
+           "_series": dl,
+           "_stuff": self._stuff}
+        return json.dumps(d)
+
+    def FromJson(self, val: str) -> ConSeries:
+        d=json.loads(val)
+        if d["version"] == 1:
+            self._colheaders=d["_colheaders"]
+            self._coldatatypes=d["_coldatatypes"]
+            self._colminwidths=d["_colminwidths"]
+            self._name=d["_name"]
+            self._stuff=d["_stuff"]
+            serl=d["_series"]
+            self._series=[]
+            for s in serl:
+                self._series.append(Con().FromJson(s))
+        return self
 
     # Inherited from GridDataSource
     @property

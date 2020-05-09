@@ -6,6 +6,7 @@ import wx
 import wx.grid
 import sys
 from bs4 import BeautifulSoup
+import json
 
 from GeneratedConSeriesFrame import MainConSeriesFrame
 
@@ -61,6 +62,25 @@ class MainWindow(MainConSeriesFrame):
         self._textComments: str=""
 
         self.Show(True)
+
+
+    # Serialize and deserialize
+    def ToJson(self) -> str:
+        d={"version": 1,
+           "_textConSeries": self._textConSeries,
+           "_textFancyURL": self._textFancyURL,
+           "_textComments": self._textComments,
+           "_datasource": self._grid._datasource.ToJson()}
+        return json.dumps(d)
+
+    def FromJson(self, val: str) -> MainConSeriesFrame:
+        d=json.loads(val)
+        if d["version"] == 1:
+            self._textConSeries=d["_textConSeries"]
+            self._textFancyURL=d["_textFancyURL"]
+            self._textComments=d["_textComments"]
+            self._grid._datasource=d["_datasource"].FromJson()
+        return self
 
     #------------------
     def OnLoadConSeries(self, event):
@@ -152,6 +172,7 @@ class MainWindow(MainConSeriesFrame):
         newtable+="  </table>\n"
 
         file=SubstituteHTML(file, "pdq", newtable)
+        file=SubstituteHTML(file, "fanac-table", self.ToJson())
         with open(filename, "w+") as f:
             f.write(file)
 
