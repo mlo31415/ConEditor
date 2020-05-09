@@ -62,6 +62,7 @@ class Grid():
 
         self._datasource: GridDataSource=GridDataSource()
         self.clipboard=None         # The grid's clipboard
+        self.cntlDown=False         # There's no cntl-key currently down
 
         # The grid is a bit non-standard, since I want to be able to edit row numbers and column headers
         # The row and column labels are actually the (editable) 1st column and 1st row of the spreadsheet (they're colored gray)

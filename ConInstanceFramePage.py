@@ -116,7 +116,7 @@ class MainConFrameClass(MainConFrame):
                 newtable+="    <li>"+FormatLink(row.LocalPathname, row.DisplayTitle)+"&nbsp;&nbsp;"+str(row.Description)+"</li>\n"
             newtable+="  </ul>\n"
 
-        file=SubstituteHTML(file, "fanac-json", newtable)
+        file=SubstituteHTML(file, "fanac-table", newtable)
 
         with open(filename, "w+") as f:
             f.write(file)
@@ -192,9 +192,6 @@ class MainConFrameClass(MainConFrame):
     # ------------------
     def OnGridCellRightClick(self, event):
         self._grid.OnGridCellRightClick(event, self.m_menuPopup)
-
-        mi=self.m_menuPopup.FindItemById(self.m_menuPopup.FindItem("Create New Con Page"))
-        mi.Enabled=True
 
         self.PopupMenu(self.m_menuPopup)
 
