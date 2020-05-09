@@ -66,20 +66,25 @@ class MainWindow(MainConSeriesFrame):
 
     # Serialize and deserialize
     def ToJson(self) -> str:
-        d={"version": 1,
+        d={"ver": 2,
            "_textConSeries": self._textConSeries,
            "_textFancyURL": self._textFancyURL,
            "_textComments": self._textComments,
+           "filename": self.filename,
+           "dirname": self.dirname,
            "_datasource": self._grid._datasource.ToJson()}
         return json.dumps(d)
 
     def FromJson(self, val: str) -> MainConSeriesFrame:
         d=json.loads(val)
-        if d["version"] == 1:
+        if d["ver"] <= 2:
             self._textConSeries=d["_textConSeries"]
             self._textFancyURL=d["_textFancyURL"]
             self._textComments=d["_textComments"]
-            self._grid._datasource=d["_datasource"].FromJson()
+            self._grid._datasource=ConSeries().FromJson(d["_datasource"])
+        if d["ver"] == 2:
+            self.filename=d["filename"]
+            self.dirname=d["dirname"]
         return self
 
     #------------------
@@ -114,6 +119,9 @@ class MainWindow(MainConSeriesFrame):
         j=FindBracketedText(file, "fanac-json")[0]
         if j is not None and j != "":
             self.FromJson(j)
+            frame.tConSeries.Value=self._textConSeries
+            frame.tComments.Value=self._textComments
+            frame.tFancyURL.Value=self._textFancyURL
 
         else:
 
@@ -179,7 +187,7 @@ class MainWindow(MainConSeriesFrame):
         newtable+="  </table>\n"
 
         file=SubstituteHTML(file, "pdq", newtable)
-        file=SubstituteHTML(file, "fanac-table", self.ToJson())
+        file=SubstituteHTML(file, "fanac-json", self.ToJson())
         with open(filename, "w+") as f:
             f.write(file)
 
@@ -230,7 +238,7 @@ class MainWindow(MainConSeriesFrame):
 
     #------------------
     def OnTextFancyURL(self, event):
-        self._grid._datasource.FirstLine=self.tFancyURL.GetValue()
+        self._textFancyURL=self.tFancyURL.GetValue()
 
     #------------------
     def OnTextConSeries( self, event ):

@@ -12,7 +12,7 @@ class ConFile:
 
     # Serialize and deserialize
     def ToJson(self) -> str:
-        d={"version": 1,
+        d={"ver": 1,
            "_displayTitle": self._displayTitle,
            "_description": self._description,
            "_localpathname": self._localpathname}
@@ -20,7 +20,7 @@ class ConFile:
 
     def FromJson(self, val: str) -> ConFile:
         d=json.loads(val)
-        if d["version"] == 1:
+        if d["ver"] == 1:
             self._displayTitle=d["_displayTitle"]
             self._description=d["_description"]
             self._localpathname=d["_localpathname"]
@@ -85,7 +85,7 @@ class ConInstancePage(GridDataSource):
         dl=[]
         for con in self._conFileList:
             dl.append(con.ToJson())
-        d={"version": 1,
+        d={"ver": 1,
            "_colheaders": self._colheaders,
            "_colminwidths": self._colminwidths,
            "_coldatatypes": self._coldatatypes,
@@ -95,7 +95,7 @@ class ConInstancePage(GridDataSource):
 
     def FromJson(self, val: str) -> ConInstancePage:
         d=json.loads(val)
-        if d["version"] == 1:
+        if d["ver"] == 1:
             self._colheaders=d["_colheaders"]
             self._colminwidths=d["_colminwidths"]
             self._coldatatypes=d["_coldatatypes"]

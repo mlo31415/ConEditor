@@ -18,22 +18,25 @@ class Con:
 
     # Serialize and deserialize
     def ToJson(self) -> str:
-        d={"version": 1,
+        d={"ver": 2,
            "_seq": self._seq,
            "_name": self._name,
            "_locale": self._locale,
-           "_dates": self._dates.ToJson(),
+           "_dates": str(self._dates),
            "_gohs": self._gohs}
         return json.dumps(d)
 
     def FromJson(self, val: str) -> Con:
         d=json.loads(val)
-        if d["version"] == 1:
+        if d["ver"] <= 2:
             self._seq=d["_seq"]
             self._name=d["_name"]
             self._locale=d["_locale"]
             self._gohs=d["_gohs"]
+        if d["ver"] == 1:
             self._dates=FanzineDateRange().FromJson(d["_dates"])
+        if d["ver"] == 2:
+            self._dates=FanzineDateRange().Match(d["_dates"])
         return self
 
     @property
@@ -124,30 +127,37 @@ class ConSeries(GridDataSource):
 
     # Serialize and deserialize
     def ToJson(self) -> str:
-        dl=[]
-        for s in self._series:
-            dl.append(s.ToJson())
-        d={"version": 1,
+        d={"ver": 2,
            "_colheaders": self._colheaders,
            "_coldatatypes": self._coldatatypes,
            "_colminwidths": self._colminwidths,
            "_name": self._name,
-           "_series": dl,
            "_stuff": self._stuff}
+        i=0
+        for s in self._series:
+            d[i]=s.ToJson()
+            i+=1
         return json.dumps(d)
 
     def FromJson(self, val: str) -> ConSeries:
         d=json.loads(val)
-        if d["version"] == 1:
+        if d["ver"] <= 2:
             self._colheaders=d["_colheaders"]
             self._coldatatypes=d["_coldatatypes"]
             self._colminwidths=d["_colminwidths"]
             self._name=d["_name"]
             self._stuff=d["_stuff"]
+        if d["ver"] == 1:
             serl=d["_series"]
             self._series=[]
             for s in serl:
                 self._series.append(Con().FromJson(s))
+        if d["ver"] == 2:
+            self._series=[]
+            i=0
+            while str(i) in d.keys():       # This is because json merges 1 and "1" as the same. (It appears to be a bug.)
+                self._series.append(Con().FromJson(d[str(i)]))
+                i+=1
         return self
 
     # Inherited from GridDataSource

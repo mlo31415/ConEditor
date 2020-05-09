@@ -30,7 +30,7 @@ class MainConFrameClass(MainConFrame):
 
     # Serialize and deserialize
     def ToJson(self) -> str:
-        d={"version": 1,
+        d={"ver": 1,
            "ConInstanceName": self.ConInstanceName,
            "ConInstanceStuff": self.ConInstanceStuff,
            "ConInstanceFancyURL": self.ConInstanceFancyURL,
@@ -39,7 +39,7 @@ class MainConFrameClass(MainConFrame):
 
     def FromJson(self, val: str) -> MainConFrame:
         d=json.loads(val)
-        if d["version"] == 1:
+        if d["ver"] == 1:
             self.ConInstanceName=d["ConInstanceName"]
             self.ConInstanceStuff=d["ConInstanceStuff"]
             self.ConInstanceFancyURL=d["ConInstanceFancyURL"]
@@ -116,7 +116,7 @@ class MainConFrameClass(MainConFrame):
                 newtable+="    <li>"+FormatLink(row.LocalPathname, row.DisplayTitle)+"&nbsp;&nbsp;"+str(row.Description)+"</li>\n"
             newtable+="  </ul>\n"
 
-        file=SubstituteHTML(file, "fanac-table", newtable)
+        file=SubstituteHTML(file, "fanac-json", newtable)
 
         with open(filename, "w+") as f:
             f.write(file)
