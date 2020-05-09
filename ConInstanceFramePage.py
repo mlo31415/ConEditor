@@ -1,12 +1,13 @@
 import wx
 import os
 from bs4 import BeautifulSoup
+import json
 
 from GeneratedConInstanceFrame import MainConFrame
 from Grid import Grid
 from ConInstance import ConInstancePage, ConFile
 
-from HelpersPackage import SubstituteHTML, StripExternalTags, FormatLink
+from HelpersPackage import SubstituteHTML, StripExternalTags, FormatLink, FindBracketedText
 from FanzineIssueSpecPackage import FanzineDateRange
 
 #####################################################################################
@@ -24,7 +25,26 @@ class MainConFrameClass(MainConFrame):
         self.ConInstanceName=""
         self.ConInstanceStuff=""
         self.ConInstanceFancyURL=""
+
         self.Show()
+
+    # Serialize and deserialize
+    def ToJson(self) -> str:
+        d={"version": 1,
+           "ConInstanceName": self.ConInstanceName,
+           "ConInstanceStuff": self.ConInstanceStuff,
+           "ConInstanceFancyURL": self.ConInstanceFancyURL,
+           "_datasource": self._grid._datasource.ToJson()}
+        return json.dumps(d)
+
+    def FromJson(self, val: str) -> MainConFrame:
+        d=json.loads(val)
+        if d["version"] == 1:
+            self.ConInstanceName=d["ConInstanceName"]
+            self.ConInstanceStuff=d["ConInstanceStuff"]
+            self.ConInstanceFancyURL=d["ConInstanceFancyURL"]
+            self._grid._datasource=ConInstancePage().FromJson(d["_datasource"])
+        return self
 
 
     def OnAddFilesButton(self, event):
@@ -62,8 +82,11 @@ class MainConFrameClass(MainConFrame):
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name is tagged with <abc>, the random text with "xyz"
         link=FormatLink("http://fancyclopedia.org/"+self.ConInstanceName, self.ConInstanceName)
-        file=SubstituteHTML(file, "abc", link)
-        file=SubstituteHTML(file, "xyz", self.ConInstanceStuff)
+        file=SubstituteHTML(file, "fanac-headerlink", link)
+        file=SubstituteHTML(file, "fanac-fancylink", link)
+        file=SubstituteHTML(file, "fanac-stuff", self.ConInstanceStuff)
+
+        file=SubstituteHTML(file, "fanac-json", self.ToJson())
 
         if self.m_radioBox1.GetSelection() == 0:
             # Now construct the table which we'll then substitute.
@@ -93,9 +116,13 @@ class MainConFrameClass(MainConFrame):
                 newtable+="    <li>"+FormatLink(row.LocalPathname, row.DisplayTitle)+"&nbsp;&nbsp;"+str(row.Description)+"</li>\n"
             newtable+="  </ul>\n"
 
-        file=SubstituteHTML(file, "pdq", newtable)
+        file=SubstituteHTML(file, "fanac-table", newtable)
+
         with open(filename, "w+") as f:
             f.write(file)
+
+    def ConvertFromJSON(self):
+        pass
 
     #------------------
     # Download a ConSeries
@@ -110,7 +137,7 @@ class MainConFrameClass(MainConFrame):
             self.filename=base+".htm"
             self.dirname="."
         else:
-            # Call the File Open dialog to get an con series HTML file
+            # Call the File Open dialog to get a con series HTML file
             dlg=wx.FileDialog(self, "Select con series file to load", self.dirname, "", "*.htm", wx.FD_OPEN)
             dlg.SetWindowStyle(wx.STAY_ON_TOP)
 
@@ -123,26 +150,38 @@ class MainConFrameClass(MainConFrame):
             self.dirname=dlg.GetDirectory()
             dlg.Destroy()
 
-        with open(os.path.join(self.dirname, self.filename)) as f:
+        pathname=os.path.join(self.dirname, self.filename)
+        if not os.path.exists(pathname):
+            return  # Just return with the ConInstance page empty
+
+        # Read the existing CIP
+        with open(pathname) as f:
             file=f.read()
 
-        soup=BeautifulSoup(file, 'html.parser')
+        # Get the JSON
+        j=FindBracketedText(file, "fanac-json")[0]
+        if j is not None and j != "":
+            self.FromJson(j)
 
-        # We need to extract three things:
-        #   The convention series name
-        #   The convention series text
-        #   The convention series table
-        self.tConInstanceName.Value=soup.find("abc").text
-        self.tPText.Value=soup.find("xyz").text
-        header=[l.text for l in soup.table.tr.contents if l != "\n"]
-        rows=[[m for m in l if m != "\n"] for l in soup.table.tbody if l != "\n"]
-        for r in rows:
-            r=[StripExternalTags(str(l)) for l in r]
-            con=ConFile()
-            con.Seq=int(r[0])
-            con.DisplayTitle=r[1]
-            con.Description=r[2]
-            self._grid._datasource.Rows.append(con)
+        else:
+            # Try parsing the HTML
+            soup=BeautifulSoup(file, 'html.parser')
+
+            # We need to extract three things:
+            #   The convention series name
+            #   The convention series text
+            #   The convention series table
+            self.tConInstanceName.Value=soup.find("fanac-headerlink").text
+            self.tPText.Value=soup.find("fanac-stuff").text
+            header=[l.text for l in soup.table.tr.contents if l != "\n"]
+            rows=[[m for m in l if m != "\n"] for l in soup.table.tbody if l != "\n"]
+            for r in rows:
+                r=[StripExternalTags(str(l)) for l in r]
+                con=ConFile()
+                con.Seq=int(r[0])
+                con.DisplayTitle=r[1]
+                con.Description=r[2]
+                self._grid._datasource.Rows.append(con)
 
         # Insert the row data into the grid
         self._grid.RefreshGridFromData()

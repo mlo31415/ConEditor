@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import List, Union
 from Grid import GridDataSource
+import json
 
 # An individual file to be listed under a convention
 class ConFile:
@@ -8,6 +9,22 @@ class ConFile:
         self._displayTitle: str=""      # The name as shown to the world
         self._description: str=""       # The free-format description
         self._localpathname: str="."     # The local pathname of the file
+
+    # Serialize and deserialize
+    def ToJson(self) -> str:
+        d={"version": 1,
+           "_displayTitle": self._displayTitle,
+           "_description": self._description,
+           "_localpathname": self._localpathname}
+        return json.dumps(d)
+
+    def FromJson(self, val: str) -> ConFile:
+        d=json.loads(val)
+        if d["version"] == 1:
+            self._displayTitle=d["_displayTitle"]
+            self._description=d["_description"]
+            self._localpathname=d["_localpathname"]
+        return self
 
     @property
     def DisplayTitle(self) -> str:
@@ -29,6 +46,7 @@ class ConFile:
     @LocalPathname.setter
     def LocalPathname(self, val: str):
         self._localpathname=val
+
 
     # Get or set a value by name or column number in the grid
     def GetVal(self, name: Union[str, int]) -> Union[str, int]:
@@ -61,6 +79,34 @@ class ConInstancePage(GridDataSource):
     def __init__(self):
         self._conFileList: List[ConFile]=[]
         self._name=""
+
+    # Serialize and deserialize
+    def ToJson(self) -> str:
+        dl=[]
+        for con in self._conFileList:
+            dl.append(con.ToJson())
+        d={"version": 1,
+           "_colheaders": self._colheaders,
+           "_colminwidths": self._colminwidths,
+           "_coldatatypes": self._coldatatypes,
+           "_name": self._name,
+           "numConFiles": len(self._conFileList),
+           "_conFileList": dl}
+        return json.dumps(d)
+
+    def FromJson(self, val: str) -> ConInstancePage:
+        d=json.loads(val)
+        if d["version"] == 1:
+            self._colheaders=d["_colheaders"]
+            self._colminwidths=d["_colminwidths"]
+            self._coldatatypes=d["_coldatatypes"]
+            self._name=d["_name"]
+            numConFiles=d["numConFiles"]
+            cfld=d["_conFileList"]
+            self._conFileList=[]
+            for c in cfld:
+                self._conFileList.append(ConFile().FromJson(c))
+        return self
 
 
     # Inherited from GridDataSource
