@@ -10,7 +10,7 @@ import json
 
 from GeneratedConSeriesFrame import MainConSeriesFrame
 
-from HelpersPackage import Bailout, StripExternalTags, SubstituteHTML, FormatLink, FindBracketedText
+from HelpersPackage import Bailout, StripExternalTags, SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname
 from Log import LogOpen
 from FanzineIssueSpecPackage import FanzineDateRange
 
@@ -159,7 +159,7 @@ class MainWindow(MainConSeriesFrame):
 
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name is tagged with <abc>, the random text with "xyz"
-        link=FormatLink("http://fancyclopedia.org/"+self._textConSeries, self._textConSeries)
+        link=FormatLink("http://fancyclopedia.org/"+WikiPagenameToWikiUrlname(self._textConSeries), self._textConSeries)
         file=SubstituteHTML(file, "abc", link)
         file=SubstituteHTML(file, "xyz", self._textComments)
 

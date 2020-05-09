@@ -7,8 +7,7 @@ from GeneratedConInstanceFrame import MainConFrame
 from Grid import Grid
 from ConInstance import ConInstancePage, ConFile
 
-from HelpersPackage import SubstituteHTML, StripExternalTags, FormatLink, FindBracketedText
-from FanzineIssueSpecPackage import FanzineDateRange
+from HelpersPackage import SubstituteHTML, StripExternalTags, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname
 
 #####################################################################################
 class MainConFrameClass(MainConFrame):
@@ -81,7 +80,7 @@ class MainConFrameClass(MainConFrame):
 
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name is tagged with <abc>, the random text with "xyz"
-        link=FormatLink("http://fancyclopedia.org/"+self.ConInstanceName, self.ConInstanceName)
+        link=FormatLink("http://fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.ConInstanceName), self.ConInstanceName)
         file=SubstituteHTML(file, "fanac-headerlink", link)
         file=SubstituteHTML(file, "fanac-fancylink", link)
         file=SubstituteHTML(file, "fanac-stuff", self.ConInstanceStuff)
@@ -164,6 +163,7 @@ class MainConFrameClass(MainConFrame):
             self.FromJson(j)
 
         else:
+            #TODO: delete this when sure it's obsolete
             # Try parsing the HTML
             soup=BeautifulSoup(file, 'html.parser')
 
