@@ -78,7 +78,7 @@ class MainWindow(MainConSeriesFrame):
 
     def FromJson(self, val: str) -> MainConSeriesFrame:
         d=json.loads(val)
-        if d["ver"] <= 2:
+        if d["ver"] <= 3:
             self._textConSeries=d["_textConSeries"]
             self._textFancyURL=d["_textFancyURL"]
             self._textComments=d["_textComments"]
