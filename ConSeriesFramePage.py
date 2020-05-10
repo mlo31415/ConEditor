@@ -92,6 +92,10 @@ class MainWindow(MainConSeriesFrame):
         return self
 
     #------------------
+    def ProgressMessage(self, s: str) -> None:
+        self.m_staticTextMessages.Label=s
+
+    #------------------
     def OnLoadConSeries(self, event):
         self.LoadConSeries()
         pass
@@ -116,6 +120,7 @@ class MainWindow(MainConSeriesFrame):
         self._dirname=dlg.GetDirectory()
         dlg.Destroy()
 
+        self.ProgressMessage("Loading "+self._filename)
         with open(os.path.join(self._dirname, self._filename)) as f:
             file=f.read()
 
@@ -153,6 +158,7 @@ class MainWindow(MainConSeriesFrame):
 
         # Insert the row data into the grid
         self._grid.RefreshGridFromData()
+        self.ProgressMessage(self._filename+" Loaded")
 
 
     def SaveConSeries(self, filename: str) -> None:
@@ -306,11 +312,13 @@ class MainWindow(MainConSeriesFrame):
     # Create a new, empty, con series
     def OnCreateConSeries(self, event):
         self._dlgEnterFancyName=dlgEnterFancyNameWindow(None)
+        self.ProgressMessage("Loading "+self._dlgEnterFancyName._FancyName+" from Fancyclopedia 3")
         self._grid._datasource=ConSeries()
         self._grid._datasource.Name=self._dlgEnterFancyName._FancyName
         self._filename=self._dlgEnterFancyName._FancyName
         self.FetchConSeriesFromFancy(self._dlgEnterFancyName._FancyName)
         self._grid.RefreshGridFromData()
+        self.ProgressMessage(self._dlgEnterFancyName._FancyName+" loaded successfully from Fancyclopedia 3")
         pass
 
     #------------------

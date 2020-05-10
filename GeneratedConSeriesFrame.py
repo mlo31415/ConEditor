@@ -24,18 +24,19 @@ class MainConSeriesFrame ( wx.Frame ):
 
 		bSizerMainBox = wx.BoxSizer( wx.VERTICAL )
 
-		fgSizer6 = wx.FlexGridSizer( 0, 4, 0, 0 )
+		fgSizer6 = wx.FlexGridSizer( 2, 4, 0, 0 )
+		fgSizer6.AddGrowableRow( 1 )
 		fgSizer6.SetFlexibleDirection( wx.BOTH )
 		fgSizer6.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
 		self.bCreateConSeries = wx.Button( self, wx.ID_ANY, u"Create New ConSeries", wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer6.Add( self.bCreateConSeries, 0, wx.ALL, 5 )
+		fgSizer6.Add( self.bCreateConSeries, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
 		self.bLoadConSeries = wx.Button( self, wx.ID_ANY, u"Load ConSeries from Fanac.org", wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer6.Add( self.bLoadConSeries, 0, wx.ALL, 5 )
+		fgSizer6.Add( self.bLoadConSeries, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
 		self.bSaveConSeries = wx.Button( self, wx.ID_ANY, u"Save ConSeries to Fanac.org", wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer6.Add( self.bSaveConSeries, 0, wx.ALL, 5 )
+		fgSizer6.Add( self.bSaveConSeries, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
 		m_radioBoxShowEmptyChoices = [ u"Yes", u"No" ]
 		self.m_radioBoxShowEmpty = wx.RadioBox( self, wx.ID_ANY, u"Show empty cons?", wx.DefaultPosition, wx.DefaultSize, m_radioBoxShowEmptyChoices, 1, wx.RA_SPECIFY_ROWS )
@@ -43,7 +44,17 @@ class MainConSeriesFrame ( wx.Frame ):
 		fgSizer6.Add( self.m_radioBoxShowEmpty, 0, wx.ALL, 5 )
 
 
-		bSizerMainBox.Add( fgSizer6, 1, wx.EXPAND, 5 )
+		bSizerMainBox.Add( fgSizer6, 0, wx.EXPAND, 5 )
+
+		bSizer7 = wx.BoxSizer( wx.VERTICAL )
+
+		self.m_staticTextMessages = wx.StaticText( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 400,-1 ), 0 )
+		self.m_staticTextMessages.Wrap( -1 )
+
+		bSizer7.Add( self.m_staticTextMessages, 0, wx.ALL, 5 )
+
+
+		bSizerMainBox.Add( bSizer7, 1, wx.EXPAND, 5 )
 
 		fgSizer4 = wx.FlexGridSizer( 0, 2, 0, 0 )
 		fgSizer4.SetFlexibleDirection( wx.BOTH )
