@@ -218,6 +218,9 @@ class MainWindow(MainConSeriesFrame):
     #--------------------------------------------
     # Given the name of the ConSeries, go to fancy 3 and fetch the con series information and fill in a con seres from it.
     def FetchConSeriesFromFancy(self, name):
+        if name is None or name == "":
+            return
+
         wait=wx.BusyCursor()
         pageurl="http://fancyclopedia.org/"+WikiPagenameToWikiUrlname(name)
         try:
