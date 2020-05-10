@@ -204,7 +204,7 @@ class MainWindow(MainConSeriesFrame):
     # Save a con series object to disk.
     def OnSaveConSeries(self, event):
         # Rename the old file
-        oldname=os.path.join(self._dirname, self._filename)
+        oldname=os.path.join(self._dirname, os.path.splitext(self._filename)[0]+".html")        # Make sure we have the proper extension
         newname=os.path.join(self._dirname, os.path.splitext(self._filename)[0]+"-old.html")
         if os.path.exists(oldname):
             try:
@@ -226,8 +226,9 @@ class MainWindow(MainConSeriesFrame):
     # Create a new, empty, con series
     def OnCreateConSeries(self, event):
         self._dlgEnterFancyName=dlgEnterFancyNameWindow(None)
-        self._datasource=ConSeries()
-        self._datasource.Name=self._dlgEnterFancyName._FancyName
+        self._grid._datasource=ConSeries()
+        self._grid._datasource.Name=self._dlgEnterFancyName._FancyName
+        self._filename=self._dlgEnterFancyName._FancyName
         self._grid.RefreshGridFromData()
         pass
 
@@ -260,12 +261,6 @@ class MainWindow(MainConSeriesFrame):
     #------------------
     def OnTextComments(self, event):
         self._textComments=self.tComments.GetValue()
-        # if self._grid._datasource.Stuff is not None and len(self._datasource.Stuff) > 0:
-        #     self._datasource.Stuff=self.tComments.GetValue().split("\n")
-        # elif self._datasource.BottomTextLines is not None and len(self._datasource.BottomTextLines) > 0:
-        #     self._datasource.BottomTextLines=self.tComments.GetValue().split("\n")
-        # else:
-        #     self._datasource.Stuff=self.tComments.GetValue().split("\n")
 
     #------------------
     def OnGridCellRightClick(self, event):
