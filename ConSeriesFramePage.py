@@ -204,6 +204,7 @@ class MainWindow(MainConSeriesFrame):
     # Save a con series object to disk.
     def OnSaveConSeries(self, event):
         # Rename the old file
+        wait=wx.BusyCursor()
         oldname=os.path.join(self._dirname, os.path.splitext(self._filename)[0]+".html")        # Make sure we have the proper extension
         newname=os.path.join(self._dirname, os.path.splitext(self._filename)[0]+"-old.html")
         if os.path.exists(oldname):
@@ -221,6 +222,7 @@ class MainWindow(MainConSeriesFrame):
             self.SaveConSeries(oldname)
         except:
             Bailout(PermissionError, "OnSaveConseries fails when trying to write file "+oldname, "ConEditorError")
+        del wait    # End the wait cursor
 
     #------------------
     # Create a new, empty, con series
