@@ -102,7 +102,7 @@ class MainWindow(MainConSeriesFrame):
 
     #------------------
     # Download a ConSeries
-    def LoadConSeries(self):
+    def LoadConSeries(self) -> None:
 
         # Clear out any old information
         self._grid._datasource=ConSeries()
@@ -111,10 +111,8 @@ class MainWindow(MainConSeriesFrame):
         dlg=wx.FileDialog(self, "Select con series file to load", self._dirname, "", "*.html", style=wx.FD_OPEN|wx.STAY_ON_TOP)
 
         val=dlg.ShowModal()
-        # if val != wx.ID_OK:
-        #     dlg.Raise()
-        #     dlg.Destroy()
-        #     return
+        if val == wx.ID_CANCEL:
+            return
 
         self._filename=dlg.GetFilename()
         self._dirname=dlg.GetDirectory()
