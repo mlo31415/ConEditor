@@ -22,16 +22,28 @@ class MainConSeriesFrame ( wx.Frame ):
 
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
-		self.m_toolBar2 = self.CreateToolBar( wx.TB_HORIZONTAL, wx.ID_ANY )
-		self.bLoadConSeries = wx.Button( self.m_toolBar2, wx.ID_ANY, u"Load ConSeries from Fanac.org", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_toolBar2.AddControl( self.bLoadConSeries )
-		self.bSaveConSeries = wx.Button( self.m_toolBar2, wx.ID_ANY, u"Save ConSeries to Fanac.org", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_toolBar2.AddControl( self.bSaveConSeries )
-		self.bCreateConSeries = wx.Button( self.m_toolBar2, wx.ID_ANY, u"Create New ConSeries", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_toolBar2.AddControl( self.bCreateConSeries )
-		self.m_toolBar2.Realize()
-
 		bSizerMainBox = wx.BoxSizer( wx.VERTICAL )
+
+		fgSizer6 = wx.FlexGridSizer( 0, 4, 0, 0 )
+		fgSizer6.SetFlexibleDirection( wx.BOTH )
+		fgSizer6.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.bCreateConSeries = wx.Button( self, wx.ID_ANY, u"Create New ConSeries", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer6.Add( self.bCreateConSeries, 0, wx.ALL, 5 )
+
+		self.bLoadConSeries = wx.Button( self, wx.ID_ANY, u"Load ConSeries from Fanac.org", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer6.Add( self.bLoadConSeries, 0, wx.ALL, 5 )
+
+		self.bSaveConSeries = wx.Button( self, wx.ID_ANY, u"Save ConSeries to Fanac.org", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer6.Add( self.bSaveConSeries, 0, wx.ALL, 5 )
+
+		m_radioBoxShowEmptyChoices = [ u"Yes", u"No" ]
+		self.m_radioBoxShowEmpty = wx.RadioBox( self, wx.ID_ANY, u"Show empty cons?", wx.DefaultPosition, wx.DefaultSize, m_radioBoxShowEmptyChoices, 1, wx.RA_SPECIFY_ROWS )
+		self.m_radioBoxShowEmpty.SetSelection( 0 )
+		fgSizer6.Add( self.m_radioBoxShowEmpty, 0, wx.ALL, 5 )
+
+
+		bSizerMainBox.Add( fgSizer6, 1, wx.EXPAND, 5 )
 
 		fgSizer4 = wx.FlexGridSizer( 0, 2, 0, 0 )
 		fgSizer4.SetFlexibleDirection( wx.BOTH )
@@ -140,9 +152,9 @@ class MainConSeriesFrame ( wx.Frame ):
 		self.Centre( wx.BOTH )
 
 		# Connect Events
+		self.bCreateConSeries.Bind( wx.EVT_BUTTON, self.OnCreateConSeries )
 		self.bLoadConSeries.Bind( wx.EVT_BUTTON, self.OnLoadConSeries )
 		self.bSaveConSeries.Bind( wx.EVT_BUTTON, self.OnSaveConSeries )
-		self.bCreateConSeries.Bind( wx.EVT_BUTTON, self.OnCreateConSeries )
 		self.tConSeries.Bind( wx.EVT_TEXT, self.OnTextConSeries )
 		self.tFancyURL.Bind( wx.EVT_TEXT, self.OnTextFancyURL )
 		self.tComments.Bind( wx.EVT_TEXT, self.OnTextComments )
@@ -160,13 +172,13 @@ class MainConSeriesFrame ( wx.Frame ):
 
 
 	# Virtual event handlers, overide them in your derived class
+	def OnCreateConSeries( self, event ):
+		event.Skip()
+
 	def OnLoadConSeries( self, event ):
 		event.Skip()
 
 	def OnSaveConSeries( self, event ):
-		event.Skip()
-
-	def OnCreateConSeries( self, event ):
 		event.Skip()
 
 	def OnTextConSeries( self, event ):

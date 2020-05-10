@@ -18,7 +18,7 @@ from ConSeries import ConSeries, Con
 from Grid import Grid
 
 from dlgEnterFancyName import dlgEnterFancyName
-from ConInstanceFramePage import MainConFrameClass
+from ConInstanceFramePage import MainConDialogClass
 
 
 #####################################################################################
@@ -100,13 +100,13 @@ class MainWindow(MainConSeriesFrame):
         self._grid._datasource=ConSeries()
 
         # Call the File Open dialog to get an con series HTML file
-        dlg=wx.FileDialog(self, "Select con series file to load", self.dirname, "", "*.html", wx.FD_OPEN)
-        dlg.SetWindowStyle(wx.STAY_ON_TOP)
+        dlg=wx.FileDialog(self, "Select con series file to load", self.dirname, "", "*.html", style=wx.FD_OPEN | wx.STAY_ON_TOP)
 
-        if dlg.ShowModal() != wx.ID_OK:
-            dlg.Raise()
-            dlg.Destroy()
-            return
+        val=dlg.ShowModal()
+        # if val != wx.ID_OK:
+        #     dlg.Raise()
+        #     dlg.Destroy()
+        #     return
 
         self.filename=dlg.GetFilename()
         self.dirname=dlg.GetDirectory()
@@ -163,6 +163,8 @@ class MainWindow(MainConSeriesFrame):
         file=SubstituteHTML(file, "abc", link)
         file=SubstituteHTML(file, "xyz", self._textComments)
 
+        showempty=self.m_radioBoxShowEmpty.GetSelection() == 0  # Radion button: Show Empty cons?
+
         # Now construct the table which we'll then substitute.
         newtable='<table class="table">\n'
         newtable+="  <thead>\n"
@@ -176,6 +178,8 @@ class MainWindow(MainConSeriesFrame):
         newtable+='  </thead>\n'
         newtable+='  <tbody>\n'
         for row in self._grid._datasource.Rows:
+            if (row.URL is None or row.URL == "") and not showempty:    # Skip empty cons?
+                continue
             newtable+="    <tr>\n"
             newtable+='      <th scope="row">'+str(row.Seq)+'</th>\n'
             if row.URL is None or row.URL == "":
@@ -227,7 +231,7 @@ class MainWindow(MainConSeriesFrame):
 
     #------------------
     def OnCreateNewConPage(self, event):
-        dlg=MainConFrameClass(None)
+        dlg=MainConDialogClass(None)
         row=self.rightClickedRow-1  # Get logical row & col
         name=""
         if row < self._grid._datasource.NumRows:
@@ -237,8 +241,10 @@ class MainWindow(MainConSeriesFrame):
         dlg.tConInstanceName.Value=name
         dlg.LoadConInstancePage(name)
         dlg.ShowModal()
-        fname=dlg.tConInstanceName.Value
-        self._grid._datasource.Rows[row].URL=fname
+        cal=dlg.ReturnValue
+        if cal == True:
+            self._grid._datasource.Rows[row].URL=dlg.tConInstanceName.Value
+
         pass
 
     #------------------

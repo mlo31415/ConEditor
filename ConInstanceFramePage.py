@@ -10,7 +10,7 @@ from ConInstance import ConInstancePage, ConFile
 from HelpersPackage import SubstituteHTML, StripExternalTags, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname
 
 #####################################################################################
-class MainConFrameClass(MainConDialog):
+class MainConDialogClass(MainConDialog):
     def __init__(self, parent):
         MainConDialog.__init__(self, parent)
         self._grid: Grid=Grid(self.gRowGrid)
@@ -24,6 +24,7 @@ class MainConFrameClass(MainConDialog):
         self.ConInstanceName=""
         self.ConInstanceStuff=""
         self.ConInstanceFancyURL=""
+        self.ReturnValue=None
 
 
     # Serialize and deserialize
@@ -49,7 +50,7 @@ class MainConFrameClass(MainConDialog):
         # Call the File Open dialog to get an con series HTML file
         dlg=wx.FileDialog(self, "Select files to upload", ".", "", "*.*", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE | wx.FD_CHANGE_DIR)
 
-        if dlg.ShowModal() != wx.ID_OK:
+        if dlg.ShowModal() == wx.ID_CANCEL:
             dlg.Raise()
             dlg.Destroy()
             return
@@ -70,6 +71,9 @@ class MainConFrameClass(MainConDialog):
         base=os.path.splitext(fname)[0]
         fname=base+".htm"   # We use "htm" here temporarily so it's easy to distinguish ConSeres pages from conInstance pages
         self.SaveConInstancePage(fname)   #TODO: Need to make name cannonical
+        self.ReturnValue=True
+        self.EndModal(True)
+        self.Close()
 
     def SaveConInstancePage(self, filename: str) -> None:
         # First read in the template
@@ -119,8 +123,6 @@ class MainConFrameClass(MainConDialog):
         with open(filename, "w+") as f:
             f.write(file)
 
-    def ConvertFromJSON(self):
-        pass
 
     #------------------
     # Download a ConSeries
@@ -139,7 +141,7 @@ class MainConFrameClass(MainConDialog):
             dlg=wx.FileDialog(self, "Select con series file to load", self.dirname, "", "*.htm", wx.FD_OPEN)
             dlg.SetWindowStyle(wx.STAY_ON_TOP)
 
-            if dlg.ShowModal() != wx.ID_OK:
+            if dlg.ShowModal() == wx.ID_CANCEL:
                 dlg.Raise()
                 dlg.Destroy()
                 return

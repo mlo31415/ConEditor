@@ -18,18 +18,21 @@ import wx.grid
 class MainConDialog ( wx.Dialog ):
 
 	def __init__( self, parent ):
-		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.DefaultSize, style = wx.DEFAULT_DIALOG_STYLE )
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Edit a convention instance", pos = wx.DefaultPosition, size = wx.Size( 600,505 ), style = wx.DEFAULT_DIALOG_STYLE )
 
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
 		bSizerMainBox = wx.BoxSizer( wx.VERTICAL )
 
-		fgSizer5 = wx.FlexGridSizer( 1, 3, 0, 0 )
+		fgSizer5 = wx.FlexGridSizer( 1, 4, 0, 0 )
 		fgSizer5.SetFlexibleDirection( wx.BOTH )
 		fgSizer5.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
-		self.bSaveCon = wx.Button( self, wx.ID_ANY, u"Save Con", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.bSaveCon = wx.Button( self, wx.ID_OK, u"OK", wx.DefaultPosition, wx.DefaultSize, 0 )
 		fgSizer5.Add( self.bSaveCon, 0, wx.ALL, 5 )
+
+		self.m_button7 = wx.Button( self, wx.ID_CANCEL, u"Cancel", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer5.Add( self.m_button7, 0, wx.ALL, 5 )
 
 		m_radioBox1Choices = [ u"Table", u"LIst" ]
 		self.m_radioBox1 = wx.RadioBox( self, wx.ID_ANY, u"File list format", wx.Point( -1,-1 ), wx.Size( -1,-1 ), m_radioBox1Choices, 1, wx.RA_SPECIFY_ROWS )
@@ -129,7 +132,6 @@ class MainConDialog ( wx.Dialog ):
 
 		self.SetSizer( bSizerMainBox )
 		self.Layout()
-		bSizerMainBox.Fit( self )
 		self.m_menuPopup = wx.Menu()
 		self.m_popupCopy = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Copy", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_menuPopup.Append( self.m_popupCopy )
