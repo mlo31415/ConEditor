@@ -234,7 +234,12 @@ class MainWindow(MainConSeriesFrame):
         soup=BeautifulSoup(html, 'html.parser')
         del wait  # End the wait cursor
 
-        bsrows=soup.find_all("table", class_="wikitable mw-collapsible")[0].find_all("tr")
+        tables=soup.find_all("table", class_="wikitable mw-collapsible")
+        if tables == None or len(tables) == 0:
+            wx.MessageBox("Can't find a table in Fancy 3 page "+pageurl)
+            return
+
+        bsrows=tables[0].find_all("tr")
         headers=[]
         rows=[]
         for bsrow in bsrows:
