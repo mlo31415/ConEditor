@@ -5,12 +5,14 @@ import os
 import wx
 import wx.grid
 import sys
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, NavigableString
+from urllib.request import urlopen
 import json
 
 from GeneratedConSeriesFrame import MainConSeriesFrame
 
-from HelpersPackage import Bailout, StripExternalTags, SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname
+from HelpersPackage import Bailout, StripExternalTags, SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, UnformatLinks, RemoveAllHTMLTags
+from HelpersPackage import FindIndexOfStringInList
 from Log import LogOpen
 from FanzineIssueSpecPackage import FanzineDateRange
 
@@ -224,6 +226,82 @@ class MainWindow(MainConSeriesFrame):
             Bailout(PermissionError, "OnSaveConseries fails when trying to write file "+oldname, "ConEditorError")
         del wait    # End the wait cursor
 
+
+    #--------------------------------------------
+    # Given the name of the ConSeries, go to fancy 3 and fetch the con series information and fill in a con seres from it.
+    def FetchConSeriesFromFancy(self, name):
+        wait=wx.BusyCursor()
+        pageurl="http://fancyclopedia.org/"+WikiPagenameToWikiUrlname(name)
+        try:
+            response=urlopen(pageurl)
+        except:
+            del wait  # End the wait cursor
+            wx.MessageBox("Fatch from Fancy 3 failed.")
+            return
+
+        html=response.read()
+        soup=BeautifulSoup(html, 'html.parser')
+        del wait  # End the wait cursor
+
+        bsrows=soup.find_all("table", class_="wikitable mw-collapsible")[0].find_all("tr")
+        headers=[]
+        rows=[]
+        for bsrow in bsrows:
+            if len(headers) == 0:       #Save the header row separately
+                heads=bsrow.find_all("th")
+                if len(heads) > 0:
+                    for head in heads:
+                        headers.append(head.contents[0])
+                    headers=[UnformatLinks(h).strip() for h in headers]
+                    continue
+
+
+            # Ordinary row
+            cols=bsrow.find_all("td")
+            row=[]
+            print("")
+            if len(cols) > 0:
+                for col in cols:
+                    row.append(RemoveAllHTMLTags(UnformatLinks(str(col))).strip())
+            if len(row) > 0:
+                rows.append(row)
+
+        # Did we find anything?
+        if len(headers) == 0 or len(rows) == 0:
+            wx.MessageBox("Can't interpret Fancy 3 page '"+pageurl+"'")
+            return
+
+        # OK. We have the data.  Now fill in the ConSeries object
+        # First, figure out which columns are which
+        nname=FindIndexOfStringInList(headers, "Convention")
+        if nname is None:
+            nname=FindIndexOfStringInList(headers, "Name")
+        ndate=FindIndexOfStringInList(headers, "Dates")
+        if ndate is None:
+            ndate=FindIndexOfStringInList(headers, "Date")
+        nloc=FindIndexOfStringInList(headers, "Location")
+        ngoh=FindIndexOfStringInList(headers, "GoHs")
+        if ngoh is None:
+            ngoh=FindIndexOfStringInList(headers, "GoH")
+        if ngoh is None:
+            ngoh=FindIndexOfStringInList(headers, "Guests")
+
+        for row in rows:
+            if len(row) != len(headers):    # Merged cells which usually signal a skipped convention.
+                continue
+            con=Con()
+            if nname is not None:
+                con.Name=row[nname]
+            if ndate is not None:
+                con.Dates=FanzineDateRange().Match(row[ndate])
+            if nloc is not None:
+                con.Locale=row[nloc]
+            if ngoh is not None:
+                con.GoHs=row[ngoh]
+
+            self._grid._datasource.Rows.append(con)
+
+
     #------------------
     # Create a new, empty, con series
     def OnCreateConSeries(self, event):
@@ -231,6 +309,7 @@ class MainWindow(MainConSeriesFrame):
         self._grid._datasource=ConSeries()
         self._grid._datasource.Name=self._dlgEnterFancyName._FancyName
         self._filename=self._dlgEnterFancyName._FancyName
+        self.FetchConSeriesFromFancy(self._dlgEnterFancyName._FancyName)
         self._grid.RefreshGridFromData()
         pass
 
