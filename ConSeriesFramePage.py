@@ -258,9 +258,8 @@ class MainWindow(MainConSeriesFrame):
                 if len(heads) > 0:
                     for head in heads:
                         headers.append(head.contents[0])
-                    headers=[UnformatLinks(h).strip() for h in headers]
+                    headers=[RemoveAllHTMLTags(UnformatLinks(str(h))).strip() for h in headers]
                     continue
-
 
             # Ordinary row
             cols=bsrow.find_all("td")
