@@ -124,7 +124,7 @@ class MainWindow(MainConSeriesFrame):
 
         # Get the JSON
         j=FindBracketedText(file, "fanac-json")[0]
-        if j is None or j != "":
+        if j is None or j == "":
             wx.MessageBox("Can't load convention information from "+os.path.join(self._dirname, self._filename))
             return
 
