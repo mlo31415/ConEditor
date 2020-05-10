@@ -124,35 +124,19 @@ class MainWindow(MainConSeriesFrame):
 
         # Get the JSON
         j=FindBracketedText(file, "fanac-json")[0]
-        if j is not None and j != "":
+        if j is None or j != "":
+            wx.MessageBox("Can't load convention information from "+os.path.join(self._dirname, self._filename))
+            return
+
+        try:
             self.FromJson(j)
-            frame.tConSeries.Value=self._textConSeries
-            frame.tComments.Value=self._textComments
-            frame.tFancyURL.Value=self._textFancyURL
+        except (json.decoder.JSONDecodeError):
+            wx.MessageBox("JSONDecodeError when loading convention information from "+os.path.join(self._dirname, self._filename))
+            return
 
-        else:
-
-            soup=BeautifulSoup(file, 'html.parser')
-
-            # We need to extract three things:
-            #   The convention series name
-            #   The convention series text
-            #   The convention series table
-            frame.tConSeries.Value=soup.find("abc").text
-            frame.tComments.Value=soup.find("xyz").text
-
-            header=[l.text for l in soup.table.tr.contents if l != "\n"]
-            rows=[[m for m in l if m != "\n"] for l in soup.table.tbody if l != "\n"]
-            for row in rows:
-                r=[StripExternalTags(str(l)) for l in row]+([None, None, None, None, None])
-                con=Con()
-                con.Seq=int(r[0]) if r[0] is not None else 0
-                con.Name=r[1] if r[1] is not None else ""
-                fd=FanzineDateRange().Match(r[2])
-                con.Dates= fd if r[2] is not None else str(r[2])
-                con.Locale=r[3]  if r[3] is not None else ""
-                con.GoHs=r[4] if r[4] is not None else ""
-                self._grid._datasource.Rows.append(con)
+        frame.tConSeries.Value=self._textConSeries
+        frame.tComments.Value=self._textComments
+        frame.tFancyURL.Value=self._textFancyURL
 
         # Insert the row data into the grid
         self._grid.RefreshGridFromData()
