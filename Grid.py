@@ -5,8 +5,16 @@ import wx
 import wx.grid
 import math
 
-from HelpersPackage import Color, IsInt
+from HelpersPackage import IsInt
 from FanzineIssueSpecPackage import FanzineDateRange, FanzineDate
+
+class Color:
+     # Define some RGB color constants
+     LabelGray=wx.Colour(230, 230, 230)
+     Pink=wx.Colour(255, 230, 230)
+     LightGreen=wx.Colour(240, 255, 240)
+     LightBlue=wx.Colour(240, 230, 255)
+     White=wx.Colour(255, 255, 255)
 
 class GridDataSource():
 
