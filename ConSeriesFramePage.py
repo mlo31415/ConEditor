@@ -41,15 +41,14 @@ class MainWindow(MainConSeriesFrame):
     def __init__(self, parent, title):
         MainConSeriesFrame.__init__(self, parent)
 
-        self.highlightRows=[]       # A List of the names of fanzines in highlighted rows
         self.userSelection=None
         self.cntlDown: bool=False
         self.rightClickedColumn: Optional[int]=None
-        self.filename: str=""
-        self.dirname: str=""
+        self._filename: str=""
+        self._dirname: str=""
 
         if len(sys.argv) > 1:
-            self.dirname=os.getcwd()
+            self._dirname=os.getcwd()
 
         self._grid: Grid=Grid(self.gRowGrid)
         self._grid._datasource=ConSeries()
@@ -66,12 +65,12 @@ class MainWindow(MainConSeriesFrame):
 
     # Serialize and deserialize
     def ToJson(self) -> str:
-        d={"ver": 2,
+        d={"ver": 3,
            "_textConSeries": self._textConSeries,
            "_textFancyURL": self._textFancyURL,
            "_textComments": self._textComments,
-           "filename": self.filename,
-           "dirname": self.dirname,
+           "_filename": self._filename,
+           "_dirname": self._dirname,
            "_datasource": self._grid._datasource.ToJson()}
         return json.dumps(d)
 
@@ -83,8 +82,11 @@ class MainWindow(MainConSeriesFrame):
             self._textComments=d["_textComments"]
             self._grid._datasource=ConSeries().FromJson(d["_datasource"])
         if d["ver"] == 2:
-            self.filename=d["filename"]
-            self.dirname=d["dirname"]
+            self._filename=d["filename"]
+            self._dirname=d["dirname"]
+        if d["ver"] == 3:
+            self._filename=d["_filename"]
+            self._dirname=d["_dirname"]
         return self
 
     #------------------
@@ -100,7 +102,7 @@ class MainWindow(MainConSeriesFrame):
         self._grid._datasource=ConSeries()
 
         # Call the File Open dialog to get an con series HTML file
-        dlg=wx.FileDialog(self, "Select con series file to load", self.dirname, "", "*.html", style=wx.FD_OPEN | wx.STAY_ON_TOP)
+        dlg=wx.FileDialog(self, "Select con series file to load", self._dirname, "", "*.html", style=wx.FD_OPEN|wx.STAY_ON_TOP)
 
         val=dlg.ShowModal()
         # if val != wx.ID_OK:
@@ -108,11 +110,11 @@ class MainWindow(MainConSeriesFrame):
         #     dlg.Destroy()
         #     return
 
-        self.filename=dlg.GetFilename()
-        self.dirname=dlg.GetDirectory()
+        self._filename=dlg.GetFilename()
+        self._dirname=dlg.GetDirectory()
         dlg.Destroy()
 
-        with open(os.path.join(self.dirname, self.filename)) as f:
+        with open(os.path.join(self._dirname, self._filename)) as f:
             file=f.read()
 
         # Get the JSON
@@ -154,7 +156,7 @@ class MainWindow(MainConSeriesFrame):
     def SaveConSeries(self, filename: str) -> None:
         # First read in the template
         file=None
-        with open(os.path.join(self.dirname, "Template-ConSeries")) as f:
+        with open(os.path.join(self._dirname, "Template-ConSeries")) as f:
             file=f.read()
 
         # We want to do substitutions, replacing whatever is there now with the new data
@@ -202,14 +204,14 @@ class MainWindow(MainConSeriesFrame):
     # Save a con series object to disk.
     def OnSaveConSeries(self, event):
         # Rename the old file
-        oldname=os.path.join(self.dirname, self.filename)
-        newname=os.path.join(self.dirname, os.path.splitext(self.filename)[0]+"-old.html")
+        oldname=os.path.join(self._dirname, self._filename)
+        newname=os.path.join(self._dirname, os.path.splitext(self._filename)[0]+"-old.html")
         if os.path.exists(oldname):
             try:
                 i=0
                 while os.path.exists(newname):
                     i+=1
-                    newname=os.path.join(self.dirname, os.path.splitext(self.filename)[0]+"-old-"+str(i)+".html")
+                    newname=os.path.join(self._dirname, os.path.splitext(self._filename)[0]+"-old-"+str(i)+".html")
 
                 os.rename(oldname, newname)
             except:
