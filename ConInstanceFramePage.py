@@ -167,30 +167,7 @@ class MainConDialogClass(MainConDialog):
         if j is not None and j != "":
             self.FromJson(j)
 
-        else:
-            #TODO: delete this when sure it's obsolete
-            # Try parsing the HTML
-            soup=BeautifulSoup(file, 'html.parser')
-
-            # # We need to extract three things:
-            # #   The convention series name
-            # #   The convention series text
-            # #   The convention series table
-            # self.tConInstanceName.Value=soup.find("fanac-headerlink").text
-            # self.tPText.Value=soup.find("fanac-stuff").text
-            # header=[l.text for l in soup.table.tr.contents if l != "\n"]
-            # rows=[[m for m in l if m != "\n"] for l in soup.table.tbody if l != "\n"]
-            # for r in rows:
-            #     r=[StripExternalTags(str(l)) for l in r]
-            #     con=ConFile()
-            #     con.Seq=int(r[0])
-            #     con.DisplayTitle=r[1]
-            #     con.Description=r[2]
-            #     self._grid._datasource.Rows.append(con)
-
-        # Insert the row data into the grid
         self._grid.RefreshGridFromData()
-
         self.tConInstanceFancyURL.Value=self.ConInstanceFancyURL
 
 
