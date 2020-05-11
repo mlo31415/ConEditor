@@ -51,10 +51,10 @@ class MainConSeriesFrame ( wx.Frame ):
 		self.m_staticTextMessages = wx.StaticText( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 400,-1 ), 0 )
 		self.m_staticTextMessages.Wrap( -1 )
 
-		bSizer7.Add( self.m_staticTextMessages, 0, wx.ALL, 5 )
+		bSizer7.Add( self.m_staticTextMessages, 0, wx.ALIGN_TOP|wx.ALL, 5 )
 
 
-		bSizerMainBox.Add( bSizer7, 1, wx.EXPAND, 5 )
+		bSizerMainBox.Add( bSizer7, 0, wx.ALIGN_TOP|wx.EXPAND, 5 )
 
 		fgSizer4 = wx.FlexGridSizer( 0, 2, 0, 0 )
 		fgSizer4.SetFlexibleDirection( wx.BOTH )
@@ -92,7 +92,7 @@ class MainConSeriesFrame ( wx.Frame ):
 		self.m_staticText2 = wx.StaticText( self, wx.ID_ANY, u"Top text:", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText2.Wrap( -1 )
 
-		fgSizerComments.Add( self.m_staticText2, 1, wx.ALL, 5 )
+		fgSizerComments.Add( self.m_staticText2, 0, wx.ALL, 5 )
 
 		self.tComments = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 9999,-1 ), wx.TE_MULTILINE )
 		self.tComments.SetMinSize( wx.Size( -1,80 ) )

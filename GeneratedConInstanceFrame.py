@@ -18,21 +18,18 @@ import wx.grid
 class MainConDialog ( wx.Dialog ):
 
 	def __init__( self, parent ):
-		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Edit a convention instance", pos = wx.DefaultPosition, size = wx.Size( 600,505 ), style = wx.DEFAULT_DIALOG_STYLE )
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 386,606 ), style = wx.DEFAULT_DIALOG_STYLE )
 
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
 		bSizerMainBox = wx.BoxSizer( wx.VERTICAL )
 
-		fgSizer5 = wx.FlexGridSizer( 1, 4, 0, 0 )
+		fgSizer5 = wx.FlexGridSizer( 1, 3, 0, 0 )
 		fgSizer5.SetFlexibleDirection( wx.BOTH )
 		fgSizer5.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
-		self.bSaveCon = wx.Button( self, wx.ID_OK, u"OK", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.bSaveCon = wx.Button( self, wx.ID_ANY, u"Save Con", wx.DefaultPosition, wx.DefaultSize, 0 )
 		fgSizer5.Add( self.bSaveCon, 0, wx.ALL, 5 )
-
-		self.m_button7 = wx.Button( self, wx.ID_CANCEL, u"Cancel", wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer5.Add( self.m_button7, 0, wx.ALL, 5 )
 
 		m_radioBox1Choices = [ u"Table", u"LIst" ]
 		self.m_radioBox1 = wx.RadioBox( self, wx.ID_ANY, u"File list format", wx.Point( -1,-1 ), wx.Size( -1,-1 ), m_radioBox1Choices, 1, wx.RA_SPECIFY_ROWS )
@@ -45,7 +42,7 @@ class MainConDialog ( wx.Dialog ):
 
 		bSizerMainBox.Add( fgSizer5, 0, wx.EXPAND, 5 )
 
-		fgSizer4 = wx.FlexGridSizer( 2, 2, 0, 0 )
+		fgSizer4 = wx.FlexGridSizer( 8, 2, 0, 0 )
 		fgSizer4.SetFlexibleDirection( wx.BOTH )
 		fgSizer4.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
@@ -65,27 +62,26 @@ class MainConDialog ( wx.Dialog ):
 		self.tConInstanceFancyURL = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 300,-1 ), 0 )
 		fgSizer4.Add( self.tConInstanceFancyURL, 0, wx.ALL|wx.EXPAND, 5 )
 
-
-		bSizerMainBox.Add( fgSizer4, 0, wx.EXPAND, 5 )
-
-		fgSizerComments = wx.FlexGridSizer( 1, 2, 0, 0 )
-		fgSizerComments.AddGrowableCol( 1 )
-		fgSizerComments.AddGrowableRow( 0)		# Due to a bug in wxFormBuilder the argument needs to be re-set to 0
-		fgSizerComments.SetFlexibleDirection( wx.BOTH )
-		fgSizerComments.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
-
 		self.m_staticText2 = wx.StaticText( self, wx.ID_ANY, u"Top text:", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText2.Wrap( -1 )
 
-		fgSizerComments.Add( self.m_staticText2, 1, wx.ALL, 5 )
+		fgSizer4.Add( self.m_staticText2, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT|wx.ALL, 5 )
 
 		self.tPText = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 9999,-1 ), wx.TE_MULTILINE )
 		self.tPText.SetMinSize( wx.Size( -1,80 ) )
 
-		fgSizerComments.Add( self.tPText, 1, wx.ALL|wx.EXPAND, 5 )
+		fgSizer4.Add( self.tPText, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.EXPAND, 5 )
+
+		self.m_button10 = wx.Button( self, wx.ID_ANY, u"Photo page", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer4.Add( self.m_button10, 0, wx.ALL, 5 )
+
+		self.m_staticTextPhotoPage = wx.StaticText( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticTextPhotoPage.Wrap( -1 )
+
+		fgSizer4.Add( self.m_staticTextPhotoPage, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
 
-		bSizerMainBox.Add( fgSizerComments, 0, wx.ALL|wx.EXPAND, 5 )
+		bSizerMainBox.Add( fgSizer4, 0, wx.EXPAND, 5 )
 
 		theIssueGrid = wx.BoxSizer( wx.VERTICAL )
 
