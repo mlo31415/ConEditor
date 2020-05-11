@@ -146,6 +146,7 @@ class MainConDialog ( wx.Dialog ):
 		# Connect Events
 		self.bSaveCon.Bind( wx.EVT_BUTTON, self.OnSaveConInstance )
 		self.bAddFiles.Bind( wx.EVT_BUTTON, self.OnAddFilesButton )
+		self.tConInstanceName.Bind( wx.EVT_KEY_UP, self.OnTextConInstanceNameKeyUp )
 		self.tConInstanceName.Bind( wx.EVT_TEXT, self.OnTextConInstanceName )
 		self.tConInstanceFancyURL.Bind( wx.EVT_TEXT, self.OnTextConInstanceFancyURL )
 		self.tPText.Bind( wx.EVT_TEXT, self.OnTextComments )
@@ -166,6 +167,9 @@ class MainConDialog ( wx.Dialog ):
 		event.Skip()
 
 	def OnAddFilesButton( self, event ):
+		event.Skip()
+
+	def OnTextConInstanceNameKeyUp( self, event ):
 		event.Skip()
 
 	def OnTextConInstanceName( self, event ):
