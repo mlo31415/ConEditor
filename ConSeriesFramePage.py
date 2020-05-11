@@ -152,6 +152,7 @@ class MainWindow(MainConSeriesFrame):
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name is tagged with <abc>, the random text with "xyz"
         link=FormatLink("http://fancyclopedia.org/"+WikiPagenameToWikiUrlname(self._textConSeriesName), self._textConSeriesName)
+        file=SubstituteHTML(file, "title", self._textConSeriesName)
         file=SubstituteHTML(file, "abc", link)
         file=SubstituteHTML(file, "xyz", self._textComments)
 
