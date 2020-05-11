@@ -58,7 +58,7 @@ class MainWindow(MainConSeriesFrame):
         self._grid.SetColTypes(ConSeries._coldatatypes)
         self._grid.RefreshGridFromData()
 
-        self._textConSeries: str=""
+        self._textConSeriesName: str=""
         self._textFancyURL: str=""
         self._textComments: str=""
 
@@ -68,7 +68,7 @@ class MainWindow(MainConSeriesFrame):
     # Serialize and deserialize
     def ToJson(self) -> str:
         d={"ver": 3,
-           "_textConSeries": self._textConSeries,
+           "_textConSeries": self._textConSeriesName,
            "_textFancyURL": self._textFancyURL,
            "_textComments": self._textComments,
            "_filename": self._filename,
@@ -79,7 +79,7 @@ class MainWindow(MainConSeriesFrame):
     def FromJson(self, val: str) -> MainConSeriesFrame:
         d=json.loads(val)
         if d["ver"] <= 3:
-            self._textConSeries=d["_textConSeries"]
+            self._textConSeriesName=d["_textConSeries"]
             self._textFancyURL=d["_textFancyURL"]
             self._textComments=d["_textComments"]
             self._grid._datasource=ConSeries().FromJson(d["_datasource"])
@@ -134,7 +134,7 @@ class MainWindow(MainConSeriesFrame):
             wx.MessageBox("JSONDecodeError when loading convention information from "+os.path.join(self._dirname, self._filename))
             return
 
-        frame.tConSeries.Value=self._textConSeries
+        frame.tConSeries.Value=self._textConSeriesName
         frame.tComments.Value=self._textComments
         frame.tFancyURL.Value=self._textFancyURL
 
@@ -151,7 +151,7 @@ class MainWindow(MainConSeriesFrame):
 
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name is tagged with <abc>, the random text with "xyz"
-        link=FormatLink("http://fancyclopedia.org/"+WikiPagenameToWikiUrlname(self._textConSeries), self._textConSeries)
+        link=FormatLink("http://fancyclopedia.org/"+WikiPagenameToWikiUrlname(self._textConSeriesName), self._textConSeriesName)
         file=SubstituteHTML(file, "abc", link)
         file=SubstituteHTML(file, "xyz", self._textComments)
 
@@ -336,8 +336,13 @@ class MainWindow(MainConSeriesFrame):
         self._textFancyURL=self.tFancyURL.GetValue()
 
     #------------------
-    def OnTextConSeries( self, event ):
-        self._textConSeries=self.tConSeries.GetValue()
+    def OnTextConSeriesName( self, event ):
+        self._textConSeriesName=self.tConSeries.GetValue()
+
+    #-----------------
+    # When the user edits the ConSeries name, we update the Fancy URL (but not vice-versa)
+    def ConTextConSeriesKeyUp(self, event):
+        self.tFancyURL.Value="fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.tConSeries.GetValue())
 
     #------------------
     def OnTextComments(self, event):

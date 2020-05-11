@@ -60,7 +60,7 @@ class MainConSeriesFrame ( wx.Frame ):
 		fgSizer4.SetFlexibleDirection( wx.BOTH )
 		fgSizer4.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
-		self.m_staticText1 = wx.StaticText( self, wx.ID_ANY, u"Convention Series:", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText1 = wx.StaticText( self, wx.ID_ANY, u"Convention Series Name:", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText1.Wrap( -1 )
 
 		fgSizer4.Add( self.m_staticText1, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT|wx.ALL, 5 )
@@ -166,7 +166,8 @@ class MainConSeriesFrame ( wx.Frame ):
 		self.bCreateConSeries.Bind( wx.EVT_BUTTON, self.OnCreateConSeries )
 		self.bLoadConSeries.Bind( wx.EVT_BUTTON, self.OnLoadConSeries )
 		self.bSaveConSeries.Bind( wx.EVT_BUTTON, self.OnSaveConSeries )
-		self.tConSeries.Bind( wx.EVT_TEXT, self.OnTextConSeries )
+		self.tConSeries.Bind( wx.EVT_KEY_UP, self.ConTextConSeriesKeyUp )
+		self.tConSeries.Bind( wx.EVT_TEXT, self.OnTextConSeriesName )
 		self.tFancyURL.Bind( wx.EVT_TEXT, self.OnTextFancyURL )
 		self.tComments.Bind( wx.EVT_TEXT, self.OnTextComments )
 		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_CHANGED, self.OnGridCellChanged )
@@ -192,7 +193,10 @@ class MainConSeriesFrame ( wx.Frame ):
 	def OnSaveConSeries( self, event ):
 		event.Skip()
 
-	def OnTextConSeries( self, event ):
+	def ConTextConSeriesKeyUp( self, event ):
+		event.Skip()
+
+	def OnTextConSeriesName( self, event ):
 		event.Skip()
 
 	def OnTextFancyURL( self, event ):
