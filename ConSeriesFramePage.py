@@ -323,7 +323,10 @@ class MainWindow(MainConSeriesFrame):
         dlg.LoadConInstancePage(name)
         dlg.ShowModal()
         cal=dlg.ReturnValue
-        if cal == True:
+        if cal == wx.ID_OK:
+            if self._grid._datasource.NumRows <= row:
+                for i in range(row-self._grid._datasource.NumRows+1):
+                    self._grid._datasource.Rows.append(Con())
             self._grid._datasource.Rows[row].URL=dlg.tConInstanceName.Value
 
         pass

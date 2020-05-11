@@ -25,6 +25,7 @@ class MainConDialogClass(MainConDialog):
         self.ConInstanceStuff=""
         self.ConInstanceFancyURL=""
         self.ReturnValue=None
+        self.dirname=""
 
 
     # Serialize and deserialize
@@ -71,8 +72,8 @@ class MainConDialogClass(MainConDialog):
         base=os.path.splitext(fname)[0]
         fname=base+".htm"   # We use "htm" here temporarily so it's easy to distinguish ConSeres pages from conInstance pages
         self.SaveConInstancePage(fname)   #TODO: Need to make name cannonical
-        self.ReturnValue=True
-        self.EndModal(True)
+        self.ReturnValue=wx.ID_OK
+        self.EndModal(self.ReturnValue)
         self.Close()
 
     def SaveConInstancePage(self, filename: str) -> None:
@@ -138,6 +139,8 @@ class MainConDialogClass(MainConDialog):
             self.dirname="."
         else:
             # Call the File Open dialog to get a con series HTML file
+            if self.dirname is None or self.dirname == "":
+                return
             dlg=wx.FileDialog(self, "Select con series file to load", self.dirname, "", "*.htm", wx.FD_OPEN)
             dlg.SetWindowStyle(wx.STAY_ON_TOP)
 
