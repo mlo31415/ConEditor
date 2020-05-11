@@ -85,6 +85,7 @@ class MainConDialogClass(MainConDialog):
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name is tagged with <abc>, the random text with "xyz"
         link=FormatLink("http://fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.ConInstanceName), self.ConInstanceName)
+        file=SubstituteHTML(file, "title", self.ConInstanceName)
         file=SubstituteHTML(file, "fanac-headerlink", link)
         file=SubstituteHTML(file, "fanac-fancylink", link)
         file=SubstituteHTML(file, "fanac-stuff", self.ConInstanceStuff)
