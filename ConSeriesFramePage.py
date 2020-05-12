@@ -76,7 +76,7 @@ class MainWindow(GenConSeriesFrame):
            "_datasource": self._grid._datasource.ToJson()}
         return json.dumps(d)
 
-    def FromJson(self, val: str) -> GenConSeriesFrame:
+    def FromJson(self, val: str) -> MainWindow:
         d=json.loads(val)
         if d["ver"] <= 3:
             self._textConSeriesName=d["_textConSeries"]

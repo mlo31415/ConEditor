@@ -54,30 +54,30 @@ class GenConEditorFrame ( wx.Frame ):
 
 		bSizer9 = wx.BoxSizer( wx.VERTICAL )
 
-		self.m_grid3 = wx.grid.Grid( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.gRowGrid = wx.grid.Grid( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
 
 		# Grid
-		self.m_grid3.CreateGrid( 5, 5 )
-		self.m_grid3.EnableEditing( True )
-		self.m_grid3.EnableGridLines( True )
-		self.m_grid3.EnableDragGridSize( False )
-		self.m_grid3.SetMargins( 0, 0 )
+		self.gRowGrid.CreateGrid( 5, 5 )
+		self.gRowGrid.EnableEditing( True )
+		self.gRowGrid.EnableGridLines( True )
+		self.gRowGrid.EnableDragGridSize( False )
+		self.gRowGrid.SetMargins( 0, 0 )
 
 		# Columns
-		self.m_grid3.EnableDragColMove( False )
-		self.m_grid3.EnableDragColSize( True )
-		self.m_grid3.SetColLabelSize( 30 )
-		self.m_grid3.SetColLabelAlignment( wx.ALIGN_CENTER, wx.ALIGN_CENTER )
+		self.gRowGrid.EnableDragColMove( False )
+		self.gRowGrid.EnableDragColSize( True )
+		self.gRowGrid.SetColLabelSize( 30 )
+		self.gRowGrid.SetColLabelAlignment( wx.ALIGN_CENTER, wx.ALIGN_CENTER )
 
 		# Rows
-		self.m_grid3.EnableDragRowSize( True )
-		self.m_grid3.SetRowLabelSize( 80 )
-		self.m_grid3.SetRowLabelAlignment( wx.ALIGN_CENTER, wx.ALIGN_CENTER )
+		self.gRowGrid.EnableDragRowSize( True )
+		self.gRowGrid.SetRowLabelSize( 80 )
+		self.gRowGrid.SetRowLabelAlignment( wx.ALIGN_CENTER, wx.ALIGN_CENTER )
 
 		# Label Appearance
 
 		# Cell Defaults
-		self.m_grid3.SetDefaultCellAlignment( wx.ALIGN_LEFT, wx.ALIGN_TOP )
+		self.gRowGrid.SetDefaultCellAlignment( wx.ALIGN_LEFT, wx.ALIGN_TOP )
 		self.m_menu1 = wx.Menu()
 		self.m_menuItemCopy = wx.MenuItem( self.m_menu1, wx.ID_ANY, u"Copy", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_menu1.Append( self.m_menuItemCopy )
@@ -85,9 +85,9 @@ class GenConEditorFrame ( wx.Frame ):
 		self.m_menuItemPaste = wx.MenuItem( self.m_menu1, wx.ID_ANY, u"Paste", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_menu1.Append( self.m_menuItemPaste )
 
-		self.m_grid3.Bind( wx.EVT_RIGHT_DOWN, self.m_grid3OnContextMenu )
+		self.gRowGrid.Bind( wx.EVT_RIGHT_DOWN, self.gRowGridOnContextMenu )
 
-		bSizer9.Add( self.m_grid3, 1, wx.ALL, 5 )
+		bSizer9.Add( self.gRowGrid, 1, wx.ALL, 5 )
 
 
 		bSizer8.Add( bSizer9, 1, wx.EXPAND, 5 )
@@ -101,11 +101,11 @@ class GenConEditorFrame ( wx.Frame ):
 		# Connect Events
 		self.m_buttonSettings.Bind( wx.EVT_BUTTON, self.OnButtonSettingsClick )
 		self.m_textCtrlTopText.Bind( wx.EVT_TEXT, self.OnTopTextUpdated )
-		self.m_grid3.Bind( wx.grid.EVT_GRID_CELL_CHANGED, self.OnGridCellChanged )
-		self.m_grid3.Bind( wx.grid.EVT_GRID_CELL_LEFT_DCLICK, self.OnGridCellDoubleClick )
-		self.m_grid3.Bind( wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnGridCellRightClick )
-		self.m_grid3.Bind( wx.EVT_KEY_DOWN, self.OnKeyDown )
-		self.m_grid3.Bind( wx.EVT_KEY_UP, self.OnKeyUp )
+		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_CHANGED, self.OnGridCellChanged )
+		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_LEFT_DCLICK, self.OnGridCellDoubleClick )
+		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnGridCellRightClick )
+		self.gRowGrid.Bind( wx.EVT_KEY_DOWN, self.OnKeyDown )
+		self.gRowGrid.Bind( wx.EVT_KEY_UP, self.OnKeyUp )
 		self.Bind( wx.EVT_MENU, self.OnPopupCopy, id = self.m_menuItemCopy.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupPaste, id = self.m_menuItemPaste.GetId() )
 
@@ -141,7 +141,7 @@ class GenConEditorFrame ( wx.Frame ):
 	def OnPopupPaste( self, event ):
 		event.Skip()
 
-	def m_grid3OnContextMenu( self, event ):
-		self.m_grid3.PopupMenu( self.m_menu1, event.GetPosition() )
+	def gRowGridOnContextMenu( self, event ):
+		self.gRowGrid.PopupMenu( self.m_menu1, event.GetPosition() )
 
 
