@@ -28,8 +28,8 @@ class GenConEditorFrame ( wx.Frame ):
 		fgSizer7.SetFlexibleDirection( wx.BOTH )
 		fgSizer7.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
-		self.m_button11 = wx.Button( self, wx.ID_ANY, u"MyButton", wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer7.Add( self.m_button11, 0, wx.ALL, 5 )
+		self.m_buttonSave = wx.Button( self, wx.ID_ANY, u"Upload", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer7.Add( self.m_buttonSave, 0, wx.ALL, 5 )
 
 		self.m_buttonSettings = wx.Button( self, wx.ID_ANY, u"Settings", wx.DefaultPosition, wx.DefaultSize, 0 )
 		fgSizer7.Add( self.m_buttonSettings, 0, wx.ALIGN_RIGHT|wx.ALL, 5 )
@@ -99,6 +99,7 @@ class GenConEditorFrame ( wx.Frame ):
 		self.Centre( wx.BOTH )
 
 		# Connect Events
+		self.m_buttonSave.Bind( wx.EVT_BUTTON, self.OnButtonSaveClick )
 		self.m_buttonSettings.Bind( wx.EVT_BUTTON, self.OnButtonSettingsClick )
 		self.m_textCtrlTopText.Bind( wx.EVT_TEXT, self.OnTopTextUpdated )
 		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_CHANGED, self.OnGridCellChanged )
@@ -114,6 +115,9 @@ class GenConEditorFrame ( wx.Frame ):
 
 
 	# Virtual event handlers, overide them in your derived class
+	def OnButtonSaveClick( self, event ):
+		event.Skip()
+
 	def OnButtonSettingsClick( self, event ):
 		event.Skip()
 

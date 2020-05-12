@@ -127,7 +127,7 @@ class ConEditorFrame(GenConEditorFrame):
     # Serialize and deserialize
     def ToJson(self) -> str:
         d={"ver": 1,
-           "_textConSeries": self._textConSeriesName,
+           #"_textConSeries": self._textConSeriesName,
            "_datasource": self._grid._datasource.ToJson()
            }
 
@@ -135,10 +135,45 @@ class ConEditorFrame(GenConEditorFrame):
 
     def FromJson(self, val: str) -> ConEditorFrame:
         d=json.loads(val)
-        self._textConSeriesName=d["_textConSeries"]
+        #self._textConSeriesName=d["_textConSeries"]
         self._grid._datasource=ConList().FromJson(d["_datasource"])
 
         return self
+
+    def OnButtonSaveClick(self, event):
+
+        # First read in the template
+        file=None
+        self._dirname="."
+        with open(os.path.join(self._dirname, "Template-ConSeries")) as f:
+            file=f.read()
+
+        # We want to do substitutions, replacing whatever is there now with the new data
+        # The con's name is tagged with <abc>, the random text with "xyz"
+        #link=FormatLink("http://fancyclopedia.org/"+WikiPagenameToWikiUrlname(self._textConSeriesName), self._textConSeriesName)
+        #file=SubstituteHTML(file, "title", self._textConSeriesName)
+        #file=SubstituteHTML(file, "abc", link)
+        #file=SubstituteHTML(file, "xyz", self._textComments)
+
+        # Now construct the table which we'll then substitute.
+        newtable='<table class="table">\n'
+        newtable+="  <thead>\n"
+        newtable+="    <tr>\n"
+        newtable+='      <th scope="col">Convention</th>\n'
+        newtable+='    </tr>\n'
+        newtable+='  </thead>\n'
+        newtable+='  <tbody>\n'
+        for row in self._grid._datasource.Rows:
+            newtable+="    <tr>\n"
+            newtable+='      <td>'+row.Name+'</td>\n'
+            newtable+="    </tr>\n"
+        newtable+="    </tbody>\n"
+        newtable+="  </table>\n"
+
+        file=SubstituteHTML(file, "pdq", newtable)
+        file=SubstituteHTML(file, "fanac-json", self.ToJson())
+        with open("Conventions.html", "w+") as f:
+            f.write(file)
 
 
 # Start the GUI and run the event loop
