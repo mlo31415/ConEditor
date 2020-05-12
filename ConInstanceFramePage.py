@@ -1,18 +1,17 @@
 import wx
 import os
-from bs4 import BeautifulSoup
 import json
 
-from GeneratedConInstanceFrame import MainConDialog
+from GeneratedConInstanceFrame import GeneratedConInstanceFrame
 from Grid import Grid
 from ConInstance import ConInstancePage, ConFile
 
-from HelpersPackage import SubstituteHTML, StripExternalTags, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname
+from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname
 
 #####################################################################################
-class MainConDialogClass(MainConDialog):
+class MainConDialogClass(GeneratedConInstanceFrame):
     def __init__(self, parent):
-        MainConDialog.__init__(self, parent)
+        GeneratedConInstanceFrame.__init__(self, parent)
         self._grid: Grid=Grid(self.gRowGrid)
         self._grid._datasource=ConInstancePage()
 
@@ -37,7 +36,7 @@ class MainConDialogClass(MainConDialog):
            "_datasource": self._grid._datasource.ToJson()}
         return json.dumps(d)
 
-    def FromJson(self, val: str) -> MainConDialog:
+    def FromJson(self, val: str) -> GeneratedConInstanceFrame:
         d=json.loads(val)
         if d["ver"] == 1:
             self.ConInstanceName=d["ConInstanceName"]
