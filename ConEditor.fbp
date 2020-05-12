@@ -43,7 +43,7 @@
             <property name="id">wxID_ANY</property>
             <property name="maximum_size"></property>
             <property name="minimum_size"></property>
-            <property name="name">GeneratedConSeriesFrame</property>
+            <property name="name">GenConSeriesFrame</property>
             <property name="pos">-1,15</property>
             <property name="size">729,452</property>
             <property name="style">wxDEFAULT_FRAME_STYLE</property>
@@ -1049,7 +1049,7 @@
             <property name="id">wxID_ANY</property>
             <property name="maximum_size"></property>
             <property name="minimum_size"></property>
-            <property name="name">GeneratedConInstanceFrame</property>
+            <property name="name">GenConInstanceFrame</property>
             <property name="pos"></property>
             <property name="size">386,606</property>
             <property name="style">wxDEFAULT_DIALOG_STYLE</property>
@@ -2327,7 +2327,7 @@
             <property name="id">wxID_ANY</property>
             <property name="maximum_size"></property>
             <property name="minimum_size"></property>
-            <property name="name">GeneratedConEditorFrame</property>
+            <property name="name">GenConEditorFrame</property>
             <property name="pos"></property>
             <property name="size">500,300</property>
             <property name="style">wxDEFAULT_FRAME_STYLE</property>

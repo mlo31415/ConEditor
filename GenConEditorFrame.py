@@ -12,10 +12,10 @@ import wx.xrc
 import wx.grid
 
 ###########################################################################
-## Class GeneratedConEditorFrame
+## Class GenConEditorFrame
 ###########################################################################
 
-class GeneratedConEditorFrame ( wx.Frame ):
+class GenConEditorFrame ( wx.Frame ):
 
 	def __init__( self, parent ):
 		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 500,300 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )

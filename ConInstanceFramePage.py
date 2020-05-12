@@ -2,16 +2,16 @@ import wx
 import os
 import json
 
-from GeneratedConInstanceFrame import GeneratedConInstanceFrame
+from GenConInstanceFrame import GenConInstanceFrame
 from Grid import Grid
 from ConInstance import ConInstancePage, ConFile
 
 from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname
 
 #####################################################################################
-class MainConDialogClass(GeneratedConInstanceFrame):
+class MainConDialogClass(GenConInstanceFrame):
     def __init__(self, parent):
-        GeneratedConInstanceFrame.__init__(self, parent)
+        GenConInstanceFrame.__init__(self, parent)
         self._grid: Grid=Grid(self.gRowGrid)
         self._grid._datasource=ConInstancePage()
 
@@ -36,7 +36,7 @@ class MainConDialogClass(GeneratedConInstanceFrame):
            "_datasource": self._grid._datasource.ToJson()}
         return json.dumps(d)
 
-    def FromJson(self, val: str) -> GeneratedConInstanceFrame:
+    def FromJson(self, val: str) -> GenConInstanceFrame:
         d=json.loads(val)
         if d["ver"] == 1:
             self.ConInstanceName=d["ConInstanceName"]

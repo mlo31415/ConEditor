@@ -9,15 +9,15 @@ from bs4 import BeautifulSoup, NavigableString
 from urllib.request import urlopen
 import json
 
-from GeneratedConEditorFrame import GeneratedConEditorFrame
+from GenConEditorFrame import GenConEditorFrame
 
 from HelpersPackage import Bailout, StripExternalTags, SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, UnformatLinks, RemoveAllHTMLTags
 from HelpersPackage import FindIndexOfStringInList
 from Log import LogOpen
 
-class ConEditorFrame(GeneratedConEditorFrame):
+class ConEditorFrame(GenConEditorFrame):
     def __init__(self, parent):
-        GeneratedConEditorFrame.__init__(self, parent)
+        GenConEditorFrame.__init__(self, parent)
         self.Show()
 
 
