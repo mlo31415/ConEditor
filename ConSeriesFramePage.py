@@ -134,9 +134,9 @@ class MainWindow(GenConSeriesFrame):
             wx.MessageBox("JSONDecodeError when loading convention information from "+os.path.join(self._dirname, self._filename))
             return
 
-        frame.tConSeries.Value=self._textConSeriesName
-        frame.tComments.Value=self._textComments
-        frame.tFancyURL.Value=self._textFancyURL
+        self.tConSeries.Value=self._textConSeriesName
+        self.tComments.Value=self._textComments
+        self.tFancyURL.Value=self._textFancyURL
 
         # Insert the row data into the grid
         self._grid.RefreshGridFromData()
