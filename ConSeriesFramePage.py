@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup, NavigableString
 from urllib.request import urlopen
 import json
 
-from GeneratedConSeriesFrame import MainConSeriesFrame
+from GeneratedConSeriesFrame import GeneratedConSeriesFrame
 
 from HelpersPackage import Bailout, StripExternalTags, SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, UnformatLinks, RemoveAllHTMLTags
 from HelpersPackage import FindIndexOfStringInList
@@ -39,9 +39,9 @@ class dlgEnterFancyNameWindow(dlgEnterFancyName):
 
 
 #####################################################################################
-class MainWindow(MainConSeriesFrame):
+class MainWindow(GeneratedConSeriesFrame):
     def __init__(self, parent, title):
-        MainConSeriesFrame.__init__(self, parent)
+        GeneratedConSeriesFrame.__init__(self, parent)
 
         self.userSelection=None
         self.cntlDown: bool=False
@@ -76,7 +76,7 @@ class MainWindow(MainConSeriesFrame):
            "_datasource": self._grid._datasource.ToJson()}
         return json.dumps(d)
 
-    def FromJson(self, val: str) -> MainConSeriesFrame:
+    def FromJson(self, val: str) -> GeneratedConSeriesFrame:
         d=json.loads(val)
         if d["ver"] <= 3:
             self._textConSeriesName=d["_textConSeries"]

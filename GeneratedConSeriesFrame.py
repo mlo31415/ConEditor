@@ -12,10 +12,10 @@ import wx.xrc
 import wx.grid
 
 ###########################################################################
-## Class MainConSeriesFrame
+## Class GeneratedConSeriesFrame
 ###########################################################################
 
-class MainConSeriesFrame ( wx.Frame ):
+class GeneratedConSeriesFrame ( wx.Frame ):
 
 	def __init__( self, parent ):
 		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Edit Convention Series", pos = wx.Point( -1,15 ), size = wx.Size( 729,452 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
@@ -85,7 +85,7 @@ class MainConSeriesFrame ( wx.Frame ):
 
 		fgSizerComments = wx.FlexGridSizer( 1, 2, 0, 0 )
 		fgSizerComments.AddGrowableCol( 1 )
-		fgSizerComments.AddGrowableRow( 0 )		# This needs to be set by hand to ( 0 ) due to apparent bug in wxFormBuilder
+		fgSizerComments.AddGrowableRow( 1 )
 		fgSizerComments.SetFlexibleDirection( wx.BOTH )
 		fgSizerComments.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
@@ -157,7 +157,7 @@ class MainConSeriesFrame ( wx.Frame ):
 		self.m_popupCreateNewConPage = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Create New Con Page", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_menuPopup.Append( self.m_popupCreateNewConPage )
 
-		self.Bind( wx.EVT_RIGHT_DOWN, self.MainConSeriesFrameOnContextMenu )
+		self.Bind( wx.EVT_RIGHT_DOWN, self.GeneratedConSeriesFrameOnContextMenu )
 
 
 		self.Centre( wx.BOTH )
@@ -232,7 +232,7 @@ class MainConSeriesFrame ( wx.Frame ):
 	def gRowGridOnContextMenu( self, event ):
 		self.gRowGrid.PopupMenu( self.m_menu1, event.GetPosition() )
 
-	def MainConSeriesFrameOnContextMenu( self, event ):
+	def GeneratedConSeriesFrameOnContextMenu( self, event ):
 		self.PopupMenu( self.m_menuPopup, event.GetPosition() )
 
 

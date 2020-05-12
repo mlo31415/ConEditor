@@ -43,7 +43,7 @@
             <property name="id">wxID_ANY</property>
             <property name="maximum_size"></property>
             <property name="minimum_size"></property>
-            <property name="name">MainConSeriesFrame</property>
+            <property name="name">GeneratedConSeriesFrame</property>
             <property name="pos">-1,15</property>
             <property name="size">729,452</property>
             <property name="style">wxDEFAULT_FRAME_STYLE</property>
