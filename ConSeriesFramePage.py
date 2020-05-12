@@ -385,9 +385,3 @@ class MainWindow(MainConSeriesFrame):
         self._grid.OnGridCellChanged(event)
 
 
-# Start the GUI and run the event loop
-LogOpen("Log -- ConEditor.txt", "Log (Errors) -- ConEditor.txt")
-app = wx.App(False)
-frame = MainWindow(None, "Convention series editor")
-app.MainLoop()
-
