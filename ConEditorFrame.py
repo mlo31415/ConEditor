@@ -21,6 +21,8 @@ class ConEditorFrame(GeneratedConEditorFrame):
         self.Show()
 
 
+
+
 # Start the GUI and run the event loop
 LogOpen("Log -- ConEditor.txt", "Log (Errors) -- ConEditor.txt")
 app = wx.App(False)

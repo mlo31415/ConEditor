@@ -78,6 +78,15 @@ class GeneratedConEditorFrame ( wx.Frame ):
 
 		# Cell Defaults
 		self.m_grid3.SetDefaultCellAlignment( wx.ALIGN_LEFT, wx.ALIGN_TOP )
+		self.m_menu1 = wx.Menu()
+		self.m_menuItemCopy = wx.MenuItem( self.m_menu1, wx.ID_ANY, u"Copy", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_menu1.Append( self.m_menuItemCopy )
+
+		self.m_menuItemPaste = wx.MenuItem( self.m_menu1, wx.ID_ANY, u"Paste", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_menu1.Append( self.m_menuItemPaste )
+
+		self.m_grid3.Bind( wx.EVT_RIGHT_DOWN, self.m_grid3OnContextMenu )
+
 		bSizer9.Add( self.m_grid3, 1, wx.ALL, 5 )
 
 
@@ -91,6 +100,14 @@ class GeneratedConEditorFrame ( wx.Frame ):
 
 		# Connect Events
 		self.m_buttonSettings.Bind( wx.EVT_BUTTON, self.OnButtonSettingsClick )
+		self.m_textCtrlTopText.Bind( wx.EVT_TEXT, self.OnTopTextUpdated )
+		self.m_grid3.Bind( wx.grid.EVT_GRID_CELL_CHANGED, self.OnGridCellChanged )
+		self.m_grid3.Bind( wx.grid.EVT_GRID_CELL_LEFT_DCLICK, self.OnGridCellDoubleClick )
+		self.m_grid3.Bind( wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnGridCellRightClick )
+		self.m_grid3.Bind( wx.EVT_KEY_DOWN, self.OnKeyDown )
+		self.m_grid3.Bind( wx.EVT_KEY_UP, self.OnKeyUp )
+		self.Bind( wx.EVT_MENU, self.OnPopupCopy, id = self.m_menuItemCopy.GetId() )
+		self.Bind( wx.EVT_MENU, self.OnPopupPaste, id = self.m_menuItemPaste.GetId() )
 
 	def __del__( self ):
 		pass
@@ -99,5 +116,32 @@ class GeneratedConEditorFrame ( wx.Frame ):
 	# Virtual event handlers, overide them in your derived class
 	def OnButtonSettingsClick( self, event ):
 		event.Skip()
+
+	def OnTopTextUpdated( self, event ):
+		event.Skip()
+
+	def OnGridCellChanged( self, event ):
+		event.Skip()
+
+	def OnGridCellDoubleClick( self, event ):
+		event.Skip()
+
+	def OnGridCellRightClick( self, event ):
+		event.Skip()
+
+	def OnKeyDown( self, event ):
+		event.Skip()
+
+	def OnKeyUp( self, event ):
+		event.Skip()
+
+	def OnPopupCopy( self, event ):
+		event.Skip()
+
+	def OnPopupPaste( self, event ):
+		event.Skip()
+
+	def m_grid3OnContextMenu( self, event ):
+		self.m_grid3.PopupMenu( self.m_menu1, event.GetPosition() )
 
 

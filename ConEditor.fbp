@@ -858,11 +858,11 @@
                         <property name="name">theIssueGrid</property>
                         <property name="orient">wxVERTICAL</property>
                         <property name="permission">none</property>
-                        <object class="sizeritem" expanded="0">
+                        <object class="sizeritem" expanded="1">
                             <property name="border">5</property>
                             <property name="flag">wxALL|wxEXPAND</property>
                             <property name="proportion">0</property>
-                            <object class="wxGrid" expanded="0">
+                            <object class="wxGrid" expanded="1">
                                 <property name="BottomDockable">1</property>
                                 <property name="LeftDockable">1</property>
                                 <property name="RightDockable">1</property>
@@ -949,7 +949,7 @@
                                 <event name="OnGridCellRightClick">OnGridCellRightClick</event>
                                 <event name="OnKeyDown">OnKeyDown</event>
                                 <event name="OnKeyUp">OnKeyUp</event>
-                                <object class="wxMenu" expanded="0">
+                                <object class="wxMenu" expanded="1">
                                     <property name="label">MyMenu</property>
                                     <property name="name">m_menu1</property>
                                     <property name="permission">protected</property>
@@ -2645,6 +2645,7 @@
                                 <property name="window_extra_style"></property>
                                 <property name="window_name"></property>
                                 <property name="window_style"></property>
+                                <event name="OnText">OnTopTextUpdated</event>
                             </object>
                         </object>
                     </object>
@@ -2744,6 +2745,44 @@
                                 <property name="window_extra_style"></property>
                                 <property name="window_name"></property>
                                 <property name="window_style"></property>
+                                <event name="OnGridCellChange">OnGridCellChanged</event>
+                                <event name="OnGridCellLeftDClick">OnGridCellDoubleClick</event>
+                                <event name="OnGridCellRightClick">OnGridCellRightClick</event>
+                                <event name="OnKeyDown">OnKeyDown</event>
+                                <event name="OnKeyUp">OnKeyUp</event>
+                                <object class="wxMenu" expanded="1">
+                                    <property name="label">MyMenu</property>
+                                    <property name="name">m_menu1</property>
+                                    <property name="permission">protected</property>
+                                    <object class="wxMenuItem" expanded="1">
+                                        <property name="bitmap"></property>
+                                        <property name="checked">0</property>
+                                        <property name="enabled">1</property>
+                                        <property name="help"></property>
+                                        <property name="id">wxID_ANY</property>
+                                        <property name="kind">wxITEM_NORMAL</property>
+                                        <property name="label">Copy</property>
+                                        <property name="name">m_menuItemCopy</property>
+                                        <property name="permission">none</property>
+                                        <property name="shortcut"></property>
+                                        <property name="unchecked_bitmap"></property>
+                                        <event name="OnMenuSelection">OnPopupCopy</event>
+                                    </object>
+                                    <object class="wxMenuItem" expanded="1">
+                                        <property name="bitmap"></property>
+                                        <property name="checked">0</property>
+                                        <property name="enabled">1</property>
+                                        <property name="help"></property>
+                                        <property name="id">wxID_ANY</property>
+                                        <property name="kind">wxITEM_NORMAL</property>
+                                        <property name="label">Paste</property>
+                                        <property name="name">m_menuItemPaste</property>
+                                        <property name="permission">none</property>
+                                        <property name="shortcut"></property>
+                                        <property name="unchecked_bitmap"></property>
+                                        <event name="OnMenuSelection">OnPopupPaste</event>
+                                    </object>
+                                </object>
                             </object>
                         </object>
                     </object>
