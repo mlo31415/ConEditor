@@ -4,16 +4,12 @@ from typing import Optional, List, Union
 import os
 import wx
 import wx.grid
-import sys
-from bs4 import BeautifulSoup, NavigableString
-from urllib.request import urlopen
 import json
 
 from GenConEditorFrame import GenConEditorFrame
-from Grid import Grid
+from Grid import Grid, GridDataSource
 
-from HelpersPackage import Bailout, StripExternalTags, SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, UnformatLinks, RemoveAllHTMLTags
-from HelpersPackage import FindIndexOfStringInList
+from HelpersPackage import SubstituteHTML, FindBracketedText
 from Log import LogOpen
 
 class Convention:
