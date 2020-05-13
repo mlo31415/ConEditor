@@ -235,20 +235,21 @@ class ConEditorFrame(GenConEditorFrame):
 
     #------------------
     def OnGridCellRightClick(self, event):
-        mi=self.m_menuPopup.FindItemById(self.m_menuPopup.FindItem("Create New Con Page"))
+        self._grid.OnGridCellRightClick(event, self.m_menuPopupConEditor)
+        self.rightClickedColumn=event.GetCol()
+        self.rightClickedRow=event.GetRow()
+
+        mi=self.m_menuPopupConEditor.FindItemById(self.m_menuPopupConEditor.FindItem("Insert Convention"))
         mi.Enabled=True
 
-        self._grid.OnGridCellRightClick(event, self.m_menuPopup)
-        self.PopupMenu(self.m_menuPopup)
-
+        self.PopupMenu(self.m_menuPopupConEditor, pos=self.gRowGrid.Position+event.Position)
 
     # ------------------
     def OnGridCellDoubleClick(self, event):
-        self.rightClickedColumn=event.GetCol()
-        self.rightClickedRow=event.GetRow()
+        self.rightClickedColumn=self.rightClickedColumn
+        self.rightClickedRow=self.rightClickedRow
         conseriesname=self._grid._datasource.GetData(self.rightClickedRow-1, 0)
         win=MainWindow(conseriesname)
-
 
     #-------------------
     def OnKeyDown(self, event):
@@ -266,8 +267,16 @@ class ConEditorFrame(GenConEditorFrame):
     def OnPopupPaste(self, event):
         self._grid.OnPopupPaste(event)
 
+    #------------------
     def OnGridCellChanged(self, event):
         self._grid.OnGridCellChanged(event)
+
+    #------------------
+    def OnPopupInsertCon(self, event):
+        self.rightClickedColumn=self.rightClickedColumn
+        self.rightClickedRow=self.rightClickedRow
+        self._grid._datasource.Rows.insert(self.rightClickedRow-1, Convention())
+        self._grid.RefreshGridFromData()
 
 
 # Start the GUI and run the event loop

@@ -94,12 +94,15 @@ class GenConEditorFrame ( wx.Frame ):
 
 		# Cell Defaults
 		self.gRowGrid.SetDefaultCellAlignment( wx.ALIGN_LEFT, wx.ALIGN_TOP )
-		self.m_menu1 = wx.Menu()
-		self.m_menuItemCopy = wx.MenuItem( self.m_menu1, wx.ID_ANY, u"Copy", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menu1.Append( self.m_menuItemCopy )
+		self.m_menuPopupConEditor = wx.Menu()
+		self.m_menuItemCopy = wx.MenuItem( self.m_menuPopupConEditor, wx.ID_ANY, u"Copy", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_menuPopupConEditor.Append( self.m_menuItemCopy )
 
-		self.m_menuItemPaste = wx.MenuItem( self.m_menu1, wx.ID_ANY, u"Paste", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menu1.Append( self.m_menuItemPaste )
+		self.m_menuItemPaste = wx.MenuItem( self.m_menuPopupConEditor, wx.ID_ANY, u"Paste", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_menuPopupConEditor.Append( self.m_menuItemPaste )
+
+		self.m_menuItemInsert = wx.MenuItem( self.m_menuPopupConEditor, wx.ID_ANY, u"Insert Convention", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_menuPopupConEditor.Append( self.m_menuItemInsert )
 
 		self.gRowGrid.Bind( wx.EVT_RIGHT_DOWN, self.gRowGridOnContextMenu )
 
@@ -127,6 +130,7 @@ class GenConEditorFrame ( wx.Frame ):
 		self.gRowGrid.Bind( wx.EVT_KEY_UP, self.OnKeyUp )
 		self.Bind( wx.EVT_MENU, self.OnPopupCopy, id = self.m_menuItemCopy.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupPaste, id = self.m_menuItemPaste.GetId() )
+		self.Bind( wx.EVT_MENU, self.OnPopupInsertCon, id = self.m_menuItemInsert.GetId() )
 
 	def __del__( self ):
 		pass
@@ -169,7 +173,10 @@ class GenConEditorFrame ( wx.Frame ):
 	def OnPopupPaste( self, event ):
 		event.Skip()
 
+	def OnPopupInsertCon( self, event ):
+		event.Skip()
+
 	def gRowGridOnContextMenu( self, event ):
-		self.gRowGrid.PopupMenu( self.m_menu1, event.GetPosition() )
+		self.gRowGrid.PopupMenu( self.m_menuPopupConEditor, event.GetPosition() )
 
 
