@@ -46,6 +46,9 @@ class Convention:
     @property
     def Name(self) -> str:
         return self._name
+    @Name.setter
+    def Name(self, val: str) -> None:
+        self._name=val
 
 
 
@@ -215,6 +218,20 @@ class ConEditorFrame(GenConEditorFrame):
         file=SubstituteHTML(file, "fanac-json", self.ToJson())
         with open("Conventions.html", "w+") as f:
             f.write(file)
+
+    def OnButtonSortClick(self, event):
+        lst=[]
+        for row in self._grid._datasource.Rows:
+            lst.append(row.Name)
+        lst.sort()
+        i=0
+        for row in self._grid._datasource.Rows:
+            row.Name=lst[i]
+            i+=1
+        self._grid.RefreshGridFromData()
+
+    def OnButtonExitClick(self, event):
+        self.Destroy()
 
     #------------------
     def OnGridCellRightClick(self, event):
