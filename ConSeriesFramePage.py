@@ -57,14 +57,14 @@ class MainWindow(GenConSeriesFrame):
         self._grid.SetColHeaders(self._grid._datasource.ColHeaders)
         self._grid.SetColTypes(ConSeries._coldatatypes)
 
+        self._textConSeriesName: str=""
+        self._textFancyURL: str=""
+        self._textComments: str=""
+
         if len(conseriesname) > 0:
             self.LoadConSeries(conseriesname)
 
         self._grid.RefreshGridFromData()
-
-        self._textConSeriesName: str=""
-        self._textFancyURL: str=""
-        self._textComments: str=""
 
         self.Show(True)
 
@@ -127,20 +127,25 @@ class MainWindow(GenConSeriesFrame):
             self._dirname="."
 
         self.ProgressMessage("Loading "+self._filename)
-        with open(os.path.join(self._dirname, self._filename)) as f:
-            file=f.read()
+        pathname=os.path.join(self._dirname, self._filename)
+        if os.path.exists(pathname):
+            with open(pathname) as f:
+                file=f.read()
 
-        # Get the JSON
-        j=FindBracketedText(file, "fanac-json")[0]
-        if j is None or j == "":
-            wx.MessageBox("Can't load convention information from "+os.path.join(self._dirname, self._filename))
-            return
+            # Get the JSON from the file
+            j=FindBracketedText(file, "fanac-json")[0]
+            if j is None or j == "":
+                wx.MessageBox("Can't load convention information from "+os.path.join(self._dirname, self._filename))
+                return
 
-        try:
-            self.FromJson(j)
-        except (json.decoder.JSONDecodeError):
-            wx.MessageBox("JSONDecodeError when loading convention information from "+os.path.join(self._dirname, self._filename))
-            return
+            try:
+                self.FromJson(j)
+            except (json.decoder.JSONDecodeError):
+                wx.MessageBox("JSONDecodeError when loading convention information from "+os.path.join(self._dirname, self._filename))
+                return
+        else:
+            # Leave it empty, but add in the name
+            self._textConSeriesName=name
 
         self.tConSeries.Value=self._textConSeriesName
         self.tComments.Value=self._textComments
