@@ -18,7 +18,7 @@ import wx.grid
 class GenConEditorFrame ( wx.Frame ):
 
 	def __init__( self, parent ):
-		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 500,300 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 500,569 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
@@ -51,7 +51,7 @@ class GenConEditorFrame ( wx.Frame ):
 		bSizer7.Add( self.m_staticTextMessages, 0, wx.ALIGN_TOP|wx.ALL, 5 )
 
 
-		bSizer8.Add( bSizer7, 1, wx.EXPAND, 5 )
+		bSizer8.Add( bSizer7, 0, wx.EXPAND, 5 )
 
 		fgSizer8 = wx.FlexGridSizer( 0, 2, 0, 0 )
 		fgSizer8.SetFlexibleDirection( wx.BOTH )
