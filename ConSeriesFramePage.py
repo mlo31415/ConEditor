@@ -39,18 +39,18 @@ class dlgEnterFancyNameWindow(dlgEnterFancyName):
 
 
 #####################################################################################
-class MainWindow(GenConSeriesFrame):
+class MainConSeriesFrame(GenConSeriesFrame):
     def __init__(self, conseriespath, conseriesname):
         GenConSeriesFrame.__init__(self, None)
 
         self.userSelection=None
         self.cntlDown: bool=False
         self.rightClickedColumn: Optional[int]=None
-        self._filename: str=""
-        self._dirname: str=""
+        self._filename: str=conseriesname
+        self._dirname: str=conseriespath
 
-        if len(sys.argv) > 1:
-            self._dirname=os.getcwd()
+        # if len(sys.argv) > 1:
+        #     self._dirname=os.getcwd()
 
         self._grid: Grid=Grid(self.gRowGrid)
         self._grid._datasource=ConSeries()
@@ -70,7 +70,7 @@ class MainWindow(GenConSeriesFrame):
 
 
     # Serialize and deserialize
-    def ToJson(self) -> str:
+    def ToJson(self) -> str:                    # MainConSeriesFrame
         d={"ver": 3,
            "_textConSeries": self._textConSeriesName,
            "_textFancyURL": self._textFancyURL,
@@ -80,38 +80,32 @@ class MainWindow(GenConSeriesFrame):
            "_datasource": self._grid._datasource.ToJson()}
         return json.dumps(d)
 
-    def FromJson(self, val: str) -> MainWindow:
+    def FromJson(self, val: str) -> MainConSeriesFrame:                    # MainConSeriesFrame
         d=json.loads(val)
         if d["ver"] <= 3:
             self._textConSeriesName=d["_textConSeries"]
             self._textFancyURL=d["_textFancyURL"]
             self._textComments=d["_textComments"]
             self._grid._datasource=ConSeries().FromJson(d["_datasource"])
-        if d["ver"] == 2:
-            self._filename=d["filename"]
-            self._dirname=d["dirname"]
-        if d["ver"] == 3:
-            self._filename=d["_filename"]
-            self._dirname=d["_dirname"]
         return self
 
     #------------------
-    def ProgressMessage(self, s: str) -> None:
+    def ProgressMessage(self, s: str) -> None:                    # MainConSeriesFrame
         self.m_staticTextMessages.Label=s
 
     #------------------
-    def OnLoadConSeries(self, event):
+    def OnLoadConSeries(self, event):                    # MainConSeriesFrame
         self.LoadConSeries(None)
         pass
 
     #------------------
     # Download a ConSeries
-    def LoadConSeries(self, path, name) -> None:
+    def LoadConSeries(self, path, filename) -> None:                    # MainConSeriesFrame
 
         # Clear out any old information
         self._grid._datasource=ConSeries()
 
-        if name is None or len(name) == 0:
+        if filename is None or len(filename) == 0:
             # Call the File Open dialog to get an con series HTML file
             dlg=wx.FileDialog(self, "Select con series file to load", self._dirname, "", "*.html", style=wx.FD_OPEN|wx.STAY_ON_TOP)
 
@@ -123,7 +117,7 @@ class MainWindow(GenConSeriesFrame):
             self._dirname=dlg.GetDirectory()
             dlg.Destroy()
         else:
-            self._filename=name
+            self._filename=filename
             self._dirname=path
 
         self.ProgressMessage("Loading "+self._filename+".html")
@@ -135,17 +129,17 @@ class MainWindow(GenConSeriesFrame):
             # Get the JSON from the file
             j=FindBracketedText(file, "fanac-json")[0]
             if j is None or j == "":
-                wx.MessageBox("Can't load convention information from "+os.path.join(self._dirname, self._filename))
+                wx.MessageBox("Can't load convention information from "+pathname)
                 return
 
             try:
                 self.FromJson(j)
             except (json.decoder.JSONDecodeError):
-                wx.MessageBox("JSONDecodeError when loading convention information from "+os.path.join(self._dirname, self._filename))
+                wx.MessageBox("JSONDecodeError when loading convention information from "+pathname)
                 return
         else:
             # Leave it empty, but add in the name
-            self._textConSeriesName=name
+            self._textConSeriesName=filename
 
         self.tConSeries.Value=self._textConSeriesName
         self.tComments.Value=self._textComments
@@ -156,7 +150,8 @@ class MainWindow(GenConSeriesFrame):
         self.ProgressMessage(self._filename+" Loaded")
 
 
-    def SaveConSeries(self, filename: str) -> None:
+    #-------------------
+    def SaveConSeries(self, filename: str) -> None:                    # MainConSeriesFrame
         # First read in the template
         file=None
         with open(os.path.join(self._dirname, "Template-ConSeries")) as f:
@@ -206,7 +201,7 @@ class MainWindow(GenConSeriesFrame):
 
     #------------------
     # Save a con series object to disk.
-    def OnSaveConSeries(self, event):
+    def OnSaveConSeries(self, event):                    # MainConSeriesFrame
         # Rename the old file
         wait=wx.BusyCursor()
         oldname=os.path.join(self._dirname, os.path.splitext(self._filename)[0]+".html")        # Make sure we have the proper extension
@@ -231,7 +226,7 @@ class MainWindow(GenConSeriesFrame):
 
     #--------------------------------------------
     # Given the name of the ConSeries, go to fancy 3 and fetch the con series information and fill in a con seres from it.
-    def FetchConSeriesFromFancy(self, name):
+    def FetchConSeriesFromFancy(self, name):                    # MainConSeriesFrame
         if name is None or name == "":
             return
 
@@ -313,7 +308,7 @@ class MainWindow(GenConSeriesFrame):
 
     #------------------
     # Create a new, empty, con series
-    def OnCreateConSeries(self, event):
+    def OnCreateConSeries(self, event):                    # MainConSeriesFrame
         self._dlgEnterFancyName=dlgEnterFancyNameWindow(None)
         self.ProgressMessage("Loading "+self._dlgEnterFancyName._FancyName+" from Fancyclopedia 3")
         self._grid._datasource=ConSeries()
@@ -325,8 +320,9 @@ class MainWindow(GenConSeriesFrame):
         pass
 
     #------------------
-    def OnCreateNewConPage(self, event):
-        dlg=MainConDialogClass(None)
+    def OnCreateNewConPage(self, event):                    # MainConSeriesFrame
+        dir=os.path.join(self._dirname, self._filename)
+        dlg=MainConDialogClass(dir, self._filename)
         row=self.rightClickedRow-1  # Get logical row & col
         name=""
         if row < self._grid._datasource.NumRows:
@@ -334,7 +330,7 @@ class MainWindow(GenConSeriesFrame):
                 col=self._grid._datasource.ColHeaders.index("Name")
                 name=self._grid._datasource.GetData(row, col)
         dlg.tConInstanceName.Value=name
-        dlg.LoadConInstancePage(name)
+        dlg.LoadConInstancePage(dir, name)
         dlg.ShowModal()
         cal=dlg.ReturnValue
         if cal == wx.ID_OK:
@@ -346,24 +342,24 @@ class MainWindow(GenConSeriesFrame):
         pass
 
     #------------------
-    def OnTextFancyURL(self, event):
+    def OnTextFancyURL(self, event):                    # MainConSeriesFrame
         self._textFancyURL=self.tFancyURL.GetValue()
 
     #------------------
-    def OnTextConSeriesName( self, event ):
+    def OnTextConSeriesName( self, event ):                    # MainConSeriesFrame
         self._textConSeriesName=self.tConSeries.GetValue()
 
     #-----------------
     # When the user edits the ConSeries name, we update the Fancy URL (but not vice-versa)
-    def ConTextConSeriesKeyUp(self, event):
+    def ConTextConSeriesKeyUp(self, event):                    # MainConSeriesFrame
         self.tFancyURL.Value="fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.tConSeries.GetValue())
 
     #------------------
-    def OnTextComments(self, event):
+    def OnTextComments(self, event):                    # MainConSeriesFrame
         self._textComments=self.tComments.GetValue()
 
     #------------------
-    def OnGridCellRightClick(self, event):
+    def OnGridCellRightClick(self, event):                    # MainConSeriesFrame
         mi=self.m_menuPopup.FindItemById(self.m_menuPopup.FindItem("Create New Con Page"))
         mi.Enabled=True
 
@@ -372,29 +368,29 @@ class MainWindow(GenConSeriesFrame):
 
 
     # ------------------
-    def OnGridCellDoubleClick(self, event):
+    def OnGridCellDoubleClick(self, event):                    # MainConSeriesFrame
         self.rightClickedColumn=event.GetCol()
         self.rightClickedRow=event.GetRow()
         self.OnCreateNewConPage(event)
 
 
     #-------------------
-    def OnKeyDown(self, event):
+    def OnKeyDown(self, event):                    # MainConSeriesFrame
         self._grid.OnKeyDown(event)
 
     #-------------------
-    def OnKeyUp(self, event):
+    def OnKeyUp(self, event):                    # MainConSeriesFrame
         self._grid.OnKeyUp(event)
 
     #------------------
-    def OnPopupCopy(self, event):
+    def OnPopupCopy(self, event):                    # MainConSeriesFrame
         self._grid.OnPopupCopy(event)
 
     #------------------
-    def OnPopupPaste(self, event):
+    def OnPopupPaste(self, event):                    # MainConSeriesFrame
         self._grid.OnPopupPaste(event)
 
-    def OnGridCellChanged(self, event):
+    def OnGridCellChanged(self, event):                    # MainConSeriesFrame
         self._grid.OnGridCellChanged(event)
 
 

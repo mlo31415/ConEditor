@@ -8,7 +8,7 @@ import json
 
 from GenConEditorFrame import GenConEditorFrame
 from Grid import Grid, GridDataSource
-from ConSeriesFramePage import MainWindow
+from ConSeriesFramePage import MainConSeriesFrame
 
 from HelpersPackage import SubstituteHTML, FindBracketedText
 from Log import LogOpen
@@ -127,6 +127,7 @@ class ConEditorFrame(GenConEditorFrame):
         self.userSelection=None
         self.cntlDown: bool=False
         self.rightClickedColumn: Optional[int]=None
+        self._dirname: str=""
 
         self._grid: Grid=Grid(self.gRowGrid)
         self._grid._datasource=ConList()
@@ -139,7 +140,7 @@ class ConEditorFrame(GenConEditorFrame):
         self.Show()
 
     # Serialize and deserialize
-    def ToJson(self) -> str:
+    def ToJson(self) -> str:            # ConEditorFrame
         d={"ver": 1,
            #"_textConSeries": self._textConSeriesName,
            "_datasource": self._grid._datasource.ToJson()
@@ -147,7 +148,7 @@ class ConEditorFrame(GenConEditorFrame):
 
         return json.dumps(d)
 
-    def FromJson(self, val: str) -> ConEditorFrame:
+    def FromJson(self, val: str) -> ConEditorFrame:            # ConEditorFrame
         d=json.loads(val)
         #self._textConSeriesName=d["_textConSeries"]
         self._grid._datasource=ConList().FromJson(d["_datasource"])
@@ -155,10 +156,10 @@ class ConEditorFrame(GenConEditorFrame):
         return self
 
     #------------------
-    def ProgressMessage(self, s: str) -> None:
+    def ProgressMessage(self, s: str) -> None:            # ConEditorFrame
         self.m_staticTextMessages.Label=s
 
-    def Load(self):
+    def Load(self):            # ConEditorFrame
 
         # Clear out any old information
         self._grid._datasource=ConList()
@@ -184,7 +185,7 @@ class ConEditorFrame(GenConEditorFrame):
         self.ProgressMessage("Conventions.html Loaded")
 
 
-    def OnButtonSaveClick(self, event):
+    def OnButtonSaveClick(self, event):            # ConEditorFrame
 
         # First read in the template
         file=None
@@ -219,7 +220,7 @@ class ConEditorFrame(GenConEditorFrame):
         with open("Conventions.html", "w+") as f:
             f.write(file)
 
-    def OnButtonSortClick(self, event):
+    def OnButtonSortClick(self, event):            # ConEditorFrame
         lst=[]
         for row in self._grid._datasource.Rows:
             lst.append(row.Name)
@@ -230,11 +231,11 @@ class ConEditorFrame(GenConEditorFrame):
             i+=1
         self._grid.RefreshGridFromData()
 
-    def OnButtonExitClick(self, event):
+    def OnButtonExitClick(self, event):            # ConEditorFrame
         self.Destroy()
 
     #------------------
-    def OnGridCellRightClick(self, event):
+    def OnGridCellRightClick(self, event):            # ConEditorFrame
         self._grid.OnGridCellRightClick(event, self.m_menuPopupConEditor)
         self.rightClickedColumn=event.GetCol()
         self.rightClickedRow=event.GetRow()
@@ -249,38 +250,38 @@ class ConEditorFrame(GenConEditorFrame):
         self.PopupMenu(self.m_menuPopupConEditor, pos=self.gRowGrid.Position+event.Position)
 
     # ------------------
-    def OnGridCellDoubleClick(self, event):
+    def OnGridCellDoubleClick(self, event):            # ConEditorFrame
         self.rightClickedColumn=event.GetCol()
         self.rightClickedRow=event.GetRow()
         conseriesname=self._grid._datasource.GetData(self.rightClickedRow-1, 0)
-        win=MainWindow("./Convention publications", conseriesname)
+        win=MainConSeriesFrame("./Convention publications", conseriesname)
 
     #-------------------
-    def OnKeyDown(self, event):
+    def OnKeyDown(self, event):            # ConEditorFrame
         self._grid.OnKeyDown(event)
 
     #-------------------
-    def OnKeyUp(self, event):
+    def OnKeyUp(self, event):            # ConEditorFrame
         self._grid.OnKeyUp(event)
 
     #------------------
-    def OnPopupCopy(self, event):
+    def OnPopupCopy(self, event):            # ConEditorFrame
         self._grid.OnPopupCopy(event)
 
     #------------------
-    def OnPopupPaste(self, event):
+    def OnPopupPaste(self, event):            # ConEditorFrame
         self._grid.OnPopupPaste(event)
 
     #------------------
-    def OnGridCellChanged(self, event):
+    def OnGridCellChanged(self, event):            # ConEditorFrame
         self._grid.OnGridCellChanged(event)
 
     #------------------
-    def OnPopupInsertCon(self, event):
+    def OnPopupInsertCon(self, event):            # ConEditorFrame
         self._grid._datasource.Rows.insert(self.rightClickedRow-1, Convention())
         self._grid.RefreshGridFromData()
 
-    def OnPopupDeleteCon(self, event):
+    def OnPopupDeleteCon(self, event):            # ConEditorFrame
         del self._grid._datasource.Rows[self.rightClickedRow-1]
         self._grid.RefreshGridFromData()
         event.Skip()

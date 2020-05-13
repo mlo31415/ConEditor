@@ -10,8 +10,8 @@ from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPa
 
 #####################################################################################
 class MainConDialogClass(GenConInstanceFrame):
-    def __init__(self, parent):
-        GenConInstanceFrame.__init__(self, parent)
+    def __init__(self, directory, coninstancename):
+        GenConInstanceFrame.__init__(self, None)
         self._grid: Grid=Grid(self.gRowGrid)
         self._grid._datasource=ConInstancePage()
 
@@ -24,7 +24,8 @@ class MainConDialogClass(GenConInstanceFrame):
         self.ConInstanceStuff=""
         self.ConInstanceFancyURL=""
         self.ReturnValue=None
-        self.dirname=""
+        self._dirname=directory
+        self._filename=coninstancename
 
 
     # Serialize and deserialize
@@ -127,7 +128,7 @@ class MainConDialogClass(GenConInstanceFrame):
 
     #------------------
     # Download a ConSeries
-    def LoadConInstancePage(self, fname:str):
+    def LoadConInstancePage(self, dirname: str, fname: str) -> None:
 
         # Clear out any old information
         self._grid._datasource=ConInstancePage()
@@ -135,13 +136,13 @@ class MainConDialogClass(GenConInstanceFrame):
         # Look to see if name is the name of a file
         if fname is not None and fname != "":
             base=os.path.splitext(fname)[0]
-            self.filename=base+".htm"
-            self.dirname="."
+            self.filename=base
+            self._dirname=os.path.join(dirname, base)
         else:
             # Call the File Open dialog to get a con series HTML file
-            if self.dirname is None or self.dirname == "":
+            if self._dirname is None or self._dirname == "":
                 return
-            dlg=wx.FileDialog(self, "Select con series file to load", self.dirname, "", "*.htm", wx.FD_OPEN)
+            dlg=wx.FileDialog(self, "Select con series file to load", self._dirname, "", "*.htm", wx.FD_OPEN)
             dlg.SetWindowStyle(wx.STAY_ON_TOP)
 
             if dlg.ShowModal() == wx.ID_CANCEL:
@@ -150,10 +151,10 @@ class MainConDialogClass(GenConInstanceFrame):
                 return
 
             self.filename=dlg.GetFilename()
-            self.dirname=dlg.GetDirectory()
+            self._dirname=dlg.GetDirectory()
             dlg.Destroy()
 
-        pathname=os.path.join(self.dirname, self.filename)
+        pathname=os.path.join(self._dirname, self.filename)+".htm"
         if not os.path.exists(pathname):
             return  # Just return with the ConInstance page empty
 
