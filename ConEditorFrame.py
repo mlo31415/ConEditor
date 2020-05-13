@@ -164,7 +164,7 @@ class ConEditorFrame(GenConEditorFrame):
         self._grid._datasource=ConList()
 
         self.ProgressMessage("Loading Conventions.html")
-        self._dirname="."
+        self._dirname="./Convention publications"
         with open(os.path.join(self._dirname, "Conventions.html")) as f:
             file=f.read()
         # Get the JSON
@@ -250,8 +250,10 @@ class ConEditorFrame(GenConEditorFrame):
 
     # ------------------
     def OnGridCellDoubleClick(self, event):
+        self.rightClickedColumn=event.GetCol()
+        self.rightClickedRow=event.GetRow()
         conseriesname=self._grid._datasource.GetData(self.rightClickedRow-1, 0)
-        win=MainWindow(conseriesname)
+        win=MainWindow("./Convention publications", conseriesname)
 
     #-------------------
     def OnKeyDown(self, event):

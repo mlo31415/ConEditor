@@ -40,7 +40,7 @@ class dlgEnterFancyNameWindow(dlgEnterFancyName):
 
 #####################################################################################
 class MainWindow(GenConSeriesFrame):
-    def __init__(self, conseriesname):
+    def __init__(self, conseriespath, conseriesname):
         GenConSeriesFrame.__init__(self, None)
 
         self.userSelection=None
@@ -62,7 +62,7 @@ class MainWindow(GenConSeriesFrame):
         self._textComments: str=""
 
         if len(conseriesname) > 0:
-            self.LoadConSeries(conseriesname)
+            self.LoadConSeries(conseriespath, conseriesname)
 
         self._grid.RefreshGridFromData()
 
@@ -106,7 +106,7 @@ class MainWindow(GenConSeriesFrame):
 
     #------------------
     # Download a ConSeries
-    def LoadConSeries(self, name) -> None:
+    def LoadConSeries(self, path, name) -> None:
 
         # Clear out any old information
         self._grid._datasource=ConSeries()
@@ -123,11 +123,11 @@ class MainWindow(GenConSeriesFrame):
             self._dirname=dlg.GetDirectory()
             dlg.Destroy()
         else:
-            self._filename=name+".html"
-            self._dirname="."
+            self._filename=name
+            self._dirname=path
 
-        self.ProgressMessage("Loading "+self._filename)
-        pathname=os.path.join(self._dirname, self._filename)
+        self.ProgressMessage("Loading "+self._filename+".html")
+        pathname=os.path.join(self._dirname, self._filename, self._filename)+".html"
         if os.path.exists(pathname):
             with open(pathname) as f:
                 file=f.read()

@@ -1,0 +1,21 @@
+fanac.org
+
+* Top level directory: Convention publications
+    * It contains Conventions.html which lists the convention series
+    *   (A ConSeries is <Series> which is something like "Boskone", "Lunacon", "Worldcon", "Icon (Long Island)"
+    *   They will follow the Fancy 3 naming scheme)
+    * Directories, one for each Convention Series, with the same name as the ConSeries.
+    * Each ConSeries directory contains all the instance information for that ConSeries
+    *   (An instance is a single convention, e.g., "Boskone 23", "Magicon", etc.
+    *   They will generally follow Facy 3 naming conventions.)
+    * Contants:
+        * A <series>.html page
+        * Many <instance> directories, which contain
+            * An <instance>.html page
+            * Many publications files for that convention
+
+* ConEditor working directory. Contains the following files:
+*   Logo.gif
+*   Template-ConMain
+*   Template-ConPage
+*   Template-ConSeries
