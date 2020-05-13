@@ -8,6 +8,7 @@ import json
 
 from GenConEditorFrame import GenConEditorFrame
 from Grid import Grid, GridDataSource
+from ConSeriesFramePage import MainWindow
 
 from HelpersPackage import SubstituteHTML, FindBracketedText
 from Log import LogOpen
@@ -228,7 +229,8 @@ class ConEditorFrame(GenConEditorFrame):
     def OnGridCellDoubleClick(self, event):
         self.rightClickedColumn=event.GetCol()
         self.rightClickedRow=event.GetRow()
-        self.OnCreateNewConPage(event)
+        conseriesname=self._grid._datasource.GetData(self.rightClickedRow-1, 0)
+        win=MainWindow(conseriesname)
 
 
     #-------------------

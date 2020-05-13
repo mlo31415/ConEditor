@@ -40,8 +40,8 @@ class dlgEnterFancyNameWindow(dlgEnterFancyName):
 
 #####################################################################################
 class MainWindow(GenConSeriesFrame):
-    def __init__(self, parent, title):
-        GenConSeriesFrame.__init__(self, parent)
+    def __init__(self, conseriesname):
+        GenConSeriesFrame.__init__(self, None)
 
         self.userSelection=None
         self.cntlDown: bool=False
@@ -56,6 +56,10 @@ class MainWindow(GenConSeriesFrame):
         self._grid._datasource=ConSeries()
         self._grid.SetColHeaders(self._grid._datasource.ColHeaders)
         self._grid.SetColTypes(ConSeries._coldatatypes)
+
+        if len(conseriesname) > 0:
+            self.LoadConSeries(conseriesname)
+
         self._grid.RefreshGridFromData()
 
         self._textConSeriesName: str=""
@@ -97,26 +101,30 @@ class MainWindow(GenConSeriesFrame):
 
     #------------------
     def OnLoadConSeries(self, event):
-        self.LoadConSeries()
+        self.LoadConSeries(None)
         pass
 
     #------------------
     # Download a ConSeries
-    def LoadConSeries(self) -> None:
+    def LoadConSeries(self, name) -> None:
 
         # Clear out any old information
         self._grid._datasource=ConSeries()
 
-        # Call the File Open dialog to get an con series HTML file
-        dlg=wx.FileDialog(self, "Select con series file to load", self._dirname, "", "*.html", style=wx.FD_OPEN|wx.STAY_ON_TOP)
+        if name is None or len(name) == 0:
+            # Call the File Open dialog to get an con series HTML file
+            dlg=wx.FileDialog(self, "Select con series file to load", self._dirname, "", "*.html", style=wx.FD_OPEN|wx.STAY_ON_TOP)
 
-        val=dlg.ShowModal()
-        if val == wx.ID_CANCEL:
-            return
+            val=dlg.ShowModal()
+            if val == wx.ID_CANCEL:
+                return
 
-        self._filename=dlg.GetFilename()
-        self._dirname=dlg.GetDirectory()
-        dlg.Destroy()
+            self._filename=dlg.GetFilename()
+            self._dirname=dlg.GetDirectory()
+            dlg.Destroy()
+        else:
+            self._filename=name+".html"
+            self._dirname="."
 
         self.ProgressMessage("Loading "+self._filename)
         with open(os.path.join(self._dirname, self._filename)) as f:
