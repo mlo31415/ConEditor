@@ -85,7 +85,7 @@ class GenConSeriesFrame ( wx.Frame ):
 
 		fgSizerComments = wx.FlexGridSizer( 1, 2, 0, 0 )
 		fgSizerComments.AddGrowableCol( 1 )
-		fgSizerComments.AddGrowableRow( 1 )
+		fgSizerComments.AddGrowableRow( 0 )			# wxFormBuilder has a bug which sets this to 1
 		fgSizerComments.SetFlexibleDirection( wx.BOTH )
 		fgSizerComments.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
