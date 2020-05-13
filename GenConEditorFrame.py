@@ -37,6 +37,16 @@ class GenConEditorFrame ( wx.Frame ):
 
 		bSizer8.Add( fgSizer7, 0, wx.EXPAND, 5 )
 
+		bSizer7 = wx.BoxSizer( wx.VERTICAL )
+
+		self.m_staticTextMessages = wx.StaticText( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 400,-1 ), 0 )
+		self.m_staticTextMessages.Wrap( -1 )
+
+		bSizer7.Add( self.m_staticTextMessages, 0, wx.ALIGN_TOP|wx.ALL, 5 )
+
+
+		bSizer8.Add( bSizer7, 1, wx.EXPAND, 5 )
+
 		fgSizer8 = wx.FlexGridSizer( 0, 2, 0, 0 )
 		fgSizer8.SetFlexibleDirection( wx.BOTH )
 		fgSizer8.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )

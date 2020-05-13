@@ -29,22 +29,26 @@ class Convention:
         return self
 
     # Get or set a value by name or column number
-    def GetVal(self, name: Union[str, int]) -> Union[str, int, FanzineDateRange]:
+    def GetVal(self, name: Union[str, int]) -> Union[str, int]:
         # (Could use return eval("self."+name))
         if name == "Convention" or name == 0:
             return self._name
         return "Val can't interpret '"+str(name)+"'"
 
-    def SetVal(self, nameOrCol: Union[str, int], val: Union[str, int, FanzineDateRange]) -> None:
+    def SetVal(self, nameOrCol: Union[str, int], val: Union[str, int]) -> None:
         # (Could use return eval("self."+name))
         if nameOrCol == "Convention" or nameOrCol == 0:
             self._name=val
             return
         print("SetVal can't interpret '"+str(nameOrCol)+"'")
 
+    @property
+    def Name(self) -> str:
+        return self._name
 
 
-class ConList:
+
+class ConList(GridDataSource):
     _colheaders: List[str]=["Convention"]
     _coldatatypes: List[str]=["str"]
     _colminwidths: List[int]=[30]
@@ -80,6 +84,14 @@ class ConList:
     @property
     def ColMinWidths(self) -> List[int]:
         return ConList._colminwidths
+
+    @property
+    def ColHeaders(self) -> List[str]:
+        return ConList._colheaders
+
+    @property
+    def ColDataTypes(self) -> List[str]:
+        return ConList._coldatatypes
 
     @property
     def NumRows(self) -> int:
@@ -118,6 +130,8 @@ class ConEditorFrame(GenConEditorFrame):
         self._grid.SetColTypes(ConList._coldatatypes)
         self._grid.RefreshGridFromData()
 
+        self.Load()
+
         self.Show()
 
     # Serialize and deserialize
@@ -135,6 +149,36 @@ class ConEditorFrame(GenConEditorFrame):
         self._grid._datasource=ConList().FromJson(d["_datasource"])
 
         return self
+
+    #------------------
+    def ProgressMessage(self, s: str) -> None:
+        self.m_staticTextMessages.Label=s
+
+    def Load(self):
+
+        # Clear out any old information
+        self._grid._datasource=ConList()
+
+        self.ProgressMessage("Loading Conventions.html")
+        self._dirname="."
+        with open(os.path.join(self._dirname, "Conventions.html")) as f:
+            file=f.read()
+        # Get the JSON
+        j=FindBracketedText(file, "fanac-json")[0]
+        if j is None or j == "":
+            wx.MessageBox("Can't load convention information from "+os.path.join(self._dirname, "Conventions.html"))
+            return
+
+        try:
+            self.FromJson(j)
+        except (json.decoder.JSONDecodeError):
+            wx.MessageBox("JSONDecodeError when loading convention information from "+os.path.join(self._dirname, "Conventions.html"))
+            return
+
+        # Insert the row data into the grid
+        self._grid.RefreshGridFromData()
+        self.ProgressMessage("Conventions.html Loaded")
+
 
     def OnButtonSaveClick(self, event):
 
@@ -170,6 +214,41 @@ class ConEditorFrame(GenConEditorFrame):
         file=SubstituteHTML(file, "fanac-json", self.ToJson())
         with open("Conventions.html", "w+") as f:
             f.write(file)
+
+    #------------------
+    def OnGridCellRightClick(self, event):
+        mi=self.m_menuPopup.FindItemById(self.m_menuPopup.FindItem("Create New Con Page"))
+        mi.Enabled=True
+
+        self._grid.OnGridCellRightClick(event, self.m_menuPopup)
+        self.PopupMenu(self.m_menuPopup)
+
+
+    # ------------------
+    def OnGridCellDoubleClick(self, event):
+        self.rightClickedColumn=event.GetCol()
+        self.rightClickedRow=event.GetRow()
+        self.OnCreateNewConPage(event)
+
+
+    #-------------------
+    def OnKeyDown(self, event):
+        self._grid.OnKeyDown(event)
+
+    #-------------------
+    def OnKeyUp(self, event):
+        self._grid.OnKeyUp(event)
+
+    #------------------
+    def OnPopupCopy(self, event):
+        self._grid.OnPopupCopy(event)
+
+    #------------------
+    def OnPopupPaste(self, event):
+        self._grid.OnPopupPaste(event)
+
+    def OnGridCellChanged(self, event):
+        self._grid.OnGridCellChanged(event)
 
 
 # Start the GUI and run the event loop
