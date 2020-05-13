@@ -242,12 +242,14 @@ class ConEditorFrame(GenConEditorFrame):
         mi=self.m_menuPopupConEditor.FindItemById(self.m_menuPopupConEditor.FindItem("Insert Convention"))
         mi.Enabled=True
 
+        if self._grid._datasource.NumRows > event.GetRow():
+            mi=self.m_menuPopupConEditor.FindItemById(self.m_menuPopupConEditor.FindItem("Delete Convention"))
+            mi.Enabled=True
+
         self.PopupMenu(self.m_menuPopupConEditor, pos=self.gRowGrid.Position+event.Position)
 
     # ------------------
     def OnGridCellDoubleClick(self, event):
-        self.rightClickedColumn=self.rightClickedColumn
-        self.rightClickedRow=self.rightClickedRow
         conseriesname=self._grid._datasource.GetData(self.rightClickedRow-1, 0)
         win=MainWindow(conseriesname)
 
@@ -273,10 +275,13 @@ class ConEditorFrame(GenConEditorFrame):
 
     #------------------
     def OnPopupInsertCon(self, event):
-        self.rightClickedColumn=self.rightClickedColumn
-        self.rightClickedRow=self.rightClickedRow
         self._grid._datasource.Rows.insert(self.rightClickedRow-1, Convention())
         self._grid.RefreshGridFromData()
+
+    def OnPopupDeleteCon(self, event):
+        del self._grid._datasource.Rows[self.rightClickedRow-1]
+        self._grid.RefreshGridFromData()
+        event.Skip()
 
 
 # Start the GUI and run the event loop
