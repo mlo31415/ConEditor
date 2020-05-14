@@ -251,6 +251,8 @@ class ConEditorFrame(GenConEditorFrame):
 
     # ------------------
     def OnGridCellDoubleClick(self, event):            # ConEditorFrame
+        if event.GetRow() > self._grid._datasource.NumRows:
+            return      # For now, we do nothing when you double-click in an emppty cell
         self.rightClickedColumn=event.GetCol()
         self.rightClickedRow=event.GetRow()
         conseriesname=self._grid._datasource.GetData(self.rightClickedRow, 0)
