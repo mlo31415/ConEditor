@@ -64,23 +64,17 @@ class GridDataSource():
 ################################################################################
 class Grid():
 
-    def __init__(self, grid: wx.grid.Grid):
+    def __init__(self, grid: wx.grid.Grid):         # Grid
         self._grid: wx.grid.Grid=grid
 
         self._datasource: GridDataSource=GridDataSource()
         self.clipboard=None         # The grid's clipboard
         self.cntlDown=False         # There's no cntl-key currently down
 
-        # The grid is a bit non-standard, since I want to be able to edit row numbers and column headers
-        # The row and column labels are actually the (editable) 1st column and 1st row of the spreadsheet (they're colored gray)
-        # and the "real" row and column labels are hidden.
-        # self._grid.HideRowLabels()
-        # self._grid.HideColLabels()
-
 
     # Set a value in the source data using logical coordinates
     # Note that we can handle irow== -1 indicating a column header
-    def SetSourceValue(self, iRow: int, iCol: int, val) -> None:
+    def SetSourceValue(self, iRow: int, iCol: int, val) -> None:        # Grid
         assert iCol > -1
         self.ExpandDataSourceToInclude(iRow, iCol)
 
@@ -97,7 +91,7 @@ class Grid():
 
     # Set a grid cell value
     # Note that this does not change the underlying source data
-    def SetCellValue(self, iRow: int, iCol: int, val) -> None:
+    def SetCellValue(self, iRow: int, iCol: int, val) -> None:        # Grid
         # Extend the grid if needed
         nrows=self._grid.GetNumberRows()
         if iRow >= nrows:
@@ -136,51 +130,51 @@ class Grid():
             self._grid.AppendCols(nCols, self._grid.NumberCols-nCols)
 
     @property
-    def Grid(self):
+    def Grid(self):        # Grid
         return self._grid
 
-    def AppendRows(self, rows):
+    def AppendRows(self, rows: int) -> None:        # Grid
         assert (False)
 
-    def AppendEmptyRows(self, nrows: int) -> None:
+    def AppendEmptyRows(self, nrows: int) -> None:        # Grid
         self._grid.AppendRows(nrows)
 
-    def AppendEmptyCols(self, ncols: int) -> None:
+    def AppendEmptyCols(self, ncols: int) -> None:        # Grid
         self._grid.AppendCols(ncols)
 
-    def SetColHeaders(self, headers: List[str]) -> None:
+    def SetColHeaders(self, headers: List[str]) -> None:        # Grid
         self._colheaders=headers
         self.Numcols=len(headers)
         if len(headers) == self.Numcols:
             # Add the column headers
             iCol=0
             for colhead in headers:
-                self.Grid.SetColLabelValue(iCol, colhead)
+                self._grid.SetColLabelValue(iCol, colhead)
                 iCol+=1
 
 
-    def SetColTypes(self, coldatatypes: List[str]) -> None:
+    def SetColTypes(self, coldatatypes: List[str]) -> None:        # Grid
         self._coldatatypes=coldatatypes
 
-    def SetColMinWidths(self, defaultwidths: List[int]) -> None:
+    def SetColMinWidths(self, defaultwidths: List[int]) -> None:        # Grid
         self._colminwidths=defaultwidths
 
-    def AutoSizeColumns(self):
+    def AutoSizeColumns(self):        # Grid
         self._grid.AutoSizeColumns()
         if len(self._datasource.ColMinWidths) == self._grid.NumberCols-1:
-            iCol=0     # Skip the first columnw hich contains the row number
+            iCol=0
             for width in self._datasource.ColMinWidths:
-                w=self.Grid.GetColSize(iCol)
+                w=self._grid.GetColSize(iCol)
                 if w < width:
-                    self.Grid.SetColSize(iCol, width)
+                    self._grid.SetColSize(iCol, width)
                 iCol+=1
 
-    def SetCellBackgroundColor(self, row, col, color):
-        self.Grid.SetCellBackgroundColour(row, col, color)
+    def SetCellBackgroundColor(self, row, col, color):        # Grid
+        self._grid.SetCellBackgroundColour(row, col, color)
 
 
     # Row, col are Grid coordinates
-    def ColorCellByValue(self, row: int, col: int) -> None:
+    def ColorCellByValue(self, row: int, col: int) -> None:        # Grid
         # Start by setting color to white
         self.SetCellBackgroundColor(row, col, Color.White)
 
@@ -199,7 +193,7 @@ class Grid():
             if val is not None and val != "" and FanzineDate().Match(val).IsEmpty():
                 self.SetCellBackgroundColor(row, col, Color.Pink)
 
-    def ColorCellsByValue(self):
+    def ColorCellsByValue(self):        # Grid
 
         # Analyze the data and highlight cells where the data type doesn't match the header.  (E.g., Volume='August', Month='17', year='20')
         # Col 0 is a number and 3 is a date and the rest are strings.   We walk the rows checking the type of data in that column.
@@ -207,10 +201,9 @@ class Grid():
             for iCol in range(self._grid.NumberCols-1):
                 self.ColorCellByValue(iRow, iCol)
 
-
-    def RefreshGridFromData(self):
+    def RefreshGridFromData(self):        # Grid
         self.EvtHandlerEnabled=False
-        self.Grid.ClearGrid()
+        self._grid.ClearGrid()
 
         self.SetColHeaders(self._colheaders)
 #        self.FillInRowNumbers(self.NumrowsR)
@@ -228,7 +221,7 @@ class Grid():
     # All row numbers are logical
     # Oldrow is the 1st row of the block to be moved
     # Newrow is the target position to which oldrow is moved
-    def MoveRows(self, oldrow, numrows, newrow):
+    def MoveRows(self, oldrow, numrows, newrow):        # Grid
         #TODO: Allow moves beyond the last row
         if newrow <= 0:
             # The old rows are being moved to the beginning
@@ -261,42 +254,42 @@ class Grid():
 
         
     #------------------
-    def MoveRow(self, oldrow, newnumf):
+    def MoveRow(self, oldrow, newnumf):        # Grid
         newrow=math.ceil(newnumf)-1
         self.MoveRows(oldrow, 1, newrow)
 
     # ------------------
-    def CopyCells(self, topR, leftR, bottomR, rightR):
+    def CopyCells(self, top, left, bottom, right):        # Grid
         self.clipboard=[]
-        for iRow in range(topR, bottomR+1):
+        for iRow in range(top, bottom+1):
             v=[]
-            for jCol in range(leftR, rightR+1):
+            for jCol in range(left, right+1):
                 v.append(self._datasource.GetData(iRow-1, jCol-1)) # Convert to logical row & col
             self.clipboard.append(v)
 
         pass
 
     # ------------------
-    def PasteCells(self, topR, leftR):
+    def PasteCells(self, top, left):        # Grid
         # We paste the clipboard data into the block of the same size with the upper-left at the mouse's position
         # Might some of the new material be outside the current bounds?  If so, add some blank rows and/or columns
 
         # Define the bounds of the paste-to box
-        pasteTopR=topR
-        pasteBottomR=topR+len(self.clipboard)
-        pasteLeftR=leftR
-        pasteRight=leftR+len(self.clipboard[0])
+        pasteTop=top
+        pasteBottom=top+len(self.clipboard)
+        pasteLeft=left
+        pasteRight=left+len(self.clipboard[0])
 
         # Does the paste-to box extend beyond the end of the available rows?  If so, extend the available rows.
-        num=pasteBottomR-len(self._datasource.Rows)-1
+        num=pasteBottom-len(self._datasource.Rows)-1
         if num > 0:
             for i in range(num):
                 self._datasource.Rows.append(["" for x in range(self._datasource.NumRows)])  # The strange contortion is to append a list of distinct empty strings
 
         # Copy the cells from the clipboard to the grid in lstData.
-        i=pasteTopR
+        i=pasteTop
         for row in self.clipboard:
-            j=pasteLeftR
+            j=pasteLeft
             for cellval in row:
                 self._datasource.SetDataVal(i-1, j-1, cellval)  # The -1 is to deal with the 1-indexing
                 j+=1
@@ -318,68 +311,27 @@ class Grid():
                     for j in range(self._datasource.NumRows):
                         self._datasource.Rows[j].append("")
 
+
     #------------------
-    def OnGridCellChanged(self, event):
-        rowR=event.GetRow()
-        colR=event.GetCol()
-        newVal=self.Get(rowR, colR)
-
-        # The first row is the column headers
-        if rowR == 0:
-            if not self._datasource.CanEditColumnHeaders:
-                self._grid.SetCellValue(rowR, colR, self._datasource.GetData(rowR-1, colR-1))
-                return
-
-            event.Veto()  # This is a bit of magic to prevent the event from causing later grid events.
-            self.ExpandDataSourceToInclude(rowR-1, colR-1)     # Expand the number of columns if needed.
-            self.SetSourceValue(-1, colR-1, newVal)
-            self.RefreshGridFromData()
-            return
+    def OnGridCellChanged(self, event):        # Grid
+        row=event.GetRow()
+        col=event.GetCol()
 
         # If we're entering data in a new row or a new column, append the necessary number of new rows and/or columns to the data source
-        self.ExpandDataSourceToInclude(rowR-1, colR-1)
+        self.ExpandDataSourceToInclude(row, col)
 
-        # Ordinary columns
-        if colR > 0:
-            self.EvtHandlerEnabled=False
-            self._datasource.Rows[rowR-1].SetVal(colR-1, newVal)
-            self.ColorCellByValue(rowR-1, colR-1)
-            self.AutoSizeColumns()
-            self.EvtHandlerEnabled=True
-            return
+        self.EvtHandlerEnabled=False
+        newVal=self.Get(row, col)
+        self._datasource.Rows[row].SetVal(col, newVal)
+        self.ColorCellByValue(row, col)
+        self.AutoSizeColumns()
+        self.EvtHandlerEnabled=True
 
-        # What's left is column zero and thus the user is editing a row number
-        # If it's an "X", the row has been deleted.
-        if newVal.lower() == "x":
-            del self._datasource.Rows[rowR-1]
-            event.Veto()                # This is a bit of magic to prevent the event from making later changes to the grid.
-            self.RefreshGridFromData()
-            return
-
-        # If it's a number, it is tricky. We need to confirm that the user entered a new number.  (If not, we restore the old one and we're done.)
-        # If there is a new number, we re-arrange the rows and then renumber them.
-        try:
-            newnumf=float(newVal)
-        except:
-            self.SetCellValueR(rowR, 0, rowR)    # Restore the old value
-            return
-        newnumf-=0.00001    # When the user supplies an integer, we drop the row *just* before that integer. No overwriting!
-
-        # The indexes the user sees start with 1, but the rows list is 0-based.  Adjust accordingly.
-        oldrow=rowR-1
-
-        # We *should* have a fractional value or an integer value out of range. Check for this.
-        self.MoveRow(oldrow, newnumf)
-        event.Veto()  # This is a bit of magic to prevent the event from making later changed to the grid.
-        self.RefreshGridFromData()
         return
 
-    #------------------
-    def OnGridCellDoubleclick(self, event):
-        pass
 
     #------------------
-    def OnGridCellRightClick(self, event, m_menuPopup):
+    def OnGridCellRightClick(self, event, m_menuPopup):        # Grid
         self.rightClickedColumn=event.GetCol()
         self.rightClickedRow=event.GetRow()
 
@@ -400,7 +352,11 @@ class Grid():
         mi=m_menuPopup.FindItemById(m_menuPopup.FindItem("Paste"))
         mi.Enabled=self.clipboard is not None and len(self.clipboard) > 0 and len(self.clipboard[0]) > 0  # Enable only if the clipboard contains actual content
 
-    def OnGridCellDoubleClick(self):
+    def OnGridCellDoubleClick(self):        # Grid
+        pass
+
+    def OnGridLabelRightClick(self, event):        # Grid
+        # This might be a good place to pop up a dialog to change a column header
         pass
 
     #-------------------
@@ -409,27 +365,27 @@ class Grid():
     #   There is a selection block defined
     #   There is a SelectedCells defined
     #   There is a GridCursor location
-    def LocateSelection(self):
-        if len(self.Grid.SelectionBlockTopLeft) > 0 and len(self.Grid.SelectionBlockBottomRight) > 0:
-            top, left=self.Grid.SelectionBlockTopLeft[0]
-            bottom, right=self.Grid.SelectionBlockBottomRight[0]
-        elif len(self.Grid.SelectedCells) > 0:
-            top, left=self.Grid.SelectedCells[0]
+    def LocateSelection(self):        # Grid
+        if len(self._grid.SelectionBlockTopLeft) > 0 and len(self._grid.SelectionBlockBottomRight) > 0:
+            top, left=self._grid.SelectionBlockTopLeft[0]
+            bottom, right=self._grid.SelectionBlockBottomRight[0]
+        elif len(self._grid.SelectedCells) > 0:
+            top, left=self._grid.SelectedCells[0]
             bottom, right=top, left
         else:
-            left=right=self.Grid.GridCursorCol
-            top=bottom=self.Grid.GridCursorRow
+            left=right=self._grid.GridCursorCol
+            top=bottom=self._grid.GridCursorRow
         return top, left, bottom, right
 
-    def HasSelection(self):
-        if len(self.Grid.SelectionBlockTopLeft) > 0 and len(self.Grid.SelectionBlockBottomRight) > 0:
+    def HasSelection(self):        # Grid
+        if len(self._grid.SelectionBlockTopLeft) > 0 and len(self._grid.SelectionBlockBottomRight) > 0:
             return True
-        if len(self.Grid.SelectedCells) > 0:
+        if len(self._grid.SelectedCells) > 0:
             return True
         return False
 
     #-------------------
-    def OnKeyDown(self, event):
+    def OnKeyDown(self, event):        # Grid
         top, left, bottom, right=self.LocateSelection()
 
         if event.KeyCode == 67 and self.cntlDown:   # cntl-C
@@ -441,8 +397,8 @@ class Grid():
         elif event.KeyCode == 68:                   # Kludge to be able to force a refresh (press "d")
             self.RefreshGridFromData()
         elif event.KeyCode == 315 and self.HasSelection():      # Up arrow
-            tl=self.Grid.SelectionBlockTopLeft
-            br=self.Grid.SelectionBlockBottomRight
+            tl=self._grid.SelectionBlockTopLeft
+            br=self._grid.SelectionBlockBottomRight
             # Only if there's a single selected block
             if len(tl) == 1 and len(br) == 1:
                 top, left=tl[0]
@@ -456,11 +412,11 @@ class Grid():
                     # And re-establish the selection
                     top-=1
                     bottom-=1
-                    self.Grid.SelectBlock(top, left, bottom, right)
+                    self._grid.SelectBlock(top, left, bottom, right)
                     self.RefreshGridFromData()
         elif event.KeyCode == 317 and self.HasSelection():      # Down arrow
-            tl=self.Grid.SelectionBlockTopLeft
-            br=self.Grid.SelectionBlockBottomRight
+            tl=self._grid.SelectionBlockTopLeft
+            br=self._grid.SelectionBlockBottomRight
             # Only if there's a single selected block
             if len(tl) == 1 and len(br) == 1:
                 top, leftR=tl[0]
@@ -475,19 +431,19 @@ class Grid():
                     # And re-establish the selection
                     top+=1
                     bottom+=1
-                    self.Grid.SelectBlock(top, left, bottom, right)
+                    self._grid.SelectBlock(top, left, bottom, right)
                     self.RefreshGridFromData()
         else:
             event.Skip()
 
     #-------------------
-    def OnKeyUp(self, event):
+    def OnKeyUp(self, event):        # Grid
         if event.KeyCode == 308:                    # cntl
             self.cntlDown=False
         event.Skip()
 
     #------------------
-    def OnPopupCopy(self, event):
+    def OnPopupCopy(self, event):        # Grid
         # We need to copy the selected cells into the clipboard object.
         # (We can't simply store the coordinates because the user might edit the cells before pasting.)
         top, left, bottom, right=self.LocateSelection()
@@ -495,7 +451,7 @@ class Grid():
         event.Skip()
 
     #------------------
-    def OnPopupPaste(self, event):
+    def OnPopupPaste(self, event):        # Grid
         top, left, bottom, right=self.LocateSelection()
         self.PasteCells(top, left)
         event.Skip()

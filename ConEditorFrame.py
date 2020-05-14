@@ -256,6 +256,10 @@ class ConEditorFrame(GenConEditorFrame):
         conseriesname=self._grid._datasource.GetData(self.rightClickedRow, 0)
         win=MainConSeriesFrame(self._rootdir, conseriesname)
 
+    # ------------------
+    def OnGridLabelRightClick(self, event):  # Grid
+        self._grid.OnGridLabelRightClick(event)
+
     #-------------------
     def OnKeyDown(self, event):            # ConEditorFrame
         self._grid.OnKeyDown(event)

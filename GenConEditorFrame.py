@@ -129,6 +129,7 @@ class GenConEditorFrame ( wx.Frame ):
 		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_CHANGED, self.OnGridCellChanged )
 		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_LEFT_DCLICK, self.OnGridCellDoubleClick )
 		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnGridCellRightClick )
+		self.gRowGrid.Bind( wx.grid.EVT_GRID_LABEL_RIGHT_CLICK, self.OnGridLabelRightClick )
 		self.gRowGrid.Bind( wx.EVT_KEY_DOWN, self.OnKeyDown )
 		self.gRowGrid.Bind( wx.EVT_KEY_UP, self.OnKeyUp )
 		self.Bind( wx.EVT_MENU, self.OnPopupCopy, id = self.m_menuItemCopy.GetId() )
@@ -163,6 +164,9 @@ class GenConEditorFrame ( wx.Frame ):
 		event.Skip()
 
 	def OnGridCellRightClick( self, event ):
+		event.Skip()
+
+	def OnGridLabelRightClick( self, event ):
 		event.Skip()
 
 	def OnKeyDown( self, event ):
