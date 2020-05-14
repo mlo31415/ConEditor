@@ -127,7 +127,7 @@ class ConEditorFrame(GenConEditorFrame):
         self.userSelection=None
         self.cntlDown: bool=False
         self.rightClickedColumn: Optional[int]=None
-        self._dirname: str=""
+        self._rootdir: str=""
 
         self._grid: Grid=Grid(self.gRowGrid)
         self._grid._datasource=ConList()
@@ -165,19 +165,20 @@ class ConEditorFrame(GenConEditorFrame):
         self._grid._datasource=ConList()
 
         self.ProgressMessage("Loading Conventions.html")
-        self._dirname="./Convention publications"
-        with open(os.path.join(self._dirname, "Conventions.html")) as f:
+        self._rootdir="./Convention publications"
+        cons=os.path.join(self._rootdir, "Conventions.html")
+        with open(cons) as f:
             file=f.read()
         # Get the JSON
         j=FindBracketedText(file, "fanac-json")[0]
         if j is None or j == "":
-            wx.MessageBox("Can't load convention information from "+os.path.join(self._dirname, "Conventions.html"))
+            wx.MessageBox("Can't load convention information from "+cons)
             return
 
         try:
             self.FromJson(j)
         except (json.decoder.JSONDecodeError):
-            wx.MessageBox("JSONDecodeError when loading convention information from "+os.path.join(self._dirname, "Conventions.html"))
+            wx.MessageBox("JSONDecodeError when loading convention information from "+cons)
             return
 
         # Insert the row data into the grid
@@ -189,8 +190,7 @@ class ConEditorFrame(GenConEditorFrame):
 
         # First read in the template
         file=None
-        self._dirname="."
-        with open(os.path.join(self._dirname, "Template-ConSeries")) as f:
+        with open(os.path.join(self._rootdir, "Template-ConSeries")) as f:
             file=f.read()
 
         # We want to do substitutions, replacing whatever is there now with the new data
@@ -254,7 +254,7 @@ class ConEditorFrame(GenConEditorFrame):
         self.rightClickedColumn=event.GetCol()
         self.rightClickedRow=event.GetRow()
         conseriesname=self._grid._datasource.GetData(self.rightClickedRow-1, 0)
-        win=MainConSeriesFrame("./Convention publications", conseriesname)
+        win=MainConSeriesFrame(self._rootdir, conseriesname)
 
     #-------------------
     def OnKeyDown(self, event):            # ConEditorFrame

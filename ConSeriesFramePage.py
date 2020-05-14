@@ -40,14 +40,14 @@ class dlgEnterFancyNameWindow(dlgEnterFancyName):
 
 #####################################################################################
 class MainConSeriesFrame(GenConSeriesFrame):
-    def __init__(self, conseriespath, conseriesname):
+    def __init__(self, rootdir, conseriesname):
         GenConSeriesFrame.__init__(self, None)
 
         self.userSelection=None
         self.cntlDown: bool=False
         self.rightClickedColumn: Optional[int]=None
-        self._filename: str=conseriesname
-        self._dirname: str=conseriespath
+        self._seriesname: str=conseriesname
+        self._rootdir: str=rootdir
 
         # if len(sys.argv) > 1:
         #     self._dirname=os.getcwd()
@@ -61,8 +61,8 @@ class MainConSeriesFrame(GenConSeriesFrame):
         self._textFancyURL: str=""
         self._textComments: str=""
 
-        if len(conseriesname) > 0:
-            self.LoadConSeries(conseriespath, conseriesname)
+        if len(conseriesname) > 0 and len(rootdir) > 0:
+            self.LoadConSeries(rootdir, conseriesname)
 
         self._grid.RefreshGridFromData()
 
@@ -75,8 +75,8 @@ class MainConSeriesFrame(GenConSeriesFrame):
            "_textConSeries": self._textConSeriesName,
            "_textFancyURL": self._textFancyURL,
            "_textComments": self._textComments,
-           "_filename": self._filename,
-           "_dirname": self._dirname,
+           "_filename": self._seriesname,
+           "_dirname": self._rootdir,
            "_datasource": self._grid._datasource.ToJson()}
         return json.dumps(d)
 
@@ -100,28 +100,29 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
     #------------------
     # Download a ConSeries
-    def LoadConSeries(self, path, filename) -> None:                    # MainConSeriesFrame
+    def LoadConSeries(self, rootdir, seriesname) -> None:                    # MainConSeriesFrame
 
         # Clear out any old information
         self._grid._datasource=ConSeries()
 
-        if filename is None or len(filename) == 0:
+        if seriesname is None or len(seriesname) == 0:
+            assert(False)   # Never take this branch.  Delete when I'm sure.
             # Call the File Open dialog to get an con series HTML file
-            dlg=wx.FileDialog(self, "Select con series file to load", self._dirname, "", "*.html", style=wx.FD_OPEN|wx.STAY_ON_TOP)
+            dlg=wx.FileDialog(self, "Select con series file to load", self._rootdir, "", "*.html", style=wx.FD_OPEN|wx.STAY_ON_TOP)
 
             val=dlg.ShowModal()
             if val == wx.ID_CANCEL:
                 return
 
-            self._filename=dlg.GetFilename()
-            self._dirname=dlg.GetDirectory()
+            self._seriesname=dlg.GetFilename()
+            self._rootdir=dlg.GetDirectory()
             dlg.Destroy()
         else:
-            self._filename=filename
-            self._dirname=path
+            self._seriesname=seriesname
+            self._rootdir=rootdir
 
-        self.ProgressMessage("Loading "+self._filename+".html")
-        pathname=os.path.join(self._dirname, self._filename, self._filename)+".html"
+        self.ProgressMessage("Loading "+self._seriesname+".html")
+        pathname=os.path.join(self._rootdir, self._seriesname, self._seriesname)+".html"
         if os.path.exists(pathname):
             with open(pathname) as f:
                 file=f.read()
@@ -139,7 +140,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
                 return
         else:
             # Leave it empty, but add in the name
-            self._textConSeriesName=filename
+            self._textConSeriesName=seriesname
 
         self.tConSeries.Value=self._textConSeriesName
         self.tComments.Value=self._textComments
@@ -147,14 +148,14 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
         # Insert the row data into the grid
         self._grid.RefreshGridFromData()
-        self.ProgressMessage(self._filename+" Loaded")
+        self.ProgressMessage(self._seriesname+" Loaded")
 
 
     #-------------------
     def SaveConSeries(self, filename: str) -> None:                    # MainConSeriesFrame
         # First read in the template
         file=None
-        with open(os.path.join(self._dirname, "Template-ConSeries")) as f:
+        with open(os.path.join(self._rootdir, "Template-ConSeries")) as f:
             file=f.read()
 
         # We want to do substitutions, replacing whatever is there now with the new data
@@ -204,14 +205,14 @@ class MainConSeriesFrame(GenConSeriesFrame):
     def OnSaveConSeries(self, event):                    # MainConSeriesFrame
         # Rename the old file
         wait=wx.BusyCursor()
-        oldname=os.path.join(self._dirname, os.path.splitext(self._filename)[0]+".html")        # Make sure we have the proper extension
-        newname=os.path.join(self._dirname, os.path.splitext(self._filename)[0]+"-old.html")
+        oldname=os.path.join(self._rootdir, self._seriesname, os.path.splitext(self._seriesname)[0]+".html")        # Make sure we have the proper extension
+        newname=os.path.join(self._rootdir, self._seriesname, os.path.splitext(self._seriesname)[0]+"-old.html")
         if os.path.exists(oldname):
             try:
                 i=0
                 while os.path.exists(newname):
                     i+=1
-                    newname=os.path.join(self._dirname, os.path.splitext(self._filename)[0]+"-old-"+str(i)+".html")
+                    newname=os.path.join(self._rootdir, self._seriesname, os.path.splitext(self._seriesname)[0]+"-old-"+str(i)+".html")
 
                 os.rename(oldname, newname)
             except:
@@ -313,7 +314,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
         self.ProgressMessage("Loading "+self._dlgEnterFancyName._FancyName+" from Fancyclopedia 3")
         self._grid._datasource=ConSeries()
         self._grid._datasource.Name=self._dlgEnterFancyName._FancyName
-        self._filename=self._dlgEnterFancyName._FancyName
+        self._seriesname=self._dlgEnterFancyName._FancyName
         self.FetchConSeriesFromFancy(self._dlgEnterFancyName._FancyName)
         self._grid.RefreshGridFromData()
         self.ProgressMessage(self._dlgEnterFancyName._FancyName+" loaded successfully from Fancyclopedia 3")
@@ -321,16 +322,15 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
     #------------------
     def OnCreateNewConPage(self, event):                    # MainConSeriesFrame
-        dir=os.path.join(self._dirname, self._filename)
-        dlg=MainConDialogClass(dir, self._filename)
         row=self.rightClickedRow-1  # Get logical row & col
         name=""
         if row < self._grid._datasource.NumRows:
             if "Name" in self._grid._datasource.ColHeaders:
                 col=self._grid._datasource.ColHeaders.index("Name")
                 name=self._grid._datasource.GetData(row, col)
+        dlg=MainConDialogClass(self._rootdir, self._seriesname, name)
         dlg.tConInstanceName.Value=name
-        dlg.LoadConInstancePage(dir, name)
+        dlg.LoadConInstancePage(self._rootdir, self._seriesname, name)
         dlg.ShowModal()
         cal=dlg.ReturnValue
         if cal == wx.ID_OK:

@@ -10,7 +10,7 @@ from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPa
 
 #####################################################################################
 class MainConDialogClass(GenConInstanceFrame):
-    def __init__(self, directory, coninstancename):
+    def __init__(self, rootdir, seriesname, coninstancename):
         GenConInstanceFrame.__init__(self, None)
         self._grid: Grid=Grid(self.gRowGrid)
         self._grid._datasource=ConInstancePage()
@@ -24,7 +24,8 @@ class MainConDialogClass(GenConInstanceFrame):
         self.ConInstanceStuff=""
         self.ConInstanceFancyURL=""
         self.ReturnValue=None
-        self._dirname=directory
+        self._rootdir=rootdir
+        self._seriesname=seriesname
         self._filename=coninstancename
 
 
@@ -79,7 +80,7 @@ class MainConDialogClass(GenConInstanceFrame):
     def SaveConInstancePage(self, filename: str) -> None:
         # First read in the template
         file=None
-        with open(os.path.join(".", "Template-ConPage.html")) as f:
+        with open(os.path.join(self._rootdir, "Template-ConPage.html")) as f:
             file=f.read()
 
         # We want to do substitutions, replacing whatever is there now with the new data
@@ -128,7 +129,7 @@ class MainConDialogClass(GenConInstanceFrame):
 
     #------------------
     # Download a ConSeries
-    def LoadConInstancePage(self, dirname: str, fname: str) -> None:
+    def LoadConInstancePage(self, rootdir: str, seriesname: str, fname: str) -> None:
 
         # Clear out any old information
         self._grid._datasource=ConInstancePage()
@@ -137,12 +138,13 @@ class MainConDialogClass(GenConInstanceFrame):
         if fname is not None and fname != "":
             base=os.path.splitext(fname)[0]
             self.filename=base
-            self._dirname=os.path.join(dirname, base)
+            self._rootdir=rootdir
+            self._seriesname=seriesname
         else:
             # Call the File Open dialog to get a con series HTML file
-            if self._dirname is None or self._dirname == "":
+            if self._rootdir is None or self._rootdir == "":
                 return
-            dlg=wx.FileDialog(self, "Select con series file to load", self._dirname, "", "*.htm", wx.FD_OPEN)
+            dlg=wx.FileDialog(self, "Select con series file to load", self._rootdir, "", "*.htm", wx.FD_OPEN)
             dlg.SetWindowStyle(wx.STAY_ON_TOP)
 
             if dlg.ShowModal() == wx.ID_CANCEL:
@@ -151,10 +153,10 @@ class MainConDialogClass(GenConInstanceFrame):
                 return
 
             self.filename=dlg.GetFilename()
-            self._dirname=dlg.GetDirectory()
+            self._rootdir=dlg.GetDirectory()
             dlg.Destroy()
 
-        pathname=os.path.join(self._dirname, self.filename)+".htm"
+        pathname=os.path.join(self._rootdir, self._seriesname, fname, fname)+".htm"
         if not os.path.exists(pathname):
             return  # Just return with the ConInstance page empty
 
