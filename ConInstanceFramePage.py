@@ -17,7 +17,7 @@ class MainConDialogClass(GenConInstanceFrame):
 
         self._grid.SetColHeaders(self._grid._datasource.ColHeaders)
         self._grid.SetColTypes(self._grid._datasource.ColDataTypes)
-        self._grid.FillInRowNumbers(self._grid.NumrowsR)
+#        self._grid.FillInRowNumbers(self._grid.NumrowsR)
 
         self._grid.RefreshGridFromData()
         self.ConInstanceName=""

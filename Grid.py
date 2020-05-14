@@ -44,7 +44,6 @@ class GridDataSource():
     @property
     def Rows(self) -> List:     # Types of list elements needs to be undefined since we don't know what they will be.
         return []
-
     @Rows.setter
     def Rows(self, rows: List) -> None:
         pass
@@ -62,7 +61,7 @@ class GridDataSource():
 
 
 
-# The class hides the machinations needed to handle the row and column headers
+################################################################################
 class Grid():
 
     def __init__(self, grid: wx.grid.Grid):
@@ -75,15 +74,15 @@ class Grid():
         # The grid is a bit non-standard, since I want to be able to edit row numbers and column headers
         # The row and column labels are actually the (editable) 1st column and 1st row of the spreadsheet (they're colored gray)
         # and the "real" row and column labels are hidden.
-        self._grid.HideRowLabels()
-        self._grid.HideColLabels()
+        # self._grid.HideRowLabels()
+        # self._grid.HideColLabels()
 
 
     # Set a value in the source data using logical coordinates
     # Note that we can handle irow== -1 indicating a column header
     def SetSourceValue(self, iRow: int, iCol: int, val) -> None:
         assert iCol > -1
-        self.ExpandDataSource(iRow, iCol)
+        self.ExpandDataSourceToInclude(iRow, iCol)
 
         if iRow == -1:
             self._datasource.ColHeaders[iCol]=val
@@ -95,16 +94,17 @@ class Grid():
         except:
             pass
 
-    # Set a grid cell value using raw coordinates
-    # Note that this does not change the underlying data
-    def SetCellValueR(self, iRowR: int, iColR: int, val) -> None:
+
+    # Set a grid cell value
+    # Note that this does not change the underlying source data
+    def SetCellValue(self, iRow: int, iCol: int, val) -> None:
         # Extend the grid if needed
         nrows=self._grid.GetNumberRows()
-        if iRowR >= nrows:
-            self._grid.AppendRows(iRowR-nrows+1)
+        if iRow >= nrows:
+            self._grid.AppendRows(iRow-nrows+1)
         ncols=self._grid.GetNumberCols()
-        if iColR >= ncols:
-            self._grid.AppendCols(iColR-ncols+1)
+        if iCol >= ncols:
+            self._grid.AppendCols(iCol-ncols+1)
 
         # None values are replaced by empty strings
         if val is None:
@@ -112,46 +112,28 @@ class Grid():
         if type(val) is not str:
             val=str(val)
 
-        self._grid.SetCellValue(iRowR, iColR, val)
+        self._grid.SetCellValue(iRow, iCol, val)
 
-    # Set a grid cell value using logical coordinates
-    # Note that this does not change the underlying data
-    def SetCellValue(self, iRow: int, iCol: int, val) -> None:
-        g=self.SetCellValueR(iRow+1, iCol+1, val)
 
-    # Get a cell value using raw indexing
+    # Get a cell value
     # Note that this does not change the underlying data
-    def Get(self, rowR: int, colR: int) -> str:
-        return self._grid.GetCellValue(rowR, colR)
+    def Get(self, row: int, col: int) -> str:
+        return self._grid.GetCellValue(row, col)
+
 
     @property
-    # Get the number of raw columns
-    def NumcolsR(self) -> int:
-        return self._grid.NumberCols
-
-    @NumcolsR.setter
-    # Get or set the number of raw columns
-    def NumcolsR(self, nColsR: int) -> None:
-        if self._grid.NumberCols == nColsR:
-            return
-        if self._grid.NumberCols > nColsR:
-            self._grid.DeleteCols(nColsR, self._grid.NumberCols-nColsR)
-        else:
-            self._grid.AppendCols(nColsR, self._grid.NumberCols-nColsR)
-
-    @property
-    # Get the number of logical columns
+    # Get the number of columns
     def Numcols(self) -> int:
-        return self.NumcolsR-1
-
+        return self._grid.NumberCols
     @Numcols.setter
-    # Set the number of logical columns
-    def Numcols(self, ncols: int) -> None:
-        self.NumcolsR=ncols+1
-
-    @property
-    def NumrowsR(self) -> int:
-        return self._grid.NumberRows
+    # Get or set the number of columns
+    def Numcols(self, nCols: int) -> None:
+        if self._grid.NumberCols == nCols:
+            return
+        if self._grid.NumberCols > nCols:
+            self._grid.DeleteCols(nCols, self._grid.NumberCols-nCols)
+        else:
+            self._grid.AppendCols(nCols, self._grid.NumberCols-nCols)
 
     @property
     def Grid(self):
@@ -170,19 +152,11 @@ class Grid():
         self._colheaders=headers
         self.Numcols=len(headers)
         if len(headers) == self.Numcols:
-
-            # Color all the column headers white before coloring the ones that actually exist gray.  (This handles cases where a column has been deleted.)
-            for iRowR in range(0, self.NumcolsR-1):
-                self.Grid.SetCellBackgroundColour(0, iRowR, Color.White)
-
             # Add the column headers
-            self.Grid.SetCellValue(0, 0, "")
-            iColR=1
+            iCol=0
             for colhead in headers:
-                self.SetCellValueR(0, iColR, colhead)  # Set the column header number
-                self.Grid.SetCellBackgroundColour(0, iColR, Color.LabelGray)  # Set the column header background
-                iColR+=1
-            self.Grid.SetCellBackgroundColour(0, 0, Color.LabelGray)
+                self.Grid.SetColLabelValue(iCol, colhead)
+                iCol+=1
 
 
     def SetColTypes(self, coldatatypes: List[str]) -> None:
@@ -194,31 +168,26 @@ class Grid():
     def AutoSizeColumns(self):
         self._grid.AutoSizeColumns()
         if len(self._datasource.ColMinWidths) == self._grid.NumberCols-1:
-            iColR=1     # Skip the first columnw hich contains the row number
+            iCol=0     # Skip the first columnw hich contains the row number
             for width in self._datasource.ColMinWidths:
-                w=self.Grid.GetColSize(iColR)
+                w=self.Grid.GetColSize(iCol)
                 if w < width:
-                    self.Grid.SetColSize(iColR, width)
-                iColR+=1
-
-
-    def FillInRowNumbers(self, num: int) -> None:
-        # Make the first grid column contain editable row numbers
-        for iRowR in range(1, self.NumrowsR):  # The 0,0 cell is left blank
-            self.SetCellValueR(iRowR, 0, str(iRowR))
-            self.Grid.SetCellBackgroundColour(iRowR, 0, Color.LabelGray)
-        self.Grid.SetCellBackgroundColour(0, 0, Color.LabelGray)
+                    self.Grid.SetColSize(iCol, width)
+                iCol+=1
 
     def SetCellBackgroundColor(self, row, col, color):
-        self.Grid.SetCellBackgroundColour(row+1, col+1, color)
-        #print("("+str(row+1)+", "+str(col+1)+") --> "+str(color))
+        self.Grid.SetCellBackgroundColour(row, col, color)
+
 
     # Row, col are Grid coordinates
     def ColorCellByValue(self, row: int, col: int) -> None:
         # Start by setting color to white
         self.SetCellBackgroundColor(row, col, Color.White)
 
-        val=self._grid.GetCellValue(row+1, col+1)
+        if col >= len(self._datasource.ColHeaders):
+            return
+
+        val=self._grid.GetCellValue(row, col)
         # We skip testing for "str"-type columns since anything at all is OK in a str column
         if self._coldatatypes[col] == "int":
             if val is not None and val != "" and not IsInt(val):
@@ -231,13 +200,11 @@ class Grid():
                 self.SetCellBackgroundColor(row, col, Color.Pink)
 
     def ColorCellsByValue(self):
-        if len(self._coldatatypes) != self._grid.NumberCols-1:  # -1 to ignore row number column
-            return
 
         # Analyze the data and highlight cells where the data type doesn't match the header.  (E.g., Volume='August', Month='17', year='20')
         # Col 0 is a number and 3 is a date and the rest are strings.   We walk the rows checking the type of data in that column.
-        for iRow in range(0, self._grid.NumberRows-1):
-            for iCol in range(0, self._grid.NumberCols-1):
+        for iRow in range(self._grid.NumberRows-1):
+            for iCol in range(self._grid.NumberCols-1):
                 self.ColorCellByValue(iRow, iCol)
 
 
@@ -246,7 +213,7 @@ class Grid():
         self.Grid.ClearGrid()
 
         self.SetColHeaders(self._colheaders)
-        self.FillInRowNumbers(self.NumrowsR)
+#        self.FillInRowNumbers(self.NumrowsR)
 
         # Fill in the cells
         for i in range(self._datasource.NumRows):
@@ -337,7 +304,7 @@ class Grid():
         self.RefreshGridFromData()
 
     # Expand the grid's data source so that the local item (irow, icol) exists.
-    def ExpandDataSource(self, irow: int, icol: int):
+    def ExpandDataSourceToInclude(self, irow: int, icol: int):
         if irow >= 0:   # This test is needed in case we were working on the column headers (irowR->0) and then had to pass in irowR-1
             while irow >= len(self._datasource.Rows):
                 self._datasource.Rows.append(self._datasource.Element())
@@ -364,13 +331,13 @@ class Grid():
                 return
 
             event.Veto()  # This is a bit of magic to prevent the event from causing later grid events.
-            self.ExpandDataSource(rowR-1, colR-1)     # Expand the number of columns if needed.
+            self.ExpandDataSourceToInclude(rowR-1, colR-1)     # Expand the number of columns if needed.
             self.SetSourceValue(-1, colR-1, newVal)
             self.RefreshGridFromData()
             return
 
         # If we're entering data in a new row or a new column, append the necessary number of new rows and/or columns to the data source
-        self.ExpandDataSource(rowR-1, colR-1)
+        self.ExpandDataSourceToInclude(rowR-1, colR-1)
 
         # Ordinary columns
         if colR > 0:
@@ -409,11 +376,7 @@ class Grid():
 
     #------------------
     def OnGridCellDoubleclick(self, event):
-        if event.GetRow() == 0 and event.GetCol() == 0:
-            self.Grid.AutoSize()
-            return
-        if event.GetRow() == 0 and event.GetCol() > 0:
-            self.Grid.AutoSizeColumn(event.GetCol())
+        pass
 
     #------------------
     def OnGridCellRightClick(self, event, m_menuPopup):
@@ -467,12 +430,12 @@ class Grid():
 
     #-------------------
     def OnKeyDown(self, event):
-        topR, leftR, bottomR, rightR=self.LocateSelection()
+        top, left, bottom, right=self.LocateSelection()
 
         if event.KeyCode == 67 and self.cntlDown:   # cntl-C
-            self.CopyCells(topR, leftR, bottomR, rightR)
+            self.CopyCells(top, left, bottom, right)
         elif event.KeyCode == 86 and self.cntlDown and self.clipboard is not None and len(self.clipboard) > 0: # cntl-V
-            self.PasteCells(topR, leftR)
+            self.PasteCells(top, left)
         elif event.KeyCode == 308:                  # cntl
             self.cntlDown=True
         elif event.KeyCode == 68:                   # Kludge to be able to force a refresh (press "d")
@@ -482,38 +445,37 @@ class Grid():
             br=self.Grid.SelectionBlockBottomRight
             # Only if there's a single selected block
             if len(tl) == 1 and len(br) == 1:
-                topR, leftR=tl[0]
-                bottomR, rightR=br[0]
-                # Can't move up if the first row selected is already the logical top row
-                if topR > 1:
+                top, left=tl[0]
+                bottom, right=br[0]
+                if top > 0: # Can't move up if the first row selected is row 0
                     # Extend the selection to be the whole row(s)
-                    leftR=0
-                    rightR=self.NumcolsR-1
+                    left=0
+                    right=self.Numcols-1
                     # And move 'em up 1
-                    self.MoveRows(topR-1, bottomR-topR+1, (topR-1)-1)   # Need to convert from raw to logical
+                    self.MoveRows(top, bottom-top+1, top-1)
                     # And re-establish the selection
-                    topR-=1
-                    bottomR-=1
-                    self.Grid.SelectBlock(topR, leftR, bottomR, rightR)
+                    top-=1
+                    bottom-=1
+                    self.Grid.SelectBlock(top, left, bottom, right)
                     self.RefreshGridFromData()
         elif event.KeyCode == 317 and self.HasSelection():      # Down arrow
             tl=self.Grid.SelectionBlockTopLeft
             br=self.Grid.SelectionBlockBottomRight
             # Only if there's a single selected block
             if len(tl) == 1 and len(br) == 1:
-                topR, leftR=tl[0]
-                bottomR, rightR=br[0]
-                self.ExpandDataSource(bottomR, rightR-1)  # bottomR is really (bottomR-1)+1 the logical coordinate to extend by 1
-                if bottomR < self._grid.NumberRows:
+                top, leftR=tl[0]
+                bottom, right=br[0]
+                self.ExpandDataSourceToInclude(bottom+1, right)
+                if bottom < self._grid.NumberRows:
                     # Extend the selection to be the whole row(s)
                     leftR=0
-                    rightR=self.NumcolsR-1
-                    # And move 'em up 1
-                    self.MoveRows(topR-1, bottomR-topR+1, (topR-1)+1)   # Need to convert from raw to logical
+                    right=self.Numcols-1
+                    # And move 'em down 1
+                    self.MoveRows(top, bottom-top+1, top+1)
                     # And re-establish the selection
-                    topR+=1
-                    bottomR+=1
-                    self.Grid.SelectBlock(topR, leftR, bottomR, rightR)
+                    top+=1
+                    bottom+=1
+                    self.Grid.SelectBlock(top, left, bottom, right)
                     self.RefreshGridFromData()
         else:
             event.Skip()

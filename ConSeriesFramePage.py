@@ -322,7 +322,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
     #------------------
     def OnCreateNewConPage(self, event):                    # MainConSeriesFrame
-        row=self.rightClickedRow-1  # Get logical row & col
+        row=self.rightClickedRow
         name=""
         if row < self._grid._datasource.NumRows:
             if "Name" in self._grid._datasource.ColHeaders:
@@ -366,13 +366,11 @@ class MainConSeriesFrame(GenConSeriesFrame):
         self._grid.OnGridCellRightClick(event, self.m_menuPopup)
         self.PopupMenu(self.m_menuPopup)
 
-
     # ------------------
     def OnGridCellDoubleClick(self, event):                    # MainConSeriesFrame
         self.rightClickedColumn=event.GetCol()
         self.rightClickedRow=event.GetRow()
         self.OnCreateNewConPage(event)
-
 
     #-------------------
     def OnKeyDown(self, event):                    # MainConSeriesFrame

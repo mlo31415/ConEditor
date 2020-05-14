@@ -253,7 +253,7 @@ class ConEditorFrame(GenConEditorFrame):
     def OnGridCellDoubleClick(self, event):            # ConEditorFrame
         self.rightClickedColumn=event.GetCol()
         self.rightClickedRow=event.GetRow()
-        conseriesname=self._grid._datasource.GetData(self.rightClickedRow-1, 0)
+        conseriesname=self._grid._datasource.GetData(self.rightClickedRow, 0)
         win=MainConSeriesFrame(self._rootdir, conseriesname)
 
     #-------------------
