@@ -57,6 +57,8 @@ class MainConSeriesFrame(GenConSeriesFrame):
         self._grid.SetColHeaders(self._grid._datasource.ColHeaders)
         self._grid.SetColTypes(ConSeries._coldatatypes)
 
+        self._grid._grid.HideRowLabels()
+
         self._textConSeriesName: str=""
         self._textFancyURL: str=""
         self._textComments: str=""

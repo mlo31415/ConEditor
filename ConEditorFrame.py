@@ -133,12 +133,14 @@ class ConEditorFrame(GenConEditorFrame):
         self._grid._datasource=ConList()
         self._grid.SetColHeaders(self._grid._datasource._colheaders)
         self._grid.SetColTypes(ConList._coldatatypes)
+        self._grid._grid.HideRowLabels()
         self._grid.RefreshGridFromData()
 
         self.Load()
 
         self.Show()
 
+    # ------------------
     # Serialize and deserialize
     def ToJson(self) -> str:            # ConEditorFrame
         d={"ver": 1,
@@ -159,6 +161,7 @@ class ConEditorFrame(GenConEditorFrame):
     def ProgressMessage(self, s: str) -> None:            # ConEditorFrame
         self.m_staticTextMessages.Label=s
 
+    # ------------------
     def Load(self):            # ConEditorFrame
 
         # Clear out any old information
