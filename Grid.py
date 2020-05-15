@@ -264,7 +264,7 @@ class Grid():
         for iRow in range(top, bottom+1):
             v=[]
             for jCol in range(left, right+1):
-                v.append(self._datasource.GetData(iRow-1, jCol-1)) # Convert to logical row & col
+                v.append(self._datasource.GetData(iRow, jCol))
             self.clipboard.append(v)
 
         pass
@@ -281,17 +281,16 @@ class Grid():
         pasteRight=left+len(self.clipboard[0])
 
         # Does the paste-to box extend beyond the end of the available rows?  If so, extend the available rows.
-        num=pasteBottom-len(self._datasource.Rows)-1
+        num=pasteBottom-len(self._datasource.Rows)+1
         if num > 0:
             for i in range(num):
-                self._datasource.Rows.append(["" for x in range(self._datasource.NumRows)])  # The strange contortion is to append a list of distinct empty strings
-
+                self._datasource.Rows.append(self._datasource.Element())
         # Copy the cells from the clipboard to the grid in lstData.
         i=pasteTop
         for row in self.clipboard:
             j=pasteLeft
             for cellval in row:
-                self._datasource.SetDataVal(i-1, j-1, cellval)  # The -1 is to deal with the 1-indexing
+                self._datasource.SetDataVal(i, j, cellval)
                 j+=1
             i+=1
         self.RefreshGridFromData()
