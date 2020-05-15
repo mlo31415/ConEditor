@@ -34,14 +34,14 @@ class Convention:
         # (Could use return eval("self."+name))
         if name == "Convention" or name == 0:
             return self._name
-        return "Val can't interpret '"+str(name)+"'"
+        return "Convention.Val can't interpret '"+str(name)+"'"
 
     def SetVal(self, nameOrCol: Union[str, int], val: Union[str, int]) -> None:
         # (Could use return eval("self."+name))
         if nameOrCol == "Convention" or nameOrCol == 0:
             self._name=val
             return
-        print("SetVal can't interpret '"+str(nameOrCol)+"'")
+        print("Convention.SetVal can't interpret '"+str(nameOrCol)+"'")
 
     @property
     def Name(self) -> str:
