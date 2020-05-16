@@ -49,9 +49,6 @@ class MainConSeriesFrame(GenConSeriesFrame):
         self._seriesname: str=conseriesname
         self._rootdir: str=rootdir
 
-        # if len(sys.argv) > 1:
-        #     self._dirname=os.getcwd()
-
         self._grid: Grid=Grid(self.gRowGrid)
         self._grid._datasource=ConSeries()
         self._grid.SetColHeaders(self._grid._datasource.ColHeaders)

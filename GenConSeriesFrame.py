@@ -15,10 +15,10 @@ import wx.grid
 ## Class GenConSeriesFrame
 ###########################################################################
 
-class GenConSeriesFrame ( wx.Frame ):
+class GenConSeriesFrame ( wx.Dialog ):
 
 	def __init__( self, parent ):
-		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Edit Convention Series", pos = wx.Point( -1,15 ), size = wx.Size( 729,452 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Edie Conventon Series", pos = wx.DefaultPosition, size = wx.Size( 700,533 ), style = wx.DEFAULT_DIALOG_STYLE )
 
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 

@@ -15,18 +15,22 @@ from Log import LogOpen
 
 class Convention:
     def __init__(self):
-        self._name: str=""
+        self._name: str=""      # The name of the convention series
+        self._URL: str=""       # The location of the convention series html page relative to the main cons page; empty if no series page exists yet
 
     # Serialize and deserialize
     def ToJson(self) -> str:
-        d={"ver": 1,
-           "_name": self._name}
+        d={"ver": 2,
+           "_name": self._name,
+           "_URL": self._URL}
         return json.dumps(d)
 
     def FromJson(self, val: str) -> Convention:
         d=json.loads(val)
-        if d["ver"] <= 1:
-            self._name=d["_name"]
+        self._name=d["_name"]
+        if d["ver"] == 2:
+            self._URL=d["_URL"]
+
         return self
 
     # Get or set a value by name or column number
@@ -50,11 +54,18 @@ class Convention:
     def Name(self, val: str) -> None:
         self._name=val
 
+    @property
+    def URL(self) -> str:
+        return self._URL
+    @URL.setter
+    def URL(self, val: str) -> None:
+        self._URL=val
+
 
 
 class ConList(GridDataSource):
     _colheaders: List[str]=["Convention"]
-    _coldatatypes: List[str]=["str"]
+    _coldatatypes: List[str]=["url"]
     _colminwidths: List[int]=[30]
     _element=Convention
 
@@ -193,7 +204,7 @@ class ConEditorFrame(GenConEditorFrame):
 
         # First read in the template
         file=None
-        with open(os.path.join(self._rootdir, "Template-ConSeries")) as f:
+        with open(os.path.join(".", "Template-ConSeries")) as f:
             file=f.read()
 
         # We want to do substitutions, replacing whatever is there now with the new data
@@ -220,8 +231,11 @@ class ConEditorFrame(GenConEditorFrame):
 
         file=SubstituteHTML(file, "pdq", newtable)
         file=SubstituteHTML(file, "fanac-json", self.ToJson())
-        with open("Conventions.html", "w+") as f:
+        with open(os.path.join(self._rootdir, "Conventions.html"), "w+") as f:
             f.write(file)
+
+        # And then reload
+        self.Load()
 
     def OnButtonSortClick(self, event):            # ConEditorFrame
         lst=[]
@@ -259,7 +273,12 @@ class ConEditorFrame(GenConEditorFrame):
         self.rightClickedColumn=event.GetCol()
         self.rightClickedRow=event.GetRow()
         conseriesname=self._grid._datasource.GetData(self.rightClickedRow, 0)
-        win=MainConSeriesFrame(self._rootdir, conseriesname)
+        dlg=MainConSeriesFrame(self._rootdir, conseriesname)
+#        dlg.tConInstanceName.Value=name
+#        dlg.LoadConInstancePage(self._rootdir, self._seriesname, name)
+        dlg.ShowModal()
+        self._grid._datasource.Rows[self.rightClickedRow].URL=conseriesname
+        pass
 
     # ------------------
     def OnGridLabelRightClick(self, event):  # Grid

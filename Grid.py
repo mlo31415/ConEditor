@@ -14,6 +14,7 @@ class Color:
      Pink=wx.Colour(255, 230, 230)
      LightGreen=wx.Colour(240, 255, 240)
      LightBlue=wx.Colour(240, 230, 255)
+     Blue=wx.Colour(100, 100, 255)
      White=wx.Colour(255, 255, 255)
 
 class GridDataSource():
@@ -192,13 +193,19 @@ class Grid():
         elif self._coldatatypes[col] == "date":
             if val is not None and val != "" and FanzineDate().Match(val).IsEmpty():
                 self.SetCellBackgroundColor(row, col, Color.Pink)
+        elif self._coldatatypes[col] == "url":
+            if val is not None and val != "" and len(self._datasource.Rows[row].URL) > 0:
+                self._grid.SetCellTextColour(row, col, Color.Blue)
+                font=self._grid.GetCellFont(row, col)
+                font.MakeUnderlined()
+                self._grid.SetCellFont(row, col, font)
 
     def ColorCellsByValue(self):        # Grid
 
         # Analyze the data and highlight cells where the data type doesn't match the header.  (E.g., Volume='August', Month='17', year='20')
         # Col 0 is a number and 3 is a date and the rest are strings.   We walk the rows checking the type of data in that column.
-        for iRow in range(self._grid.NumberRows-1):
-            for iCol in range(self._grid.NumberCols-1):
+        for iRow in range(self._grid.NumberRows):
+            for iCol in range(self._grid.NumberCols):
                 self.ColorCellByValue(iRow, iCol)
 
     def RefreshGridFromData(self):        # Grid
@@ -213,7 +220,7 @@ class Grid():
             for j in range(len(self._colheaders)):
                 self.SetCellValue(i, j, self._datasource.GetData(i, j))
 
-        self.ColorCellsByValue()      #TODO: Maybe merge these into one call?
+        self.ColorCellsByValue()
         self.AutoSizeColumns()
 
 
