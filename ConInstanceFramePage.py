@@ -80,7 +80,7 @@ class MainConDialogClass(GenConInstanceFrame):
     def SaveConInstancePage(self, filename: str) -> None:
         # First read in the template
         file=None
-        with open(os.path.join(self._rootdir, "Template-ConPage.html")) as f:
+        with open("Template-ConPage.html") as f:
             file=f.read()
 
         # We want to do substitutions, replacing whatever is there now with the new data

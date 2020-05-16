@@ -154,7 +154,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
     def SaveConSeries(self, filename: str) -> None:                    # MainConSeriesFrame
         # First read in the template
         file=None
-        with open(os.path.join(self._rootdir, "Template-ConSeries")) as f:
+        with open("Template-ConSeries.html.html") as f:
             file=f.read()
 
         # We want to do substitutions, replacing whatever is there now with the new data

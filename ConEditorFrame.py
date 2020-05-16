@@ -5,6 +5,7 @@ import os
 import wx
 import wx.grid
 import json
+import ftplib
 
 from GenConEditorFrame import GenConEditorFrame
 from Grid import Grid, GridDataSource
@@ -204,7 +205,7 @@ class ConEditorFrame(GenConEditorFrame):
 
         # First read in the template
         file=None
-        with open(os.path.join(".", "Template-ConSeries")) as f:
+        with open("Template-ConSeries.html.html") as f:
             file=f.read()
 
         # We want to do substitutions, replacing whatever is there now with the new data
@@ -317,6 +318,9 @@ class ConEditorFrame(GenConEditorFrame):
 
 # Start the GUI and run the event loop
 LogOpen("Log -- ConEditor.txt", "Log (Errors) -- ConEditor.txt")
+
+
+
 app = wx.App(False)
 frame = ConEditorFrame(None)
 app.MainLoop()
