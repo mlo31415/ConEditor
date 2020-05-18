@@ -180,10 +180,8 @@ class ConEditorFrame(GenConEditorFrame):
         self._grid._datasource=ConList()
 
         self.ProgressMessage("Loading Conventions.html")
-        if not FTP().SetDirectory("/"):
+        if not FTP().SetDirectory("/public_html/Conpubs"):
             Log("Bailing out...")
-        FTP().SetDirectory("public_html")
-        FTP().SetDirectory("Conpubs")
         file=FTP().GetFTPA("Conventions.html")
         if file is None:
             self._rootdir="./Convention publications"
@@ -248,10 +246,8 @@ class ConEditorFrame(GenConEditorFrame):
         self.Load()
 
         # Now try to FTP it
-        if not FTP().SetDirectory("/"):
+        if not FTP().SetDirectory("/public_html/Conpubs"):#, create=True):
             Log("Bailing out...")
-        FTP().SetDirectory("public_html")
-        FTP().SetDirectory("Conpubs", create=True)
         FTP().PutAF("Conventions.html")
 
     def OnButtonSortClick(self, event):            # ConEditorFrame

@@ -64,8 +64,10 @@ class FTP:
             assert False
         return dir
 
-    def Exists(self, filedir: str) -> bool:
+    def CWDable(self, filedir: str) -> bool:
         Log("Does '"+filedir+"' exist?")
+        if filedir == "/":
+            return True     # "/" always exists
         if filedir in self.g_ftp.nlst():
             Log("'"+filedir+"' exists")
             return True
@@ -77,20 +79,33 @@ class FTP:
     def SetDirectory(self, newdir: str, create: bool=False) -> bool:
         Log("SetDirectory: "+newdir)
 
-        # Does the directory exist?
-        if not self.Exists(newdir):
-            # If not, are we allowed to create it"
-            if not create:
-                Log("SetDirectory was called with create=False")
-                return False
-            if not self.MKD(newdir):
-                Log("mkd failed...bailing out...")
+        # Split newdir into components
+        if newdir is None or len(newdir) == 0:
+            return True
+
+        components=[]
+        if newdir[0] == "/":
+            components.append("/")
+            newdir=newdir[1:]
+        components.extend(newdir.split("/"))
+
+        # Now walk the component list
+        for component in components:
+            # Does the directory exist?
+            if not self.CWDable(component):
+                # If not, are we allowed to create it"
+                if not create:
+                    Log("SetDirectory was called with create=False")
+                    return False
+                if not self.MKD(component):
+                    Log("mkd failed...bailing out...")
+                    return False
+
+            # Now cwd to it.
+            if not self.CWD(component):
+                Log("cwd failed...bailing out...")
                 return False
 
-        # Now cwd to it.
-        if not self.CWD(newdir):
-            Log("cwd failed...bailing out...")
-            return False
         return True
 
 
