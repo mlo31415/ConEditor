@@ -5,14 +5,14 @@ import os
 import wx
 import wx.grid
 import json
-import ftplib
 
 from GenConEditorFrame import GenConEditorFrame
 from Grid import Grid, GridDataSource
 from ConSeriesFramePage import MainConSeriesFrame
+from FTP import FTP
 
 from HelpersPackage import SubstituteHTML, FindBracketedText
-from Log import LogOpen
+from Log import LogOpen, Log
 
 class Convention:
     def __init__(self):
@@ -180,10 +180,14 @@ class ConEditorFrame(GenConEditorFrame):
         self._grid._datasource=ConList()
 
         self.ProgressMessage("Loading Conventions.html")
+        #if FTP.g_ftp is None:
         self._rootdir="./Convention publications"
         cons=os.path.join(self._rootdir, "Conventions.html")
         with open(cons) as f:
             file=f.read()
+        #else:
+        #    file=FTP.GetFTP(".", "Convention publications", "Conventions.html")
+
         # Get the JSON
         j=FindBracketedText(file, "fanac-json")[0]
         if j is None or j == "":
@@ -205,7 +209,7 @@ class ConEditorFrame(GenConEditorFrame):
 
         # First read in the template
         file=None
-        with open("Template-ConSeries.html.html") as f:
+        with open("Template-ConSeries.html") as f:
             file=f.read()
 
         # We want to do substitutions, replacing whatever is there now with the new data
@@ -237,6 +241,11 @@ class ConEditorFrame(GenConEditorFrame):
 
         # And then reload
         self.Load()
+
+        # Now try to FTP it
+        FTP().SetDirectory("public_html")
+        FTP().SetDirectory("Conpubs")
+        FTP().PutFTPAF("Conventions.html")
 
     def OnButtonSortClick(self, event):            # ConEditorFrame
         lst=[]
@@ -316,9 +325,13 @@ class ConEditorFrame(GenConEditorFrame):
         event.Skip()
 
 
+
 # Start the GUI and run the event loop
 LogOpen("Log -- ConEditor.txt", "Log (Errors) -- ConEditor.txt")
 
+f=FTP()
+f.OpenConnection("FTP Credentials.json")
+f.SetRoots(local="Convention publications", site="/public_html")
 
 
 app = wx.App(False)
