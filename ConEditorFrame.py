@@ -180,7 +180,7 @@ class ConEditorFrame(GenConEditorFrame):
         self._grid._datasource=ConList()
 
         self.ProgressMessage("Loading Conventions.html")
-        if not FTP().CWD("/"):
+        if not FTP().SetDirectory("/"):
             Log("Bailing out...")
         FTP().SetDirectory("public_html")
         FTP().SetDirectory("Conpubs")
@@ -248,7 +248,7 @@ class ConEditorFrame(GenConEditorFrame):
         self.Load()
 
         # Now try to FTP it
-        if not FTP().CWD("/"):
+        if not FTP().SetDirectory("/"):
             Log("Bailing out...")
         FTP().SetDirectory("public_html")
         FTP().SetDirectory("Conpubs", create=True)

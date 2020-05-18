@@ -74,7 +74,7 @@ class FTP:
 
 
     #-------------------------------
-    def SetDirectory(self, newdir: str, create: bool=False) -> None:
+    def SetDirectory(self, newdir: str, create: bool=False) -> bool:
         Log("SetDirectory: "+newdir)
 
         # Does the directory exist?
@@ -82,14 +82,16 @@ class FTP:
             # If not, are we allowed to create it"
             if not create:
                 Log("SetDirectory was called with create=False")
-                return
+                return False
             if not self.MKD(newdir):
                 Log("mkd failed...bailing out...")
-                return
+                return False
 
         # Now cwd to it.
         if not self.CWD(newdir):
             Log("cwd failed...bailing out...")
+            return False
+        return True
 
 
     #-------------------------------
