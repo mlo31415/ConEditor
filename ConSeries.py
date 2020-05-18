@@ -30,15 +30,15 @@ class Con:
 
     def FromJson(self, val: str) -> Con:
         d=json.loads(val)
-        if d["ver"] <= 2:
-            self._seq=d["_seq"]
-            self._name=d["_name"]
-            self._locale=d["_locale"]
-            self._gohs=d["_gohs"]
+        self._seq=d["_seq"]
+        self._name=d["_name"]
+        self._locale=d["_locale"]
+        self._gohs=d["_gohs"]
         if d["ver"] == 1:
             self._dates=FanzineDateRange().FromJson(d["_dates"])
         if d["ver"] == 2:   # Ver 2 stores the date range is text to eliminate clutter in the json string
             self._dates=FanzineDateRange().Match(d["_dates"])
+            self._URL=d["_URL"]
         return self
 
 
@@ -87,42 +87,39 @@ class Con:
     # Get or set a value by name or column number
     def GetVal(self, name: Union[str, int]) -> Union[str, int, FanzineDateRange]:
         # (Could use return eval("self."+name))
-        if name == "Seq" or name == 0:
-            return self.Seq
-        if name == "Name" or name == 1:
+        if name == "Name" or name == 0:
             return self.Name
-        if name == "Dates" or name == 2:
+        if name == "Dates" or name == 1:
             return self.Dates
-        if name == "Locale" or name == 3:
+        if name == "Locale" or name == 2:
             return self.Locale
-        if name == "GoHs" or name == 4:
+        if name == "GoHs" or name == 3:
             return self.GoHs
         return "Val can't interpret '"+str(name)+"'"
 
     def SetVal(self, nameOrCol: Union[str, int], val: Union[str, int, FanzineDateRange]) -> None:
         # (Could use return eval("self."+name))
-        if nameOrCol == "Seq" or nameOrCol == 0:
-            self.Seq=val
-            return
-        if nameOrCol == "Name" or nameOrCol == 1:
+        if nameOrCol == "Name" or nameOrCol == 0:
             self.Name=val
             return
-        if nameOrCol == "Dates" or nameOrCol == 2:
+        if nameOrCol == "Dates" or nameOrCol == 1:
             self.Dates=val
             return
-        if nameOrCol == "Locale" or nameOrCol == 3:
+        if nameOrCol == "Locale" or nameOrCol == 2:
             self.Locale=val
             return
-        if nameOrCol == "GoHs" or nameOrCol == 4:
+        if nameOrCol == "GoHs" or nameOrCol == 3:
             self.GoHs=val
             return
         print("SetVal can't interpret '"+str(nameOrCol)+"'")
 
+
+
 ####################################################################################
 class ConSeries(GridDataSource):
-    _colheaders: List[str]=["Seq", "Name", "Dates", "Locale", "GoHs"]
-    _coldatatypes: List[str]=["int", "str", "date range", "str", "str"]
-    _colminwidths: List[int]=[30, 30, 30, 30, 30]
+    _colheaders: List[str]=["Name", "Dates", "Locale", "GoHs"]
+    _coldatatypes: List[str]=["url", "date range", "str", "str"]
+    _colminwidths: List[int]=[30, 30, 30, 30]
     _element=Con
 
     def __init__(self):

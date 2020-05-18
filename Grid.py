@@ -184,6 +184,7 @@ class Grid():
 
         val=self._grid.GetCellValue(row, col)
         # We skip testing for "str"-type columns since anything at all is OK in a str column
+
         if self._coldatatypes[col] == "int":
             if val is not None and val != "" and not IsInt(val):
                 self.SetCellBackgroundColor(row, col, Color.Pink)
