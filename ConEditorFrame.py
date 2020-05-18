@@ -339,7 +339,7 @@ LogOpen("Log -- ConEditor.txt", "Log (Errors) -- ConEditor.txt")
 
 f=FTP()
 f.OpenConnection("FTP Credentials.json")
-f.SetRoots(local="Convention publications", site="/public_html")
+f.SetRoot(local="Convention publications")
 
 
 app = wx.App(False)
