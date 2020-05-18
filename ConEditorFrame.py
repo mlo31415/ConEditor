@@ -180,13 +180,18 @@ class ConEditorFrame(GenConEditorFrame):
         self._grid._datasource=ConList()
 
         self.ProgressMessage("Loading Conventions.html")
-        #if FTP.g_ftp is None:
-        self._rootdir="./Convention publications"
-        cons=os.path.join(self._rootdir, "Conventions.html")
-        with open(cons) as f:
-            file=f.read()
-        #else:
-        #    file=FTP.GetFTP(".", "Convention publications", "Conventions.html")
+        if not FTP().CWD("/"):
+            Log("Bailing out...")
+        FTP().SetDirectory("public_html")
+        FTP().SetDirectory("Conpubs")
+        file=FTP().GetFTPA("Conventions.html")
+        if file is None:
+            self._rootdir="./Convention publications"
+            cons=os.path.join(self._rootdir, "Conventions.html")
+            with open(cons) as f:
+                file=f.read()
+
+
 
         # Get the JSON
         j=FindBracketedText(file, "fanac-json")[0]
@@ -243,9 +248,11 @@ class ConEditorFrame(GenConEditorFrame):
         self.Load()
 
         # Now try to FTP it
+        if not FTP().CWD("/"):
+            Log("Bailing out...")
         FTP().SetDirectory("public_html")
-        FTP().SetDirectory("Conpubs")
-        FTP().PutFTPAF("Conventions.html")
+        FTP().SetDirectory("Conpubs", create=True)
+        FTP().PutAF("Conventions.html")
 
     def OnButtonSortClick(self, event):            # ConEditorFrame
         lst=[]
@@ -257,6 +264,7 @@ class ConEditorFrame(GenConEditorFrame):
             row.Name=lst[i]
             i+=1
         self._grid.RefreshGridFromData()
+
 
     def OnButtonExitClick(self, event):            # ConEditorFrame
         self.Destroy()
