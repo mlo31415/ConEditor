@@ -48,7 +48,7 @@
             <property name="size">700,533</property>
             <property name="style">wxDEFAULT_DIALOG_STYLE</property>
             <property name="subclass">; ; forward_declare</property>
-            <property name="title">Edie Conventon Series</property>
+            <property name="title">Edit Conventon Series</property>
             <property name="tooltip"></property>
             <property name="window_extra_style"></property>
             <property name="window_name"></property>

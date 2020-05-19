@@ -24,6 +24,7 @@ class FTP:
     def SetRoot(self, local=""):
         FTP.g_localroot=local
 
+
     def UpdateCurpath(self, newdir: str) -> None:
         if newdir == "/":
             FTP.g_curdirpath="/"
@@ -37,6 +38,7 @@ class FTP:
             else:
                 FTP.g_curdirpath+="/"+newdir
 
+
     def CWD(self, newdir: str) -> bool:
         Log("cwd from '"+self.PWD()+"' to '"+newdir+"'")
         msg=self.g_ftp.cwd(newdir)
@@ -47,11 +49,13 @@ class FTP:
         self.PWD()
         return ret
 
+
     def MKD(self, newdir: str) -> bool:
         Log("make directory: '"+newdir+"'")
         msg=self.g_ftp.mkd(newdir)
         Log(msg)
         return msg.startswith("250 OK.")
+
 
     def PWD(self) -> str:
         dir=self.g_ftp.pwd()
@@ -63,6 +67,7 @@ class FTP:
             Log("PWD: error detected -- self._curdirpath='"+self.g_curdirpath+"' and pwd returns '"+dir+"'")
             assert False
         return dir
+
 
     def CWDable(self, filedir: str) -> bool:
         Log("Does '"+filedir+"' exist?")
@@ -76,6 +81,8 @@ class FTP:
 
 
     #-------------------------------
+    # Setting create=True allows the creation of new directories as needed
+    # Newdir can be a whole path starting with "/" or a path relative to the current directory if it doesn't starts with a "/"
     def SetDirectory(self, newdir: str, create: bool=False) -> bool:
         Log("SetDirectory: "+newdir)
 
@@ -110,9 +117,7 @@ class FTP:
 
 
     #-------------------------------
-    # Move a string to the Conventions FTP site or get a string from it
-    # We map the local directory  ./Convention publications  to fanac.org/Cons
-    # These two functions rely on the global g_ftp being defined and open
+    # Copy the local file fname to fanac.org in the current directory and with the same name
     def PutAF(self, fname: str) -> bool:
         if self.g_ftp is None:
             Log("FTP not initialized")
@@ -124,7 +129,8 @@ class FTP:
             Log(self.g_ftp.storbinary("STOR "+fname, f))
 
 
-    def GetFTPA(self, fname: str) -> Optional[str]:
+    # Download the ascii file named fname in the current directory on fanac.org into a string
+    def GetAS(self, fname: str) -> Optional[str]:
         if self.g_ftp is None:
             Log("FTP not initialized")
             return None
@@ -138,5 +144,3 @@ class FTP:
         Log('RETR '+fname+" -> "+status)
         Log(out)
         return out
-
-

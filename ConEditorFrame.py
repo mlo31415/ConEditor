@@ -11,7 +11,7 @@ from Grid import Grid, GridDataSource
 from ConSeriesFramePage import MainConSeriesFrame
 from FTP import FTP
 
-from HelpersPackage import SubstituteHTML, FindBracketedText
+from HelpersPackage import SubstituteHTML, FindBracketedText, FormatLink
 from Log import LogOpen, Log
 
 class Convention:
@@ -182,7 +182,7 @@ class ConEditorFrame(GenConEditorFrame):
         self.ProgressMessage("Loading Conventions.html")
         if not FTP().SetDirectory("/public_html/Conpubs"):
             Log("Bailing out...")
-        file=FTP().GetFTPA("Conventions.html")
+        file=FTP().GetAS("Conventions.html")
         if file is None:
             self._rootdir="./Convention publications"
             cons=os.path.join(self._rootdir, "Conventions.html")
@@ -232,20 +232,23 @@ class ConEditorFrame(GenConEditorFrame):
         newtable+='  <tbody>\n'
         for row in self._grid._datasource.Rows:
             newtable+="    <tr>\n"
-            newtable+='      <td>'+row.Name+'</td>\n'
+            newtable+='      <td>'+FormatLink(row.URL, row.Name)+'</td>\n'
             newtable+="    </tr>\n"
         newtable+="    </tbody>\n"
         newtable+="  </table>\n"
 
+        # Substitue the table into the template
         file=SubstituteHTML(file, "pdq", newtable)
+        # Store the json for the page into the template
         file=SubstituteHTML(file, "fanac-json", self.ToJson())
+        # Save the template as Conventions.html
         with open(os.path.join(self._rootdir, "Conventions.html"), "w+") as f:
             f.write(file)
 
-        # And then reload
+        # And then reload the GUI
         self.Load()
 
-        # Now try to FTP it
+        # Now try to FTP the same data we saved to the file up to fanac.org
         if not FTP().SetDirectory("/public_html/Conpubs"):#, create=True):
             Log("Bailing out...")
         FTP().PutAF("Conventions.html")
@@ -283,7 +286,7 @@ class ConEditorFrame(GenConEditorFrame):
     # ------------------
     def OnGridCellDoubleClick(self, event):            # ConEditorFrame
         if event.GetRow() > self._grid._datasource.NumRows:
-            return      # For now, we do nothing when you double-click in an emppty cell
+            return      # For now, we do nothing when you double-click in an empty cell
         self.rightClickedColumn=event.GetCol()
         self.rightClickedRow=event.GetRow()
         conseriesname=self._grid._datasource.GetData(self.rightClickedRow, 0)
@@ -291,7 +294,7 @@ class ConEditorFrame(GenConEditorFrame):
 #        dlg.tConInstanceName.Value=name
 #        dlg.LoadConInstancePage(self._rootdir, self._seriesname, name)
         dlg.ShowModal()
-        self._grid._datasource.Rows[self.rightClickedRow].URL=conseriesname
+        self._grid._datasource.Rows[self.rightClickedRow].URL="./"+conseriesname+"/"+conseriesname+".html"
         pass
 
     # ------------------
