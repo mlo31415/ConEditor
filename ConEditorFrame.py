@@ -139,7 +139,7 @@ class ConEditorFrame(GenConEditorFrame):
         self.userSelection=None
         self.cntlDown: bool=False
         self.rightClickedColumn: Optional[int]=None
-        self._rootdir: str=""
+        self._baseDirFTP: str="./Convention publications"
 
         self._grid: Grid=Grid(self.gRowGrid)
         self._grid._datasource=ConList()
@@ -184,8 +184,7 @@ class ConEditorFrame(GenConEditorFrame):
             Log("Bailing out...")
         file=FTP().GetAS("Conventions.html")
         if file is None:
-            self._rootdir="./Convention publications"
-            cons=os.path.join(self._rootdir, "Conventions.html")
+            cons=os.path.join(self._baseDirFTP, "Conventions.html")
             with open(cons) as f:
                 file=f.read()
 
@@ -242,7 +241,7 @@ class ConEditorFrame(GenConEditorFrame):
         # Store the json for the page into the template
         file=SubstituteHTML(file, "fanac-json", self.ToJson())
         # Save the template as Conventions.html
-        with open(os.path.join(self._rootdir, "Conventions.html"), "w+") as f:
+        with open(os.path.join(self._baseDirFTP, "Conventions.html"), "w+") as f:
             f.write(file)
 
         # And then reload the GUI
@@ -290,7 +289,7 @@ class ConEditorFrame(GenConEditorFrame):
         self.rightClickedColumn=event.GetCol()
         self.rightClickedRow=event.GetRow()
         conseriesname=self._grid._datasource.GetData(self.rightClickedRow, 0)
-        dlg=MainConSeriesFrame(self._rootdir, conseriesname)
+        dlg=MainConSeriesFrame(self._baseDirFTP, conseriesname)
 #        dlg.tConInstanceName.Value=name
 #        dlg.LoadConInstancePage(self._rootdir, self._seriesname, name)
         dlg.ShowModal()

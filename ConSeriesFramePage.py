@@ -10,17 +10,16 @@ from urllib.request import urlopen
 import json
 
 from GenConSeriesFrame import GenConSeriesFrame
+from FTP import FTP
+from ConSeries import ConSeries, Con
+from Grid import Grid
+from dlgEnterFancyName import dlgEnterFancyName
+from ConInstanceFramePage import MainConDialogClass
 
 from HelpersPackage import Bailout, StripExternalTags, SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, UnformatLinks, RemoveAllHTMLTags
 from HelpersPackage import FindIndexOfStringInList
-from Log import LogOpen
+from Log import Log
 from FanzineIssueSpecPackage import FanzineDateRange
-
-from ConSeries import ConSeries, Con
-from Grid import Grid
-
-from dlgEnterFancyName import dlgEnterFancyName
-from ConInstanceFramePage import MainConDialogClass
 
 
 #####################################################################################
@@ -40,14 +39,14 @@ class dlgEnterFancyNameWindow(dlgEnterFancyName):
 
 #####################################################################################
 class MainConSeriesFrame(GenConSeriesFrame):
-    def __init__(self, rootdir, conseriesname):
+    def __init__(self, basedirFTP, conseriesname):
         GenConSeriesFrame.__init__(self, None)
 
         self.userSelection=None
         self.cntlDown: bool=False
         self.rightClickedColumn: Optional[int]=None
         self._seriesname: str=conseriesname
-        self._rootdir: str=rootdir
+        self._basedirectoryFTP: str=basedirFTP
 
         self._grid: Grid=Grid(self.gRowGrid)
         self._grid._datasource=ConSeries()
@@ -60,8 +59,8 @@ class MainConSeriesFrame(GenConSeriesFrame):
         self._textFancyURL: str=""
         self._textComments: str=""
 
-        if len(conseriesname) > 0 and len(rootdir) > 0:
-            self.LoadConSeries(rootdir, conseriesname)
+        if len(conseriesname) > 0 and len(basedirFTP) > 0:
+            self.LoadConSeries(conseriesname)
 
         self._grid.RefreshGridFromData()
 
@@ -75,7 +74,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
            "_textFancyURL": self._textFancyURL,
            "_textComments": self._textComments,
            "_filename": self._seriesname,
-           "_dirname": self._rootdir,
+           "_dirname": self._basedirectoryFTP,
            "_datasource": self._grid._datasource.ToJson()}
         return json.dumps(d)
 
@@ -99,32 +98,27 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
     #------------------
     # Download a ConSeries
-    def LoadConSeries(self, rootdir, seriesname) -> None:                    # MainConSeriesFrame
+    def LoadConSeries(self, seriesname) -> None:                    # MainConSeriesFrame
 
         # Clear out any old information
         self._grid._datasource=ConSeries()
 
         if seriesname is None or len(seriesname) == 0:
             assert(False)   # Never take this branch.  Delete when I'm sure.
-            # Call the File Open dialog to get an con series HTML file
-            dlg=wx.FileDialog(self, "Select con series file to load", self._rootdir, "", "*.html", style=wx.FD_OPEN|wx.STAY_ON_TOP)
+        if self._basedirectoryFTP is None or len(self._basedirectoryFTP) == 0:
+            assert(False)   # Never take this branch.  Delete when I'm sure.
 
-            val=dlg.ShowModal()
-            if val == wx.ID_CANCEL:
-                return
-
-            self._seriesname=dlg.GetFilename()
-            self._rootdir=dlg.GetDirectory()
-            dlg.Destroy()
-        else:
-            self._seriesname=seriesname
-            self._rootdir=rootdir
+#        self._seriesname=seriesname
 
         self.ProgressMessage("Loading "+self._seriesname+".html")
-        pathname=os.path.join(self._rootdir, self._seriesname, self._seriesname)+".html"
-        if os.path.exists(pathname):
-            with open(pathname) as f:
-                file=f.read()
+        file=None
+        if not FTP().SetDirectory("/public_html/Conpubs"+"/"+self._seriesname):
+            Log("Bailing out...")
+        file=FTP().GetAS(self._seriesname+".html")
+
+        pathname=os.path.join(self._basedirectoryFTP, self._seriesname, self._seriesname)+".html"
+
+        if file is not None:
 
             # Get the JSON from the file
             j=FindBracketedText(file, "fanac-json")[0]
@@ -204,14 +198,14 @@ class MainConSeriesFrame(GenConSeriesFrame):
     def OnSaveConSeries(self, event):                    # MainConSeriesFrame
         # Rename the old file
         wait=wx.BusyCursor()
-        oldname=os.path.join(self._rootdir, self._seriesname, os.path.splitext(self._seriesname)[0]+".html")        # Make sure we have the proper extension
-        newname=os.path.join(self._rootdir, self._seriesname, os.path.splitext(self._seriesname)[0]+"-old.html")
+        oldname=os.path.join(self._basedirectoryFTP, self._seriesname, os.path.splitext(self._seriesname)[0]+".html")        # Make sure we have the proper extension
+        newname=os.path.join(self._basedirectoryFTP, self._seriesname, os.path.splitext(self._seriesname)[0]+"-old.html")
         if os.path.exists(oldname):
             try:
                 i=0
                 while os.path.exists(newname):
                     i+=1
-                    newname=os.path.join(self._rootdir, self._seriesname, os.path.splitext(self._seriesname)[0]+"-old-"+str(i)+".html")
+                    newname=os.path.join(self._basedirectoryFTP, self._seriesname, os.path.splitext(self._seriesname)[0]+"-old-"+str(i)+".html")
 
                 os.rename(oldname, newname)
             except:
@@ -327,9 +321,9 @@ class MainConSeriesFrame(GenConSeriesFrame):
             if "Name" in self._grid._datasource.ColHeaders:
                 col=self._grid._datasource.ColHeaders.index("Name")
                 name=self._grid._datasource.GetData(row, col)
-        dlg=MainConDialogClass(self._rootdir, self._seriesname, name)
+        dlg=MainConDialogClass(self._basedirectoryFTP, self._seriesname, name)
         dlg.tConInstanceName.Value=name
-        dlg.LoadConInstancePage(self._rootdir, self._seriesname, name)
+        dlg.LoadConInstancePage(self._basedirectoryFTP, self._seriesname, name)
         dlg.ShowModal()
         cal=dlg.ReturnValue
         if cal == wx.ID_OK:
