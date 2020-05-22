@@ -291,7 +291,6 @@ class ConEditorFrame(GenConEditorFrame):
         conseriesname=self._grid._datasource.GetData(self.rightClickedRow, 0)
         dlg=MainConSeriesFrame(self._baseDirFTP, conseriesname)
 #        dlg.tConInstanceName.Value=name
-#        dlg.LoadConInstancePage(self._rootdir, self._seriesname, name)
         dlg.ShowModal()
         self._grid._datasource.Rows[self.rightClickedRow].URL="./"+conseriesname+"/"+conseriesname+".html"
         pass

@@ -14,7 +14,7 @@ from FTP import FTP
 from ConSeries import ConSeries, Con
 from Grid import Grid
 from dlgEnterFancyName import dlgEnterFancyName
-from ConInstanceFramePage import MainConDialogClass
+from ConInstanceFramePage import MainConInstanceDialogClass
 
 from HelpersPackage import Bailout, StripExternalTags, SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, UnformatLinks, RemoveAllHTMLTags
 from HelpersPackage import FindIndexOfStringInList
@@ -321,9 +321,8 @@ class MainConSeriesFrame(GenConSeriesFrame):
             if "Name" in self._grid._datasource.ColHeaders:
                 col=self._grid._datasource.ColHeaders.index("Name")
                 name=self._grid._datasource.GetData(row, col)
-        dlg=MainConDialogClass(self._basedirectoryFTP, self._seriesname, name)
+        dlg=MainConInstanceDialogClass(self._basedirectoryFTP+"/"+ self._seriesname, self._seriesname, name)
         dlg.tConInstanceName.Value=name
-        dlg.LoadConInstancePage(self._basedirectoryFTP, self._seriesname, name)
         dlg.ShowModal()
         cal=dlg.ReturnValue
         if cal == wx.ID_OK:

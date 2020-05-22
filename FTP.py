@@ -69,7 +69,7 @@ class FTP:
         return dir
 
 
-    def CWDable(self, filedir: str) -> bool:
+    def Exists(self, filedir: str) -> bool:
         Log("Does '"+filedir+"' exist?")
         if filedir == "/":
             return True     # "/" always exists
@@ -99,7 +99,7 @@ class FTP:
         # Now walk the component list
         for component in components:
             # Does the directory exist?
-            if not self.CWDable(component):
+            if not self.Exists(component):
                 # If not, are we allowed to create it"
                 if not create:
                     Log("SetDirectory was called with create=False")

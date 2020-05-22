@@ -5,12 +5,14 @@ import json
 from GenConInstanceFrame import GenConInstanceFrame
 from Grid import Grid
 from ConInstance import ConInstancePage, ConFile
+from FTP import FTP
 
-from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname
+from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, Log
 
 #####################################################################################
-class MainConDialogClass(GenConInstanceFrame):
-    def __init__(self, rootdir, seriesname, coninstancename):
+class MainConInstanceDialogClass(GenConInstanceFrame):
+
+    def __init__(self, basedirFTP, seriesname, coninstancename):
         GenConInstanceFrame.__init__(self, None)
         self._grid: Grid=Grid(self.gRowGrid)
         self._grid._datasource=ConInstancePage()
@@ -19,14 +21,19 @@ class MainConDialogClass(GenConInstanceFrame):
         self._grid.SetColTypes(self._grid._datasource.ColDataTypes)
         self._grid._grid.HideRowLabels()
 
+        self._FTPbasedir=basedirFTP
+        self._seriesname=seriesname
+        self._coninstancename=coninstancename
+
+        self.LoadConInstancePage()
+
         self._grid.RefreshGridFromData()
         self.ConInstanceName=""
         self.ConInstanceStuff=""
         self.ConInstanceFancyURL=""
         self.ReturnValue=None
-        self._rootdir=rootdir
-        self._seriesname=seriesname
-        self._filename=coninstancename
+
+
 
 
     # Serialize and deserialize
@@ -129,40 +136,22 @@ class MainConDialogClass(GenConInstanceFrame):
 
     #------------------
     # Download a ConSeries
-    def LoadConInstancePage(self, rootdir: str, seriesname: str, fname: str) -> None:
+    def LoadConInstancePage(self) -> None:
 
         # Clear out any old information
         self._grid._datasource=ConInstancePage()
 
-        # Look to see if name is the name of a file
-        if fname is not None and fname != "":
-            base=os.path.splitext(fname)[0]
-            self.filename=base
-            self._rootdir=rootdir
-            self._seriesname=seriesname
-        else:
-            # Call the File Open dialog to get a con series HTML file
-            if self._rootdir is None or self._rootdir == "":
-                return
-            dlg=wx.FileDialog(self, "Select con series file to load", self._rootdir, "", "*.htm", wx.FD_OPEN)
-            dlg.SetWindowStyle(wx.STAY_ON_TOP)
+        # Read the existing CIP
+        #self.ProgressMessage("Loading "+self._seriesname+".html")
+        file=None
+        if not FTP().SetDirectory(self._FTPbasedir+"/"+self._seriesname):
+            Log("Bailing out...")
 
-            if dlg.ShowModal() == wx.ID_CANCEL:
-                dlg.Raise()
-                dlg.Destroy()
-                return
-
-            self.filename=dlg.GetFilename()
-            self._rootdir=dlg.GetDirectory()
-            dlg.Destroy()
-
-        pathname=os.path.join(self._rootdir, self._seriesname, fname, fname)+".htm"
-        if not os.path.exists(pathname):
+        if not FTP().Exists(self._coninstancename+".html"):
+            Log("Can't find "+self._coninstancename+".html")
             return  # Just return with the ConInstance page empty
 
-        # Read the existing CIP
-        with open(pathname) as f:
-            file=f.read()
+        file=FTP().GetAS(self._seriesname+".html")
 
         # Get the JSON
         j=FindBracketedText(file, "fanac-json")[0]
