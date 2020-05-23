@@ -133,8 +133,8 @@ class FTP:
 
         localfname="temp/"+fname
         Log("STOR "+fname+"  from "+localfname)
-        with open(localfname, "r") as f:
-            Log(self.g_ftp.storlines("STOR "+fname, f))
+        with open(localfname, "rb") as f:
+            Log(self.g_ftp.storbinary("STOR "+fname, f))
 
 
     # Download the ascii file named fname in the current directory on fanac.org into a string

@@ -24,13 +24,13 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self._FTPbasedir=basedirFTP
         self._seriesname=seriesname
         self._coninstancename=coninstancename
+        self.ConInstanceName=""
+        self.ConInstanceStuff=""
+        self.ConInstanceFancyURL=""
 
         self.LoadConInstancePage()
 
         self._grid.RefreshGridFromData()
-        self.ConInstanceName=""
-        self.ConInstanceStuff=""
-        self.ConInstanceFancyURL=""
         self.ReturnValue=None
 
 
@@ -84,6 +84,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self.EndModal(self.ReturnValue)
         self.Close()
 
+
     def SaveConInstancePage(self, filename: str) -> None:
         # First read in the template
         file=None
@@ -130,8 +131,10 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
         file=SubstituteHTML(file, "fanac-table", newtable)
 
-        with open(filename, "w+") as f: #TODO: FTPize
-            f.write(file)
+        # Now try to FTP the data to fanac.org
+        if not FTP().SetDirectory("/public_html/Conpubs/"+self._seriesname+"/"+self._coninstancename):#, create=True):
+            Log("Bailing out...")
+        FTP().PutString("index.html", file)
 
 
     #------------------
