@@ -166,7 +166,6 @@ class MainConSeriesFrame(GenConSeriesFrame):
         newtable='<table class="table">\n'
         newtable+="  <thead>\n"
         newtable+="    <tr>\n"
-        newtable+='      <th scope="col">#</th>\n'
         newtable+='      <th scope="col">Conventions</th>\n'
         newtable+='      <th scope="col">Dates</th>\n'
         newtable+='      <th scope="col">Location</th>\n'
@@ -178,7 +177,6 @@ class MainConSeriesFrame(GenConSeriesFrame):
             if (row.URL is None or row.URL == "") and not showempty:    # Skip empty cons?
                 continue
             newtable+="    <tr>\n"
-            newtable+='      <th scope="row">'+str(row.Seq)+'</th>\n'
             if row.URL is None or row.URL == "":
                 newtable+='      <td>'+row.Name+'</td>\n'
             else:
