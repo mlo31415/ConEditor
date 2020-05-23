@@ -192,8 +192,10 @@ class MainConSeriesFrame(GenConSeriesFrame):
         file=SubstituteHTML(file, "fanac-json", self.ToJson())
 
 
-        # And upload it
-
+        # Now try to FTP the data up to fanac.org
+        if not FTP().SetDirectory("/public_html/Conpubs/"+self._seriesname):#, create=True):
+            Log("Bailing out...")
+        FTP().PutString("index.html", file)
 
     #------------------
     # Save a con series object to disk.
