@@ -72,20 +72,15 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         dlg.Destroy()
         self._grid.RefreshGridFromData()
 
+
     def OnSaveConInstance(self, event):
-        fname=self.tConInstanceName.Value
-        if fname is None or fname == "":
-            wx.MessageBox("No convention instance name supplied!")
-            return
-        base=os.path.splitext(fname)[0]
-        fname=base+".htm"   # We use "htm" here temporarily so it's easy to distinguish ConSeres pages from conInstance pages
-        self.SaveConInstancePage(fname)   #TODO: Need to make name cannonical
+        self.SaveConInstancePage()
         self.ReturnValue=wx.ID_OK
         self.EndModal(self.ReturnValue)
         self.Close()
 
 
-    def SaveConInstancePage(self, filename: str) -> None:
+    def SaveConInstancePage(self) -> None:
         # First read in the template
         file=None
         with open("Template-ConPage.html") as f:
