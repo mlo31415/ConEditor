@@ -148,8 +148,8 @@ class FTP:
 
         localfname="temp/"+fname
         Log("RETR "+fname+"  to "+localfname)
-        with open(localfname, "w+") as f:
-            Log(self.g_ftp.retrlines("RETR "+fname, f.write))
+        with open(localfname, "wb+") as f:
+            Log(self.g_ftp.retrbinary("RETR "+fname, f.write))
 
         with open(localfname, "r") as f:
             out=f.readlines()
