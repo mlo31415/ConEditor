@@ -230,7 +230,6 @@ class Grid():
     # Oldrow is the 1st row of the block to be moved
     # Newrow is the target position to which oldrow is moved
     def MoveRows(self, oldrow, numrows, newrow):        # Grid
-        #TODO: Allow moves beyond the last row
         if newrow <= 0:
             # The old rows are being moved to the beginning
             newrows=self._datasource.Rows[oldrow:oldrow+numrows]
