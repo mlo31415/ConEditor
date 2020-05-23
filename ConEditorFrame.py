@@ -139,7 +139,7 @@ class ConEditorFrame(GenConEditorFrame):
         self.userSelection=None
         self.cntlDown: bool=False
         self.rightClickedColumn: Optional[int]=None
-        self._baseDirFTP: str="/public_html/Conpubs"
+        self._baseDirFTP: str=""
 
         self._grid: Grid=Grid(self.gRowGrid)
         self._grid._datasource=ConList()
@@ -180,20 +180,20 @@ class ConEditorFrame(GenConEditorFrame):
         self._grid._datasource=ConList()
 
         self.ProgressMessage("Loading root/index.html")
-        if not FTP().SetDirectory("/public_html/Conpubs"):
+        if not FTP().SetDirectory(""):
             Log("Bailing out...")
         file=FTP().GetAsString("index.html")
 
         # Get the JSON
         j=FindBracketedText(file, "fanac-json")[0]
         if j is None or j == "":
-            wx.MessageBox("Can't load convention information from /public_html/Conpubs/index.html")
+            wx.MessageBox("Can't load convention information from Conpubs' index.html")
             return
 
         try:
             self.FromJson(j)
         except (json.decoder.JSONDecodeError):
-            wx.MessageBox("JSONDecodeError when loading convention information from /public_html/Conpubs/index.html")
+            wx.MessageBox("JSONDecodeError when loading convention information from Conpubs' index.html")
             return
 
         # Insert the row data into the grid
@@ -239,7 +239,7 @@ class ConEditorFrame(GenConEditorFrame):
         self.Load()     #TODO: Is this needed?
 
         # Now try to FTP the same data we saved to the file up to fanac.org
-        if not FTP().SetDirectory("/public_html/Conpubs"):#, create=True):
+        if not FTP().SetDirectory("/"):
             Log("Bailing out...")
         FTP().PutString("index.html", file)
 
@@ -328,7 +328,7 @@ LogOpen("Log -- ConEditor.txt", "Log (Errors) -- ConEditor.txt")
 
 f=FTP()
 f.OpenConnection("FTP Credentials.json")
-f.SetRoot(local="/public_html/Conpubs")
+f.SetRoot(local="")
 
 
 app = wx.App(False)

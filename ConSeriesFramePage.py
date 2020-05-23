@@ -59,7 +59,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
         self._textFancyURL: str=""
         self._textComments: str=""
 
-        if len(conseriesname) > 0 and len(basedirFTP) > 0:
+        if len(conseriesname) > 0:
             self.LoadConSeries(conseriesname)
 
         self._grid.RefreshGridFromData()
@@ -105,18 +105,20 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
         if seriesname is None or len(seriesname) == 0:
             assert(False)   # Never take this branch.  Delete when I'm sure.
-        if self._basedirectoryFTP is None or len(self._basedirectoryFTP) == 0:
+        if self._basedirectoryFTP is None:
             assert(False)   # Never take this branch.  Delete when I'm sure.
 
 #        self._seriesname=seriesname
 
         self.ProgressMessage("Loading "+self._seriesname+"/index.html")
         file=None
-        if not FTP().SetDirectory("/public_html/Conpubs"+"/"+self._seriesname):
+        if not FTP().SetDirectory("/"+self._seriesname):
             Log("Bailing out...")
         file=FTP().GetAsString("index.html")
 
-        pathname=os.path.join(self._basedirectoryFTP, self._seriesname)+"/index.html"
+        pathname=self._seriesname+"/index.html"
+        if len(self._basedirectoryFTP) > 0:
+            pathname=self._basedirectoryFTP+"/"+pathname
 
         if file is not None:
 
@@ -193,7 +195,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
 
         # Now try to FTP the data up to fanac.org
-        if not FTP().SetDirectory("/public_html/Conpubs/"+self._seriesname):#, create=True):
+        if not FTP().SetDirectory(self._seriesname):#, create=True):
             Log("Bailing out...")
         FTP().PutString("index.html", file)
 

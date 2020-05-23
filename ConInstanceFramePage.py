@@ -127,7 +127,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         file=SubstituteHTML(file, "fanac-table", newtable)
 
         # Now try to FTP the data to fanac.org
-        if not FTP().SetDirectory("/public_html/Conpubs/"+self._seriesname+"/"+self._coninstancename):#, create=True):
+        if not FTP().SetDirectory(self._seriesname+"/"+self._coninstancename):#, create=True):
             Log("Bailing out...")
         FTP().PutString("index.html", file)
 
