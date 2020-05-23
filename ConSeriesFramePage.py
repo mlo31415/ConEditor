@@ -110,13 +110,13 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
 #        self._seriesname=seriesname
 
-        self.ProgressMessage("Loading "+self._seriesname+".html")
+        self.ProgressMessage("Loading "+self._seriesname+"/index.html")
         file=None
         if not FTP().SetDirectory("/public_html/Conpubs"+"/"+self._seriesname):
             Log("Bailing out...")
-        file=FTP().GetAS(self._seriesname+".html")
+        file=FTP().GetAsString("index.html")
 
-        pathname=os.path.join(self._basedirectoryFTP, self._seriesname, self._seriesname)+".html"
+        pathname=os.path.join(self._basedirectoryFTP, self._seriesname)+"/index.html"
 
         if file is not None:
 
@@ -145,7 +145,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
 
     #-------------------
-    def SaveConSeries(self, filename: str) -> None:                    # MainConSeriesFrame
+    def SaveConSeries(self) -> None:                    # MainConSeriesFrame
         # First read in the template
         file=None
         with open("Template-ConSeries.html.html") as f:
@@ -180,7 +180,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
             if row.URL is None or row.URL == "":
                 newtable+='      <td>'+row.Name+'</td>\n'
             else:
-                newtable+='      <td>'+FormatLink(row.URL+".htm", row.Name)+'</td>\n'
+                newtable+='      <td>'+FormatLink(row.URL+"/index.html", row.Name)+'</td>\n'
             newtable+='      <td>'+str(row.Dates)+'</td>\n'
             newtable+='      <td>'+row.Locale+'</td>\n'
             newtable+='      <td>'+row.GoHs+'</td>\n'
@@ -190,31 +190,17 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
         file=SubstituteHTML(file, "pdq", newtable)
         file=SubstituteHTML(file, "fanac-json", self.ToJson())
-        with open(filename, "w+") as f:
-            f.write(file)
+
+
+        # And upload it
+
 
     #------------------
     # Save a con series object to disk.
     def OnSaveConSeries(self, event):                    # MainConSeriesFrame
         # Rename the old file
         wait=wx.BusyCursor()
-        oldname=os.path.join(self._basedirectoryFTP, self._seriesname, os.path.splitext(self._seriesname)[0]+".html")        # Make sure we have the proper extension
-        newname=os.path.join(self._basedirectoryFTP, self._seriesname, os.path.splitext(self._seriesname)[0]+"-old.html")
-        if os.path.exists(oldname):
-            try:
-                i=0
-                while os.path.exists(newname):
-                    i+=1
-                    newname=os.path.join(self._basedirectoryFTP, self._seriesname, os.path.splitext(self._seriesname)[0]+"-old-"+str(i)+".html")
-
-                os.rename(oldname, newname)
-            except:
-                Bailout(PermissionError, "OnSaveConseries fails when trying to rename "+oldname+" to "+newname, "ConEditorError")
-
-        try:
-            self.SaveConSeries(oldname)
-        except:
-            Bailout(PermissionError, "OnSaveConseries fails when trying to write file "+oldname, "ConEditorError")
+        self.SaveConSeries()
         del wait    # End the wait cursor
 
 

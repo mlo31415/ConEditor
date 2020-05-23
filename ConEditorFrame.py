@@ -139,7 +139,7 @@ class ConEditorFrame(GenConEditorFrame):
         self.userSelection=None
         self.cntlDown: bool=False
         self.rightClickedColumn: Optional[int]=None
-        self._baseDirFTP: str="./Convention publications"
+        self._baseDirFTP: str="/public_html/Conpubs"
 
         self._grid: Grid=Grid(self.gRowGrid)
         self._grid._datasource=ConList()
@@ -179,32 +179,26 @@ class ConEditorFrame(GenConEditorFrame):
         # Clear out any old information
         self._grid._datasource=ConList()
 
-        self.ProgressMessage("Loading Conventions.html")
+        self.ProgressMessage("Loading root/index.html")
         if not FTP().SetDirectory("/public_html/Conpubs"):
             Log("Bailing out...")
-        file=FTP().GetAS("Conventions.html")
-        if file is None:
-            cons=os.path.join(self._baseDirFTP, "Conventions.html")
-            with open(cons) as f:
-                file=f.read()
-
-
+        file=FTP().GetAsString("index.html")
 
         # Get the JSON
         j=FindBracketedText(file, "fanac-json")[0]
         if j is None or j == "":
-            wx.MessageBox("Can't load convention information from "+cons)
+            wx.MessageBox("Can't load convention information from /public_html/Conpubs/index.html")
             return
 
         try:
             self.FromJson(j)
         except (json.decoder.JSONDecodeError):
-            wx.MessageBox("JSONDecodeError when loading convention information from "+cons)
+            wx.MessageBox("JSONDecodeError when loading convention information from /public_html/Conpubs/index.html")
             return
 
         # Insert the row data into the grid
         self._grid.RefreshGridFromData()
-        self.ProgressMessage("Conventions.html Loaded")
+        self.ProgressMessage("root/index.html Loaded")
 
 
     def OnButtonSaveClick(self, event):            # ConEditorFrame
@@ -236,21 +230,19 @@ class ConEditorFrame(GenConEditorFrame):
         newtable+="    </tbody>\n"
         newtable+="  </table>\n"
 
-        # Substitue the table into the template
+        # Substitute the table into the template
         file=SubstituteHTML(file, "pdq", newtable)
         # Store the json for the page into the template
         file=SubstituteHTML(file, "fanac-json", self.ToJson())
-        # Save the template as Conventions.html
-        with open(os.path.join(self._baseDirFTP, "Conventions.html"), "w+") as f:
-            f.write(file)
 
         # And then reload the GUI
-        self.Load()
+        self.Load()     #TODO: Is this needed?
 
         # Now try to FTP the same data we saved to the file up to fanac.org
         if not FTP().SetDirectory("/public_html/Conpubs"):#, create=True):
             Log("Bailing out...")
-        FTP().PutAF("Conventions.html")
+        FTP().PutString("index.html", file)
+
 
     def OnButtonSortClick(self, event):            # ConEditorFrame
         lst=[]
@@ -336,7 +328,7 @@ LogOpen("Log -- ConEditor.txt", "Log (Errors) -- ConEditor.txt")
 
 f=FTP()
 f.OpenConnection("FTP Credentials.json")
-f.SetRoot(local="Convention publications")
+f.SetRoot(local="/public_html/Conpubs")
 
 
 app = wx.App(False)

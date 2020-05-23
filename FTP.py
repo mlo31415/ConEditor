@@ -118,29 +118,41 @@ class FTP:
 
     #-------------------------------
     # Copy the local file fname to fanac.org in the current directory and with the same name
-    def PutAF(self, fname: str) -> bool:
+    def PutString(self, fname: str, s: str) -> bool:
         if self.g_ftp is None:
             Log("FTP not initialized")
             return False
 
-        localfname=FTP.g_localroot+"/"+fname
+        if not os.path.exists("temp") or not os.path.isdir("temp"):
+            os.mkdir("temp")
+        localfname="temp/"+fname
+
+        # Save the string as a local file
+        with open(localfname, "w+") as f:
+            f.write(s)
+
+        localfname="temp/"+fname
         Log("STOR "+fname+"  from "+localfname)
-        with open(localfname, "rb") as f:
-            Log(self.g_ftp.storbinary("STOR "+fname, f))
+        with open(localfname, "r") as f:
+            Log(self.g_ftp.storlines("STOR "+fname, f))
 
 
     # Download the ascii file named fname in the current directory on fanac.org into a string
-    def GetAS(self, fname: str) -> Optional[str]:
+    def GetAsString(self, fname: str) -> Optional[str]:
         if self.g_ftp is None:
             Log("FTP not initialized")
             return None
 
-        global out
-        out=""
-        def my_function(data):
-            global out
-            out+=data
-        status=self.g_ftp.retrlines('RETR '+fname, callback=my_function)
-        Log('RETR '+fname+" -> "+status)
+        if not os.path.exists("temp") or not os.path.isdir("temp"):
+            os.mkdir("temp")
+
+        localfname="temp/"+fname
+        Log("RETR "+fname+"  to "+localfname)
+        with open(localfname, "w+") as f:
+            Log(self.g_ftp.retrlines("RETR "+fname, f.write))
+
+        with open(localfname, "r") as f:
+            out=f.readlines()
+        out="/n".join(out)
         Log(out)
         return out

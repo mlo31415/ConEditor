@@ -130,7 +130,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
         file=SubstituteHTML(file, "fanac-table", newtable)
 
-        with open(filename, "w+") as f:
+        with open(filename, "w+") as f: #TODO: FTPize
             f.write(file)
 
 
@@ -142,16 +142,16 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self._grid._datasource=ConInstancePage()
 
         # Read the existing CIP
-        #self.ProgressMessage("Loading "+self._seriesname+".html")
+        #self.ProgressMessage("Loading "+self._FTPbasedir+"/"+"index.html")
         file=None
-        if not FTP().SetDirectory(self._FTPbasedir+"/"+self._seriesname):
+        if not FTP().SetDirectory(self._FTPbasedir+"/"+self._coninstancename):
             Log("Bailing out...")
 
-        if not FTP().Exists(self._coninstancename+".html"):
-            Log("Can't find "+self._coninstancename+".html")
+        if not FTP().Exists("index.html"):
+            Log("Can't find index.html")
             return  # Just return with the ConInstance page empty
 
-        file=FTP().GetAS(self._seriesname+".html")
+        file=FTP().GetAsString("index.html")
 
         # Get the JSON
         j=FindBracketedText(file, "fanac-json")[0]
