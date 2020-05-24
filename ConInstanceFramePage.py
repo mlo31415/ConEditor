@@ -70,7 +70,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         for fn in dlg.GetFilenames():
             conf=ConFile()
             conf.DisplayTitle=fn
-            conf.LocalPathname=os.path.join(os.path.join(dlg.GetDirectory(), self.ConInstanceName), fn)
+            conf.LocalPathname=os.path.join(os.path.join(dlg.Directory), fn)
             conf.Filename=fn
             self._grid._datasource.Rows.append(conf)
         dlg.Destroy()
@@ -89,6 +89,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         file=None
         with open("Template-ConPage.html") as f:
             file=f.read()
+
 
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name is tagged with <abc>, the random text with "xyz"
