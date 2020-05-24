@@ -150,9 +150,11 @@ class MainConSeriesFrame(GenConSeriesFrame):
     #-------------------
     def SaveConSeries(self) -> None:                    # MainConSeriesFrame
         # First read in the template
-        file=None
-        with open("Template-ConSeries.html") as f:
-            file=f.read()
+        try:
+            with open("Template-ConSeries.html") as f:
+                file=f.read()
+        except:
+            wx.MessageBox("Can't read 'Template-ConSeries.html'")
 
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name is tagged with <abc>, the random text with "xyz"
@@ -203,7 +205,6 @@ class MainConSeriesFrame(GenConSeriesFrame):
     #------------------
     # Save a con series object to disk.
     def OnSaveConSeries(self, event):                    # MainConSeriesFrame
-        # Rename the old file
         wait=wx.BusyCursor()
         self.SaveConSeries()
         del wait    # End the wait cursor
