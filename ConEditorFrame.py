@@ -330,7 +330,7 @@ class ConEditorFrame(GenConEditorFrame):
         self._grid.RefreshGridFromData()
 
     def OnPopupDeleteCon(self, event):            # ConEditorFrame
-        del self._grid._datasource.Rows[self.clickedRow-1]
+        del self._grid._datasource.Rows[self.clickedRow]
         self._grid.RefreshGridFromData()
         event.Skip()
 
