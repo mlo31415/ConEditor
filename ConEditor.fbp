@@ -2053,12 +2053,12 @@
                     <property name="help"></property>
                     <property name="id">wxID_ANY</property>
                     <property name="kind">wxITEM_NORMAL</property>
-                    <property name="label">Delete File</property>
+                    <property name="label">Delete File(s)</property>
                     <property name="name">m_popupDeleteFile</property>
                     <property name="permission">none</property>
                     <property name="shortcut"></property>
                     <property name="unchecked_bitmap"></property>
-                    <event name="OnMenuSelection">OnPopulDeleteFile</event>
+                    <event name="OnMenuSelection">OnPopupDeleteFile</event>
                 </object>
             </object>
         </object>

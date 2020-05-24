@@ -180,7 +180,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         mi.Enabled=True
 
         if self._grid._datasource.NumRows > event.GetRow():
-            mi=self.m_menuPopup.FindItemById(self.m_menuPopup.FindItem("Delete File"))
+            mi=self.m_menuPopup.FindItemById(self.m_menuPopup.FindItem("Delete File(s)"))
             mi.Enabled=True
 
         self.PopupMenu(self.m_menuPopup, pos=self.gRowGrid.Position+event.Position)
@@ -206,9 +206,21 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self.AddFiles()
 
     # ------------------
-    def OnPopulDeleteFile(self, event):
-        if self._grid.rightClickedRow < self._grid._datasource.NumRows:
-            del self._grid._datasource.Rows[self._grid.rightClickedRow]
+    def OnPopupDeleteFile(self, event):
+        if self._grid.HasSelection():
+            top, left, bottom, right=self._grid.LocateSelection()
+            nrows=self._grid._datasource.NumRows
+            if top >= nrows:
+                top=nrows-1
+            if bottom >= nrows:
+                bottom=nrows-1
+        else:
+            if self._grid.rightClickedRow >= self._grid._datasource.NumRows:
+                return
+            top=bottom=self._grid.rightClickedRow
+        self._grid.Grid.ClearSelection()
+        del self._grid._datasource.Rows[top:bottom+1]
+
         self._grid.RefreshGridFromData()
 
     # ------------------
