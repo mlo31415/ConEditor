@@ -49,6 +49,8 @@ class MainConSeriesFrame(GenConSeriesFrame):
         if len(conseriesname) > 0:
             self.LoadConSeries(conseriesname)
 
+        mi=self.bSaveConSeries.Enabled=len(self._textConSeriesName) > 0     # Enable only if a series name is present
+
         self._grid.RefreshGridFromData()
 
         self.Show(True)
@@ -326,6 +328,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
     #------------------
     def OnTextConSeriesName( self, event ):                    # MainConSeriesFrame
         self._textConSeriesName=self.tConSeries.GetValue()
+        self.bSaveConSeries.Enabled=len(self._textConSeriesName) > 0
 
     #-----------------
     # When the user edits the ConSeries name, we update the Fancy URL (but not vice-versa)
