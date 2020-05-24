@@ -36,9 +36,12 @@ class Con:
         self._gohs=d["_gohs"]
         if d["ver"] == 1:
             self._dates=FanzineDateRange().FromJson(d["_dates"])
-        if d["ver"] == 2:   # Ver 2 stores the date range is text to eliminate clutter in the json string
+        if d["ver"] == 2:   # Ver 2 stores the date range as text to eliminate clutter in the json string
             self._dates=FanzineDateRange().Match(d["_dates"])
-            self._URL=d["_URL"]
+            if "_URL" in d.keys():
+                self._URL=d["_URL"]
+            else:
+                self._URL=""
         return self
 
 
