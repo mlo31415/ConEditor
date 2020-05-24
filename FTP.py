@@ -170,5 +170,4 @@ class FTP:
         with open(localfname, "r") as f:
             out=f.readlines()
         out="/n".join(out)
-        Log(out)
         return out
