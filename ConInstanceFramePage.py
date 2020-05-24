@@ -1,6 +1,7 @@
 import wx
 import os
 import json
+from datetime import date
 
 from GenConInstanceFrame import GenConInstanceFrame
 from Grid import Grid
@@ -100,6 +101,8 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         file=SubstituteHTML(file, "fanac-stuff", self.ConInstanceStuff)
 
         file=SubstituteHTML(file, "fanac-json", self.ToJson())
+
+        file=SubstituteHTML(file, "fanac-date", date.today().strftime("%A %B %d, %Y"))
 
         if self.m_radioBox1.GetSelection() == 0:
             # Now construct the table which we'll then substitute.

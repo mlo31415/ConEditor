@@ -5,6 +5,7 @@ import os
 import wx
 import wx.grid
 import json
+from datetime import date
 
 from GenConEditorFrame import GenConEditorFrame
 from Grid import Grid, GridDataSource
@@ -239,6 +240,9 @@ class ConEditorFrame(GenConEditorFrame):
         file=SubstituteHTML(file, "pdq", newtable)
         # Store the json for the page into the template
         file=SubstituteHTML(file, "fanac-json", self.ToJson())
+
+        file=SubstituteHTML(file, "fanac-date", date.today().strftime("%A %B %d, %Y"))
+
 
         # And then reload the GUI
         self.Load()     #TODO: Is this needed?
