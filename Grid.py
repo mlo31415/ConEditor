@@ -320,13 +320,13 @@ class Grid():
 
     #------------------
     def OnGridCellChanged(self, event):        # Grid
+        self.EvtHandlerEnabled=False
         row=event.GetRow()
         col=event.GetCol()
 
         # If we're entering data in a new row or a new column, append the necessary number of new rows and/or columns to the data source
         self.ExpandDataSourceToInclude(row, col)
 
-        self.EvtHandlerEnabled=False
         newVal=self.Get(row, col)
         self._datasource.Rows[row].SetVal(col, newVal)
         self.ColorCellByValue(row, col)
