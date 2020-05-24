@@ -183,6 +183,11 @@ class ConEditorFrame(GenConEditorFrame):
         if not FTP().SetDirectory(""):
             Log("Bailing out...")
         file=FTP().GetAsString("index.html")
+        if file is None:
+            Log("Could not load root/index.html")
+            # Present an empty grid
+            self._grid.RefreshGridFromData()
+            return
 
         # Get the JSON
         j=FindBracketedText(file, "fanac-json")[0]
