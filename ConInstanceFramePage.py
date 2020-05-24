@@ -67,7 +67,8 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         for fn in dlg.GetFilenames():
             conf=ConFile()
             conf.DisplayTitle=fn
-            conf.LocalPathname=os.path.join(dlg.GetDirectory(), fn)
+            conf.LocalPathname=os.path.join(os.path.join(dlg.GetDirectory(), self.ConInstanceName), fn)
+            conf.Filename=fn
             self._grid._datasource.Rows.append(conf)
         dlg.Destroy()
         self._grid.RefreshGridFromData()
@@ -111,7 +112,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             for row in self._grid._datasource.Rows:
                 newtable+="    <tr>\n"
                 newtable+='      <th scope="row">'+str(1)+'</th>\n'
-                newtable+='      <td>'+FormatLink(row.LocalPathname, row.DisplayTitle)+'</td>\n'
+                newtable+='      <td>'+FormatLink(row.Filename, row.DisplayTitle)+'</td>\n'
                 newtable+='      <td>'+str(row.Description)+'</td>\n'
                 newtable+="    </tr>\n"
                 i+=1
@@ -130,6 +131,11 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         if not FTP().SetDirectory(self._seriesname+"/"+self._coninstancename):#, create=True):
             Log("Bailing out...")
         FTP().PutString("index.html", file)
+
+        # Finally, FTP any files which are newly added.
+        for row in self._grid._datasource.Rows:
+            if not FTP().Exists(row.LocalPathname):
+                FTP().PutFile(row.LocalPathname, row.Filename)
 
 
     #------------------

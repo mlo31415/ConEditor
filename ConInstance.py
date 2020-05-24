@@ -8,22 +8,28 @@ class ConFile:
     def __init__(self):
         self._displayTitle: str=""      # The name as shown to the world
         self._description: str=""       # The free-format description
+        self._filename: str=""
         self._localpathname: str="."     # The local pathname of the file
 
     # Serialize and deserialize
     def ToJson(self) -> str:
-        d={"ver": 1,
+        d={"ver": 2,
            "_displayTitle": self._displayTitle,
            "_description": self._description,
-           "_localpathname": self._localpathname}
+           "_localpathname": self._localpathname,
+           "_filename": self._filename}
         return json.dumps(d)
 
     def FromJson(self, val: str) -> ConFile:
         d=json.loads(val)
-        if d["ver"] == 1:
+        if d["ver"] <=2:
             self._displayTitle=d["_displayTitle"]
             self._description=d["_description"]
             self._localpathname=d["_localpathname"]
+        if d["ver"] == 2:
+            self._filename=d["_filename"]
+        else:
+            self._filename=self._displayTitle
         return self
 
     @property
@@ -46,6 +52,13 @@ class ConFile:
     @LocalPathname.setter
     def LocalPathname(self, val: str):
         self._localpathname=val
+
+    @property
+    def Filename(self) -> str:
+        return self._filename
+    @Filename.setter
+    def Filename(self, val: str):
+        self._filename=val
 
 
     # Get or set a value by name or column number in the grid
