@@ -56,6 +56,9 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
 
     def OnAddFilesButton(self, event):
+        self.AddFiles()
+
+    def AddFiles(self):
         # Call the File Open dialog to get an con series HTML file
         dlg=wx.FileDialog(self, "Select files to upload", ".", "", "*.*", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE | wx.FD_CHANGE_DIR)
 
@@ -188,8 +191,9 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self._grid.OnPopupPaste(event)
 
     # ------------------
-    def OnPopupAddFile(self, event):
-        assert(False)
+    def OnPopupAddFiles(self, event):
+        def OnAddFilesButton(self, event):
+            self.AddFiles()
 
     # ------------------
     def OnPopulDeleteFile(self, event):

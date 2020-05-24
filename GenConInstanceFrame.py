@@ -138,8 +138,8 @@ class GenConInstanceFrame ( wx.Dialog ):
 		self.m_popupCreateNewPage = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Create New Page", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_menuPopup.Append( self.m_popupCreateNewPage )
 
-		self.m_popupAddFile = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Add File", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menuPopup.Append( self.m_popupAddFile )
+		self.m_popupAddFiles = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Add Files", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_menuPopup.Append( self.m_popupAddFiles )
 
 		self.m_popupDeleteFile = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Delete File", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_menuPopup.Append( self.m_popupDeleteFile )
@@ -163,7 +163,7 @@ class GenConInstanceFrame ( wx.Dialog ):
 		self.gRowGrid.Bind( wx.EVT_KEY_UP, self.OnKeyUp )
 		self.Bind( wx.EVT_MENU, self.OnPopupCopy, id = self.m_menuItemCopy.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupPaste, id = self.m_menuItemPaste.GetId() )
-		self.Bind( wx.EVT_MENU, self.OnPopupAddFile, id = self.m_popupAddFile.GetId() )
+		self.Bind( wx.EVT_MENU, self.OnPopupAddFiles, id = self.m_popupAddFiles.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopulDeleteFile, id = self.m_popupDeleteFile.GetId() )
 
 	def __del__( self ):
@@ -210,7 +210,7 @@ class GenConInstanceFrame ( wx.Dialog ):
 	def OnPopupPaste( self, event ):
 		event.Skip()
 
-	def OnPopupAddFile( self, event ):
+	def OnPopupAddFiles( self, event ):
 		event.Skip()
 
 	def OnPopulDeleteFile( self, event ):
@@ -221,3 +221,5 @@ class GenConInstanceFrame ( wx.Dialog ):
 
 	def GenConInstanceFrameOnContextMenu( self, event ):
 		self.PopupMenu( self.m_menuPopup, event.GetPosition() )
+
+
