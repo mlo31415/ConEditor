@@ -169,7 +169,6 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
     # ------------------
     def OnGridCellRightClick(self, event):
         self._grid.OnGridCellRightClick(event, self.m_menuPopup)
-
         self.PopupMenu(self.m_menuPopup)
 
     # -------------------
@@ -188,17 +187,33 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
     def OnPopupPaste(self, event):
         self._grid.OnPopupPaste(event)
 
+    # ------------------
+    def OnPopupAddFile(self, event):
+        assert(False)
+
+    # ------------------
+    def OnPopulDeleteFile(self, event):
+        assert(False)
+
+    # ------------------
     def OnGridCellChanged(self, event):
         self._grid.OnGridCellChanged(event)
 
+    # ------------------
     def OnTextConInstanceName(self, event):
         self.ConInstanceName=self.tConInstanceName.Value
 
+    # ------------------
     def OnTextConInstanceNameKeyUp(self, event):
+
         self.tConInstanceFancyURL.Value="fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.tConInstanceName.Value)
 
+    # ------------------
     def OnTextConInstanceFancyURL(self, event):
+
         self.ConInstanceFancyURL=self.tConInstanceFancyURL.Value
 
+    # ------------------
     def OnTextComments(self, event):
+
         self.ConInstanceStuff=self.tPText.Value
