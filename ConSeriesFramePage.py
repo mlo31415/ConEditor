@@ -14,27 +14,13 @@ from GenConSeriesFrame import GenConSeriesFrame
 from FTP import FTP
 from ConSeries import ConSeries, Con
 from Grid import Grid
-from dlgEnterFancyName import dlgEnterFancyName
+from dlgEnterFancyName import dlgEnterFancyNameWindow
 from ConInstanceFramePage import MainConInstanceDialogClass
 
 from HelpersPackage import Bailout, StripExternalTags, SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, UnformatLinks, RemoveAllHTMLTags
 from HelpersPackage import FindIndexOfStringInList
 from Log import Log
 from FanzineIssueSpecPackage import FanzineDateRange
-
-
-#####################################################################################
-class dlgEnterFancyNameWindow(dlgEnterFancyName):
-    def __init__(self, parent):
-        dlgEnterFancyName.__init__(self, parent)
-        self._FancyName: str=""
-        self.ShowModal()
-
-    def OnBuCreateConSeries(self, event):
-        self.Hide()
-
-    def OnTextChanged(self, event):
-        self._FancyName=self.m_textCtrl4.Value
 
 
 
@@ -94,6 +80,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
     #------------------
     def OnLoadConSeries(self, event):                    # MainConSeriesFrame
+
         self.LoadConSeries(None)
         pass
 
@@ -148,7 +135,8 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
 
     #-------------------
-    def SaveConSeries(self) -> None:                    # MainConSeriesFrame
+    def SaveConSeries(self) -> None:                   # MainConSeriesFrame
+
         # First read in the template
         try:
             with open("Template-ConSeries.html") as f:
@@ -198,6 +186,9 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
 
         # Now try to FTP the data up to fanac.org
+        if self._seriesname is None or len(self._seriesname) == 0:
+            Log("SaveConSeries: No series name provided")
+            return
         if not FTP().SetDirectory(self._seriesname, create=True):
             Log("Bailing out...")
         FTP().PutString("index.html", file)
@@ -205,6 +196,9 @@ class MainConSeriesFrame(GenConSeriesFrame):
     #------------------
     # Save a con series object to disk.
     def OnSaveConSeries(self, event):                    # MainConSeriesFrame
+        if self._seriesname is None or len(self._seriesname) == 0:
+            wx.MessageBox("You must supply a convention series name to save")
+            return
         wait=wx.BusyCursor()
         self.SaveConSeries()
         del wait    # End the wait cursor
