@@ -136,6 +136,18 @@ class FTP:
         with open(localfname, "rb") as f:
             Log(self.g_ftp.storbinary("STOR "+fname, f))
 
+    #-------------------------------
+    # Copy the local file fname to fanac.org in the current directory and with the same name
+    def PutFile(self, fname: str, toname: str) -> bool:
+        if self.g_ftp is None:
+            Log("FTP not initialized")
+            return False
+
+        Log("STOR "+fname)
+        with open(fname, "rb") as f:
+            Log(self.g_ftp.storbinary("STOR "+fname, f))
+            Log(self.g_ftp.rename(fname, toname))
+
 
     # Download the ascii file named fname in the current directory on fanac.org into a string
     def GetAsString(self, fname: str) -> Optional[str]:
