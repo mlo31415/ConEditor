@@ -123,7 +123,7 @@ class FTP:
             Log("FTP not initialized")
             return False
 
-        if not os.path.exists("temp") or not os.path.isdir("temp"):
+        if not os.path.exists("temp") or not os.path.isdir("temp"):     # If necessary, create the temp directory
             os.mkdir("temp")
         localfname="temp/"+fname
 
@@ -138,15 +138,14 @@ class FTP:
 
     #-------------------------------
     # Copy the local file fname to fanac.org in the current directory and with the same name
-    def PutFile(self, fname: str, toname: str) -> bool:
+    def PutFile(self, pathname: str, toname: str) -> bool:
         if self.g_ftp is None:
             Log("FTP not initialized")
             return False
 
-        Log("STOR "+fname)
-        with open(fname, "rb") as f:
-            Log(self.g_ftp.storbinary("STOR "+fname, f))
-            Log(self.g_ftp.rename(fname, toname))
+        Log("STOR "+toname+"  from "+pathname)
+        with open(pathname, "rb") as f:
+            Log(self.g_ftp.storbinary("STOR "+toname, f))
 
 
     # Download the ascii file named fname in the current directory on fanac.org into a string
