@@ -11,6 +11,7 @@ from GenConEditorFrame import GenConEditorFrame
 from Grid import Grid, GridDataSource
 from ConSeriesFramePage import MainConSeriesFrame
 from FTP import FTP
+from dlgEnterFancyName import dlgEnterFancyNameWindow
 
 from HelpersPackage import SubstituteHTML, FindBracketedText, FormatLink
 from Log import LogOpen, Log
