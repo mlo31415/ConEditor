@@ -138,7 +138,7 @@ class ConEditorFrame(GenConEditorFrame):
 
         self.userSelection=None
         self.cntlDown: bool=False
-        self.rightClickedColumn: Optional[int]=None
+        self.clickedColumn: Optional[int]=None
         self._baseDirFTP: str=""
 
         self._grid: Grid=Grid(self.gRowGrid)
@@ -262,8 +262,8 @@ class ConEditorFrame(GenConEditorFrame):
     #------------------
     def OnGridCellRightClick(self, event):            # ConEditorFrame
         self._grid.OnGridCellRightClick(event, self.m_menuPopupConEditor)
-        self.rightClickedColumn=event.GetCol()
-        self.rightClickedRow=event.GetRow()
+        self.clickedColumn=event.GetCol()
+        self.clickedRow=event.GetRow()
 
         mi=self.m_menuPopupConEditor.FindItemById(self.m_menuPopupConEditor.FindItem("Insert Convention"))
         mi.Enabled=True
@@ -278,13 +278,16 @@ class ConEditorFrame(GenConEditorFrame):
     def OnGridCellDoubleClick(self, event):            # ConEditorFrame
         if event.GetRow() > self._grid._datasource.NumRows:
             return      # For now, we do nothing when you double-click in an empty cell
-        self.rightClickedColumn=event.GetCol()
-        self.rightClickedRow=event.GetRow()
-        conseriesname=self._grid._datasource.GetData(self.rightClickedRow, 0)
+        self.clickedColumn=event.GetCol()
+        self.clickedRow=event.GetRow()
+        if self.clickedRow >= self._grid._datasource.NumRows:
+            self._grid._datasource.Rows.insert(self.clickedRow, Convention())
+            self._grid.RefreshGridFromData()
+        conseriesname=self._grid._datasource.GetData(self.clickedRow, 0)
         dlg=MainConSeriesFrame(self._baseDirFTP, conseriesname)
 #        dlg.tConInstanceName.Value=name
         dlg.ShowModal()
-        self._grid._datasource.Rows[self.rightClickedRow].URL="./"+conseriesname+"/"+conseriesname+".html"
+        self._grid._datasource.Rows[self.clickedRow].URL="./"+conseriesname+"/"+conseriesname+".html"
         pass
 
     # ------------------
@@ -313,11 +316,11 @@ class ConEditorFrame(GenConEditorFrame):
 
     #------------------
     def OnPopupInsertCon(self, event):            # ConEditorFrame
-        self._grid._datasource.Rows.insert(self.rightClickedRow-1, Convention())
+        self._grid._datasource.Rows.insert(self.clickedRow-1, Convention())
         self._grid.RefreshGridFromData()
 
     def OnPopupDeleteCon(self, event):            # ConEditorFrame
-        del self._grid._datasource.Rows[self.rightClickedRow-1]
+        del self._grid._datasource.Rows[self.clickedRow-1]
         self._grid.RefreshGridFromData()
         event.Skip()
 

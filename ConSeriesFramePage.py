@@ -193,7 +193,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
 
         # Now try to FTP the data up to fanac.org
-        if not FTP().SetDirectory(self._seriesname):#, create=True):
+        if not FTP().SetDirectory(self._seriesname, create=True):
             Log("Bailing out...")
         FTP().PutString("index.html", file)
 
