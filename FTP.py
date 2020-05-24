@@ -161,7 +161,12 @@ class FTP:
         localfname="temp/"+fname
         Log("RETR "+fname+"  to "+localfname)
         with open(localfname, "wb+") as f:
-            Log(self.g_ftp.retrbinary("RETR "+fname, f.write))
+            msg=self.g_ftp.retrbinary("RETR "+fname, f.write)
+            Log(msg)
+            if not msg.startswith("226-File successfully transferred"):
+                Log("GetAsString failed")
+                return None
+
 
         with open(localfname, "r") as f:
             out=f.readlines()
