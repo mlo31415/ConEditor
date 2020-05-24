@@ -207,8 +207,9 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
     # ------------------
     def OnPopulDeleteFile(self, event):
-        if self.rightClickedRow < self._grid._datasource.NumRows:
-            del self._grid._datasource.Rows[self.rightClickedRow]
+        if self._grid.rightClickedRow < self._grid._datasource.NumRows:
+            del self._grid._datasource.Rows[self._grid.rightClickedRow]
+        self._grid.RefreshGridFromData()
 
     # ------------------
     def OnGridCellChanged(self, event):

@@ -202,7 +202,6 @@ class Grid():
                 self._grid.SetCellFont(row, col, font)
 
     def ColorCellsByValue(self):        # Grid
-
         # Analyze the data and highlight cells where the data type doesn't match the header.  (E.g., Volume='August', Month='17', year='20')
         # Col 0 is a number and 3 is a date and the rest are strings.   We walk the rows checking the type of data in that column.
         for iRow in range(self._grid.NumberRows):
