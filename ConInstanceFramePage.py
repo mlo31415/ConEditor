@@ -172,7 +172,18 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
     # ------------------
     def OnGridCellRightClick(self, event):
         self._grid.OnGridCellRightClick(event, self.m_menuPopup)
-        self.PopupMenu(self.m_menuPopup)
+
+        self.clickedColumn=event.GetCol()
+        self.clickedRow=event.GetRow()
+
+        mi=self.m_menuPopup.FindItemById(self.m_menuPopup.FindItem("Add Files"))
+        mi.Enabled=True
+
+        if self._grid._datasource.NumRows > event.GetRow():
+            mi=self.m_menuPopup.FindItemById(self.m_menuPopup.FindItem("Delete File"))
+            mi.Enabled=True
+
+        self.PopupMenu(self.m_menuPopup, pos=self.gRowGrid.Position+event.Position)
 
     # -------------------
     def OnKeyDown(self, event):
@@ -192,12 +203,12 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
     # ------------------
     def OnPopupAddFiles(self, event):
-        def OnAddFilesButton(self, event):
-            self.AddFiles()
+        self.AddFiles()
 
     # ------------------
     def OnPopulDeleteFile(self, event):
-        assert(False)
+        if self.rightClickedRow < self._grid._datasource.NumRows:
+            del self._grid._datasource.Rows[self.rightClickedRow]
 
     # ------------------
     def OnGridCellChanged(self, event):
