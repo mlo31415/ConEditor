@@ -75,6 +75,7 @@ class ConList(GridDataSource):
     def __init__(self):
         self._conlist: List[Convention]=[]
         self._updated: bool=False
+        self._toptext: str=""
 
     # Serialize and deserialize
     def ToJson(self) -> str:
@@ -345,6 +346,11 @@ class ConEditorFrame(GenConEditorFrame):
         del self._grid._datasource.Rows[self.clickedRow]
         self.RefreshWindow()
         event.Skip()
+
+    # ------------------
+    def OnTopTextUpdated(self, event):
+        self._grid._datasource.toptext=self.m_textCtrlTopText.Value
+        self._grid._datasource.Updated=True
 
     # ------------------
     def OnClose(self, event):            # ConEditorFrame
