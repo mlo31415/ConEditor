@@ -235,8 +235,7 @@ class ConEditorFrame(GenConEditorFrame):
         #file=SubstituteHTML(file, "xyz", self._textComments)
 
         # Now construct the table which we'll then substitute.
-        newtable='<table class="table">\n'
-        newtable+="  <thead>\n"
+        newtable="  <thead>\n"
         newtable+="    <tr>\n"
         newtable+='      <th scope="col">Convention</th>\n'
         newtable+='    </tr>\n'
@@ -247,7 +246,6 @@ class ConEditorFrame(GenConEditorFrame):
             newtable+='      <td>'+FormatLink(row.URL, row.Name)+'</td>\n'
             newtable+="    </tr>\n"
         newtable+="    </tbody>\n"
-        newtable+="  </table>\n"
 
         # Substitute the table into the template
         file=SubstituteHTML(file, "pdq", newtable)
