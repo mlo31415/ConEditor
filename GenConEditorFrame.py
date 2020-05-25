@@ -121,6 +121,7 @@ class GenConEditorFrame ( wx.Frame ):
 		self.Centre( wx.BOTH )
 
 		# Connect Events
+		self.Bind( wx.EVT_CLOSE, self.OnClose )
 		self.m_buttonSave.Bind( wx.EVT_BUTTON, self.OnButtonSaveClick )
 		self.m_buttonSort.Bind( wx.EVT_BUTTON, self.OnButtonSortClick )
 		self.m_buttonExit.Bind( wx.EVT_BUTTON, self.OnButtonExitClick )
@@ -142,6 +143,9 @@ class GenConEditorFrame ( wx.Frame ):
 
 
 	# Virtual event handlers, overide them in your derived class
+	def OnClose( self, event ):
+		event.Skip()
+
 	def OnButtonSaveClick( self, event ):
 		event.Skip()
 
