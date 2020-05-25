@@ -7,6 +7,7 @@ import math
 
 from HelpersPackage import IsInt
 from FanzineIssueSpecPackage import FanzineDateRange, FanzineDate
+#from Log import Log
 
 class Color:
      # Define some RGB color constants
@@ -219,6 +220,7 @@ class Grid():
         for i in range(self._datasource.NumRows):
             for j in range(len(self._colheaders)):
                 self.SetCellValue(i, j, self._datasource.GetData(i, j))
+                #Log("set grid("+str(i)+", "+str(j)+")="+self._datasource.GetData(i, j))
 
         self.ColorCellsByValue()
         self.AutoSizeColumns()
@@ -328,6 +330,7 @@ class Grid():
 
         newVal=self.Get(row, col)
         self._datasource.Rows[row].SetVal(col, newVal)
+        #Log("set datasource("+str(row)+", "+str(col)+")="+newVal)
         self.ColorCellByValue(row, col)
         self.AutoSizeColumns()
         self.EvtHandlerEnabled=True
