@@ -347,6 +347,13 @@ class ConEditorFrame(GenConEditorFrame):
         self.RefreshWindow()
         event.Skip()
 
+
+    # ------------------
+    def OnPopupEditCon(self, event):            # ConEditorFrame
+        #del self._grid._datasource.Rows[self.clickedRow]
+        self.RefreshWindow()
+        event.Skip()
+
     # ------------------
     def OnTopTextUpdated(self, event):
         self._grid._datasource.toptext=self.m_textCtrlTopText.Value
