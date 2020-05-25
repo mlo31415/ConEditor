@@ -348,6 +348,7 @@ class Grid():
         #Log("set datasource("+str(row)+", "+str(col)+")="+newVal)
         self.ColorCellByValue(row, col)
         self.AutoSizeColumns()
+        self.RefreshGridFromData()
         self.EvtHandlerEnabled=True
 
         return
