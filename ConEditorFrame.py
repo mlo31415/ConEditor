@@ -255,14 +255,7 @@ class ConEditorFrame(GenConEditorFrame):
 
 
     def OnButtonSortClick(self, event):            # ConEditorFrame
-        lst=[]
-        for row in self._grid._datasource.Rows:
-            lst.append(row.Name)
-        lst.sort()
-        i=0
-        for row in self._grid._datasource.Rows:
-            row.Name=lst[i]
-            i+=1
+        self._grid._datasource.Rows=sorted(self._grid._datasource.Rows, key=lambda r: r.Name, reverse=True)
         self._grid.RefreshGridFromData()
 
 
