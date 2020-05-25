@@ -74,6 +74,7 @@ class ConList(GridDataSource):
 
     def __init__(self):
         self._conlist: List[Convention]=[]
+        self._updated: bool=False
 
     # Serialize and deserialize
     def ToJson(self) -> str:
@@ -133,6 +134,13 @@ class ConList(GridDataSource):
     def SetDataVal(self, irow: int, icol: int, val: Union[int, str]) -> None:
         self._conlist[irow].SetVal(icol, val)
 
+    @property
+    def Updated(self) -> bool:
+        return self._updated
+    @Updated.setter
+    def Updated(self, val: bool) -> None:
+        self._updated=val
+
 
 class ConEditorFrame(GenConEditorFrame):
     def __init__(self, parent):
@@ -186,7 +194,7 @@ class ConEditorFrame(GenConEditorFrame):
         file=FTP().GetFileAsString("", "index.html")
         if file is None:
             # Present an empty grid
-            self._grid.RefreshGridFromData()
+            self.RefreshWindow()
             return
 
         # Get the JSON
@@ -202,8 +210,9 @@ class ConEditorFrame(GenConEditorFrame):
             return
 
         # Insert the row data into the grid
-        self._grid.RefreshGridFromData()
+        self.RefreshWindow()
         self.ProgressMessage("root/index.html Loaded")
+        self._grid._datasource.Updated=False   # Freshly loaded is in a saved state
 
 
     #------------------
@@ -244,12 +253,26 @@ class ConEditorFrame(GenConEditorFrame):
         file=SubstituteHTML(file, "fanac-date", date.today().strftime("%A %B %d, %Y"))
 
         FTP().PutFileAsString("/", "index.html", file)
+        self._grid._datasource.Updated=False
+        self.RefreshWindow()
+
+
+    #------------------
+    def RefreshWindow(self) -> None:
+        self._grid.RefreshGridFromData()
+        s=self.Title
+        if s.endswith(" *"):
+            s=s[:-2]
+        if self._grid._datasource.Updated:
+            s=s+" *"
+        self.Title=s
 
 
     #------------------
     def OnButtonSortClick(self, event):            # ConEditorFrame
         self._grid._datasource.Rows=sorted(self._grid._datasource.Rows, key=lambda r: r.Name, reverse=True)
-        self._grid.RefreshGridFromData()
+        self._grid._datasource.Updated=True
+        self.RefreshWindow()
 
 
     #------------------
@@ -279,7 +302,7 @@ class ConEditorFrame(GenConEditorFrame):
         self.clickedRow=event.GetRow()
         if self.clickedRow >= self._grid._datasource.NumRows:
             self._grid._datasource.Rows.insert(self.clickedRow, Convention())
-            self._grid.RefreshGridFromData()
+            self.RefreshWindow()
         conseriesname=self._grid._datasource.GetData(self.clickedRow, 0)
         dlg=MainConSeriesFrame(self._baseDirFTP, conseriesname)
 #        dlg.tConInstanceName.Value=name
@@ -315,12 +338,12 @@ class ConEditorFrame(GenConEditorFrame):
     #------------------
     def OnPopupInsertCon(self, event):            # ConEditorFrame
         self._grid._datasource.Rows.insert(self.clickedRow-1, Convention())
-        self._grid.RefreshGridFromData()
+        self.RefreshWindow()
 
     # ------------------
     def OnPopupDeleteCon(self, event):            # ConEditorFrame
         del self._grid._datasource.Rows[self.clickedRow]
-        self._grid.RefreshGridFromData()
+        self.RefreshWindow()
         event.Skip()
 
     # ------------------

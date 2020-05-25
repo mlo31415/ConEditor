@@ -54,6 +54,13 @@ class GridDataSource():
         pass
 
     @property
+    def Updated(self) -> bool:
+        pass
+    @Updated.setter
+    def Updated(self, val: bool) -> None:
+        pass
+
+    @property
     def CanAddColumns(self) -> bool:
         return False            # Override this if adding columns is allowed
 
@@ -82,11 +89,13 @@ class Grid():
 
         if iRow == -1:
             self._datasource.ColHeaders[iCol]=val
+            self._datasource.Updated=True
             return
 
         c=self._datasource.Rows[iRow]
         try:
             c.SetVal(c, iCol, val)
+            self._datasource.Updated=True
         except:
             pass
 
@@ -259,12 +268,14 @@ class Grid():
                 newrows.extend(self._datasource.Rows[newrow+numrows:])          # Row after the moving block's final position which are unaffected
 
         self._datasource.Rows=newrows
+        self._datasource.Updated=True
 
         
     #------------------
     def MoveRow(self, oldrow, newnumf):        # Grid
         newrow=math.ceil(newnumf)-1
         self.MoveRows(oldrow, 1, newrow)
+
 
     # ------------------
     def CopyCells(self, top, left, bottom, right):        # Grid
@@ -274,8 +285,8 @@ class Grid():
             for jCol in range(left, right+1):
                 v.append(self._datasource.GetData(iRow, jCol))
             self.clipboard.append(v)
+        self._datasource.Updated=True
 
-        pass
 
     # ------------------
     def PasteCells(self, top, left):        # Grid
@@ -301,6 +312,7 @@ class Grid():
                 self._datasource.SetDataVal(i, j, cellval)
                 j+=1
             i+=1
+        self._datasource.Updated=True
         self.RefreshGridFromData()
 
     # Expand the grid's data source so that the local item (irow, icol) exists.
@@ -308,6 +320,7 @@ class Grid():
         if irow >= 0:   # This test is needed in case we were working on the column headers (irowR->0) and then had to pass in irowR-1
             while irow >= len(self._datasource.Rows):
                 self._datasource.Rows.append(self._datasource.Element())
+            self._datasource.Updated=True
 
         # Many data sources do not allow expanding the number of columns, so check that first
         assert icol < len(self._datasource.ColHeaders) or self._datasource.CanAddColumns
@@ -317,6 +330,7 @@ class Grid():
                     self._datasource.ColHeaders.append("")
                     for j in range(self._datasource.NumRows):
                         self._datasource.Rows[j].append("")
+                self._datasource.Updated=True
 
 
     #------------------
@@ -330,13 +344,13 @@ class Grid():
 
         newVal=self.Get(row, col)
         self._datasource.Rows[row].SetVal(col, newVal)
+        self._datasource.Updated=True
         #Log("set datasource("+str(row)+", "+str(col)+")="+newVal)
         self.ColorCellByValue(row, col)
         self.AutoSizeColumns()
         self.EvtHandlerEnabled=True
 
         return
-
 
     #------------------
     def OnGridCellRightClick(self, event, m_menuPopup):        # Grid
