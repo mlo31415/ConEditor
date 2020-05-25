@@ -134,10 +134,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
         file=SubstituteHTML(file, "fanac-table", newtable)
 
-        # Now try to FTP the data to fanac.org
-        if not FTP().SetDirectory("/"+self._seriesname+"/"+self._coninstancename, create=True):
-            Log("Bailing out...")
-        FTP().PutString("index.html", file)
+        FTP().PutFileAsString("/"+self._seriesname+"/"+self._coninstancename, "index.html", file, create=True)
 
         # Finally, FTP any files which are newly added.
         for row in self._grid._datasource.Rows:
@@ -154,15 +151,9 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
         # Read the existing CIP
         #self.ProgressMessage("Loading "+self._FTPbasedir+"/"+"index.html")
-        file=None
-        if not FTP().SetDirectory(self._FTPbasedir+"/"+self._coninstancename):
-            Log("Bailing out...")
-
-        if not FTP().Exists("index.html"):
-            Log("Can't find index.html")
+        file=FTP().GetFileAsString(self._FTPbasedir+"/"+self._coninstancename, "index.html")
+        if file is None:
             return  # Just return with the ConInstance page empty
-
-        file=FTP().GetAsString("index.html")
 
         # Get the JSON
         j=FindBracketedText(file, "fanac-json")[0]

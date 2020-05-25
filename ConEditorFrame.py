@@ -164,6 +164,7 @@ class ConEditorFrame(GenConEditorFrame):
 
         return json.dumps(d)
 
+    #------------------
     def FromJson(self, val: str) -> ConEditorFrame:            # ConEditorFrame
         d=json.loads(val)
         #self._textConSeriesName=d["_textConSeries"]
@@ -182,11 +183,8 @@ class ConEditorFrame(GenConEditorFrame):
         self._grid._datasource=ConList()
 
         self.ProgressMessage("Loading root/index.html")
-        if not FTP().SetDirectory(""):
-            Log("Bailing out...")
-        file=FTP().GetAsString("index.html")
+        file=FTP().GetFileAsString("", "index.html")
         if file is None:
-            Log("Could not load root/index.html")
             # Present an empty grid
             self._grid.RefreshGridFromData()
             return
@@ -208,6 +206,7 @@ class ConEditorFrame(GenConEditorFrame):
         self.ProgressMessage("root/index.html Loaded")
 
 
+    #------------------
     def OnButtonSaveClick(self, event):            # ConEditorFrame
 
         # First read in the template
@@ -244,21 +243,19 @@ class ConEditorFrame(GenConEditorFrame):
 
         file=SubstituteHTML(file, "fanac-date", date.today().strftime("%A %B %d, %Y"))
 
-
         # And then reload the GUI
         self.Load()     #TODO: Is this needed?
 
-        # Now try to FTP the same data we saved to the file up to fanac.org
-        if not FTP().SetDirectory("/"):
-            Log("Bailing out...")
-        FTP().PutString("index.html", file)
+        FTP().PutFileAsString("/", "index.html", file)
 
 
+    #------------------
     def OnButtonSortClick(self, event):            # ConEditorFrame
         self._grid._datasource.Rows=sorted(self._grid._datasource.Rows, key=lambda r: r.Name, reverse=True)
         self._grid.RefreshGridFromData()
 
 
+    #------------------
     def OnButtonExitClick(self, event):            # ConEditorFrame
         self.Destroy()
 

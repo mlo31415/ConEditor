@@ -101,10 +101,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
 #        self._seriesname=seriesname
 
         self.ProgressMessage("Loading "+self._seriesname+"/index.html")
-        file=None
-        if not FTP().SetDirectory("/"+self._seriesname):
-            Log("Bailing out...")
-        file=FTP().GetAsString("index.html")
+        file=FTP().GetFileAsString("/"+self._seriesname, "index.html")
 
         pathname=self._seriesname+"/index.html"
         if len(self._basedirectoryFTP) > 0:
@@ -186,14 +183,12 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
         file=SubstituteHTML(file, "fanac-date", date.today().strftime("%A %B %d, %Y"))
 
-
         # Now try to FTP the data up to fanac.org
         if self._seriesname is None or len(self._seriesname) == 0:
             Log("SaveConSeries: No series name provided")
             return
-        if not FTP().SetDirectory(self._seriesname, create=True):
-            Log("Bailing out...")
-        FTP().PutString("index.html", file)
+        FTP().PutFileAsString(self._seriesname, "index.html", file, create=True)
+
 
     #------------------
     # Save a con series object to disk.

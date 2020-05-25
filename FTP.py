@@ -135,6 +135,14 @@ class FTP:
         Log("STOR "+fname+"  from "+localfname)
         with open(localfname, "rb") as f:
             Log(self.g_ftp.storbinary("STOR "+fname, f))
+        return True
+
+
+    def PutFileAsString(self, directory: str, fname: str, s: str, create: bool=False) -> bool:
+        if not FTP().SetDirectory(directory):
+            Log("Bailing out...")
+        return FTP().PutString(fname, s)
+
 
     #-------------------------------
     # Copy the local file fname to fanac.org in the current directory and with the same name
@@ -166,8 +174,17 @@ class FTP:
                 Log("GetAsString failed")
                 return None
 
-
         with open(localfname, "r") as f:
             out=f.readlines()
         out="/n".join(out)
         return out
+
+
+    def GetFileAsString(self, directory: str, fname: str) -> Optional[str]:
+        if not self.SetDirectory(directory):
+            Log("Bailing out...")
+            return None
+        s=FTP().GetAsString(fname)
+        if s is None:
+            Log("Could not load "+directory+"/"+fname)
+        return s
