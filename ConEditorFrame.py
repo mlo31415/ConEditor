@@ -301,16 +301,19 @@ class ConEditorFrame(GenConEditorFrame):
             return      # For now, we do nothing when you double-click in an empty cell
         self.clickedColumn=event.GetCol()
         self.clickedRow=event.GetRow()
+        self.EditConSeries()
+
+    # ------------------
+    def EditConSeries(self):
         if self.clickedRow >= self._grid._datasource.NumRows:
             self._grid._datasource.Rows.insert(self.clickedRow, Convention())
             self.RefreshWindow()
         conseriesname=self._grid._datasource.GetData(self.clickedRow, 0)
         dlg=MainConSeriesFrame(self._baseDirFTP, conseriesname)
-#        dlg.tConInstanceName.Value=name
+        #        dlg.tConInstanceName.Value=name
         dlg.ShowModal()
         self._grid._datasource.Rows[self.clickedRow].URL="./"+conseriesname+"/"+conseriesname+".html"
         self._grid._datasource.Rows[self.clickedRow].Name=conseriesname
-        pass
 
     # ------------------
     def OnGridLabelRightClick(self, event):  # Grid
@@ -347,11 +350,9 @@ class ConEditorFrame(GenConEditorFrame):
         self.RefreshWindow()
         event.Skip()
 
-
     # ------------------
     def OnPopupEditCon(self, event):            # ConEditorFrame
-        #del self._grid._datasource.Rows[self.clickedRow]
-        self.RefreshWindow()
+        self.EditConSeries()    # clickedRow is set by the RMB clicked event that must have preceeded this.
         event.Skip()
 
     # ------------------
@@ -368,6 +369,7 @@ class ConEditorFrame(GenConEditorFrame):
                 event.Skip()
                 return
         self.Destroy()
+        app.Destroy()
 
 
 # Start the GUI and run the event loop
