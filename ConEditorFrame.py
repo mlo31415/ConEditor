@@ -270,7 +270,7 @@ class ConEditorFrame(GenConEditorFrame):
 
     #------------------
     def OnButtonSortClick(self, event):            # ConEditorFrame
-        self._grid._datasource.Rows=sorted(self._grid._datasource.Rows, key=lambda r: r.Name, reverse=True)
+        self._grid._datasource.Rows=sorted(self._grid._datasource.Rows, key=lambda r: r.Name)
         self._grid._datasource.Updated=True
         self.RefreshWindow()
 
