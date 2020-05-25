@@ -67,7 +67,7 @@ class Convention:
 
 
 class ConList(GridDataSource):
-    _colheaders: List[str]=["Convention"]
+    _colheaders: List[str]=["Convention Series"]
     _coldatatypes: List[str]=["url"]
     _colminwidths: List[int]=[30]
     _element=Convention
@@ -287,12 +287,11 @@ class ConEditorFrame(GenConEditorFrame):
         self.clickedColumn=event.GetCol()
         self.clickedRow=event.GetRow()
 
-        mi=self.m_menuPopupConEditor.FindItemById(self.m_menuPopupConEditor.FindItem("Insert Convention"))
-        mi.Enabled=True
-
+        self.m_menuItemInsert.Enabled=True
         if self._grid._datasource.NumRows > event.GetRow():
-            mi=self.m_menuPopupConEditor.FindItemById(self.m_menuPopupConEditor.FindItem("Delete Convention"))
-            mi.Enabled=True
+            self.m_menuItemDelete.Enabled=True
+        if event.GetRow() < self._grid._datasource.NumRows:
+            self.m_menuItemEdit.Enabled=True
 
         self.PopupMenu(self.m_menuPopupConEditor, pos=self.gRowGrid.Position+event.Position)
 

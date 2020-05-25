@@ -101,11 +101,14 @@ class GenConEditorFrame ( wx.Frame ):
 		self.m_menuItemPaste = wx.MenuItem( self.m_menuPopupConEditor, wx.ID_ANY, u"Paste", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_menuPopupConEditor.Append( self.m_menuItemPaste )
 
-		self.m_menuItemInsert = wx.MenuItem( self.m_menuPopupConEditor, wx.ID_ANY, u"Insert Convention", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_menuItemInsert = wx.MenuItem( self.m_menuPopupConEditor, wx.ID_ANY, u"Insert Convention Series", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_menuPopupConEditor.Append( self.m_menuItemInsert )
 
-		self.m_menuItemDelete = wx.MenuItem( self.m_menuPopupConEditor, wx.ID_ANY, u"Delete Convention", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_menuItemDelete = wx.MenuItem( self.m_menuPopupConEditor, wx.ID_ANY, u"Delete Convention Series", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_menuPopupConEditor.Append( self.m_menuItemDelete )
+
+		self.m_menuItemEdit = wx.MenuItem( self.m_menuPopupConEditor, wx.ID_ANY, u"Edit Convention Series", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_menuPopupConEditor.Append( self.m_menuItemEdit )
 
 		self.gRowGrid.Bind( wx.EVT_RIGHT_DOWN, self.gRowGridOnContextMenu )
 
@@ -137,6 +140,7 @@ class GenConEditorFrame ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.OnPopupPaste, id = self.m_menuItemPaste.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupInsertCon, id = self.m_menuItemInsert.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupDeleteCon, id = self.m_menuItemDelete.GetId() )
+		self.Bind( wx.EVT_MENU, self.OnPopupDeleteCon, id = self.m_menuItemEdit.GetId() )
 
 	def __del__( self ):
 		pass
@@ -190,6 +194,7 @@ class GenConEditorFrame ( wx.Frame ):
 
 	def OnPopupDeleteCon( self, event ):
 		event.Skip()
+
 
 	def gRowGridOnContextMenu( self, event ):
 		self.gRowGrid.PopupMenu( self.m_menuPopupConEditor, event.GetPosition() )

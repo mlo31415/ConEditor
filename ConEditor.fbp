@@ -986,7 +986,7 @@
                     </object>
                 </object>
             </object>
-            <object class="wxMenu" expanded="0">
+            <object class="wxMenu" expanded="1">
                 <property name="label">MyMenu</property>
                 <property name="name">m_menuPopup</property>
                 <property name="permission">protected</property>
@@ -2366,7 +2366,7 @@
             <property name="window_style">wxTAB_TRAVERSAL</property>
             <property name="xrc_skip_sizer">1</property>
             <event name="OnClose">OnClose</event>
-            <object class="wxBoxSizer" expanded="0">
+            <object class="wxBoxSizer" expanded="1">
                 <property name="minimum_size"></property>
                 <property name="name">bSizer8</property>
                 <property name="orient">wxVERTICAL</property>
@@ -2681,7 +2681,7 @@
                         </object>
                     </object>
                 </object>
-                <object class="sizeritem" expanded="0">
+                <object class="sizeritem" expanded="1">
                     <property name="border">5</property>
                     <property name="flag">wxEXPAND</property>
                     <property name="proportion">0</property>
@@ -2897,20 +2897,20 @@
                         </object>
                     </object>
                 </object>
-                <object class="sizeritem" expanded="0">
+                <object class="sizeritem" expanded="1">
                     <property name="border">5</property>
                     <property name="flag">wxEXPAND</property>
                     <property name="proportion">1</property>
-                    <object class="wxBoxSizer" expanded="0">
+                    <object class="wxBoxSizer" expanded="1">
                         <property name="minimum_size"></property>
                         <property name="name">bSizer9</property>
                         <property name="orient">wxVERTICAL</property>
                         <property name="permission">none</property>
-                        <object class="sizeritem" expanded="0">
+                        <object class="sizeritem" expanded="1">
                             <property name="border">5</property>
                             <property name="flag">wxALL</property>
                             <property name="proportion">1</property>
-                            <object class="wxGrid" expanded="0">
+                            <object class="wxGrid" expanded="1">
                                 <property name="BottomDockable">1</property>
                                 <property name="LeftDockable">1</property>
                                 <property name="RightDockable">1</property>
@@ -2998,7 +2998,7 @@
                                 <event name="OnGridLabelRightClick">OnGridLabelRightClick</event>
                                 <event name="OnKeyDown">OnKeyDown</event>
                                 <event name="OnKeyUp">OnKeyUp</event>
-                                <object class="wxMenu" expanded="0">
+                                <object class="wxMenu" expanded="1">
                                     <property name="label">MyMenu</property>
                                     <property name="name">m_menuPopupConEditor</property>
                                     <property name="permission">protected</property>
@@ -3037,7 +3037,7 @@
                                         <property name="help"></property>
                                         <property name="id">wxID_ANY</property>
                                         <property name="kind">wxITEM_NORMAL</property>
-                                        <property name="label">Insert Convention</property>
+                                        <property name="label">Insert Convention Series</property>
                                         <property name="name">m_menuItemInsert</property>
                                         <property name="permission">none</property>
                                         <property name="shortcut"></property>
@@ -3051,8 +3051,22 @@
                                         <property name="help"></property>
                                         <property name="id">wxID_ANY</property>
                                         <property name="kind">wxITEM_NORMAL</property>
-                                        <property name="label">Delete Convention</property>
+                                        <property name="label">Delete Convention Series</property>
                                         <property name="name">m_menuItemDelete</property>
+                                        <property name="permission">none</property>
+                                        <property name="shortcut"></property>
+                                        <property name="unchecked_bitmap"></property>
+                                        <event name="OnMenuSelection">OnPopupDeleteCon</event>
+                                    </object>
+                                    <object class="wxMenuItem" expanded="1">
+                                        <property name="bitmap"></property>
+                                        <property name="checked">0</property>
+                                        <property name="enabled">1</property>
+                                        <property name="help"></property>
+                                        <property name="id">wxID_ANY</property>
+                                        <property name="kind">wxITEM_NORMAL</property>
+                                        <property name="label">Edit Convention Series</property>
+                                        <property name="name">m_menuItemEdit</property>
                                         <property name="permission">none</property>
                                         <property name="shortcut"></property>
                                         <property name="unchecked_bitmap"></property>
