@@ -221,8 +221,11 @@ class ConEditorFrame(GenConEditorFrame):
 
         # First read in the template
         file=None
-        with open("Template-ConSeries.html") as f:
-            file=f.read()
+        try:
+            with open("Template-ConMain.html") as f:
+                file=f.read()
+        except:
+            wx.MessageBox("Can't read 'Template-ConMain.html'")
 
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name is tagged with <abc>, the random text with "xyz"

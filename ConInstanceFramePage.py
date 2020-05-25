@@ -88,8 +88,11 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
     def SaveConInstancePage(self) -> None:
         # First read in the template
         file=None
-        with open("Template-ConPage.html") as f:
-            file=f.read()
+        try:
+            with open("Template-ConPage.html") as f:
+                file=f.read()
+        except:
+            wx.MessageBox("Can't read 'Template-ConPage.html'")
 
 
         # We want to do substitutions, replacing whatever is there now with the new data
