@@ -243,9 +243,6 @@ class ConEditorFrame(GenConEditorFrame):
 
         file=SubstituteHTML(file, "fanac-date", date.today().strftime("%A %B %d, %Y"))
 
-        # And then reload the GUI
-        self.Load()     #TODO: Is this needed?
-
         FTP().PutFileAsString("/", "index.html", file)
 
 
