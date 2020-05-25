@@ -277,7 +277,7 @@ class ConEditorFrame(GenConEditorFrame):
 
     #------------------
     def OnButtonExitClick(self, event):            # ConEditorFrame
-        self.Destroy()
+        self.OnClose(event)
 
     #------------------
     def OnGridCellRightClick(self, event):            # ConEditorFrame
@@ -348,8 +348,13 @@ class ConEditorFrame(GenConEditorFrame):
 
     # ------------------
     def OnClose(self, event):            # ConEditorFrame
+        if self._grid._datasource.Updated:
+            resp=wx.MessageBox("The main con list has been updated and not yet saved. Exit anyway?", 'Warning',
+                   wx.OK|wx.CANCEL|wx.ICON_WARNING)
+            if resp == wx.CANCEL:
+                event.Skip()
+                return
         self.Destroy()
-
 
 
 # Start the GUI and run the event loop
