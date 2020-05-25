@@ -163,13 +163,15 @@ class Grid():
                 self._grid.SetColLabelValue(iCol, colhead)
                 iCol+=1
 
-
+    # --------------------------------------------------------
     def SetColTypes(self, coldatatypes: List[str]) -> None:        # Grid
         self._coldatatypes=coldatatypes
 
+    # --------------------------------------------------------
     def SetColMinWidths(self, defaultwidths: List[int]) -> None:        # Grid
         self._colminwidths=defaultwidths
 
+    # --------------------------------------------------------
     def AutoSizeColumns(self):        # Grid
         self._grid.AutoSizeColumns()
         if len(self._datasource.ColMinWidths) == self._grid.NumberCols-1:
@@ -180,10 +182,11 @@ class Grid():
                     self._grid.SetColSize(iCol, width)
                 iCol+=1
 
+    # --------------------------------------------------------
     def SetCellBackgroundColor(self, row, col, color):        # Grid
         self._grid.SetCellBackgroundColour(row, col, color)
 
-
+    # --------------------------------------------------------
     # Row, col are Grid coordinates
     def ColorCellByValue(self, row: int, col: int) -> None:        # Grid
         # Start by setting color to white
@@ -211,6 +214,7 @@ class Grid():
                 font.MakeUnderlined()
                 self._grid.SetCellFont(row, col, font)
 
+    # --------------------------------------------------------
     def ColorCellsByValue(self):        # Grid
         # Analyze the data and highlight cells where the data type doesn't match the header.  (E.g., Volume='August', Month='17', year='20')
         # Col 0 is a number and 3 is a date and the rest are strings.   We walk the rows checking the type of data in that column.
@@ -218,12 +222,12 @@ class Grid():
             for iCol in range(self._grid.NumberCols):
                 self.ColorCellByValue(iRow, iCol)
 
+    # --------------------------------------------------------
     def RefreshGridFromData(self):        # Grid
         self.EvtHandlerEnabled=False
         self._grid.ClearGrid()
 
         self.SetColHeaders(self._colheaders)
-#        self.FillInRowNumbers(self.NumrowsR)
 
         # Fill in the cells
         for i in range(self._datasource.NumRows):
@@ -235,6 +239,7 @@ class Grid():
         self.AutoSizeColumns()
 
 
+    #--------------------------------------------------------
     # Move a block of rows within the data source
     # All row numbers are logical
     # Oldrow is the 1st row of the block to be moved
