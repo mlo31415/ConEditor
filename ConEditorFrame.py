@@ -341,7 +341,7 @@ class ConEditorFrame(GenConEditorFrame):
 
     #------------------
     def OnPopupInsertCon(self, event):            # ConEditorFrame
-        self._grid._datasource.Rows.insert(self.clickedRow-1, Convention())
+        self._grid._datasource.Rows.insert(self.clickedRow, Convention())
         self.RefreshWindow()
 
     # ------------------
