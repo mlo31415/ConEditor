@@ -320,10 +320,15 @@ class ConEditorFrame(GenConEditorFrame):
         self._grid._datasource.Rows.insert(self.clickedRow-1, Convention())
         self._grid.RefreshGridFromData()
 
+    # ------------------
     def OnPopupDeleteCon(self, event):            # ConEditorFrame
         del self._grid._datasource.Rows[self.clickedRow]
         self._grid.RefreshGridFromData()
         event.Skip()
+
+    # ------------------
+    def OnClose(self, event):            # ConEditorFrame
+        self.Destroy()
 
 
 
