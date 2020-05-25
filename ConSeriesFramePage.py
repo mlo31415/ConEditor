@@ -187,7 +187,8 @@ class MainConSeriesFrame(GenConSeriesFrame):
         if self._seriesname is None or len(self._seriesname) == 0:
             Log("SaveConSeries: No series name provided")
             return
-        FTP().PutFileAsString(self._seriesname, "index.html", file, create=True)
+        if not FTP().PutFileAsString(self._seriesname, "index.html", file, create=True):
+            wx.MessageBox("Save failed")
 
 
     #------------------
