@@ -150,6 +150,7 @@ class GenConInstanceFrame ( wx.Dialog ):
 		self.Centre( wx.BOTH )
 
 		# Connect Events
+		self.Bind( wx.EVT_CLOSE, self.OnClose )
 		self.bSaveCon.Bind( wx.EVT_BUTTON, self.OnSaveConInstance )
 		self.bAddFiles.Bind( wx.EVT_BUTTON, self.OnAddFilesButton )
 		self.tConInstanceName.Bind( wx.EVT_KEY_UP, self.OnTextConInstanceNameKeyUp )
@@ -171,6 +172,9 @@ class GenConInstanceFrame ( wx.Dialog ):
 
 
 	# Virtual event handlers, overide them in your derived class
+	def OnClose( self, event ):
+		event.Skip()
+
 	def OnSaveConInstance( self, event ):
 		event.Skip()
 

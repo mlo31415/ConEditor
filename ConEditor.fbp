@@ -1116,6 +1116,7 @@
             <property name="window_extra_style"></property>
             <property name="window_name"></property>
             <property name="window_style"></property>
+            <event name="OnClose">OnClose</event>
             <object class="wxBoxSizer" expanded="1">
                 <property name="minimum_size"></property>
                 <property name="name">bSizerMainBox</property>
@@ -2344,7 +2345,7 @@
                         <property name="context_help"></property>
                         <property name="context_menu">1</property>
                         <property name="current"></property>
-                        <property name="default">0</property>
+                        <property name="default">1</property>
                         <property name="default_pane">0</property>
                         <property name="disabled"></property>
                         <property name="dock">Dock</property>
