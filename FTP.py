@@ -95,6 +95,7 @@ class FTP:
             components.append("/")
             newdir=newdir[1:]
         components.extend(newdir.split("/"))
+        components=[c for c in components if len(c) > 0]
 
         # Now walk the component list
         for component in components:
@@ -102,7 +103,7 @@ class FTP:
             if not self.Exists(component):
                 # If not, are we allowed to create it"
                 if not create:
-                    Log("SetDirectory was called with create=False")
+                    Log("SetDirectory was called for a non-existant directory with create=False")
                     return False
                 if not self.MKD(component):
                     Log("mkd failed...bailing out...")
