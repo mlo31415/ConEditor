@@ -158,6 +158,7 @@ class ConEditorFrame(GenConEditorFrame):
         self._grid.SetColTypes(ConList._coldatatypes)
         self._grid._grid.HideRowLabels()
         self._grid.RefreshGridFromData()
+        self._updated=False
 
         self.Load()
 
@@ -180,6 +181,15 @@ class ConEditorFrame(GenConEditorFrame):
         self._grid._datasource=ConList().FromJson(d["_datasource"])
 
         return self
+
+    @property
+    def Updated(self) -> bool:
+        return self._updated or (self._grid._datasource.Updated is not None and self._grid._datasource.Updated)
+    @Updated.setter
+    def Updated(self, val: bool) -> None:
+        self._updated=val
+        if val == False:    # If we're setting the updated flag to False, set the grid's flag, too.
+            self._grid._datasource.Updated=False
 
     #------------------
     def ProgressMessage(self, s: str) -> None:            # ConEditorFrame
@@ -213,7 +223,7 @@ class ConEditorFrame(GenConEditorFrame):
         # Insert the row data into the grid
         self.RefreshWindow()
         self.ProgressMessage("root/index.html Loaded")
-        self._grid._datasource.Updated=False   # Freshly loaded is in a saved state
+        self.Updated=False   # Freshly loaded is in a saved state
 
 
     #------------------
@@ -255,9 +265,8 @@ class ConEditorFrame(GenConEditorFrame):
         file=SubstituteHTML(file, "fanac-date", date.today().strftime("%A %B %d, %Y"))
 
         FTP().PutFileAsString("/", "index.html", file)
-        self._grid._datasource.Updated=False
+        self.Updated=False
         self.RefreshWindow()
-
 
     #------------------
     def RefreshWindow(self) -> None:
@@ -265,7 +274,7 @@ class ConEditorFrame(GenConEditorFrame):
         s=self.Title
         if s.endswith(" *"):
             s=s[:-2]
-        if self._grid._datasource.Updated:
+        if self.Updated:
             s=s+" *"
         self.Title=s
 
@@ -361,11 +370,12 @@ class ConEditorFrame(GenConEditorFrame):
     # ------------------
     def OnTopTextUpdated(self, event):
         self._grid._datasource.toptext=self.m_textCtrlTopText.Value
-        self._grid._datasource.Updated=True
+        self.Updated=True
+        self.RefreshWindow()
 
     # ------------------
     def OnClose(self, event):            # ConEditorFrame
-        if self._grid._datasource.Updated:
+        if self.Updated:
             resp=wx.MessageBox("The main con list has been updated and not yet saved. Exit anyway?", 'Warning',
                    wx.OK|wx.CANCEL|wx.ICON_WARNING)
             if resp == wx.CANCEL:
