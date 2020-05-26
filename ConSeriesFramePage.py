@@ -80,25 +80,20 @@ class MainConSeriesFrame(GenConSeriesFrame):
     def ProgressMessage(self, s: str) -> None:                    # MainConSeriesFrame
         self.m_staticTextMessages.Label=s
 
-    #------------------
-    def OnLoadConSeries(self, event):                    # MainConSeriesFrame
-
-        self.LoadConSeries(None)
-        pass
 
     #------------------
-    # Download a ConSeries
+    # Download a ConSeries from Fanac.org
     def LoadConSeries(self, seriesname) -> None:                    # MainConSeriesFrame
 
         # Clear out any old information
         self._grid._datasource=ConSeries()
 
         if seriesname is None or len(seriesname) == 0:
-            assert(False)   # Never take this branch.  Delete when I'm sure.
+            # Nothing to load. Just return.
+            return
+
         if self._basedirectoryFTP is None:
             assert(False)   # Never take this branch.  Delete when I'm sure.
-
-#        self._seriesname=seriesname
 
         self.ProgressMessage("Loading "+self._seriesname+"/index.html")
         file=FTP().GetFileAsString("/"+self._seriesname, "index.html")
@@ -187,7 +182,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
         if self._seriesname is None or len(self._seriesname) == 0:
             Log("SaveConSeries: No series name provided")
             return
-        if not FTP().PutFileAsString(self._seriesname, "index.html", file, create=True):
+        if not FTP().PutFileAsString("/"+self._seriesname, "index.html", file, create=True):
             wx.MessageBox("Save failed")
 
 
@@ -282,6 +277,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
                 con.GoHs=row[ngoh]
 
             self._grid._datasource.Rows.append(con)
+        self.tConSeries.Value=name
 
 
     #------------------

@@ -312,6 +312,7 @@ class ConEditorFrame(GenConEditorFrame):
         dlg=MainConSeriesFrame(self._baseDirFTP, conseriesname)
         #        dlg.tConInstanceName.Value=name
         dlg.ShowModal()
+        conseriesname=dlg.tConSeries.Value
         self._grid._datasource.Rows[self.clickedRow].URL="./"+conseriesname+"/"+conseriesname+".html"
         self._grid._datasource.Rows[self.clickedRow].Name=conseriesname
 
@@ -342,6 +343,8 @@ class ConEditorFrame(GenConEditorFrame):
     #------------------
     def OnPopupInsertCon(self, event):            # ConEditorFrame
         self._grid._datasource.Rows.insert(self.clickedRow, Convention())
+        self.EditConSeries()    # clickedRow is set by the RMB clicked event that must have preceeded this.
+        name=self._grid._datasource.Rows[self.clickedRow].Name
         self.RefreshWindow()
 
     # ------------------

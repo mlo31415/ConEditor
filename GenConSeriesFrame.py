@@ -18,7 +18,7 @@ import wx.grid
 class GenConSeriesFrame ( wx.Dialog ):
 
 	def __init__( self, parent ):
-		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Edie Conventon Series", pos = wx.DefaultPosition, size = wx.Size( 700,533 ), style = wx.DEFAULT_DIALOG_STYLE )
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Edit Conventon Series", pos = wx.DefaultPosition, size = wx.Size( 700,533 ), style = wx.DEFAULT_DIALOG_STYLE )
 
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
@@ -31,9 +31,6 @@ class GenConSeriesFrame ( wx.Dialog ):
 
 		self.bCreateConSeries = wx.Button( self, wx.ID_ANY, u"Create New ConSeries", wx.DefaultPosition, wx.DefaultSize, 0 )
 		fgSizer6.Add( self.bCreateConSeries, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
-
-		self.bLoadConSeries = wx.Button( self, wx.ID_ANY, u"Load ConSeries from Fanac.org", wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer6.Add( self.bLoadConSeries, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
 		self.bSaveConSeries = wx.Button( self, wx.ID_ANY, u"Save ConSeries to Fanac.org", wx.DefaultPosition, wx.DefaultSize, 0 )
 		fgSizer6.Add( self.bSaveConSeries, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
@@ -164,7 +161,6 @@ class GenConSeriesFrame ( wx.Dialog ):
 
 		# Connect Events
 		self.bCreateConSeries.Bind( wx.EVT_BUTTON, self.OnCreateConSeries )
-		self.bLoadConSeries.Bind( wx.EVT_BUTTON, self.OnLoadConSeries )
 		self.bSaveConSeries.Bind( wx.EVT_BUTTON, self.OnSaveConSeries )
 		self.tConSeries.Bind( wx.EVT_KEY_UP, self.ConTextConSeriesKeyUp )
 		self.tConSeries.Bind( wx.EVT_TEXT, self.OnTextConSeriesName )
@@ -185,9 +181,6 @@ class GenConSeriesFrame ( wx.Dialog ):
 
 	# Virtual event handlers, overide them in your derived class
 	def OnCreateConSeries( self, event ):
-		event.Skip()
-
-	def OnLoadConSeries( self, event ):
 		event.Skip()
 
 	def OnSaveConSeries( self, event ):
