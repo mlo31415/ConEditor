@@ -168,6 +168,9 @@ class FTP:
 
         localfname="temp/"+fname
         Log("RETR "+fname+"  to "+localfname)
+        if not self.Exists(fname):
+            Log(fname+" does not exist.")
+            return None
         with open(localfname, "wb+") as f:
             msg=self.g_ftp.retrbinary("RETR "+fname, f.write)
             Log(msg)
