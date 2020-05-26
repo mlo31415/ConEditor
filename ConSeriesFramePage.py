@@ -310,6 +310,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
                 for i in range(row-self._grid._datasource.NumRows+1):
                     self._grid._datasource.Rows.append(Con())
             self._grid._datasource.Rows[row].URL=dlg.tConInstanceName.Value
+            self._grid.RefreshGridFromData()
 
         pass
 
