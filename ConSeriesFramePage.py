@@ -320,6 +320,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
         if self.Updated:
             s=s+" *"
         self.Title=s
+        self.bSaveConSeries.Enabled=self.Updated
 
     #------------------
     def OnCreateNewConPage(self, event):                    # MainConSeriesFrame
@@ -401,4 +402,13 @@ class MainConSeriesFrame(GenConSeriesFrame):
     def OnGridCellChanged(self, event):                    # MainConSeriesFrame
         self._grid.OnGridCellChanged(event)
 
+    # ------------------
+    def OnClose(self, event):            # ConEditorFrame
+        if self.Updated:
+            resp=wx.MessageBox("The convention series has been updated and not yet saved. Exit anyway?", 'Warning',
+                   wx.OK|wx.CANCEL|wx.ICON_WARNING)
+            if resp == wx.CANCEL:
+                event.Skip()
+                return
+        self.Destroy()
 
