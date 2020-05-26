@@ -313,7 +313,7 @@ class ConEditorFrame(GenConEditorFrame):
         #        dlg.tConInstanceName.Value=name
         dlg.ShowModal()
         conseriesname=dlg.tConSeries.Value
-        self._grid._datasource.Rows[self.clickedRow].URL="./"+conseriesname+"/"+conseriesname+".html"
+        self._grid._datasource.Rows[self.clickedRow].URL="./"+conseriesname+"/index.html"
         self._grid._datasource.Rows[self.clickedRow].Name=conseriesname
 
     # ------------------
