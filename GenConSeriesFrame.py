@@ -35,10 +35,26 @@ class GenConSeriesFrame ( wx.Dialog ):
 		self.bSaveConSeries = wx.Button( self, wx.ID_ANY, u"Save ConSeries to Fanac.org", wx.DefaultPosition, wx.DefaultSize, 0 )
 		fgSizer6.Add( self.bSaveConSeries, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
+		self.m_panel2 = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.BORDER_THEME|wx.TAB_TRAVERSAL )
+		fgSizer8 = wx.FlexGridSizer( 2, 0, 0, 0 )
+		fgSizer8.SetFlexibleDirection( wx.BOTH )
+		fgSizer8.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.m_staticText13 = wx.StaticText( self.m_panel2, wx.ID_ANY, u"HTML Output", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText13.Wrap( -1 )
+
+		fgSizer8.Add( self.m_staticText13, 0, wx.ALL, 5 )
+
 		m_radioBoxShowEmptyChoices = [ u"Yes", u"No" ]
-		self.m_radioBoxShowEmpty = wx.RadioBox( self, wx.ID_ANY, u"Show empty cons?", wx.DefaultPosition, wx.DefaultSize, m_radioBoxShowEmptyChoices, 1, wx.RA_SPECIFY_ROWS )
+		self.m_radioBoxShowEmpty = wx.RadioBox( self.m_panel2, wx.ID_ANY, u"Show empty cons?", wx.DefaultPosition, wx.DefaultSize, m_radioBoxShowEmptyChoices, 1, wx.RA_SPECIFY_ROWS )
 		self.m_radioBoxShowEmpty.SetSelection( 0 )
-		fgSizer6.Add( self.m_radioBoxShowEmpty, 0, wx.ALL, 5 )
+		fgSizer8.Add( self.m_radioBoxShowEmpty, 0, wx.ALL, 5 )
+
+
+		self.m_panel2.SetSizer( fgSizer8 )
+		self.m_panel2.Layout()
+		fgSizer8.Fit( self.m_panel2 )
+		fgSizer6.Add( self.m_panel2, 1, wx.EXPAND |wx.ALL, 5 )
 
 
 		bSizerMainBox.Add( fgSizer6, 0, wx.EXPAND, 5 )
