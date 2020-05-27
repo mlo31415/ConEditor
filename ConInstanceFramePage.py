@@ -118,6 +118,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             newtable+="  <thead>\n"
             newtable+="    <tr>\n"
             newtable+='      <th scope="col">Document</th>\n'
+            newtable+='      <th scope="col">Size</th>\n'
             newtable+='      <th scope="col">Notes</th>\n'
             newtable+='    </tr>\n'
             newtable+='  </thead>\n'
@@ -126,6 +127,10 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             for row in self._grid._datasource.Rows:
                 newtable+="    <tr>\n"
                 newtable+='      <td>'+FormatLink(row.Filename, row.DisplayTitle)+'</td>\n'
+                if row.Size > 0:
+                    newtable+='      <td>'+str(row.Size)+'</td>\n'
+                else:
+                    newtable+='      <td>--</td>\n'
                 newtable+='      <td>'+str(row.Notes)+'</td>\n'
                 newtable+="    </tr>\n"
                 i+=1
