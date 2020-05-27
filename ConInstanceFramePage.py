@@ -142,9 +142,10 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
         FTP().PutFileAsString("/"+self._seriesname+"/"+self._coninstancename, "index.html", file, create=True)
 
+
         # Finally, FTP any files which are newly added.
         for row in self._grid._datasource.Rows:
-            if not FTP().Exists(row.LocalPathname):
+            if not FTP().Exists(row.Filename):
                 FTP().PutFile(row.LocalPathname, row.Filename)
 
 
