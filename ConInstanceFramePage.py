@@ -149,11 +149,19 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
         FTP().PutFileAsString("/"+self._seriesname+"/"+self._coninstancename, "index.html", file, create=True)
 
-
-        # Finally, FTP any files which are newly added.
+        # Finally, Upload any files which are newly added.
         for row in self._grid._datasource.Rows:
             if not FTP().Exists(row.Filename):
+
                 FTP().PutFile(row.LocalPathname, row.Filename)
+
+        # And remove any that have been dropped.  (PDFs only, for now.)
+        files=[row.Filename for row in self._grid._datasource.Rows]
+        fileupthere=FTP().g_ftp.nlst()
+        for f in fileupthere:
+            if f not in files:
+                if os.path.splitext(f)[1] == ".pdf":
+                    FTP().Delete(f)
 
 
     #------------------

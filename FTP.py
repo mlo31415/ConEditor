@@ -57,6 +57,13 @@ class FTP:
         return msg.startswith("250 OK.")
 
 
+    def Delete(self, fname: str) -> bool:
+        Log("delete file: '"+fname+"'")
+        msg=self.g_ftp.delete(fname)
+        Log(msg)
+        return msg.startswith("250 Deleted")
+
+
     def PWD(self) -> str:
         dir=self.g_ftp.pwd()
         Log("pwd is now '"+dir+"'")
