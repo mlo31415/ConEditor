@@ -145,7 +145,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
         # First read in the template
         try:
-            with open("Template-ConSeries.html") as f:
+            with open(os.path.join(os.path.split( sys.argv[0])[0], "Template-ConSeries.html")) as f:
                 file=f.read()
         except:
             wx.MessageBox("Can't read 'Template-ConSeries.html'")

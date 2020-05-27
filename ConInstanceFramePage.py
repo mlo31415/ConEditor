@@ -1,5 +1,6 @@
 import wx
 import os
+import sys
 import json
 from datetime import date
 
@@ -93,7 +94,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         # First read in the template
         file=None
         try:
-            with open("Template-ConPage.html") as f:
+            with open(os.path.join(os.path.split( sys.argv[0])[0], "Template-ConPage.html")) as f:
                 file=f.read()
         except:
             wx.MessageBox("Can't read 'Template-ConPage.html'")

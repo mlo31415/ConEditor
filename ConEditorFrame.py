@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import Optional, List, Union
 
 import os
+import sys
 import wx
 import wx.grid
 import json
@@ -232,7 +233,7 @@ class ConEditorFrame(GenConEditorFrame):
         # First read in the template
         file=None
         try:
-            with open("Template-ConMain.html") as f:
+            with open(os.path.join(os.path.split( sys.argv[0])[0], "Template-ConMain.html")) as f:
                 file=f.read()
         except:
             wx.MessageBox("Can't read 'Template-ConMain.html'")
