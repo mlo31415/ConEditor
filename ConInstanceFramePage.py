@@ -120,7 +120,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             newtable+="  <thead>\n"
             newtable+="    <tr>\n"
             newtable+='      <th scope="col">Document</th>\n'
-            newtable+='      <th scope="col">Size</th>\n'
+            newtable+='      <th scope="col">Size&nbsp;(MB)</th>\n'
             newtable+='      <th scope="col">Notes</th>\n'
             newtable+='    </tr>\n'
             newtable+='  </thead>\n'
@@ -130,7 +130,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
                 newtable+="    <tr>\n"
                 newtable+='      <td>'+FormatLink(row.Filename, row.DisplayTitle)+'</td>\n'
                 if row.Size > 0:
-                    newtable+='      <td>'+"{:,.1f}".format(row.Size/(1024**2))+' MB</td>\n'
+                    newtable+='      <td>'+"{:,.1f}".format(row.Size/(1024**2))+'</td>\n'
                 else:
                     newtable+='      <td>--</td>\n'
                 newtable+='      <td>'+str(row.Notes)+'</td>\n'
