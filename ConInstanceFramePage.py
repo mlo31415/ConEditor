@@ -117,7 +117,6 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             newtable='<table class="table">\n'
             newtable+="  <thead>\n"
             newtable+="    <tr>\n"
-            newtable+='      <th scope="col">#</th>\n'
             newtable+='      <th scope="col">Document</th>\n'
             newtable+='      <th scope="col">Description</th>\n'
             newtable+='    </tr>\n'
@@ -126,7 +125,6 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             i=1
             for row in self._grid._datasource.Rows:
                 newtable+="    <tr>\n"
-                newtable+='      <th scope="row">'+str(1)+'</th>\n'
                 newtable+='      <td>'+FormatLink(row.Filename, row.DisplayTitle)+'</td>\n'
                 newtable+='      <td>'+str(row.Description)+'</td>\n'
                 newtable+="    </tr>\n"
