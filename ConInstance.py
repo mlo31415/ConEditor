@@ -119,7 +119,7 @@ class ConInstancePage(GridDataSource):
             self._conFileList=[]
             for c in cfld:
                 self._conFileList.append(ConFile().FromJson(c))
-        self._colheaders=["Notes" if ch == "Description" else ch for ch in self._colheaders]    # Change Description column to Notes in old files
+        self._colheaders=["Notes" if ch == "Description" else ch for ch in self._colheaders]    # Change Description column to Notes in old files #TODO: Remove when no longer needed
         return self
 
 
