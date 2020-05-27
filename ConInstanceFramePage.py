@@ -130,7 +130,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
                 newtable+="    <tr>\n"
                 newtable+='      <td>'+FormatLink(row.Filename, row.DisplayTitle)+'</td>\n'
                 if row.Size > 0:
-                    newtable+='      <td>'+"{:,}".format(math.floor(row.Size/1024))+' KB</td>\n'
+                    newtable+='      <td>'+"{:,.1f}".format(row.Size/(1024**2))+' MB</td>\n'
                 else:
                     newtable+='      <td>--</td>\n'
                 newtable+='      <td>'+str(row.Notes)+'</td>\n'
