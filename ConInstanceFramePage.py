@@ -2,6 +2,7 @@ import wx
 import os
 import sys
 import json
+import math
 from datetime import date
 
 from GenConInstanceFrame import GenConInstanceFrame
@@ -74,6 +75,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             conf.DisplayTitle=fn
             conf.LocalPathname=os.path.join(os.path.join(dlg.Directory), fn)
             conf.Filename=fn
+            conf.Size=os.path.getsize(conf.LocalPathname)
             self._grid._datasource.Rows.append(conf)
         dlg.Destroy()
         self._grid.RefreshGridFromData()
@@ -128,7 +130,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
                 newtable+="    <tr>\n"
                 newtable+='      <td>'+FormatLink(row.Filename, row.DisplayTitle)+'</td>\n'
                 if row.Size > 0:
-                    newtable+='      <td>'+str(row.Size)+'</td>\n'
+                    newtable+='      <td>'+"{:,}".format(math.floor(row.Size/1024))+' KB</td>\n'
                 else:
                     newtable+='      <td>--</td>\n'
                 newtable+='      <td>'+str(row.Notes)+'</td>\n'
