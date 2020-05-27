@@ -7,26 +7,28 @@ import json
 class ConFile:
     def __init__(self):
         self._displayTitle: str=""      # The name as shown to the world
-        self._description: str=""       # The free-format description
+        self._notes: str=""       # The free-format description
         self._filename: str=""
         self._localpathname: str="."     # The local pathname of the file
 
     # Serialize and deserialize
     def ToJson(self) -> str:
-        d={"ver": 2,
+        d={"ver": 3,
            "_displayTitle": self._displayTitle,
-           "_description": self._description,
+           "_notes": self._notes,
            "_localpathname": self._localpathname,
            "_filename": self._filename}
         return json.dumps(d)
 
     def FromJson(self, val: str) -> ConFile:
         d=json.loads(val)
+        self._displayTitle=d["_displayTitle"]
+        self._localpathname=d["_localpathname"]
+        if d["ver"] >= 3:
+            self._notes=d["_notes"]
         if d["ver"] <=2:
-            self._displayTitle=d["_displayTitle"]
-            self._description=d["_description"]
-            self._localpathname=d["_localpathname"]
-        if d["ver"] == 2:
+            self._notes=d["_description"]
+        if d["ver"] >= 2:
             self._filename=d["_filename"]
         else:
             self._filename=self._displayTitle
@@ -40,11 +42,11 @@ class ConFile:
         self._displayTitle=val
 
     @property
-    def Description(self) -> str:
-        return self._description
-    @Description.setter
-    def Description(self, val: str):
-        self._description=val
+    def Notes(self) -> str:
+        return self._notes
+    @Notes.setter
+    def Notes(self, val: str):
+        self._notes=val
 
     @property
     def LocalPathname(self) -> str:
@@ -66,8 +68,8 @@ class ConFile:
         # (Could use return eval("self."+name))
         if name == "File" or name == 0:
             return self.DisplayTitle
-        if name == "Description" or name == 1:
-            return self.Description
+        if name == "Notes" or name == 1:
+            return self.Notes
         return "Val can't interpret '"+str(name)+"'"
 
     def SetVal(self, nameOrCol: Union[str, int], val: Union[str, int]) -> None:
@@ -75,8 +77,8 @@ class ConFile:
         if nameOrCol == "File" or nameOrCol == 0:
             self.DisplayTitle=val
             return
-        if nameOrCol == "Description" or nameOrCol == 1:
-            self.Description=val
+        if nameOrCol == "Notes" or nameOrCol == 1:
+            self.Notes=val
             return
         print("SetVal can't interpret '"+str(nameOrCol)+"'")
 
@@ -84,7 +86,7 @@ class ConFile:
 
 class ConInstancePage(GridDataSource):
     # an array of tuples: column header, min col width, col type
-    _colheaders=["File", "Description"]
+    _colheaders=["File", "Notes"]
     _colminwidths=[50, 200]
     _coldatatypes=["str", "str"]
     _element=ConFile
@@ -117,6 +119,7 @@ class ConInstancePage(GridDataSource):
             self._conFileList=[]
             for c in cfld:
                 self._conFileList.append(ConFile().FromJson(c))
+        self._colheaders=["Notes" if ch == "Description" else ch for ch in self._colheaders]    # Change Description column to Notes in old files
         return self
 
 

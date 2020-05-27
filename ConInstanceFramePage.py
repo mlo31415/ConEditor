@@ -118,7 +118,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             newtable+="  <thead>\n"
             newtable+="    <tr>\n"
             newtable+='      <th scope="col">Document</th>\n'
-            newtable+='      <th scope="col">Description</th>\n'
+            newtable+='      <th scope="col">Notes</th>\n'
             newtable+='    </tr>\n'
             newtable+='  </thead>\n'
             newtable+='  <tbody>\n'
@@ -126,7 +126,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             for row in self._grid._datasource.Rows:
                 newtable+="    <tr>\n"
                 newtable+='      <td>'+FormatLink(row.Filename, row.DisplayTitle)+'</td>\n'
-                newtable+='      <td>'+str(row.Description)+'</td>\n'
+                newtable+='      <td>'+str(row.Notes)+'</td>\n'
                 newtable+="    </tr>\n"
                 i+=1
             newtable+="    </tbody>\n"
@@ -135,7 +135,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             # Construct a list which we'll then substitute.
             newtable="<ul>"
             for row in self._grid._datasource.Rows:
-                newtable+="    <li>"+FormatLink(row.LocalPathname, row.DisplayTitle)+"&nbsp;&nbsp;"+str(row.Description)+"</li>\n"
+                newtable+="    <li>"+FormatLink(row.LocalPathname, row.DisplayTitle)+"&nbsp;&nbsp;"+str(row.Notes)+"</li>\n"
             newtable+="  </ul>\n"
 
         file=SubstituteHTML(file, "fanac-table", newtable)
