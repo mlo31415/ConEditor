@@ -90,6 +90,8 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
     def OnClose(self, event):
         if self._grid._datasource.NumRows > 0:
             self.ReturnValue=wx.ID_OK
+        if self.ReturnValue is None:
+            self.ReturnValue=wx.ID_CANCEL
         self.EndModal(self.ReturnValue)
 
     def SaveConInstancePage(self) -> None:
