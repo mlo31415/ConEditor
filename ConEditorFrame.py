@@ -159,7 +159,6 @@ class ConEditorFrame(GenConEditorFrame):
         self._grid.SetColHeaders(self._grid._datasource._colheaders)
         self._grid.SetColTypes(ConList._coldatatypes)
         self._grid._grid.HideRowLabels()
-        self._grid.RefreshGridFromData()
         self._updated=False
 
         self.Load()

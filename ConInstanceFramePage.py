@@ -32,16 +32,16 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self.ConInstanceStuff=""
         self.ConInstanceFancyURL=""
 
+        self._updated=False
+
         val=Settings().Get("ConInstanceFramePage:File list format")
         if val is not None:
             self.radioBoxFileListFormat.SetSelection(int(val))
 
         self.LoadConInstancePage()
 
-        self._grid.RefreshGridFromData()
+        self.RefreshWindow()
         self.ReturnValue=None
-
-
 
 
     # Serialize and deserialize
@@ -63,10 +63,20 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         return self
 
 
+    @property
+    def Updated(self) -> bool:
+        return self._updated or (self._grid._datasource.Updated is not None and self._grid._datasource.Updated)
+    @Updated.setter
+    def Updated(self, val: bool) -> None:
+        self._updated=val
+        if val == False:    # If we're setting the updated flag to False, set the grid's flag, too.
+            self._grid._datasource.Updated=False
+
+
     def OnAddFilesButton(self, event):
         self.AddFiles()
 
-    def AddFiles(self):
+    def AddFiles(self) -> None:
         # Call the File Open dialog to get an con series HTML file
         dlg=wx.FileDialog(self, "Select files to upload", ".", "", "*.*", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE | wx.FD_CHANGE_DIR)
 
@@ -82,17 +92,25 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             conf.Filename=fn
             conf.Size=os.path.getsize(conf.LocalPathname)
             self._grid._datasource.Rows.append(conf)
+            self._grid._datasource.Updated=True
         dlg.Destroy()
-        self._grid.RefreshGridFromData()
-
+        self.RefreshWindow()
 
     def OnSaveConInstance(self, event):
         self.SaveConInstancePage()
         self.ReturnValue=wx.ID_OK
         self.EndModal(self.ReturnValue)
+
         self.Close()
 
     def OnClose(self, event):
+        if self.Updated:
+            resp=wx.MessageBox("This file list has been updated and not yet saved. Exit anyway?", 'Warning',
+                   wx.OK|wx.CANCEL|wx.ICON_WARNING)
+            if resp == wx.CANCEL:
+                event.Skip()
+                return
+
         if self._grid._datasource.NumRows > 0:
             self.ReturnValue=wx.ID_OK
         if self.ReturnValue is None:
@@ -116,6 +134,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         file=SubstituteHTML(file, "fanac-headerlink", link)
         file=SubstituteHTML(file, "fanac-fancylink", link)
         file=SubstituteHTML(file, "fanac-stuff", self.ConInstanceStuff)
+
 
         file=SubstituteHTML(file, "fanac-json", self.ToJson())
 
@@ -175,6 +194,9 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
                 if os.path.splitext(f)[1] == ".pdf":
                     FTP().Delete(f)
 
+        self.Updated=False
+        self.RefreshWindow()
+
 
     #------------------
     # Download a ConSeries
@@ -194,7 +216,9 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         if j is not None and j != "":
             self.FromJson(j)
 
-        self._grid.RefreshGridFromData()
+        self.Updated=False
+
+        self.RefreshWindow()
         self.tConInstanceFancyURL.Value=self.ConInstanceFancyURL
 
 
@@ -249,8 +273,9 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             top=bottom=self._grid.rightClickedRow
         self._grid.Grid.ClearSelection()
         del self._grid._datasource.Rows[top:bottom+1]
+        self._grid._datasource.Updated=True
 
-        self._grid.RefreshGridFromData()
+        self.RefreshWindow()
 
     # ------------------
     def OnGridCellChanged(self, event):
@@ -262,19 +287,32 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
     # ------------------
     def OnTextConInstanceNameKeyUp(self, event):
-
         self.tConInstanceFancyURL.Value="fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.tConInstanceName.Value)
+        self.Updated=True
+        self.RefreshWindow()
+
 
     # ------------------
     def OnTextConInstanceFancyURL(self, event):
-
         self.ConInstanceFancyURL=self.tConInstanceFancyURL.Value
+        self.Updated=True
+        self.RefreshWindow()
 
     # ------------------
     def OnTextComments(self, event):
-
         self.ConInstanceStuff=self.tPText.Value
 
     # ------------------
     def OnRadioFileListFormat(self, event):
         Settings().Put("ConInstanceFramePage:File list format", str(self.radioBoxFileListFormat.GetSelection()))
+        self.Updated=True
+
+    #------------------
+    def RefreshWindow(self) -> None:
+        self._grid.RefreshGridFromData()
+        s=self.Title
+        if s.endswith(" *"):
+            s=s[:-2]
+        if self.Updated:
+            s=s+" *"
+        self.Title=s

@@ -420,3 +420,4 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
     def OnSetShowEmptyRadioBox(self, event):
         Settings().Put("ConSeriesFramePage:Show empty", str(self.m_radioBoxShowEmpty.GetSelection()))
+        self.Updated=True
