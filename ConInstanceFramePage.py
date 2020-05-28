@@ -144,7 +144,12 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             # Construct a list which we'll then substitute.
             newtable="<ul>"
             for row in self._grid._datasource.Rows:
-                newtable+="    <li>"+FormatLink(row.LocalPathname, row.DisplayTitle)+"&nbsp;&nbsp;"+str(row.Notes)+"</li>\n"
+                newtable+="    <li>"+FormatLink(row.LocalPathname, row.DisplayTitle)
+                if row.Size > 0:
+                    newtable+="&nbsp;&nbsp;("+"{:,.1f}".format(row.Size/(1024**2))+'&nbsp;MB)</td>\n'
+                else:
+                    newtable+='&nbsp;&nbsp;(--)\n'
+                newtable+="&nbsp;&nbsp;"+str(row.Notes)+"</li>\n"
             newtable+="  </ul>\n"
 
         file=SubstituteHTML(file, "fanac-table", newtable)
