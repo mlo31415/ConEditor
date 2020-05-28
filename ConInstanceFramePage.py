@@ -153,9 +153,9 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
         # Finally, Upload any files which are newly added.
         for row in self._grid._datasource.Rows:
-            if not FTP().Exists(row.Filename):
-
-                FTP().PutFile(row.LocalPathname, row.Filename)
+            if row.Filename is not None and len(row.Filename) > 0:
+                if not FTP().Exists(row.Filename):
+                    FTP().PutFile(row.LocalPathname, row.Filename)
 
         # And remove any that have been dropped.  (PDFs only, for now.)
         files=[row.Filename for row in self._grid._datasource.Rows]
