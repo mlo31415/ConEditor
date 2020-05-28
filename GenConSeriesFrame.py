@@ -179,6 +179,7 @@ class GenConSeriesFrame ( wx.Dialog ):
 		self.Bind( wx.EVT_CLOSE, self.OnClose )
 		self.bCreateConSeries.Bind( wx.EVT_BUTTON, self.OnCreateConSeries )
 		self.bSaveConSeries.Bind( wx.EVT_BUTTON, self.OnSaveConSeries )
+		self.m_radioBoxShowEmpty.Bind( wx.EVT_RADIOBOX, self.OnSetShowEmptyRadioBox )
 		self.tConSeries.Bind( wx.EVT_KEY_UP, self.ConTextConSeriesKeyUp )
 		self.tConSeries.Bind( wx.EVT_TEXT, self.OnTextConSeriesName )
 		self.tFancyURL.Bind( wx.EVT_TEXT, self.OnTextFancyURL )
@@ -204,6 +205,9 @@ class GenConSeriesFrame ( wx.Dialog ):
 		event.Skip()
 
 	def OnSaveConSeries( self, event ):
+		event.Skip()
+
+	def OnSetShowEmptyRadioBox( self, event ):
 		event.Skip()
 
 	def ConTextConSeriesKeyUp( self, event ):

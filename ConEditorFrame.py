@@ -12,6 +12,7 @@ from GenConEditorFrame import GenConEditorFrame
 from Grid import Grid, GridDataSource
 from ConSeriesFramePage import MainConSeriesFrame
 from FTP import FTP
+from Settings import Settings
 from dlgEnterFancyName import dlgEnterFancyNameWindow
 
 from HelpersPackage import SubstituteHTML, FindBracketedText, FormatLink
@@ -392,6 +393,9 @@ LogOpen("Log -- ConEditor.txt", "Log (Errors) -- ConEditor.txt")
 f=FTP()
 f.OpenConnection("FTP Credentials.json")
 f.SetRoot(local="")
+
+# Load the global settings dictionary
+Settings().Load("ConEditor settings.json")
 
 
 app = wx.App(False)

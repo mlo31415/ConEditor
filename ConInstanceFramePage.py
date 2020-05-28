@@ -9,6 +9,7 @@ from GenConInstanceFrame import GenConInstanceFrame
 from Grid import Grid
 from ConInstance import ConInstancePage, ConFile
 from FTP import FTP
+from Settings import Settings
 
 from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, Log
 
@@ -30,6 +31,10 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self.ConInstanceName=""
         self.ConInstanceStuff=""
         self.ConInstanceFancyURL=""
+
+        val=Settings().Get("ConInstanceFramePage:File list format")
+        if val is not None:
+            self.radioBoxFileListFormat.SetSelection(int(val))
 
         self.LoadConInstancePage()
 
@@ -116,7 +121,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
         file=SubstituteHTML(file, "fanac-date", date.today().strftime("%A %B %d, %Y"))
 
-        if self.m_radioBox1.GetSelection() == 0:
+        if self.radioBoxFileListFormat.GetSelection() == 0:
             # Now construct the table which we'll then substitute.
             newtable='<table class="table">\n'
             newtable+="  <thead>\n"
@@ -269,3 +274,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
     def OnTextComments(self, event):
 
         self.ConInstanceStuff=self.tPText.Value
+
+    # ------------------
+    def OnRadioFileListFormat(self, event):
+        Settings().Put("ConInstanceFramePage:File list format", str(self.radioBoxFileListFormat.GetSelection()))

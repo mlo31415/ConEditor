@@ -16,6 +16,7 @@ from ConSeries import ConSeries, Con
 from Grid import Grid
 from dlgEnterFancyName import dlgEnterFancyNameWindow
 from ConInstanceFramePage import MainConInstanceDialogClass
+from Settings import Settings
 
 from HelpersPackage import Bailout, StripExternalTags, SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, UnformatLinks, RemoveAllHTMLTags
 from HelpersPackage import FindIndexOfStringInList
@@ -45,6 +46,10 @@ class MainConSeriesFrame(GenConSeriesFrame):
         self._textConSeriesName: str=""
         self._textFancyURL: str=""
         self._textComments: str=""
+
+        val=Settings().Get("ConSeriesFramePage:Show empty")
+        if val is not None:
+            self.m_radioBoxShowEmpty.SetSelection(int(val))
 
         self._updated: bool=False
 
@@ -412,3 +417,6 @@ class MainConSeriesFrame(GenConSeriesFrame):
                 return
         self.Destroy()
 
+
+    def OnSetShowEmptyRadioBox(self, event):
+        Settings().Put("ConSeriesFramePage:Show empty", str(self.m_radioBoxShowEmpty.GetSelection()))
