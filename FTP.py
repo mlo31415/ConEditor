@@ -18,8 +18,7 @@ class FTP:
     def OpenConnection(self, cre: str) -> bool:
         with open(cre) as f:
             FTP.g_credentials=json.loads(f.read())
-        FTP.g_ftp=ftplib.FTP(host=FTP.g_credentials["host"], user=FTP.g_credentials["ID"], passwd=FTP.g_credentials["PW"])
-        return True
+        return FTP.Reconnect()
 
     def Reconnect(self) -> bool:
         if len(FTP.g_credentials) == 0:
