@@ -128,12 +128,13 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
 
         # We want to do substitutions, replacing whatever is there now with the new data
-        # The con's name is tagged with <abc>, the random text with "xyz"
+        # The con's name is tagged with <fanac-instance>, the random text with "fanac-headertext"
         link=FormatLink("http://fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.ConInstanceName), self.ConInstanceName)
         file=SubstituteHTML(file, "title", self.ConInstanceName)
         file=SubstituteHTML(file, "fanac-headerlink", link)
         file=SubstituteHTML(file, "fanac-fancylink", link)
         file=SubstituteHTML(file, "fanac-stuff", self.ConInstanceStuff)
+        file=SubstituteHTML(file, "fanac-linkupwards", FormatLink("..", "All "+self._seriesname+"s"))
 
 
         file=SubstituteHTML(file, "fanac-json", self.ToJson())

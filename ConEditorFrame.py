@@ -239,11 +239,11 @@ class ConEditorFrame(GenConEditorFrame):
             wx.MessageBox("Can't read 'Template-ConMain.html'")
 
         # We want to do substitutions, replacing whatever is there now with the new data
-        # The con's name is tagged with <abc>, the random text with "xyz"
+        # The con's name is tagged with <fanac-instance>, the random text with "fanac-headertext"
         #link=FormatLink("http://fancyclopedia.org/"+WikiPagenameToWikiUrlname(self._textConSeriesName), self._textConSeriesName)
         #file=SubstituteHTML(file, "title", self._textConSeriesName)
-        #file=SubstituteHTML(file, "abc", link)
-        #file=SubstituteHTML(file, "xyz", self._textComments)
+        #file=SubstituteHTML(file, "fanac-instance", link)
+        #file=SubstituteHTML(file, "fanac-headertext", self._textComments)
 
         # Now construct the table which we'll then substitute.
         newtable="  <thead>\n"
@@ -259,7 +259,7 @@ class ConEditorFrame(GenConEditorFrame):
         newtable+="    </tbody>\n"
 
         # Substitute the table into the template
-        file=SubstituteHTML(file, "pdq", newtable)
+        file=SubstituteHTML(file, "fanac-table", newtable)
         # Store the json for the page into the template
         file=SubstituteHTML(file, "fanac-json", self.ToJson())
 

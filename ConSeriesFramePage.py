@@ -156,11 +156,12 @@ class MainConSeriesFrame(GenConSeriesFrame):
             wx.MessageBox("Can't read 'Template-ConSeries.html'")
 
         # We want to do substitutions, replacing whatever is there now with the new data
-        # The con's name is tagged with <abc>, the random text with "xyz"
+        # The con's name is tagged with <fanac-instance>, the random text with "fanac-headertext"
         link=FormatLink("http://fancyclopedia.org/"+WikiPagenameToWikiUrlname(self._textConSeriesName), self._textConSeriesName)
         file=SubstituteHTML(file, "title", self._textConSeriesName)
-        file=SubstituteHTML(file, "abc", link)
-        file=SubstituteHTML(file, "xyz", self._textComments)
+        file=SubstituteHTML(file, "fanac-instance", link)
+        file=SubstituteHTML(file, "fanac-headertext", self._textComments)
+        file=SubstituteHTML(file, "fanac-linkupwards", FormatLink("..", "All conventions"))
 
         showempty=self.m_radioBoxShowEmpty.GetSelection() == 0  # Radion button: Show Empty cons?
 
@@ -190,7 +191,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
         newtable+="    </tbody>\n"
         newtable+="  </table>\n"
 
-        file=SubstituteHTML(file, "pdq", newtable)
+        file=SubstituteHTML(file, "fanac-table", newtable)
         file=SubstituteHTML(file, "fanac-json", self.ToJson())
 
         file=SubstituteHTML(file, "fanac-date", date.today().strftime("%A %B %d, %Y"))
