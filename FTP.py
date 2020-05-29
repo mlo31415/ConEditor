@@ -40,7 +40,7 @@ class FTP:
 
 
     def CWD(self, newdir: str) -> bool:
-        Log("cwd from '"+self.PWD()+"' to '"+newdir+"'")
+        Log("**cwd from '"+self.PWD()+"' to '"+newdir+"'")
         msg=self.g_ftp.cwd(newdir)
         Log(msg)
         ret=msg.startswith("250 OK.")
@@ -51,22 +51,22 @@ class FTP:
 
 
     def MKD(self, newdir: str) -> bool:
-        Log("make directory: '"+newdir+"'")
+        Log("**make directory: '"+newdir+"'")
         msg=self.g_ftp.mkd(newdir)
-        Log(msg)
-        return msg.startswith("250 OK.")
+        Log(msg+"\n")
+        return msg.startswith("250 ") or msg.startswith("257 ")     # Web doc shows both as possible.
 
 
     def Delete(self, fname: str) -> bool:
-        Log("delete file: '"+fname+"'")
+        Log("**delete file: '"+fname+"'")
         msg=self.g_ftp.delete(fname)
-        Log(msg)
-        return msg.startswith("250 Deleted")
+        Log(msg+"\n")
+        return msg.startswith("250 ")
 
 
     def PWD(self) -> str:
         dir=self.g_ftp.pwd()
-        Log("pwd is now '"+dir+"'")
+        Log("pwd is '"+dir+"'")
 
         # Check to see if this matches what self._curdirpath thinks it ought to
         head, tail=os.path.split(self.g_curdirpath)
@@ -91,7 +91,7 @@ class FTP:
     # Setting create=True allows the creation of new directories as needed
     # Newdir can be a whole path starting with "/" or a path relative to the current directory if it doesn't starts with a "/"
     def SetDirectory(self, newdir: str, create: bool=False) -> bool:
-        Log("SetDirectory: "+newdir)
+        Log("**SetDirectory: "+newdir)
 
         # Split newdir into components
         if newdir is None or len(newdir) == 0:
