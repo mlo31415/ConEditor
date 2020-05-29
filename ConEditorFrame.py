@@ -391,7 +391,6 @@ LogOpen("Log -- ConEditor.txt", "Log (Errors) -- ConEditor.txt")
 
 f=FTP()
 f.OpenConnection("FTP Credentials.json")
-f.SetRoot(local="")
 
 # Load the global settings dictionary
 Settings().Load("ConEditor settings.json")

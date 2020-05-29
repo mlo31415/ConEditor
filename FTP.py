@@ -10,24 +10,21 @@ from HelpersPackage import Log
 
 class FTP:
     g_ftp: FTP=None      # A single FTP link for all instances of the class
-    g_localroot: str=""
     g_curdirpath: str="/"
-    g_credentials: Dict={}
+    g_credentials: Dict={}      # Saves the credentials for reconnection if the server times out
 
 
     def OpenConnection(self, cre: str) -> bool:
         with open(cre) as f:
             FTP.g_credentials=json.loads(f.read())
-        return FTP.Reconnect()
+        return self.Reconnect()
+
 
     def Reconnect(self) -> bool:
         if len(FTP.g_credentials) == 0:
             return False
         FTP.g_ftp=ftplib.FTP(host=FTP.g_credentials["host"], user=FTP.g_credentials["ID"], passwd=FTP.g_credentials["PW"])
         return True
-
-    def SetRoot(self, local=""):
-        FTP.g_localroot=local
 
 
     def UpdateCurpath(self, newdir: str) -> None:
