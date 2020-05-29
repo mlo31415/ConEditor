@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Optional
+from typing import Optional, Dict
 
 import ftplib
 import json
@@ -11,15 +11,21 @@ from HelpersPackage import Log
 class FTP:
     g_ftp: FTP=None      # A single FTP link for all instances of the class
     g_localroot: str=""
-    g_curdirpath="/"
+    g_curdirpath: str="/"
+    g_credentials: Dict={}
 
 
     def OpenConnection(self, cre: str) -> bool:
         with open(cre) as f:
-            d=json.loads(f.read())
-        FTP.g_ftp=ftplib.FTP(host=d["host"], user=d["ID"], passwd=d["PW"])
-        pass
+            FTP.g_credentials=json.loads(f.read())
+        FTP.g_ftp=ftplib.FTP(host=FTP.g_credentials["host"], user=FTP.g_credentials["ID"], passwd=FTP.g_credentials["PW"])
+        return True
 
+    def Reconnect(self) -> bool:
+        if len(FTP.g_credentials) == 0:
+            return False
+        FTP.g_ftp=ftplib.FTP(host=FTP.g_credentials["host"], user=FTP.g_credentials["ID"], passwd=FTP.g_credentials["PW"])
+        return True
 
     def SetRoot(self, local=""):
         FTP.g_localroot=local
@@ -41,7 +47,15 @@ class FTP:
 
     def CWD(self, newdir: str) -> bool:
         Log("**cwd from '"+self.PWD()+"' to '"+newdir+"'")
-        msg=self.g_ftp.cwd(newdir)
+        try:
+            msg=self.g_ftp.cwd(newdir)
+        except Exception as e:
+            Log("FTP connection failure. Exception="+str(e))
+            if not self.Reconnect():
+                Log("Retry failed.")
+                return False
+            msg=self.g_ftp.cwd(newdir)
+
         Log(msg)
         ret=msg.startswith("250 OK.")
         if ret:
@@ -52,20 +66,41 @@ class FTP:
 
     def MKD(self, newdir: str) -> bool:
         Log("**make directory: '"+newdir+"'")
-        msg=self.g_ftp.mkd(newdir)
+        try:
+            msg=self.g_ftp.mkd(newdir)
+        except Exception as e:
+            Log("FTP connection failure. Exception="+str(e))
+            if not self.Reconnect():
+                Log("Retry failed.")
+                return False
+            msg=self.g_ftp.mkd(newdir)
         Log(msg+"\n")
         return msg.startswith("250 ") or msg.startswith("257 ")     # Web doc shows both as possible.
 
 
     def Delete(self, fname: str) -> bool:
         Log("**delete file: '"+fname+"'")
-        msg=self.g_ftp.delete(fname)
+        try:
+            msg=self.g_ftp.delete(fname)
+        except Exception as e:
+            Log("FTP connection failure. Exception="+str(e))
+            if not self.Reconnect():
+                Log("Retry failed.")
+                return False
+            msg=self.g_ftp.delete(fname)
         Log(msg+"\n")
         return msg.startswith("250 ")
 
 
     def PWD(self) -> str:
-        dir=self.g_ftp.pwd()
+        try:
+            dir=self.g_ftp.pwd()
+        except Exception as e:
+            Log("FTP connection failure. Exception="+str(e))
+            if not self.Reconnect():
+                Log("Retry failed.")
+                return False
+            dir=self.g_ftp.pwd()
         Log("pwd is '"+dir+"'")
 
         # Check to see if this matches what self._curdirpath thinks it ought to
@@ -142,7 +177,14 @@ class FTP:
         localfname="temp/"+fname
         Log("STOR "+fname+"  from "+localfname)
         with open(localfname, "rb") as f:
-            Log(self.g_ftp.storbinary("STOR "+fname, f))
+            try:
+                Log(self.g_ftp.storbinary("STOR "+fname, f))
+            except Exception as e:
+                Log("FTP connection failure. Exception="+str(e))
+                if not self.Reconnect():
+                    Log("Retry failed.")
+                    return False
+                Log(self.g_ftp.storbinary("STOR "+fname, f))
         return True
 
 
@@ -161,8 +203,15 @@ class FTP:
 
         Log("STOR "+toname+"  from "+pathname)
         with open(pathname, "rb") as f:
-            Log(self.g_ftp.storbinary("STOR "+toname, f))
-
+            try:
+                Log(self.g_ftp.storbinary("STOR "+toname, f))
+            except Exception as e:
+                Log("FTP connection failure. Exception="+str(e))
+                if not self.Reconnect():
+                    Log("Retry failed.")
+                    return False
+                Log(self.g_ftp.storbinary("STOR "+toname, f))
+        return True
 
     # Download the ascii file named fname in the current directory on fanac.org into a string
     def GetAsString(self, fname: str) -> Optional[str]:
@@ -179,7 +228,14 @@ class FTP:
             Log(fname+" does not exist.")
             return None
         with open(localfname, "wb+") as f:
-            msg=self.g_ftp.retrbinary("RETR "+fname, f.write)
+            try:
+                msg=self.g_ftp.retrbinary("RETR "+fname, f.write)
+            except Exception as e:
+                Log("FTP connection failure. Exception="+str(e))
+                if not self.Reconnect():
+                    Log("Retry failed.")
+                    return None
+                msg=self.g_ftp.retrbinary("RETR "+fname, f.write)
             Log(msg)
             if not msg.startswith("226-File successfully transferred"):
                 Log("GetAsString failed")
