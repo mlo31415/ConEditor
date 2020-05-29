@@ -77,14 +77,22 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self.AddFiles()
 
     def AddFiles(self) -> None:
+
         # Call the File Open dialog to get an con series HTML file
         dlg=wx.FileDialog(self, "Select files to upload", ".", "", "*.*", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE | wx.FD_CHANGE_DIR)
 
+        # Do we have a last directory?
+        dir=Settings().Get("Last directory")
+        if dir is not None:
+            dlg.SetDirectory(dir)
+
         if dlg.ShowModal() == wx.ID_CANCEL:
+            Settings().Put("Last directory", dlg.GetDirectory())
             dlg.Raise()
             dlg.Destroy()
             return
 
+        Settings().Put("Last directory", dlg.GetDirectory())
         for fn in dlg.GetFilenames():
             conf=ConFile()
             conf.DisplayTitle=fn
