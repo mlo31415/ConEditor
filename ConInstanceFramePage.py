@@ -228,6 +228,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
         self.Updated=False
 
+        self.Title="Editing "+self._coninstancename
         self.RefreshWindow()
         self.tConInstanceFancyURL.Value=self.ConInstanceFancyURL
 
