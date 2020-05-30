@@ -59,16 +59,6 @@ class GenConSeriesFrame ( wx.Dialog ):
 
 		bSizerMainBox.Add( fgSizer6, 0, wx.EXPAND, 5 )
 
-		bSizer7 = wx.BoxSizer( wx.VERTICAL )
-
-		self.m_staticTextMessages = wx.StaticText( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 400,-1 ), 0 )
-		self.m_staticTextMessages.Wrap( -1 )
-
-		bSizer7.Add( self.m_staticTextMessages, 0, wx.ALIGN_TOP|wx.ALL, 5 )
-
-
-		bSizerMainBox.Add( bSizer7, 0, wx.ALIGN_TOP|wx.EXPAND, 5 )
-
 		fgSizer4 = wx.FlexGridSizer( 0, 2, 0, 0 )
 		fgSizer4.SetFlexibleDirection( wx.BOTH )
 		fgSizer4.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
@@ -156,6 +146,16 @@ class GenConSeriesFrame ( wx.Dialog ):
 
 
 		bSizerMainBox.Add( theIssueGrid, 1, wx.EXPAND, 5 )
+
+		bSizer7 = wx.BoxSizer( wx.VERTICAL )
+
+		self.m_status = wx.StaticText( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 400,-1 ), 0 )
+		self.m_status.Wrap( -1 )
+
+		bSizer7.Add( self.m_status, 0, wx.ALIGN_TOP|wx.ALL, 5 )
+
+
+		bSizerMainBox.Add( bSizer7, 0, wx.ALIGN_TOP|wx.EXPAND, 5 )
 
 
 		self.SetSizer( bSizerMainBox )

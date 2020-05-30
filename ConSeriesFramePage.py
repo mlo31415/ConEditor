@@ -94,7 +94,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
     #------------------
     def ProgressMessage(self, s: str) -> None:                    # MainConSeriesFrame
-        self.m_staticTextMessages.Label=s
+        self.m_status.Label=s
 
 
     #------------------
