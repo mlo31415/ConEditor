@@ -226,11 +226,12 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         if j is not None and j != "":
             self.FromJson(j)
 
-        self.Updated=False
-
         self.Title="Editing "+self._coninstancename
-        self.RefreshWindow()
         self.tConInstanceFancyURL.Value=self.ConInstanceFancyURL
+
+        self.Updated=False
+        self.RefreshWindow()
+
 
 
     # ------------------
