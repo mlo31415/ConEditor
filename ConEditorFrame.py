@@ -377,11 +377,12 @@ class ConEditorFrame(GenConEditorFrame):
     # ------------------
     def OnClose(self, event):            # ConEditorFrame
         if self.Updated:
-            resp=wx.MessageBox("The main con list has been updated and not yet saved. Exit anyway?", 'Warning',
-                   wx.OK|wx.CANCEL|wx.ICON_WARNING)
-            if resp == wx.CANCEL:
-                event.Skip()
-                return
+            if event.CanVeto():
+                resp=wx.MessageBox("The main con list has been updated and not yet saved. Exit anyway?", 'Warning',
+                       wx.OK|wx.CANCEL|wx.ICON_WARNING)
+                if resp == wx.CANCEL:
+                    event.Veto()
+                    return
         self.Destroy()
         app.Destroy()
 

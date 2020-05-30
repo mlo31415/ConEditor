@@ -113,11 +113,12 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
     def OnClose(self, event):
         if self.Updated:
-            resp=wx.MessageBox("This file list has been updated and not yet saved. Exit anyway?", 'Warning',
-                   wx.OK|wx.CANCEL|wx.ICON_WARNING)
-            if resp == wx.CANCEL:
-                event.Skip()
-                return
+            if event.CanVeto():
+                resp=wx.MessageBox("This file list has been updated and not yet saved. Exit anyway?", 'Warning',
+                       wx.OK|wx.CANCEL|wx.ICON_WARNING)
+                if resp == wx.CANCEL:
+                    event.Veto()
+                    return
 
         if self._grid._datasource.NumRows > 0:
             self.ReturnValue=wx.ID_OK
