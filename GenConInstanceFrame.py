@@ -28,8 +28,8 @@ class GenConInstanceFrame ( wx.Dialog ):
 		fgSizer5.SetFlexibleDirection( wx.BOTH )
 		fgSizer5.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
-		self.bSaveCon = wx.Button( self, wx.ID_ANY, u"Save Con", wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer5.Add( self.bSaveCon, 0, wx.ALL, 5 )
+		self.bUploadCon = wx.Button( self, wx.ID_ANY, u"Upload Con", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer5.Add( self.bUploadCon, 0, wx.ALL, 5 )
 
 		radioBoxFileListFormatChoices = [ u"Table", u"LIst" ]
 		self.radioBoxFileListFormat = wx.RadioBox( self, wx.ID_ANY, u"File list format", wx.Point( -1,-1 ), wx.Size( -1,-1 ), radioBoxFileListFormatChoices, 1, wx.RA_SPECIFY_ROWS )
@@ -151,7 +151,7 @@ class GenConInstanceFrame ( wx.Dialog ):
 
 		# Connect Events
 		self.Bind( wx.EVT_CLOSE, self.OnClose )
-		self.bSaveCon.Bind( wx.EVT_BUTTON, self.OnSaveConInstance )
+		self.bUploadCon.Bind( wx.EVT_BUTTON, self.OnUploadConInstance )
 		self.radioBoxFileListFormat.Bind( wx.EVT_RADIOBOX, self.OnRadioFileListFormat )
 		self.bAddFiles.Bind( wx.EVT_BUTTON, self.OnAddFilesButton )
 		self.tConInstanceName.Bind( wx.EVT_KEY_UP, self.OnTextConInstanceNameKeyUp )
@@ -176,7 +176,7 @@ class GenConInstanceFrame ( wx.Dialog ):
 	def OnClose( self, event ):
 		event.Skip()
 
-	def OnSaveConInstance( self, event ):
+	def OnUploadConInstance( self, event ):
 		event.Skip()
 
 	def OnRadioFileListFormat( self, event ):

@@ -104,8 +104,8 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         dlg.Destroy()
         self.RefreshWindow()
 
-    def OnSaveConInstance(self, event):
-        self.SaveConInstancePage()
+    def OnUploadConInstance(self, event):
+        self.OnUploadConInstancePage()
         self.ReturnValue=wx.ID_OK
         self.EndModal(self.ReturnValue)
 
@@ -126,7 +126,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             self.ReturnValue=wx.ID_CANCEL
         self.EndModal(self.ReturnValue)
 
-    def SaveConInstancePage(self) -> None:
+    def OnUploadConInstancePage(self) -> None:
         # First read in the template
         file=None
         try:

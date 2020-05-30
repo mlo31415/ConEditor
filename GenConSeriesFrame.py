@@ -29,11 +29,11 @@ class GenConSeriesFrame ( wx.Dialog ):
 		fgSizer6.SetFlexibleDirection( wx.BOTH )
 		fgSizer6.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
+		self.bUploadConSeries = wx.Button( self, wx.ID_ANY, u"Upload ConSeries", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer6.Add( self.bUploadConSeries, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+
 		self.bCreateConSeries = wx.Button( self, wx.ID_ANY, u"Create New ConSeries", wx.DefaultPosition, wx.DefaultSize, 0 )
 		fgSizer6.Add( self.bCreateConSeries, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
-
-		self.bSaveConSeries = wx.Button( self, wx.ID_ANY, u"Save ConSeries to Fanac.org", wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer6.Add( self.bSaveConSeries, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
 		self.m_panel2 = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.BORDER_THEME|wx.TAB_TRAVERSAL )
 		fgSizer8 = wx.FlexGridSizer( 2, 0, 0, 0 )
@@ -47,7 +47,7 @@ class GenConSeriesFrame ( wx.Dialog ):
 
 		m_radioBoxShowEmptyChoices = [ u"Yes", u"No" ]
 		self.m_radioBoxShowEmpty = wx.RadioBox( self.m_panel2, wx.ID_ANY, u"Show empty cons?", wx.DefaultPosition, wx.DefaultSize, m_radioBoxShowEmptyChoices, 1, wx.RA_SPECIFY_ROWS )
-		self.m_radioBoxShowEmpty.SetSelection( 0 )
+		self.m_radioBoxShowEmpty.SetSelection( 1 )
 		fgSizer8.Add( self.m_radioBoxShowEmpty, 0, wx.ALL, 5 )
 
 
@@ -177,8 +177,8 @@ class GenConSeriesFrame ( wx.Dialog ):
 
 		# Connect Events
 		self.Bind( wx.EVT_CLOSE, self.OnClose )
+		self.bUploadConSeries.Bind( wx.EVT_BUTTON, self.OnUploadConSeries )
 		self.bCreateConSeries.Bind( wx.EVT_BUTTON, self.OnCreateConSeries )
-		self.bSaveConSeries.Bind( wx.EVT_BUTTON, self.OnSaveConSeries )
 		self.m_radioBoxShowEmpty.Bind( wx.EVT_RADIOBOX, self.OnSetShowEmptyRadioBox )
 		self.tConSeries.Bind( wx.EVT_KEY_UP, self.ConTextConSeriesKeyUp )
 		self.tConSeries.Bind( wx.EVT_TEXT, self.OnTextConSeriesName )
@@ -201,10 +201,10 @@ class GenConSeriesFrame ( wx.Dialog ):
 	def OnClose( self, event ):
 		event.Skip()
 
-	def OnCreateConSeries( self, event ):
+	def OnUploadConSeries( self, event ):
 		event.Skip()
 
-	def OnSaveConSeries( self, event ):
+	def OnCreateConSeries( self, event ):
 		event.Skip()
 
 	def OnSetShowEmptyRadioBox( self, event ):

@@ -56,7 +56,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
         if len(conseriesname) > 0:
             self.LoadConSeries(conseriesname)
 
-        mi=self.bSaveConSeries.Enabled=len(self._textConSeriesName) > 0     # Enable only if a series name is present
+        mi=self.bUploadConSeries.Enabled=len(self._textConSeriesName) > 0     # Enable only if a series name is present
 
         self.RefreshWindow()
 
@@ -146,7 +146,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
 
     #-------------------
-    def SaveConSeries(self) -> None:                   # MainConSeriesFrame
+    def UploadConSeries(self) -> None:                   # MainConSeriesFrame
 
         # First read in the template
         try:
@@ -198,7 +198,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
         # Now try to FTP the data up to fanac.org
         if self._seriesname is None or len(self._seriesname) == 0:
-            Log("SaveConSeries: No series name provided")
+            Log("UploadConSeries: No series name provided")
             return
         if not FTP().PutFileAsString("/"+self._seriesname, "index.html", file, create=True):
             wx.MessageBox("Save failed")
@@ -209,12 +209,12 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
     #------------------
     # Save a con series object to disk.
-    def OnSaveConSeries(self, event):                    # MainConSeriesFrame
+    def OnUploadConSeries(self, event):                    # MainConSeriesFrame
         if self._seriesname is None or len(self._seriesname) == 0:
-            wx.MessageBox("You must supply a convention series name to save")
+            wx.MessageBox("You must supply a convention series name to upload")
             return
         wait=wx.BusyCursor()
-        self.SaveConSeries()
+        self.UploadConSeries()
         del wait    # End the wait cursor
 
 
@@ -326,7 +326,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
         if self.Updated:
             s=s+" *"
         self.Title=s
-        self.bSaveConSeries.Enabled=self.Updated
+        self.bUploadConSeries.Enabled=self.Updated
 
     #------------------
     def OnCreateNewConPage(self, event):                    # MainConSeriesFrame
@@ -358,7 +358,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
     #------------------
     def OnTextConSeriesName( self, event ):                    # MainConSeriesFrame
         self._textConSeriesName=self.tConSeries.GetValue()
-        self.bSaveConSeries.Enabled=len(self._textConSeriesName) > 0
+        self.bUploadConSeries.Enabled=len(self._textConSeriesName) > 0
         self.Updated=True
         self.RefreshWindow()
 
