@@ -228,7 +228,7 @@ class ConEditorFrame(GenConEditorFrame):
 
 
     #------------------
-    def OnButtonSaveClick(self, event):            # ConEditorFrame
+    def OnButtonUploadClick(self, event):            # ConEditorFrame
 
         # First read in the template
         file=None

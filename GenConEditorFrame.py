@@ -28,8 +28,8 @@ class GenConEditorFrame ( wx.Frame ):
 		fgSizer7.SetFlexibleDirection( wx.BOTH )
 		fgSizer7.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
-		self.m_buttonSave = wx.Button( self, wx.ID_ANY, u"Save", wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer7.Add( self.m_buttonSave, 0, wx.ALL, 5 )
+		self.m_buttonUpload = wx.Button( self, wx.ID_ANY, u"Upload", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer7.Add( self.m_buttonUpload, 0, wx.ALL, 5 )
 
 		self.m_buttonSort = wx.Button( self, wx.ID_ANY, u"Sort", wx.DefaultPosition, wx.DefaultSize, 0 )
 		fgSizer7.Add( self.m_buttonSort, 0, wx.ALL, 5 )
@@ -125,7 +125,7 @@ class GenConEditorFrame ( wx.Frame ):
 
 		# Connect Events
 		self.Bind( wx.EVT_CLOSE, self.OnClose )
-		self.m_buttonSave.Bind( wx.EVT_BUTTON, self.OnButtonSaveClick )
+		self.m_buttonUpload.Bind( wx.EVT_BUTTON, self.OnButtonUploadClick )
 		self.m_buttonSort.Bind( wx.EVT_BUTTON, self.OnButtonSortClick )
 		self.m_buttonExit.Bind( wx.EVT_BUTTON, self.OnButtonExitClick )
 		self.m_buttonSettings.Bind( wx.EVT_BUTTON, self.OnButtonSettingsClick )
@@ -150,7 +150,7 @@ class GenConEditorFrame ( wx.Frame ):
 	def OnClose( self, event ):
 		event.Skip()
 
-	def OnButtonSaveClick( self, event ):
+	def OnButtonUploadClick( self, event ):
 		event.Skip()
 
 	def OnButtonSortClick( self, event ):
