@@ -194,7 +194,7 @@ class ConEditorFrame(GenConEditorFrame):
 
     #------------------
     def ProgressMessage(self, s: str) -> None:            # ConEditorFrame
-        self.m_staticTextMessages.Label=s
+        self.m_statusBar.SetStatusText(s)
 
     # ------------------
     def Load(self):            # ConEditorFrame
