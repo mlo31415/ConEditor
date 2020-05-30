@@ -384,7 +384,6 @@ class ConEditorFrame(GenConEditorFrame):
                     event.Veto()
                     return
         self.Destroy()
-        app.Destroy()
 
 
 # Start the GUI and run the event loop
