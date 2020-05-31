@@ -137,6 +137,8 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
         self.tConSeries.Value=self._textConSeriesName
         self.tComments.Value=self._textComments
+        if self._textFancyURL is None or len(self._textFancyURL) == 0:
+            self._textFancyURL="fancyclopedia.org/"+WikiPagenameToWikiUrlname(seriesname)
         self.tFancyURL.Value=self._textFancyURL
 
         self.Updated=False
