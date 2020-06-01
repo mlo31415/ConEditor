@@ -31,6 +31,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self.ConInstanceName=""
         self.ConInstanceStuff=""
         self.ConInstanceFancyURL=""
+        self.ConInstancePhotoURL=""
 
         self._updated=False
 
@@ -46,20 +47,23 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
     # Serialize and deserialize
     def ToJson(self) -> str:
-        d={"ver": 1,
+        d={"ver": 2,
            "ConInstanceName": self.ConInstanceName,
            "ConInstanceStuff": self.ConInstanceStuff,
            "ConInstanceFancyURL": self.ConInstanceFancyURL,
+           "ConInstancePhotoURL": self.ConInstancePhotoURL,
            "_datasource": self._grid._datasource.ToJson()}
         return json.dumps(d)
 
     def FromJson(self, val: str) -> GenConInstanceFrame:
         d=json.loads(val)
-        if d["ver"] == 1:
+        if d["ver"] >= 1:
             self.ConInstanceName=d["ConInstanceName"]
             self.ConInstanceStuff=d["ConInstanceStuff"]
             self.ConInstanceFancyURL=d["ConInstanceFancyURL"]
             self._grid._datasource=ConInstancePage().FromJson(d["_datasource"])
+        if d["ver"] == 2:
+            self.ConInstancePhotoURL=d["ConInstancePhotoURL"]
         return self
 
 
@@ -142,6 +146,10 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         file=SubstituteHTML(file, "fanac-stuff", self.ConInstanceStuff)
         file=SubstituteHTML(file, "fanac-linkupwards", FormatLink("..", "All "+self._seriesname+"s"))
 
+        # Are there photos?
+        if self.ConInstancePhotoURL is not None and len(self.ConInstancePhotoURL) > 0:
+            s='<div class=col-md-2>\n<a href="http://'+self.ConInstancePhotoURL+'" class="btn btn-info" role="button">Photos</a>\n</div>'
+            file=SubstituteHTML(file, "fanac-photos", s)
 
         file=SubstituteHTML(file, "fanac-json", self.ToJson())
 
@@ -225,6 +233,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
         self.Title="Editing "+self._coninstancename
         self.tConInstanceFancyURL.Value=self.ConInstanceFancyURL
+        self.m_textPhotosURL.Value=self.ConInstancePhotoURL
 
         self.Updated=False
         self.RefreshWindow()
@@ -304,6 +313,12 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
     # ------------------
     def OnTextConInstanceFancyURL(self, event):
         self.ConInstanceFancyURL=self.tConInstanceFancyURL.Value
+        self.Updated=True
+        self.RefreshWindow()
+
+    # ------------------
+    def OnTextPhotosURL(self, event):
+        self.ConInstancePhotoURL=self.m_textPhotosURL.Value
         self.Updated=True
         self.RefreshWindow()
 
