@@ -106,10 +106,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
     def OnUploadConInstance(self, event):
         self.OnUploadConInstancePage()
-        self.ReturnValue=wx.ID_OK
-        self.EndModal(self.ReturnValue)
 
-        self.Close()
 
     def OnClose(self, event):
         if self.Updated:
