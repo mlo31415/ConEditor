@@ -11,7 +11,7 @@ from ConInstance import ConInstancePage, ConFile
 from FTP import FTP
 from Settings import Settings
 
-from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, Log
+from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, PrependHTTP
 
 #####################################################################################
 class MainConInstanceDialogClass(GenConInstanceFrame):
@@ -141,6 +141,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         # The con's name is tagged with <fanac-instance>, the random text with "fanac-headertext"
         link=FormatLink("http://fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.ConInstanceName), self.ConInstanceName)
         file=SubstituteHTML(file, "title", self.ConInstanceName)
+        file=SubstituteHTML(file, "fanac-instance", link)
         file=SubstituteHTML(file, "fanac-headerlink", link)
         file=SubstituteHTML(file, "fanac-fancylink", link)
         file=SubstituteHTML(file, "fanac-stuff", self.ConInstanceStuff)
@@ -148,7 +149,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
         # Are there photos?
         if self.ConInstancePhotoURL is not None and len(self.ConInstancePhotoURL) > 0:
-            s='<div class=col-md-2>\n<a href="http://'+self.ConInstancePhotoURL+'" class="btn btn-info" role="button">Photos</a>\n</div>'
+            s='<div class=col-md-2>\n<a href="'+PrependHTTP(self.ConInstancePhotoURL)+'" class="btn btn-info" role="button">Photos</a>\n</div>'
             file=SubstituteHTML(file, "fanac-photos", s)
 
         file=SubstituteHTML(file, "fanac-json", self.ToJson())
