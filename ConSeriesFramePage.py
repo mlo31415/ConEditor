@@ -163,7 +163,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
         file=SubstituteHTML(file, "title", self._textConSeriesName)
         file=SubstituteHTML(file, "fanac-instance", link)
         file=SubstituteHTML(file, "fanac-headertext", self._textComments)
-        file=SubstituteHTML(file, "fanac-fancylink", self._textFancyURL)
+        file=SubstituteHTML(file, "fanac-fancylink", link)
 
         showempty=self.m_radioBoxShowEmpty.GetSelection() == 0  # Radio button: Show Empty cons?
 
