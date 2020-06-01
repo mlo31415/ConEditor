@@ -163,9 +163,9 @@ class MainConSeriesFrame(GenConSeriesFrame):
         file=SubstituteHTML(file, "title", self._textConSeriesName)
         file=SubstituteHTML(file, "fanac-instance", link)
         file=SubstituteHTML(file, "fanac-headertext", self._textComments)
-        file=SubstituteHTML(file, "fanac-linkupwards", FormatLink("..", "All conventions"))
+        file=SubstituteHTML(file, "fanac-fancylink", self._textFancyURL)
 
-        showempty=self.m_radioBoxShowEmpty.GetSelection() == 0  # Radion button: Show Empty cons?
+        showempty=self.m_radioBoxShowEmpty.GetSelection() == 0  # Radio button: Show Empty cons?
 
         # Now construct the table which we'll then substitute.
         newtable='<table class="table">\n'
