@@ -127,6 +127,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             self.ReturnValue=wx.ID_CANCEL
         self.EndModal(self.ReturnValue)
 
+
     def OnUploadConInstancePage(self) -> None:
         # First read in the template
         file=None
@@ -135,7 +136,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
                 file=f.read()
         except:
             wx.MessageBox("Can't read 'Template-ConPage.html'")
-
+            return
 
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name is tagged with <fanac-instance>, the random text with "fanac-headertext"
