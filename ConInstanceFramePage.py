@@ -248,12 +248,10 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self.clickedColumn=event.GetCol()
         self.clickedRow=event.GetRow()
 
-        mi=self.m_menuPopup.FindItemById(self.m_menuPopup.FindItem("Add Files"))
-        mi.Enabled=True
+        self.m_popupAddFiles.Enabled=True
 
         if self._grid._datasource.NumRows > event.GetRow():
-            mi=self.m_menuPopup.FindItemById(self.m_menuPopup.FindItem("Delete File(s)"))
-            mi.Enabled=True
+            self.m_popupDeleteFile.Enabled=True
 
         self.PopupMenu(self.m_menuPopup, pos=self.gRowGrid.Position+event.Position)
 
