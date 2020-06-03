@@ -111,7 +111,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
         if self._basedirectoryFTP is None:
             assert(False)   # Never take this branch.  Delete when I'm sure.
 
-        self.ProgressMessage("Loading "+self._seriesname+"/index.html")
+        self.ProgressMessage("Loading "+self._seriesname+"/index.html from fanac.org")
         file=FTP().GetFileAsString("/"+self._seriesname, "index.html")
 
         pathname=self._seriesname+"/index.html"
