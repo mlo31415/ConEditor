@@ -196,6 +196,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
         if not FTP().PutFileAsString("/"+self._seriesname+"/"+self._coninstancename, "index.html", file, create=True):
             wx.MessageBox("Upload failed")
+            return
 
         # Finally, Upload any files which are newly added.
         for row in self._grid._datasource.Rows:
