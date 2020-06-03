@@ -39,7 +39,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         if val is not None:
             self.radioBoxFileListFormat.SetSelection(int(val))
 
-        self.LoadConInstancePage()
+        self.DownloadConInstancePage()
 
         self.RefreshWindow()
         self.ReturnValue=None
@@ -218,7 +218,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
     #------------------
     # Download a ConSeries
-    def LoadConInstancePage(self) -> None:
+    def DownloadConInstancePage(self) -> None:
 
         # Clear out any old information
         self._grid._datasource=ConInstancePage()
