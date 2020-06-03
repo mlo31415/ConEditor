@@ -379,10 +379,11 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
     #------------------
     def OnGridCellRightClick(self, event):                    # MainConSeriesFrame
-        mi=self.m_menuPopup.FindItemById(self.m_menuPopup.FindItem("Create New Con Page"))
-        mi.Enabled=True
-
-        self._grid.OnGridCellRightClick(event, self.m_menuPopup)
+        self._grid.OnGridCellRightClick(event, self.m_menuPopup)    # Set enabled state of default items; set all others to False
+        if self._grid.rightClickedRow >= self._grid._datasource.NumRows:
+            self.m_popupCreateNewConPage.Enabled=True
+        if self._grid.rightClickedRow < self._grid._datasource.NumRows:
+            self.m_popupDeleteConPage.Enabled=True
         self.PopupMenu(self.m_menuPopup)
 
     # ------------------
