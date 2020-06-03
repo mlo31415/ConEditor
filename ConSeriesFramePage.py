@@ -203,7 +203,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
             Log("UploadConSeries: No series name provided")
             return
         if not FTP().PutFileAsString("/"+self._seriesname, "index.html", file, create=True):
-            wx.MessageBox("Save failed")
+            wx.MessageBox("Upload failed")
 
         self.Updated=False      # It was just saved
         self.RefreshWindow()
@@ -353,9 +353,21 @@ class MainConSeriesFrame(GenConSeriesFrame):
         pass
 
     #------------------
+    def OnDeleteConPage(self, event):                    # MainConSeriesFrame
+        irow=self.rightClickedRow
+        if irow >=0 and irow < self._grid._datasource.NumRows:
+            row=self._grid._datasource.Rows[irow]
+            del self._grid._datasource.Rows[irow]
+            FTP().SetDirectory(self._basedirectoryFTP+"/"+ self._seriesname)
+            FTP().Delete(row.Name)
+            self.Updated=True
+            self.RefreshWindow()
+
+    #------------------
     def OnTextFancyURL(self, event):                    # MainConSeriesFrame
         self._textFancyURL=self.tFancyURL.GetValue()
         self.Updated=True
+        self.RefreshWindow()
 
     #------------------
     def OnTextConSeriesName( self, event ):                    # MainConSeriesFrame
@@ -379,6 +391,8 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
     #------------------
     def OnGridCellRightClick(self, event):                    # MainConSeriesFrame
+        self.rightClickedColumn=event.GetCol()
+        self.rightClickedRow=event.GetRow()
         self._grid.OnGridCellRightClick(event, self.m_menuPopup)    # Set enabled state of default items; set all others to False
         if self._grid.rightClickedRow >= self._grid._datasource.NumRows:
             self.m_popupCreateNewConPage.Enabled=True

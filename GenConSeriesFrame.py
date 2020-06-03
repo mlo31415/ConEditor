@@ -195,7 +195,7 @@ class GenConSeriesFrame ( wx.Dialog ):
 		self.Bind( wx.EVT_MENU, self.OnPopupCopy, id = self.m_menuItemCopy.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupPaste, id = self.m_menuItemPaste.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnCreateNewConPage, id = self.m_popupCreateNewConPage.GetId() )
-		self.Bind( wx.EVT_MENU, self.OnCreateNewConPage, id = self.m_popupDeleteConPage.GetId() )
+		self.Bind( wx.EVT_MENU, self.OnDeleteConPage, id = self.m_popupDeleteConPage.GetId() )
 
 	def __del__( self ):
 		pass
@@ -250,6 +250,8 @@ class GenConSeriesFrame ( wx.Dialog ):
 	def OnCreateNewConPage( self, event ):
 		event.Skip()
 
+	def OnDeleteConPage( self, event ):
+		event.Skip()
 
 	def gRowGridOnContextMenu( self, event ):
 		self.gRowGrid.PopupMenu( self.m_menu1, event.GetPosition() )
