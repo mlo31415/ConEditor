@@ -244,6 +244,7 @@ class ConEditorFrame(GenConEditorFrame):
         #file=SubstituteHTML(file, "title", self._textConSeriesName)
         #file=SubstituteHTML(file, "fanac-instance", link)
         #file=SubstituteHTML(file, "fanac-headertext", self._textComments)
+        file=SubstituteHTML(file, "fanac-stuff", self.m_textCtrlTopText.Value)
 
         # Now construct the table which we'll then substitute.
         newtable="  <thead>\n"

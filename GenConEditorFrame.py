@@ -18,7 +18,7 @@ import wx.grid
 class GenConEditorFrame ( wx.Frame ):
 
 	def __init__( self, parent ):
-		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Fanac.org Convention Editor", pos = wx.DefaultPosition, size = wx.Size( 500,569 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Fanac.org Convention Editor", pos = wx.DefaultPosition, size = wx.Size( 498,569 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
@@ -52,8 +52,8 @@ class GenConEditorFrame ( wx.Frame ):
 
 		fgSizer8.Add( self.m_staticText12, 0, wx.ALL, 5 )
 
-		self.m_textCtrlTopText = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 999,75 ), 0 )
-		fgSizer8.Add( self.m_textCtrlTopText, 0, wx.ALL, 5 )
+		self.m_textCtrlTopText = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 420,75 ), wx.TE_BESTWRAP|wx.TE_MULTILINE|wx.TE_WORDWRAP )
+		fgSizer8.Add( self.m_textCtrlTopText, 1, wx.ALL|wx.EXPAND, 5 )
 
 
 		bSizer8.Add( fgSizer8, 0, wx.EXPAND, 5 )
