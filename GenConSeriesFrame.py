@@ -173,6 +173,9 @@ class GenConSeriesFrame ( wx.Dialog ):
 		self.m_popupDeleteConPage = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Delete Con Page", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_menuPopup.Append( self.m_popupDeleteConPage )
 
+		self.m_popupEditConPage = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Edit Con Page", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_menuPopup.Append( self.m_popupEditConPage )
+
 		self.Bind( wx.EVT_RIGHT_DOWN, self.GenConSeriesFrameOnContextMenu )
 
 
@@ -194,8 +197,9 @@ class GenConSeriesFrame ( wx.Dialog ):
 		self.gRowGrid.Bind( wx.EVT_KEY_UP, self.OnKeyUp )
 		self.Bind( wx.EVT_MENU, self.OnPopupCopy, id = self.m_menuItemCopy.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupPaste, id = self.m_menuItemPaste.GetId() )
-		self.Bind( wx.EVT_MENU, self.OnCreateNewConPage, id = self.m_popupCreateNewConPage.GetId() )
-		self.Bind( wx.EVT_MENU, self.OnDeleteConPage, id = self.m_popupDeleteConPage.GetId() )
+		self.Bind( wx.EVT_MENU, self.OnPopupCreateNewConPage, id = self.m_popupCreateNewConPage.GetId() )
+		self.Bind( wx.EVT_MENU, self.OnPopupDeleteConPage, id = self.m_popupDeleteConPage.GetId() )
+		self.Bind( wx.EVT_MENU, self.OnPopupEditConPage, id = self.m_popupEditConPage.GetId() )
 
 	def __del__( self ):
 		pass
@@ -247,10 +251,13 @@ class GenConSeriesFrame ( wx.Dialog ):
 	def OnPopupPaste( self, event ):
 		event.Skip()
 
-	def OnCreateNewConPage( self, event ):
+	def OnPopupCreateNewConPage( self, event ):
 		event.Skip()
 
-	def OnDeleteConPage( self, event ):
+	def OnPopupDeleteConPage( self, event ):
+		event.Skip()
+
+	def OnPopupEditConPage( self, event ):
 		event.Skip()
 
 	def gRowGridOnContextMenu( self, event ):

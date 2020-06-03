@@ -331,29 +331,35 @@ class MainConSeriesFrame(GenConSeriesFrame):
         self.bUploadConSeries.Enabled=self.Updated
 
     #------------------
-    def OnCreateNewConPage(self, event):                    # MainConSeriesFrame
-        row=self.rightClickedRow
+    def OnPopupCreateNewConPage(self, event):                    # MainConSeriesFrame
+        irow=self.rightClickedRow
+        self.EditConPage("", irow)
+
+    #------------------
+    def OnPopupEditConPage(self, event):                    # MainConSeriesFrame
+        irow=self.rightClickedRow
         name=""
-        if row < self._grid._datasource.NumRows:
-            if "Name" in self._grid._datasource.ColHeaders:
-                col=self._grid._datasource.ColHeaders.index("Name")
-                name=self._grid._datasource.GetData(row, col)
-        dlg=MainConInstanceDialogClass(self._basedirectoryFTP+"/"+ self._seriesname, self._seriesname, name)
+        if "Name" in self._grid._datasource.ColHeaders:
+            col=self._grid._datasource.ColHeaders.index("Name")
+            name=self._grid._datasource.GetData(irow, col)
+            self.EditConPage(name, irow)
+
+    #------------------
+    def EditConPage(self, name: str, irow: int):
+        dlg=MainConInstanceDialogClass(self._basedirectoryFTP+"/"+self._seriesname, self._seriesname, name)
         dlg.tConInstanceName.Value=name
         dlg.ShowModal()
         cal=dlg.ReturnValue
         if cal == wx.ID_OK:
-            if self._grid._datasource.NumRows <= row:
-                for i in range(row-self._grid._datasource.NumRows+1):
+            if self._grid._datasource.NumRows <= irow:
+                for i in range(irow-self._grid._datasource.NumRows+1):
                     self._grid._datasource.Rows.append(Con())
-            self._grid._datasource.Rows[row].URL=dlg.tConInstanceName.Value
+            self._grid._datasource.Rows[irow].URL=dlg.tConInstanceName.Value
             self.Updated=True
             self.RefreshWindow()
 
-        pass
-
     #------------------
-    def OnDeleteConPage(self, event):                    # MainConSeriesFrame
+    def OnPopupDeleteConPage(self, event):                    # MainConSeriesFrame
         irow=self.rightClickedRow
         if irow >=0 and irow < self._grid._datasource.NumRows:
             row=self._grid._datasource.Rows[irow]
@@ -362,6 +368,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
             FTP().Delete(row.Name)
             self.Updated=True
             self.RefreshWindow()
+
 
     #------------------
     def OnTextFancyURL(self, event):                    # MainConSeriesFrame
@@ -393,18 +400,21 @@ class MainConSeriesFrame(GenConSeriesFrame):
     def OnGridCellRightClick(self, event):                    # MainConSeriesFrame
         self.rightClickedColumn=event.GetCol()
         self.rightClickedRow=event.GetRow()
-        self._grid.OnGridCellRightClick(event, self.m_menuPopup)    # Set enabled state of default items; set all others to False
-        if self._grid.rightClickedRow >= self._grid._datasource.NumRows:
-            self.m_popupCreateNewConPage.Enabled=True
-        if self._grid.rightClickedRow < self._grid._datasource.NumRows:
-            self.m_popupDeleteConPage.Enabled=True
+        self._grid.OnGridCellRightClick(event, self.m_menuPopup)  # Set enabled state of default items; set all others to False
+        if self.rightClickedColumn == 0:      # All of the popup options work on the 1st column only
+            if self._grid.rightClickedRow >= self._grid._datasource.NumRows:
+                self.m_popupCreateNewConPage.Enabled=True
+            else:
+                self.m_popupDeleteConPage.Enabled=True
+                self.m_popupEditConPage.Enabled=True
         self.PopupMenu(self.m_menuPopup)
 
     # ------------------
     def OnGridCellDoubleClick(self, event):                    # MainConSeriesFrame
         self.rightClickedColumn=event.GetCol()
         self.rightClickedRow=event.GetRow()
-        self.OnCreateNewConPage(event)
+        if  self.rightClickedColumn == 0:
+            self.OnPopupCreateNewConPage(event)
 
     #-------------------
     def OnKeyDown(self, event):                    # MainConSeriesFrame
