@@ -72,7 +72,7 @@ class FTP:
                 return False
             msg=self.g_ftp.mkd(newdir)
         Log(msg+"\n")
-        return msg.startswith("250 ") or msg.startswith("257 ")     # Web doc shows both as possible.
+        return msg == newdir or msg.startswith("250 ") or msg.startswith("257 ")     # Web doc shows all three as possible.
 
 
     def Delete(self, fname: str) -> bool:
@@ -171,7 +171,6 @@ class FTP:
         with open(localfname, "w+") as f:
             f.write(s)
 
-        localfname="temp/"+fname
         Log("STOR "+fname+"  from "+localfname)
         with open(localfname, "rb") as f:
             try:
