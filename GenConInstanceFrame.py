@@ -130,6 +130,11 @@ class GenConInstanceFrame ( wx.Dialog ):
 
 		theIssueGrid.Add( self.gRowGrid, 0, wx.ALL|wx.EXPAND, 5 )
 
+		self.m_status = wx.StaticText( self, wx.ID_ANY, u"MyLabel", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_status.Wrap( -1 )
+
+		theIssueGrid.Add( self.m_status, 0, wx.ALL, 5 )
+
 
 		bSizerMainBox.Add( theIssueGrid, 1, wx.EXPAND, 5 )
 

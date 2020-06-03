@@ -34,6 +34,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self.ConInstancePhotoURL=""
 
         self._updated=False
+        self._uploaded=False    # Has this instance been uploaded? (This is needed to generate the return value from the dialog.)
 
         val=Settings().Get("ConInstanceFramePage:File list format")
         if val is not None:
@@ -121,7 +122,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
                     event.Veto()
                     return
 
-        if self._grid._datasource.NumRows > 0:
+        if self._grid._datasource.NumRows > 0 or self._uploaded:
             self.ReturnValue=wx.ID_OK
         if self.ReturnValue is None:
             self.ReturnValue=wx.ID_CANCEL
@@ -137,6 +138,8 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         except:
             wx.MessageBox("Can't read 'Template-ConPage.html'")
             return
+
+        self.ProgressMessage("Uploading /"+self._seriesname+"/"+self._coninstancename+"/index.html")
 
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name is tagged with <fanac-instance>, the random text with "fanac-headertext"
@@ -196,7 +199,8 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         file=SubstituteHTML(file, "fanac-table", newtable)
 
         if not FTP().PutFileAsString("/"+self._seriesname+"/"+self._coninstancename, "index.html", file, create=True):
-            wx.MessageBox("Upload failed")
+            self.ProgressMessage("Upload failed: /"+self._seriesname+"/"+self._coninstancename+"/index.html")
+            wx.MessageBox("Upload failed: /"+self._seriesname+"/"+self._coninstancename+"/index.html")
             return
 
         # Finally, Upload any files which are newly added.
@@ -213,7 +217,9 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
                 if os.path.splitext(f)[1] == ".pdf":
                     FTP().Delete(f)
 
+        self.ProgressMessage("Upload succeeded: /"+self._seriesname+"/"+self._coninstancename+"/index.html")
         self.Updated=False
+        self._uploaded=True
         self.RefreshWindow()
 
 
@@ -225,9 +231,10 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self._grid._datasource=ConInstancePage()
 
         # Read the existing CIP
-        #self.ProgressMessage("Loading "+self._FTPbasedir+"/"+"index.html")
+        self.ProgressMessage("Downloading "+self._FTPbasedir+"/"+self._coninstancename+"/index.html")
         file=FTP().GetFileAsString(self._FTPbasedir+"/"+self._coninstancename, "index.html")
         if file is None:
+            self.ProgressMessage(self._FTPbasedir+"/"+self._coninstancename+"/index.html does not exist -- create a new file and upload it")
             return  # Just return with the ConInstance page empty
 
         # Get the JSON
@@ -239,6 +246,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self.tConInstanceFancyURL.Value=self.ConInstanceFancyURL
         self.m_textPhotosURL.Value=self.ConInstancePhotoURL
 
+        self.ProgressMessage(self._FTPbasedir+"/"+self._coninstancename+"/index.html downloaded")
         self.Updated=False
         self.RefreshWindow()
 
@@ -342,3 +350,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         if self.Updated:
             s=s+" *"
         self.Title=s
+
+    # ------------------
+    def ProgressMessage(self, s: str) -> None:  # ConInstanceFramePage
+        self.m_status.Label=s

@@ -301,8 +301,8 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
             self._grid._datasource.Rows.append(con)
         self.tConSeries.Value=name
-
         self.Updated=True
+        self.RefreshWindow()
 
 
     #------------------
