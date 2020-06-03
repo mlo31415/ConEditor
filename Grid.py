@@ -368,7 +368,7 @@ class Grid():
             mi.Enable(False)
 
         # Everything remains disabled when we're outside the defined columns
-        if self.rightClickedColumn > len(self._datasource.ColHeaders)+1 or self.rightClickedColumn == 0:
+        if self.rightClickedColumn > len(self._datasource.ColHeaders)+1:
             return
 
         # We enable the Copy item if have a selection
