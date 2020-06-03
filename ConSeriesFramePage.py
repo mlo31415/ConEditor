@@ -54,7 +54,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
         self._updated: bool=False
 
         if len(conseriesname) > 0:
-            self.LoadConSeries(conseriesname)
+            self.DownloadConSeries(conseriesname)
 
         mi=self.bUploadConSeries.Enabled=len(self._textConSeriesName) > 0     # Enable only if a series name is present
 
@@ -99,7 +99,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
     #------------------
     # Download a ConSeries from Fanac.org
-    def LoadConSeries(self, seriesname) -> None:                    # MainConSeriesFrame
+    def DownloadConSeries(self, seriesname) -> None:                    # MainConSeriesFrame
 
         # Clear out any old information
         self._grid._datasource=ConSeries()
