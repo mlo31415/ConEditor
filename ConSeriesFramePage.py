@@ -225,7 +225,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
         if name is None or name == "":
             return False
 
-        wait=wx.BusyCursor()
+        wait=wx.BusyCursor()    # The busy cursor will show until wait is destroyed
         pageurl="http://fancyclopedia.org/"+WikiPagenameToWikiUrlname(name)
         try:
             response=urlopen(pageurl)
@@ -288,7 +288,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
             ngoh=FindIndexOfStringInList(headers, "Guests")
 
         for row in rows:
-            if len(row) != len(headers):    # Merged cells which usually signal a skipped convention.
+            if len(row) != len(headers):    # Merged cells which usually signal a skipped convention.  Ignore them.
                 continue
             con=Con()
             if nname is not None:
@@ -317,7 +317,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
         self._seriesname=self._dlgEnterFancyName._FancyName
         self.FetchConSeriesFromFancy(self._dlgEnterFancyName._FancyName)
         self.RefreshWindow()
-        self.ProgressMessage(self._dlgEnterFancyName._FancyName+" loaded successfully from Fancyclopedia 3")
+        self.ProgressMessage(name+" loaded successfully from Fancyclopedia 3")
         self.Updated=True
         pass
 
