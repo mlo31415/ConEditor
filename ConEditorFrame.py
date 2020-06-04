@@ -318,10 +318,11 @@ class ConEditorFrame(GenConEditorFrame):
         conseriesname=self._grid._datasource.GetData(self.clickedRow, 0)
         dlg=MainConSeriesFrame(self._baseDirFTP, conseriesname)
         #        dlg.tConInstanceName.Value=name
-        dlg.ShowModal()
-        conseriesname=dlg.tConSeries.Value
-        self._grid._datasource.Rows[self.clickedRow].URL="./"+conseriesname+"/index.html"
-        self._grid._datasource.Rows[self.clickedRow].Name=conseriesname
+        ret=dlg.ShowModal()
+        if ret == wx.OK:
+            conseriesname=dlg.tConSeries.Value
+            self._grid._datasource.Rows[self.clickedRow].URL="./"+conseriesname+"/index.html"
+            self._grid._datasource.Rows[self.clickedRow].Name=conseriesname
 
     # ------------------
     def OnGridLabelRightClick(self, event):  # Grid

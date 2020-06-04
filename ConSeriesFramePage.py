@@ -51,7 +51,8 @@ class MainConSeriesFrame(GenConSeriesFrame):
         if val is not None:
             self.m_radioBoxShowEmpty.SetSelection(int(val))
 
-        self._updated: bool=False
+        self._updated: bool=False                   # Has the class been changed since it was last uploaded?
+        self._fancydownloadfailed: bool=False       # If a download from Fancyclopedia was attempted, did it fail? (This will be used to generate the return code)
 
         if len(conseriesname) > 0:
             self.DownloadConSeries(conseriesname)
@@ -123,12 +124,14 @@ class MainConSeriesFrame(GenConSeriesFrame):
             # Get the JSON from the file
             j=FindBracketedText(file, "fanac-json")[0]
             if j is None or j == "":
+                Log("DownloadConSeries: Can't load convention information from "+pathname)
                 wx.MessageBox("Can't load convention information from "+pathname)
                 return
 
             try:
                 self.FromJson(j)
             except (json.decoder.JSONDecodeError):
+                Log("DownloadConSeries: JSONDecodeError when loading convention information from "+pathname)
                 wx.MessageBox("JSONDecodeError when loading convention information from "+pathname)
                 return
         else:
@@ -144,7 +147,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
         self.Updated=False
         self.RefreshWindow()
         self.ProgressMessage(self._seriesname+" Loaded")
-
+        Log("DownloadConSeries: "+self._seriesname+" Loaded")
 
 
     #-------------------
@@ -231,6 +234,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
             response=urlopen(pageurl)
         except:
             Log("FetchConSeriesFromFancy: Got exception when trying to open "+pageurl)
+            self._fancydownloadfailed=True
             del wait  # End the wait cursor
             return False
 
@@ -241,6 +245,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
         tables=soup.find_all("table", class_="wikitable mw-collapsible")
         if tables == None or len(tables) == 0:
             Log("FetchConSeriesFromFancy: Can't find a table in Fancy 3 page "+pageurl)
+            self._fancydownloadfailed=True
             wx.MessageBox("Can't find a table in Fancy 3 page "+pageurl)
             return False
 
@@ -269,6 +274,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
         # Did we find anything?
         if len(headers) == 0 or len(rows) == 0:
             Log("FetchConSeriesFromFancy: Can't interpret Fancy 3 page '"+pageurl+"'")
+            self._fancydownloadfailed=True
             wx.MessageBox("Can't interpret Fancy 3 page '"+pageurl+"'")
             return False
 
@@ -303,6 +309,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
             self._grid._datasource.Rows.append(con)
         self.tConSeries.Value=name
         self.Updated=True
+        self._fancydownloadfailed=False
         self.RefreshWindow()
         return True
 
@@ -310,12 +317,24 @@ class MainConSeriesFrame(GenConSeriesFrame):
     #------------------
     # Create a new, empty, con series
     def OnCreateConSeries(self, event):                    # MainConSeriesFrame
-        self._dlgEnterFancyName=dlgEnterFancyNameWindow(None)
-        self.ProgressMessage("Loading "+self._dlgEnterFancyName._FancyName+" from Fancyclopedia 3")
+        if len(self.tConSeries.Value) == 0:
+            self._dlgEnterFancyName=dlgEnterFancyNameWindow(None)
+            name=self._dlgEnterFancyName._FancyName
+            self._seriesname=name
+        else:
+            name=self.tConSeries.Value
+            self._seriesname=name
+
+        self.ProgressMessage("Loading "+name+" from Fancyclopedia 3")
         self._grid._datasource=ConSeries()
-        self._grid._datasource.Name=self._dlgEnterFancyName._FancyName
-        self._seriesname=self._dlgEnterFancyName._FancyName
-        self.FetchConSeriesFromFancy(self._dlgEnterFancyName._FancyName)
+        self._grid._datasource.Name=name
+
+        ret=self.FetchConSeriesFromFancy(name)
+        if not ret:
+            self.ProgressMessage(name+" load from Fancyclopedia 3 failed")
+            wx.MessageBox(name+" load from Fancyclopedia 3 failed. Is it possible that its name on Fancy 3 is different?")
+            return
+
         self.RefreshWindow()
         self.ProgressMessage(name+" loaded successfully from Fancyclopedia 3")
         self.Updated=True
@@ -439,13 +458,18 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
     # ------------------
     def OnClose(self, event):            # ConEditorFrame
-        if self.Updated:
+        self.SetReturnCode(wx.OK)
+
+        if self._fancydownloadfailed:
+            self.SetReturnCode(wx.CANCEL)   # We tried a download from Fancy and it failed.
+        elif self.Updated:
             if event.CanVeto():
                 resp=wx.MessageBox("The convention series has been updated and not yet saved. Exit anyway?", 'Warning',
                        wx.OK|wx.CANCEL|wx.ICON_WARNING)
                 if resp == wx.CANCEL:
                     event.Veto()
                     return
+
         self.Destroy()
 
 
