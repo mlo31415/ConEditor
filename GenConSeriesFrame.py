@@ -29,11 +29,11 @@ class GenConSeriesFrame ( wx.Dialog ):
 		fgSizer6.SetFlexibleDirection( wx.BOTH )
 		fgSizer6.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
+		self.bCreateConSeries = wx.Button( self, wx.ID_ANY, u"Load New ConSeries from Fancy 3", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer6.Add( self.bCreateConSeries, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+
 		self.bUploadConSeries = wx.Button( self, wx.ID_ANY, u"Upload ConSeries", wx.DefaultPosition, wx.DefaultSize, 0 )
 		fgSizer6.Add( self.bUploadConSeries, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
-
-		self.bCreateConSeries = wx.Button( self, wx.ID_ANY, u"Create New ConSeries", wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer6.Add( self.bCreateConSeries, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
 		self.m_panel2 = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.BORDER_THEME|wx.TAB_TRAVERSAL )
 		fgSizer8 = wx.FlexGridSizer( 2, 0, 0, 0 )
@@ -183,8 +183,8 @@ class GenConSeriesFrame ( wx.Dialog ):
 
 		# Connect Events
 		self.Bind( wx.EVT_CLOSE, self.OnClose )
-		self.bUploadConSeries.Bind( wx.EVT_BUTTON, self.OnUploadConSeries )
 		self.bCreateConSeries.Bind( wx.EVT_BUTTON, self.OnCreateConSeries )
+		self.bUploadConSeries.Bind( wx.EVT_BUTTON, self.OnUploadConSeries )
 		self.m_radioBoxShowEmpty.Bind( wx.EVT_RADIOBOX, self.OnSetShowEmptyRadioBox )
 		self.tConSeries.Bind( wx.EVT_KEY_UP, self.ConTextConSeriesKeyUp )
 		self.tConSeries.Bind( wx.EVT_TEXT, self.OnTextConSeriesName )
@@ -209,10 +209,10 @@ class GenConSeriesFrame ( wx.Dialog ):
 	def OnClose( self, event ):
 		event.Skip()
 
-	def OnUploadConSeries( self, event ):
+	def OnCreateConSeries( self, event ):
 		event.Skip()
 
-	def OnCreateConSeries( self, event ):
+	def OnUploadConSeries( self, event ):
 		event.Skip()
 
 	def OnSetShowEmptyRadioBox( self, event ):
