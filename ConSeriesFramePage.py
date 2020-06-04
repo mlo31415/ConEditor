@@ -208,7 +208,6 @@ class MainConSeriesFrame(GenConSeriesFrame):
         self.Updated=False      # It was just saved
         self.RefreshWindow()
 
-
     #------------------
     # Save a con series object to disk.
     def OnUploadConSeries(self, event):                    # MainConSeriesFrame
@@ -222,18 +221,18 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
     #--------------------------------------------
     # Given the name of the ConSeries, go to fancy 3 and fetch the con series information and fill in a con seres from it.
-    def FetchConSeriesFromFancy(self, name):                    # MainConSeriesFrame
+    def FetchConSeriesFromFancy(self, name) -> bool:                    # MainConSeriesFrame
         if name is None or name == "":
-            return
+            return False
 
         wait=wx.BusyCursor()
         pageurl="http://fancyclopedia.org/"+WikiPagenameToWikiUrlname(name)
         try:
             response=urlopen(pageurl)
         except:
+            Log("FetchConSeriesFromFancy: Got exception when trying to open "+pageurl)
             del wait  # End the wait cursor
-            wx.MessageBox("Fatch from Fancy 3 failed.")
-            return
+            return False
 
         html=response.read()
         soup=BeautifulSoup(html, 'html.parser')
@@ -241,8 +240,9 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
         tables=soup.find_all("table", class_="wikitable mw-collapsible")
         if tables == None or len(tables) == 0:
+            Log("FetchConSeriesFromFancy: Can't find a table in Fancy 3 page "+pageurl)
             wx.MessageBox("Can't find a table in Fancy 3 page "+pageurl)
-            return
+            return False
 
         bsrows=tables[0].find_all("tr")
         headers=[]
@@ -268,8 +268,9 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
         # Did we find anything?
         if len(headers) == 0 or len(rows) == 0:
+            Log("FetchConSeriesFromFancy: Can't interpret Fancy 3 page '"+pageurl+"'")
             wx.MessageBox("Can't interpret Fancy 3 page '"+pageurl+"'")
-            return
+            return False
 
         # OK. We have the data.  Now fill in the ConSeries object
         # First, figure out which columns are which
@@ -303,6 +304,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
         self.tConSeries.Value=name
         self.Updated=True
         self.RefreshWindow()
+        return True
 
 
     #------------------
