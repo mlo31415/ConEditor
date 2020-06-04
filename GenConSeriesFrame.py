@@ -167,13 +167,13 @@ class GenConSeriesFrame ( wx.Dialog ):
 		self.m_popupPaste = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Paste", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_menuPopup.Append( self.m_popupPaste )
 
-		self.m_popupCreateNewConPage = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Create New Con Page", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_popupCreateNewConPage = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Create New Convention Page", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_menuPopup.Append( self.m_popupCreateNewConPage )
 
-		self.m_popupDeleteConPage = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Delete Con Page", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_popupDeleteConPage = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Delete Convention Page", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_menuPopup.Append( self.m_popupDeleteConPage )
 
-		self.m_popupEditConPage = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Edit Con Page", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_popupEditConPage = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Edit Convention Page", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_menuPopup.Append( self.m_popupEditConPage )
 
 		self.Bind( wx.EVT_RIGHT_DOWN, self.GenConSeriesFrameOnContextMenu )
