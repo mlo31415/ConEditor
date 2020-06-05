@@ -263,6 +263,7 @@ class ConEditorFrame(GenConEditorFrame):
         file=SubstituteHTML(file, "fanac-date", date.today().strftime("%A %B %d, %Y"))
 
         self.ProgressMessage("Uploading /index.html")
+        Log("Uploading /index.html")
         if not FTP().PutFileAsString("/", "index.html", file):
             Log("Upload of /index.html failed")
             wx.MessageBox("Upload of /index.html failed")
