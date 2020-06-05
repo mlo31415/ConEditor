@@ -186,7 +186,7 @@ class FTP:
 
     def PutFileAsString(self, directory: str, fname: str, s: str, create: bool=False) -> bool:
         if not FTP().SetDirectory(directory, create=create):
-            Log("Bailing out...")
+            Log("PutFieAsString: Bailing out...")
             return False
         return FTP().PutString(fname, s)
 
@@ -246,7 +246,7 @@ class FTP:
 
     def GetFileAsString(self, directory: str, fname: str) -> Optional[str]:
         if not self.SetDirectory(directory):
-            Log("Bailing out...")
+            Log("GetFileAsString: Bailing out...")
             return None
         s=FTP().GetAsString(fname)
         if s is None:
