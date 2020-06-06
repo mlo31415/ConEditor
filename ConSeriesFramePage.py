@@ -359,11 +359,18 @@ class MainConSeriesFrame(GenConSeriesFrame):
     #------------------
     def OnPopupEditConPage(self, event):                    # MainConSeriesFrame
         irow=self.rightClickedRow
-        name=""
+        # If the RMB is a click on a convention instance name, we edit that name
         if "Name" in self._grid._datasource.ColHeaders:
             col=self._grid._datasource.ColHeaders.index("Name")
             name=self._grid._datasource.GetData(irow, col)
             self.EditConPage(name, irow)
+            self._grid.Grid.SelectBlock(irow, col, irow, col)
+
+    # ------------------
+    def OnGridEditorShown(self, event):
+        icol=event.GetCol()
+        if icol == 0:   # Don't allow editing of the 1st column
+            event.Veto()
 
     #------------------
     def EditConPage(self, name: str, irow: int):

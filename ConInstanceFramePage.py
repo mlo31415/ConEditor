@@ -333,6 +333,11 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self.Updated=True
         self.RefreshWindow()
 
+    # ------------------
+    def OnGridEditorShown(self, event):
+        icol=event.GetCol()
+        if icol == 0:   # Don't allow editing of the 1st column
+            event.Veto()
 
     # ------------------
     def OnTextConInstanceFancyURL(self, event):
