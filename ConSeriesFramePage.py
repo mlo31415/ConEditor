@@ -77,7 +77,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
     def FromJson(self, val: str) -> MainConSeriesFrame:                    # MainConSeriesFrame
         d=json.loads(val)
-        if d["ver"] <= 3:
+        if d["ver"] >= 3:
             self._textConSeriesName=d["_textConSeries"]
             self._textFancyURL=d["_textFancyURL"]
             self._textComments=d["_textComments"]

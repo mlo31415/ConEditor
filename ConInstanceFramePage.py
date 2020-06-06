@@ -59,13 +59,11 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
     def FromJson(self, val: str) -> GenConInstanceFrame:
         d=json.loads(val)
-        if d["ver"] >= 1:
-            self.ConInstanceName=d["ConInstanceName"]
-            self.ConInstanceStuff=d["ConInstanceStuff"]
-            self.ConInstanceFancyURL=d["ConInstanceFancyURL"]
-            self._grid._datasource=ConInstancePage().FromJson(d["_datasource"])
-        if d["ver"] == 2:
-            self.ConInstancePhotoURL=d["ConInstancePhotoURL"]
+        self.ConInstanceName=d["ConInstanceName"]
+        self.ConInstanceStuff=d["ConInstanceStuff"]
+        self.ConInstanceFancyURL=d["ConInstanceFancyURL"]
+        self._grid._datasource=ConInstancePage().FromJson(d["_datasource"])
+        self.ConInstancePhotoURL=d["ConInstancePhotoURL"]
         return self
 
 

@@ -33,8 +33,7 @@ class Convention:
     def FromJson(self, val: str) -> Convention:
         d=json.loads(val)
         self._name=d["_name"]
-        if d["ver"] == 2:
-            self._URL=d["_URL"]
+        self._URL=d["_URL"]
 
         return self
 

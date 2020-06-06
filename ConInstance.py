@@ -26,16 +26,9 @@ class ConFile:
         d=json.loads(val)
         self._displayTitle=d["_displayTitle"]
         self._localpathname=d["_localpathname"]
-        if d["ver"] >= 4:
-            self._size=d["_size"]
-        if d["ver"] >= 3:
-            self._notes=d["_notes"]
-        if d["ver"] <=2:
-            self._notes=d["_description"]
-        if d["ver"] >= 2:
-            self._filename=d["_filename"]
-        else:
-            self._filename=self._displayTitle
+        self._size=d["_size"]
+        self._notes=d["_notes"]
+        self._filename=d["_filename"]
         return self
 
     @property

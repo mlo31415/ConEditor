@@ -34,14 +34,11 @@ class Con:
         self._name=d["_name"]
         self._locale=d["_locale"]
         self._gohs=d["_gohs"]
-        if d["ver"] == 1:
-            self._dates=FanzineDateRange().FromJson(d["_dates"])
-        if d["ver"] == 2:   # Ver 2 stores the date range as text to eliminate clutter in the json string
-            self._dates=FanzineDateRange().Match(d["_dates"])
-            if "_URL" in d.keys():
-                self._URL=d["_URL"]
-            else:
-                self._URL=""
+        self._dates=FanzineDateRange().Match(d["_dates"])
+        if "_URL" in d.keys():
+            self._URL=d["_URL"]
+        else:
+            self._URL=""
         return self
 
 
@@ -146,23 +143,16 @@ class ConSeries(GridDataSource):
 
     def FromJson(self, val: str) -> ConSeries:
         d=json.loads(val)
-        if d["ver"] <= 2:
-            self._colheaders=d["_colheaders"]
-            self._coldatatypes=d["_coldatatypes"]
-            self._colminwidths=d["_colminwidths"]
-            self._name=d["_name"]
-            self._stuff=d["_stuff"]
-        if d["ver"] == 1:
-            serl=d["_series"]
-            self._series=[]
-            for s in serl:
-                self._series.append(Con().FromJson(s))
-        if d["ver"] == 2:
-            self._series=[]
-            i=0
-            while str(i) in d.keys():       # This is because json merges 1 and "1" as the same. (It appears to be a bug.)
-                self._series.append(Con().FromJson(d[str(i)]))
-                i+=1
+        self._colheaders=d["_colheaders"]
+        self._coldatatypes=d["_coldatatypes"]
+        self._colminwidths=d["_colminwidths"]
+        self._name=d["_name"]
+        self._stuff=d["_stuff"]
+        self._series=[]
+        i=0
+        while str(i) in d.keys():       # This is because json merges 1 and "1" as the same. (It appears to be a bug.)
+            self._series.append(Con().FromJson(d[str(i)]))
+            i+=1
         return self
 
     # Inherited from GridDataSource
