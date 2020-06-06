@@ -24,7 +24,10 @@ class FTP:
         if len(FTP.g_credentials) == 0:
             return False
         FTP.g_ftp=ftplib.FTP(host=FTP.g_credentials["host"], user=FTP.g_credentials["ID"], passwd=FTP.g_credentials["PW"])
-        return FTP().SetDirectory(FTP.g_curdirpath)
+        # Now we need to restore the current working directory
+        predir=FTP.g_curdirpath
+        FTP().SetDirectory("/")
+        return FTP().SetDirectory(predir)
 
 
     def UpdateCurpath(self, newdir: str) -> None:

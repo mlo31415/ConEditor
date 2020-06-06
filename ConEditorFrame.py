@@ -212,13 +212,13 @@ class ConEditorFrame(GenConEditorFrame):
         # Get the JSON
         j=FindBracketedText(file, "fanac-json")[0]
         if j is None or j == "":
-            wx.MessageBox("Can't load convention information from Conpubs' index.html")
+            wx.MessageBox("Can't load convention information from conpubs' index.html")
             return
 
         try:
             self.FromJson(j)
         except (json.decoder.JSONDecodeError):
-            wx.MessageBox("JSONDecodeError when loading convention information from Conpubs' index.html")
+            wx.MessageBox("JSONDecodeError when loading convention information from conpubs' index.html")
             return
 
         # Insert the row data into the grid
@@ -398,7 +398,6 @@ LogOpen("Log -- ConEditor.txt", "Log (Errors) -- ConEditor.txt")
 f=FTP()
 if not f.OpenConnection("FTP Credentials.json"):
     Log("Main: OpenConnection('FTP Credentials.json' failed")
-    wx.MessageBox("OpenConnection('FTP Credentials.json' failed")
     exit(0)
 
 # Load the global settings dictionary

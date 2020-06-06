@@ -7,10 +7,10 @@ import json
 class ConFile:
     def __init__(self):
         self._displayTitle: str=""      # The name as shown to the world
-        self._notes: str=""       # The free-format description
-        self._filename: str=""
-        self._localpathname: str="."     # The local pathname of the file
-        self._size: int=0
+        self._notes: str=""             # The free-format description
+        self._filename: str=""          # The filename of the source file
+        self._localpathname: str="."    # The local pathname of the source file (path+filename)
+        self._size: int=0               # The file's size in bytes
 
     # Serialize and deserialize
     def ToJson(self) -> str:
@@ -77,18 +77,23 @@ class ConFile:
     # Get or set a value by name or column number in the grid
     def GetVal(self, name: Union[str, int]) -> Union[str, int]:
         # (Could use return eval("self."+name))
-        if name == "File" or name == 0:
+        if name == "File Name" or name == 0:
+            return self.Filename
+        if name == "Display Name" or name == 1:
             return self.DisplayTitle
-        if name == "Notes" or name == 1:
+        if name == "Notes" or name == 2:
             return self.Notes
         return "Val can't interpret '"+str(name)+"'"
 
     def SetVal(self, nameOrCol: Union[str, int], val: Union[str, int]) -> None:
         # (Could use return eval("self."+name))
-        if nameOrCol == "File" or nameOrCol == 0:
+        if nameOrCol == "File Name" or nameOrCol == 0:
+            self.Filename=val
+            return
+        if nameOrCol == "Display Name" or nameOrCol == 1:
             self.DisplayTitle=val
             return
-        if nameOrCol == "Notes" or nameOrCol == 1:
+        if nameOrCol == "Notes" or nameOrCol == 2:
             self.Notes=val
             return
         print("SetVal can't interpret '"+str(nameOrCol)+"'")
@@ -97,9 +102,9 @@ class ConFile:
 
 class ConInstancePage(GridDataSource):
     # an array of tuples: column header, min col width, col type
-    _colheaders=["File", "Notes"]
-    _colminwidths=[50, 200]
-    _coldatatypes=["str", "str"]
+    _colheaders=["File Name", "Display Name", "Notes"]
+    _colminwidths=[50, 50, 200]
+    _coldatatypes=["str", "str", "str"]
     _element=ConFile
 
     def __init__(self):
@@ -130,6 +135,12 @@ class ConInstancePage(GridDataSource):
             self._conFileList=[]
             for c in cfld:
                 self._conFileList.append(ConFile().FromJson(c))
+
+        if len(self._colheaders) == 2:  # Old-style had just two: "File" and "Notes".  We need to rename "File" and insert "Display Name" #TODO: Remove when no longer needed
+            self._colheaders=["File Name", "Display Name", "Notes"]
+            self._colminwidths=[50, 50, 200]
+            self._coldatatypes=["str", "str", "str"]
+
         self._colheaders=["Notes" if ch == "Description" else ch for ch in self._colheaders]    # Change Description column to Notes in old files #TODO: Remove when no longer needed
         return self
 
