@@ -385,8 +385,11 @@ class MainConSeriesFrame(GenConSeriesFrame):
         if irow >=0 and irow < self._grid._datasource.NumRows:
             row=self._grid._datasource.Rows[irow]
             del self._grid._datasource.Rows[irow]
-            FTP().SetDirectory(self._basedirectoryFTP+"/"+ self._seriesname)
-            FTP().Delete(row.Name)
+            if not FTP().SetDirectory(self._basedirectoryFTP+"/"+ self._seriesname):
+                Log("OnPopupDeleteConPage: SetDirectory("+self._basedirectoryFTP+"/"+ self._seriesname+") failed")
+                return
+            if not FTP().Delete(row.Name):
+                Log("OnPopupDeleteConPage: Delete("+row.Name+" failed")
             self.Updated=True
             self.RefreshWindow()
 
@@ -434,8 +437,12 @@ class MainConSeriesFrame(GenConSeriesFrame):
     def OnGridCellDoubleClick(self, event):                    # MainConSeriesFrame
         self.rightClickedColumn=event.GetCol()
         self.rightClickedRow=event.GetRow()
-        if  self.rightClickedColumn == 0:
-            self.OnPopupCreateNewConPage(event)
+        if self.rightClickedColumn == 0:
+            name=self._grid.Get(self.rightClickedRow, 0)
+            if name is None or len(name) == 0:
+                self.OnPopupCreateNewConPage(event)
+            else:
+                self.EditConPage(name, self.rightClickedRow)
 
     #-------------------
     def OnKeyDown(self, event):                    # MainConSeriesFrame

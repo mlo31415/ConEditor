@@ -10,6 +10,7 @@ from Grid import Grid
 from ConInstance import ConInstancePage, ConFile
 from FTP import FTP
 from Settings import Settings
+from Log import Log
 
 from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, PrependHTTP
 
@@ -81,7 +82,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
     def OnAddFilesButton(self, event):
         self.AddFiles()
 
-    def AddFiles(self) -> None:
+    def AddFiles(self) -> bool:
 
         # Call the File Open dialog to get an con series HTML file
         dlg=wx.FileDialog(self, "Select files to upload", ".", "", "*.*", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE | wx.FD_CHANGE_DIR)
@@ -89,13 +90,16 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         # Do we have a last directory?
         dir=Settings().Get("Last FileDialog directory")
         if dir is not None:
+            if not os.path.exists(dir) or not os.path.isdir(dir):
+                Log("AddFiles: SetDirectory("+dir+") failed because the directory does not exist")
+                return  False
             dlg.SetDirectory(dir)
 
         if dlg.ShowModal() == wx.ID_CANCEL:
             Settings().Put("Last FileDialog directory", dlg.GetDirectory())
             dlg.Raise()
             dlg.Destroy()
-            return
+            return True #TODO: Is this the correct return?
 
         Settings().Put("Last FileDialog directory", dlg.GetDirectory())
         for fn in dlg.GetFilenames():
@@ -108,6 +112,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             self._grid._datasource.Updated=True
         dlg.Destroy()
         self.RefreshWindow()
+        return True
 
     def OnUploadConInstance(self, event):
         self.OnUploadConInstancePage()
@@ -137,9 +142,11 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
                 file=f.read()
         except:
             wx.MessageBox("Can't read 'Template-ConPage.html'")
+            Log("Can't read 'Template-ConPage.html'")
             return
 
         self.ProgressMessage("Uploading /"+self._seriesname+"/"+self._coninstancename+"/index.html")
+        Log("Uploading /"+self._seriesname+"/"+self._coninstancename+"/index.html")
 
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name is tagged with <fanac-instance>, the random text with "fanac-headertext"
@@ -151,10 +158,10 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         file=SubstituteHTML(file, "fanac-stuff", self.ConInstanceStuff)
         file=SubstituteHTML(file, "fanac-linkupwards", FormatLink("..", "All "+self._seriesname+"s"))
 
-        # Are there photos?
+        # Are there photos?\\
         if self.ConInstancePhotoURL is not None and len(self.ConInstancePhotoURL) > 0:
-            s='<div class=col-md-2>\n<a href="'+PrependHTTP(self.ConInstancePhotoURL)+'" class="btn btn-info" role="button">Photos</a>\n</div>'
-            file=SubstituteHTML(file, "fanac-photos", s)
+            link=FormatLink(PrependHTTP(self.ConInstancePhotoURL), "Convention Photos")
+            file=SubstituteHTML(file, "fanac-photos", link)
 
         file=SubstituteHTML(file, "fanac-json", self.ToJson())
 
@@ -201,13 +208,15 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         if not FTP().PutFileAsString("/"+self._seriesname+"/"+self._coninstancename, "index.html", file, create=True):
             self.ProgressMessage("Upload failed: /"+self._seriesname+"/"+self._coninstancename+"/index.html")
             wx.MessageBox("Upload failed: /"+self._seriesname+"/"+self._coninstancename+"/index.html")
+            Log("Upload failed: /"+self._seriesname+"/"+self._coninstancename+"/index.html")
             return
 
         # Finally, Upload any files which are newly added.
         for row in self._grid._datasource.Rows:
             if row.Filename is not None and len(row.Filename) > 0:
                 if not FTP().Exists(row.Filename):
-                    FTP().PutFile(row.LocalPathname, row.Filename)
+                    if not FTP().PutFile(row.LocalPathname, row.Filename):
+                        Log("OnUploadConInstancePage: Putfile of "+row.LocalPathname+" failed")
 
         # And remove any that have been dropped.  (PDFs only, for now.)
         files=[row.Filename for row in self._grid._datasource.Rows]
@@ -215,16 +224,18 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         for f in fileupthere:
             if f not in files:
                 if os.path.splitext(f)[1] == ".pdf":
-                    FTP().Delete(f)
+                    if not FTP().Delete(f):
+                        Log("OnUploadConInstancePage: Delete("+f+") failed")
 
         self.ProgressMessage("Upload succeeded: /"+self._seriesname+"/"+self._coninstancename+"/index.html")
+        Log("Upload succeeded: /"+self._seriesname+"/"+self._coninstancename+"/index.html")
         self.Updated=False
         self._uploaded=True
         self.RefreshWindow()
 
 
     #------------------
-    # Download a ConSeries
+    # Download a ConInstance
     def DownloadConInstancePage(self) -> None:
 
         # Clear out any old information
@@ -232,9 +243,11 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
         # Read the existing CIP
         self.ProgressMessage("Downloading "+self._FTPbasedir+"/"+self._coninstancename+"/index.html")
+        Log("Downloading "+self._FTPbasedir+"/"+self._coninstancename+"/index.html")
         file=FTP().GetFileAsString(self._FTPbasedir+"/"+self._coninstancename, "index.html")
         if file is None:
             self.ProgressMessage(self._FTPbasedir+"/"+self._coninstancename+"/index.html does not exist -- create a new file and upload it")
+            Log(self._FTPbasedir+"/"+self._coninstancename+"/index.html does not exist -- create a new file and upload it")
             return  # Just return with the ConInstance page empty
 
         # Get the JSON
@@ -247,6 +260,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self.m_textPhotosURL.Value=self.ConInstancePhotoURL
 
         self.ProgressMessage(self._FTPbasedir+"/"+self._coninstancename+"/index.html downloaded")
+        Log(self._FTPbasedir+"/"+self._coninstancename+"/index.html downloaded")
         self.Updated=False
         self.RefreshWindow()
 
