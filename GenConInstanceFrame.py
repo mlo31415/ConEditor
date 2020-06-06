@@ -18,9 +18,9 @@ import wx.grid
 class GenConInstanceFrame ( wx.Dialog ):
 
 	def __init__( self, parent ):
-		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Convention Instance", pos = wx.DefaultPosition, size = wx.Size( 522,606 ), style = wx.DEFAULT_DIALOG_STYLE )
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Convention Instance", pos = wx.DefaultPosition, size = wx.Size( -1,-1 ), style = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER )
 
-		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
+		self.SetSizeHints( wx.Size( 522,606 ), wx.DefaultSize )
 
 		bSizerMainBox = wx.BoxSizer( wx.VERTICAL )
 
@@ -141,6 +141,7 @@ class GenConInstanceFrame ( wx.Dialog ):
 
 		self.SetSizer( bSizerMainBox )
 		self.Layout()
+		bSizerMainBox.Fit( self )
 		self.m_menuPopup = wx.Menu()
 		self.m_popupCopy = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Copy", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_menuPopup.Append( self.m_popupCopy )
