@@ -396,7 +396,10 @@ class ConEditorFrame(GenConEditorFrame):
 LogOpen("Log -- ConEditor.txt", "Log (Errors) -- ConEditor.txt")
 
 f=FTP()
-f.OpenConnection("FTP Credentials.json")
+if not f.OpenConnection("FTP Credentials.json"):
+    Log("Main: OpenConnection('FTP Credentials.json' failed")
+    wx.MessageBox("OpenConnection('FTP Credentials.json' failed")
+    exit(0)
 
 # Load the global settings dictionary
 Settings().Load("ConEditor settings.json")
