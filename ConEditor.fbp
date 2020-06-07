@@ -3216,6 +3216,7 @@
                                 <event name="OnGridCellChange">OnGridCellChanged</event>
                                 <event name="OnGridCellLeftDClick">OnGridCellDoubleClick</event>
                                 <event name="OnGridCellRightClick">OnGridCellRightClick</event>
+                                <event name="OnGridEditorShown">OnGridEditorShown</event>
                                 <event name="OnGridLabelRightClick">OnGridLabelRightClick</event>
                                 <event name="OnKeyDown">OnKeyDown</event>
                                 <event name="OnKeyUp">OnKeyUp</event>

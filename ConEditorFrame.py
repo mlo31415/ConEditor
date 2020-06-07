@@ -317,6 +317,20 @@ class ConEditorFrame(GenConEditorFrame):
         self.PopupMenu(self.m_menuPopupConEditor, pos=self.gRowGrid.Position+event.Position)
 
     # ------------------
+    def OnGridEditorShown(self, event):
+        irow=event.GetRow()
+        icol=event.GetCol()
+        if self._grid._datasource._coleditable[icol] == "no":
+            event.Veto()
+            return
+        if self._grid._datasource._coleditable[icol] == "maybe":
+            for it in self._allowCellEdits:
+                if irow == it[0] and icol == it[1]:
+                    return
+        event.Veto()
+        return
+
+    # ------------------
     def OnGridCellDoubleClick(self, event):            # ConEditorFrame
         if event.GetRow() > self._grid._datasource.NumRows:
             return      # For now, we do nothing when you double-click in an empty cell
