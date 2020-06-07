@@ -71,6 +71,7 @@ class ConList(GridDataSource):
     _colheaders: List[str]=["Convention Series"]
     _coldatatypes: List[str]=["url"]
     _colminwidths: List[int]=[30]
+    _coleditable: List[int]=["no"]
     _element=Convention
 
     def __init__(self):
@@ -80,9 +81,10 @@ class ConList(GridDataSource):
 
     # Serialize and deserialize
     def ToJson(self) -> str:
-        d={"ver": 1,
+        d={"ver": 2,
            "_colheaders": self._colheaders,
            "_coldatatypes": self._coldatatypes,
+           "_coleditable": self._coleditable,
            "_colminwidths": self._colminwidths}
         i=0
         for s in self._conlist:
@@ -95,6 +97,8 @@ class ConList(GridDataSource):
         self._colheaders=d["_colheaders"]
         self._coldatatypes=d["_coldatatypes"]
         self._colminwidths=d["_colminwidths"]
+        if "_coleditable" in d.keys():
+            self._coleditable=d["_coleditable"]
         self._conlist=[]
         i=0
         while str(i) in d.keys():       # Using str(i) is because json merges 1 and "1" as the same. (It appears to be a bug.)
@@ -297,16 +301,19 @@ class ConEditorFrame(GenConEditorFrame):
 
     #------------------
     def OnGridCellRightClick(self, event):            # ConEditorFrame
-        self._grid.OnGridCellRightClick(event, self.m_menuPopupConEditor)
-        self.clickedColumn=event.GetCol()
-        self.clickedRow=event.GetRow()
+        irow=event.GetRow()
+        icol=event.GetCol()
+        self.clickedColumn=icol
+        self.clickedRow=irow
+        self._grid.OnGridCellRightClick(event, self.m_menuPopupConEditor)  # Set enabled state of default items; set all others to False
 
         self.m_menuItemInsert.Enabled=True
-        if self._grid._datasource.NumRows > event.GetRow():
+        if self._grid._datasource.NumRows > irow:
             self.m_menuItemDelete.Enabled=True
-        if event.GetRow() < self._grid._datasource.NumRows:
+        if irow < self._grid._datasource.NumRows:
             self.m_menuItemEdit.Enabled=True
-
+        #if self._grid._datasource._coleditable[icol] == "maybe":
+            #self.m_popupAllowEditCell.Enabled=True
         self.PopupMenu(self.m_menuPopupConEditor, pos=self.gRowGrid.Position+event.Position)
 
     # ------------------

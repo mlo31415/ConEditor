@@ -84,6 +84,15 @@ class GenConEditorFrame ( wx.Frame ):
 
 		# Cell Defaults
 		self.gRowGrid.SetDefaultCellAlignment( wx.ALIGN_LEFT, wx.ALIGN_TOP )
+		bSizer9.Add( self.gRowGrid, 1, wx.ALL, 5 )
+
+
+		bSizer8.Add( bSizer9, 1, wx.EXPAND, 5 )
+
+
+		self.SetSizer( bSizer8 )
+		self.Layout()
+		self.m_statusBar = self.CreateStatusBar( 1, wx.STB_SIZEGRIP, wx.ID_ANY )
 		self.m_menuPopupConEditor = wx.Menu()
 		self.m_menuItemCopy = wx.MenuItem( self.m_menuPopupConEditor, wx.ID_ANY, u"Copy", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_menuPopupConEditor.Append( self.m_menuItemCopy )
@@ -100,17 +109,8 @@ class GenConEditorFrame ( wx.Frame ):
 		self.m_menuItemEdit = wx.MenuItem( self.m_menuPopupConEditor, wx.ID_ANY, u"Edit Convention Series", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_menuPopupConEditor.Append( self.m_menuItemEdit )
 
-		self.gRowGrid.Bind( wx.EVT_RIGHT_DOWN, self.gRowGridOnContextMenu )
+		self.Bind( wx.EVT_RIGHT_DOWN, self.GenConEditorFrameOnContextMenu )
 
-		bSizer9.Add( self.gRowGrid, 1, wx.ALL, 5 )
-
-
-		bSizer8.Add( bSizer9, 1, wx.EXPAND, 5 )
-
-
-		self.SetSizer( bSizer8 )
-		self.Layout()
-		self.m_statusBar = self.CreateStatusBar( 1, wx.STB_SIZEGRIP, wx.ID_ANY )
 
 		self.Centre( wx.BOTH )
 
@@ -189,7 +189,7 @@ class GenConEditorFrame ( wx.Frame ):
 	def OnPopupEditCon( self, event ):
 		event.Skip()
 
-	def gRowGridOnContextMenu( self, event ):
-		self.gRowGrid.PopupMenu( self.m_menuPopupConEditor, event.GetPosition() )
+	def GenConEditorFrameOnContextMenu( self, event ):
+		self.PopupMenu( self.m_menuPopupConEditor, event.GetPosition() )
 
 
