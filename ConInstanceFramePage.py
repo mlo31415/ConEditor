@@ -351,7 +351,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
     # ------------------
     def OnTextComments(self, event):
-        self.ConInstanceStuff=self.tPText.Value
+        self.ConInstanceStuff=self.topText.Value
 
     # ------------------
     def OnRadioFileListFormat(self, event):

@@ -75,10 +75,10 @@ class GenConInstanceFrame ( wx.Dialog ):
 
 		fgSizer4.Add( self.m_staticText2, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT|wx.ALL, 5 )
 
-		self.tPText = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 9999,-1 ), wx.TE_MULTILINE )
-		self.tPText.SetMinSize( wx.Size( -1,80 ) )
+		self.topText = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 9999,-1 ), wx.TE_MULTILINE )
+		self.topText.SetMinSize( wx.Size( -1,80 ) )
 
-		fgSizer4.Add( self.tPText, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.EXPAND, 5 )
+		fgSizer4.Add( self.topText, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.EXPAND, 5 )
 
 		self.m_button10 = wx.Button( self, wx.ID_ANY, u"Photo page", wx.DefaultPosition, wx.DefaultSize, 0 )
 		fgSizer4.Add( self.m_button10, 0, wx.ALL, 5 )
@@ -172,7 +172,7 @@ class GenConInstanceFrame ( wx.Dialog ):
 		self.tConInstanceName.Bind( wx.EVT_TEXT, self.OnTextConInstanceName )
 		self.tConInstanceFancyURL.Bind( wx.EVT_TEXT, self.OnTextConInstanceFancyURL )
 		self.m_textPhotosURL.Bind( wx.EVT_TEXT, self.OnTextPhotosURL )
-		self.tPText.Bind( wx.EVT_TEXT, self.OnTextComments )
+		self.topText.Bind( wx.EVT_TEXT, self.OnTextComments )
 		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_CHANGED, self.OnGridCellChanged )
 		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_LEFT_DCLICK, self.OnGridCellDoubleClick )
 		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnGridCellRightClick )

@@ -356,7 +356,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
     #------------------
     def OnPopupCreateNewConPage(self, event):                    # MainConSeriesFrame
         irow=self.rightClickedRow
-        self.EditConPage("", irow)
+        self.EditConInstancePage("", irow)
 
     #------------------
     def OnPopupEditConPage(self, event):                    # MainConSeriesFrame
@@ -365,7 +365,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
         if "Name" in self._grid._datasource.ColHeaders:
             col=self._grid._datasource.ColHeaders.index("Name")
             name=self._grid._datasource.GetData(irow, col)
-            self.EditConPage(name, irow)
+            self.EditConInstancePage(name, irow)
             self._grid.Grid.SelectBlock(irow, col, irow, col)
 
     #------------------
@@ -390,9 +390,33 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
 
     #------------------
-    def EditConPage(self, name: str, irow: int):
+    def EditConInstancePage(self, name: str, irow: int):
         dlg=MainConInstanceDialogClass(self._basedirectoryFTP+"/"+self._seriesname, self._seriesname, name)
         dlg.tConInstanceName.Value=name
+
+        # Construct a description of the convention from the information in the con series entry, if any.
+        row=self._grid._datasource.Rows[irow]
+        dates=None
+        if row.Dates is not None and not row.Dates.IsEmpty():
+            dates=str(row.Dates)
+        locale=None
+        if row.Locale is not None and len(row.Locale) > 0:
+            locale=row.Locale
+        description=name
+        if dates is not None and locale is not None:
+            description+=" was held "+dates+" in "+locale+"."
+        elif dates is not None:
+            description+=" was held "+dates+"."
+        elif locale is not None:
+            description+=" was held in " +locale+"."
+        if row.GoHs is not None and len(row.GoHs) > 0:
+            gohs=row.GoHs.replace("&amp;", "&")
+            if "," in gohs or "&" in gohs:
+                description+="  The GoHs were "+gohs
+            else:
+                description+="  The GoH was "+gohs
+        dlg.topText.Value=description
+
         dlg.ShowModal()
         cal=dlg.ReturnValue
         if cal == wx.ID_OK:
@@ -470,7 +494,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
             if name is None or len(name) == 0:
                 self.OnPopupCreateNewConPage(event)
             else:
-                self.EditConPage(name, self.rightClickedRow)
+                self.EditConInstancePage(name, self.rightClickedRow)
 
     #-------------------
     def OnKeyDown(self, event):                    # MainConSeriesFrame
