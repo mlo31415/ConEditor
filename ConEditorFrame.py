@@ -157,6 +157,8 @@ class ConEditorFrame(GenConEditorFrame):
         self.clickedColumn: Optional[int]=None
         self._baseDirFTP: str=""
 
+        self._allowCellEdits=[]     # A list of cells where editing has specifically been permitted
+
         self._grid: Grid=Grid(self.gRowGrid)
         self._grid._datasource=ConList()
         self._grid.SetColHeaders(self._grid._datasource._colheaders)
