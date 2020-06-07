@@ -120,6 +120,7 @@ class ConSeries(GridDataSource):
     _colheaders: List[str]=["Name", "Dates", "Locale", "GoHs"]
     _coldatatypes: List[str]=["url", "date range", "str", "str"]
     _colminwidths: List[int]=[30, 30, 30, 30]
+    _coleditable=["maybe", "yes", "yes", "yes"]
     _element=Con
 
     def __init__(self):
@@ -129,10 +130,11 @@ class ConSeries(GridDataSource):
 
     # Serialize and deserialize
     def ToJson(self) -> str:
-        d={"ver": 2,
+        d={"ver": 3,
            "_colheaders": self._colheaders,
            "_coldatatypes": self._coldatatypes,
            "_colminwidths": self._colminwidths,
+           "_coleditable": self._coleditable,
            "_name": self._name,
            "_stuff": self._stuff}
         i=0
@@ -153,6 +155,10 @@ class ConSeries(GridDataSource):
         while str(i) in d.keys():       # This is because json merges 1 and "1" as the same. (It appears to be a bug.)
             self._series.append(Con().FromJson(d[str(i)]))
             i+=1
+
+        if "_coleditable" in d.keys():
+            self._coleditable=d["_coleditable"]
+
         return self
 
     # Inherited from GridDataSource

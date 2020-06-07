@@ -98,6 +98,7 @@ class ConInstancePage(GridDataSource):
     _colheaders=["File Name", "Display Name", "Notes"]
     _colminwidths=[50, 50, 200]
     _coldatatypes=["str", "str", "str"]
+    _coleditable=["maybe", "yes", "yes"]
     _element=ConFile
 
     def __init__(self):
@@ -109,17 +110,18 @@ class ConInstancePage(GridDataSource):
         dl=[]
         for con in self._conFileList:
             dl.append(con.ToJson())
-        d={"ver": 1,
+        d={"ver": 2,
            "_colheaders": self._colheaders,
            "_colminwidths": self._colminwidths,
            "_coldatatypes": self._coldatatypes,
+           "_coleditable": self._coleditable,
            "_name": self._name,
            "_conFileList": dl}
         return json.dumps(d)
 
     def FromJson(self, val: str) -> ConInstancePage:
         d=json.loads(val)
-        if d["ver"] == 1:
+        if d["ver"] >= 1:
             self._colheaders=d["_colheaders"]
             self._colminwidths=d["_colminwidths"]
             self._coldatatypes=d["_coldatatypes"]
@@ -128,6 +130,11 @@ class ConInstancePage(GridDataSource):
             self._conFileList=[]
             for c in cfld:
                 self._conFileList.append(ConFile().FromJson(c))
+
+        self._coleditable=["yes"]*len(self._colheaders)
+        if "_coleditable" in d.keys():
+            self._coleditable=d["_coleditable"]
+
 
         if len(self._colheaders) == 2:  # Old-style had just two: "File" and "Notes".  We need to rename "File" and insert "Display Name" #TODO: Remove when no longer needed
             self._colheaders=["File Name", "Display Name", "Notes"]

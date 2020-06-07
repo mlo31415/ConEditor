@@ -41,6 +41,8 @@ class MainConSeriesFrame(GenConSeriesFrame):
         self._grid.SetColHeaders(self._grid._datasource.ColHeaders)
         self._grid.SetColTypes(ConSeries._coldatatypes)
 
+        self._allowCellEdits=[]     # A list of cells where editing has specifically been permitted
+
         self._grid._grid.HideRowLabels()
 
         self._textConSeriesName: str=""
@@ -366,11 +368,26 @@ class MainConSeriesFrame(GenConSeriesFrame):
             self.EditConPage(name, irow)
             self._grid.Grid.SelectBlock(irow, col, irow, col)
 
+    #------------------
+    def OnPopupAllowEditCell(self, event):
+        irow=self.rightClickedRow
+        icol=self.rightClickedColumn
+        self._allowCellEdits.append((irow, icol))   # Append a (row, col) tuple. This only lives for the life of this instance.
+
     # ------------------
     def OnGridEditorShown(self, event):
+        irow=event.GetRow()
         icol=event.GetCol()
-        if icol == 0:   # Don't allow editing of the 1st column
+        if self._grid._datasource._coleditable[icol] == "no":
             event.Veto()
+            return
+        if self._grid._datasource._coleditable[icol] == "maybe":
+            for it in self._allowCellEdits:
+                if irow == it[0] and icol == it[1]:
+                    return
+        event.Veto()
+        return
+
 
     #------------------
     def EditConPage(self, name: str, irow: int):
@@ -429,15 +446,19 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
     #------------------
     def OnGridCellRightClick(self, event):                    # MainConSeriesFrame
-        self.rightClickedColumn=event.GetCol()
-        self.rightClickedRow=event.GetRow()
+        irow=event.GetRow()
+        icol=event.GetCol()
+        self.rightClickedColumn=icol
+        self.rightClickedRow=irow
         self._grid.OnGridCellRightClick(event, self.m_menuPopup)  # Set enabled state of default items; set all others to False
-        if self.rightClickedColumn == 0:      # All of the popup options work on the 1st column only
-            if self._grid.rightClickedRow >= self._grid._datasource.NumRows:
+        if icol == 0:      # All of the popup options work on the 1st column only
+            if irow >= self._grid._datasource.NumRows:
                 self.m_popupCreateNewConPage.Enabled=True
             else:
                 self.m_popupDeleteConPage.Enabled=True
                 self.m_popupEditConPage.Enabled=True
+        if self._grid._datasource._coleditable[icol] == "maybe":
+            self.m_popupAllowEditCell.Enabled=True
         self.PopupMenu(self.m_menuPopup)
 
     # ------------------
