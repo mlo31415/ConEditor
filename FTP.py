@@ -35,7 +35,7 @@ class FTP:
             FTP.g_curdirpath="/"
         elif newdir == "..":
             if FTP.g_curdirpath != "/":
-                head, tail=os.path.split(self.g_curdirpath)
+                head, _=os.path.split(self.g_curdirpath)
                 FTP.g_curdirpath=head
         else:
             if FTP.g_curdirpath == "/":
@@ -103,7 +103,7 @@ class FTP:
         Log("pwd is '"+dir+"'")
 
         # Check to see if this matches what self._curdirpath thinks it ought to
-        head, tail=os.path.split(self.g_curdirpath)
+        _, tail=os.path.split(self.g_curdirpath)
         if self.g_curdirpath != dir and tail != dir:
             Log("PWD: error detected -- self._curdirpath='"+self.g_curdirpath+"' and pwd returns '"+dir+"'")
             assert False

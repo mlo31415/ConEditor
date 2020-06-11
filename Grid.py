@@ -441,14 +441,13 @@ class Grid():
         elif event.KeyCode == 317 and self.HasSelection():      # Down arrow
             tl=self._grid.SelectionBlockTopLeft
             br=self._grid.SelectionBlockBottomRight
-            # Only if there's a single selected block
+            # Only if there's exactly one selected block
             if len(tl) == 1 and len(br) == 1:
-                top, leftR=tl[0]
+                top, _=tl[0]
                 bottom, right=br[0]
                 self.ExpandDataSourceToInclude(bottom+1, right)
                 if bottom < self._grid.NumberRows:
                     # Extend the selection to be the whole row(s)
-                    leftR=0
                     right=self.Numcols-1
                     # And move 'em down 1
                     self.MoveRows(top, bottom-top+1, top+1)
@@ -476,6 +475,6 @@ class Grid():
 
     #------------------
     def OnPopupPaste(self, event):        # Grid
-        top, left, bottom, right=self.LocateSelection()
+        top, left, _, _=self.LocateSelection()
         self.PasteCells(top, left)
         event.Skip()
