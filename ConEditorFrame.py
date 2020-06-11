@@ -86,10 +86,9 @@ class ConList(GridDataSource):
            "_coldatatypes": self._coldatatypes,
            "_coleditable": self._coleditable,
            "_colminwidths": self._colminwidths}
-        i=0
-        for s in self._conlist:
+        for i, s in enumerate(self._conlist):
             d[i]=s.ToJson()
-            i+=1
+
         return json.dumps(d)
 
     def FromJson(self, val: str) -> ConList:

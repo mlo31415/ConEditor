@@ -310,13 +310,9 @@ class Grid():
             for i in range(num):
                 self._datasource.Rows.append(self._datasource.Element())
         # Copy the cells from the clipboard to the grid in lstData.
-        i=pasteTop
-        for row in self.clipboard:
-            j=pasteLeft
-            for cellval in row:
+        for i, row in enumerate(self.clipboard, start=pasteTop):
+            for j, cellval in enumerate(row, start=pasteLeft):
                 self._datasource.SetDataVal(i, j, cellval)
-                j+=1
-            i+=1
         self._datasource.Updated=True
         self.RefreshGridFromData()
 

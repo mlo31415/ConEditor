@@ -176,8 +176,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             newtable+='    </tr>\n'
             newtable+='  </thead>\n'
             newtable+='  <tbody>\n'
-            i=1
-            for row in self._grid._datasource.Rows:
+            for i, row in enumerate(self._grid._datasource.Rows):
                 newtable+="    <tr>\n"
                 newtable+='      <td>'+FormatLink(row.Filename, row.DisplayTitle)+'</td>\n'
                 if row.Size > 0:
@@ -186,7 +185,6 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
                     newtable+='      <td>--</td>\n'
                 newtable+='      <td>'+str(row.Notes)+'</td>\n'
                 newtable+="    </tr>\n"
-                i+=1
             newtable+="    </tbody>\n"
             newtable+="  </table>\n"
         else:

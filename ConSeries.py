@@ -137,10 +137,8 @@ class ConSeries(GridDataSource):
            "_coleditable": self._coleditable,
            "_name": self._name,
            "_stuff": self._stuff}
-        i=0
-        for s in self._series:
+        for i, s in enumerate(self._series):
             d[i]=s.ToJson()
-            i+=1
         return json.dumps(d)
 
     def FromJson(self, val: str) -> ConSeries:
