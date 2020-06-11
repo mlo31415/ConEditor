@@ -136,7 +136,7 @@ class FTP:
             components.append("/")
             newdir=newdir[1:]
         components.extend(newdir.split("/"))
-        components=[c for c in components if len(c) > 0]
+        components=[c.strip() for c in components if len(c) > 0]
 
         # Now walk the component list
         for component in components:
