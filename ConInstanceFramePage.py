@@ -178,12 +178,15 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             newtable+='  <tbody>\n'
             for i, row in enumerate(self._grid._datasource.Rows):
                 newtable+="    <tr>\n"
-                newtable+='      <td>'+FormatLink(row.Filename, row.DisplayTitle)+'</td>\n'
-                if row.Size > 0:
-                    newtable+='      <td>'+"{:,.1f}".format(row.Size/(1024**2))+'&nbsp;MB</td>\n'
+                if len(row.Filename) > 0:
+                    newtable+='      <td>'+FormatLink(row.Filename, row.DisplayTitle)+'</td>\n'
+                    if row.Size > 0:
+                        newtable+='      <td>'+"{:,.1f}".format(row.Size/(1024**2))+'&nbsp;MB</td>\n'
+                    else:
+                        newtable+='      <td>--</td>\n'
+                    newtable+='      <td>'+str(row.Notes)+'</td>\n'
                 else:
-                    newtable+='      <td>--</td>\n'
-                newtable+='      <td>'+str(row.Notes)+'</td>\n'
+                    newtable+='    <td><b>'+row.DisplayTitle+'</b></td>\n'
                 newtable+="    </tr>\n"
             newtable+="    </tbody>\n"
             newtable+="  </table>\n"
@@ -191,12 +194,16 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             # Construct a list which we'll then substitute.
             newtable="<ul>"
             for row in self._grid._datasource.Rows:
-                newtable+="    <li>"+FormatLink(row.Filename, row.DisplayTitle)
-                if row.Size > 0:
-                    newtable+="&nbsp;&nbsp;("+"{:,.1f}".format(row.Size/(1024**2))+'&nbsp;MB)</td>\n'
+                if len(row.Filename) > 0:
+                    newtable+="    <li>"+FormatLink(row.Filename, row.DisplayTitle)
+                    if row.Size > 0:
+                        newtable+="&nbsp;&nbsp;("+"{:,.1f}".format(row.Size/(1024**2))+'&nbsp;MB)</td>\n'
+                    else:
+                        newtable+='&nbsp;&nbsp;(--)\n'
+                    newtable+="&nbsp;&nbsp;"+str(row.Notes)+"</li>\n"
                 else:
-                    newtable+='&nbsp;&nbsp;(--)\n'
-                newtable+="&nbsp;&nbsp;"+str(row.Notes)+"</li>\n"
+                    newtable+='    </ul><b>'+row.DisplayTitle+'</b><ul>\n'
+
             newtable+="  </ul>\n"
 
         file=SubstituteHTML(file, "fanac-table", newtable)
