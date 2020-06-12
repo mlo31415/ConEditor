@@ -2291,12 +2291,12 @@
                     <property name="help"></property>
                     <property name="id">wxID_ANY</property>
                     <property name="kind">wxITEM_NORMAL</property>
-                    <property name="label">Create New Page</property>
-                    <property name="name">m_popupCreateNewPage</property>
+                    <property name="label">Insert Row</property>
+                    <property name="name">m_popupInsertRow</property>
                     <property name="permission">none</property>
                     <property name="shortcut"></property>
                     <property name="unchecked_bitmap"></property>
-                    <event name="OnMenuSelection">OnPopupCreateNewPage</event>
+                    <event name="OnMenuSelection">OnPopupInsertRow</event>
                 </object>
                 <object class="wxMenuItem" expanded="0">
                     <property name="bitmap"></property>
