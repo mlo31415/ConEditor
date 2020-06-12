@@ -150,6 +150,17 @@ class Grid():
     def AppendEmptyRows(self, nrows: int) -> None:        # Grid
         self._grid.AppendRows(nrows)
 
+    def InsertEmptyRows(self, irow: int, nrows: int) -> None:        # Grid
+        self._grid.InsertRows(irow, nrows)
+        rows=self._datasource.Rows
+        newrows=[]
+        if irow > 0:
+            newrows=rows[:irow]
+        newrows.extend([self._datasource.Element()]*nrows)
+        if irow < self._datasource.NumRows-1:
+            newrows.extend(rows[irow:])
+        self._datasource.Rows=newrows
+
     def AppendEmptyCols(self, ncols: int) -> None:        # Grid
         self._grid.AppendCols(ncols)
 

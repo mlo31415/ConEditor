@@ -92,6 +92,8 @@ class ConFile:
         print("SetVal can't interpret '"+str(nameOrCol)+"'")
 
 
+#####################################################################################################
+#####################################################################################################
 
 class ConInstancePage(GridDataSource):
     # an array of tuples: column header, min col width, col type

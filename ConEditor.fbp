@@ -2254,7 +2254,7 @@
                     </object>
                 </object>
             </object>
-            <object class="wxMenu" expanded="0">
+            <object class="wxMenu" expanded="1">
                 <property name="label">MyMenu</property>
                 <property name="name">m_menuPopup</property>
                 <property name="permission">protected</property>
@@ -2296,6 +2296,7 @@
                     <property name="permission">none</property>
                     <property name="shortcut"></property>
                     <property name="unchecked_bitmap"></property>
+                    <event name="OnMenuSelection">OnPopupCreateNewPage</event>
                 </object>
                 <object class="wxMenuItem" expanded="0">
                     <property name="bitmap"></property>
