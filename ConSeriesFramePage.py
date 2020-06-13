@@ -366,6 +366,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
     def OnPopupCreateNewConPage(self, event):                    # MainConSeriesFrame
         irow=self.rightClickedRow
         self.EditConInstancePage("", irow)
+        self.RefreshWindow()
 
     #------------------
     def OnPopupEditConPage(self, event):                    # MainConSeriesFrame
@@ -376,6 +377,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
             name=self._grid.Datasource.GetData(irow, col)
             self.EditConInstancePage(name, irow)
             self._grid.Grid.SelectBlock(irow, col, irow, col)
+            self.RefreshWindow()
 
     #------------------
     def OnPopupAllowEditCell(self, event):
@@ -517,6 +519,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
                 self.OnPopupCreateNewConPage(event)
             else:
                 self.EditConInstancePage(name, self.rightClickedRow)
+            self.RefreshWindow()
 
     #-------------------
     def OnKeyDown(self, event):                    # MainConSeriesFrame
