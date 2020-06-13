@@ -471,8 +471,9 @@ class MainConSeriesFrame(GenConSeriesFrame):
             if not FTP().SetDirectory(self._basedirectoryFTP+"/"+ self._seriesname):
                 Log("OnPopupDeleteConPage: SetDirectory("+self._basedirectoryFTP+"/"+ self._seriesname+") failed")
                 return
-            if not FTP().Delete(row.Name):
-                Log("OnPopupDeleteConPage: Delete("+row.Name+" failed")
+            if len(row.Name.strip()) > 0:
+                if not FTP().DeleteDir(row.Name):
+                    Log("OnPopupDeleteConPage: Delete("+row.Name+" failed")
             self.Updated=True
             self.RefreshWindow()
 

@@ -5,7 +5,7 @@ import ftplib
 import json
 import os
 
-from HelpersPackage import Log
+from Log import Log, LogFlush
 
 
 class FTP:
@@ -77,8 +77,17 @@ class FTP:
         return msg == newdir or msg.startswith("250 ") or msg.startswith("257 ")     # Web doc shows all three as possible.
 
 
-    def Delete(self, fname: str) -> bool:
+    def DeleteFile(self, fname: str) -> bool:
         Log("**delete file: '"+fname+"'")
+        if len(fname.strip()) == 0:
+            Log("FTP.DeleteFile: filename not supplied.")
+            LogFlush()
+            assert False
+
+        if not self.Exists(fname):
+            Log("FTP.DeleteFile: '"+fname+"' does not exist.")
+            return True
+
         try:
             msg=self.g_ftp.delete(fname)
         except Exception as e:
@@ -87,6 +96,33 @@ class FTP:
                 Log("Retry failed.")
                 return False
             msg=self.g_ftp.delete(fname)
+        Log(msg+"\n")
+        return msg.startswith("250 ")
+
+
+    def DeleteDir(self, dirname: str) -> bool:
+        Log("**delete directory: '"+dirname+"'")
+        if len(dirname.strip()) == 0:
+            Log("FTP.DeleteDir: dirname not supplied.")
+            LogFlush()
+            assert False
+        if dirname == "/":
+            Log("FTP.DeleteDir: Attempt to delete root -- forbidden")
+            assert False
+
+        if not self.Exists(dirname):
+            Log("FTP.DeleteDir: '"+dirname+"' does not exist.")
+            return True
+
+#Need to recursively delete
+        try:
+            msg=self.g_ftp.rmd(dirname)
+        except Exception as e:
+            Log("FTP connection failure. Exception="+str(e))
+            if not self.Reconnect():
+                Log("Retry failed.")
+                return False
+            msg=self.g_ftp.rmd(dirname)
         Log(msg+"\n")
         return msg.startswith("250 ")
 

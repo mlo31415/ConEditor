@@ -227,7 +227,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         for f in fileupthere:
             if f not in files:
                 if os.path.splitext(f)[1] == ".pdf":
-                    if not FTP().Delete(f):
+                    if not FTP().DeleteFile(f):
                         Log("OnUploadConInstancePage: Delete("+f+") failed")
 
         self.ProgressMessage("Upload succeeded: /"+self._seriesname+"/"+self._coninstancename+"/index.html")
