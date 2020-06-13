@@ -259,8 +259,8 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             self.FromJson(j)
 
         self.Title="Editing "+self._coninstancename
-        self.tConInstanceFancyURL.Value=self.ConInstanceFancyURL
-        self.m_textPhotosURL.Value=self.ConInstancePhotoURL
+        self.tConInstanceFancyURL.SetValue(self.ConInstanceFancyURL)
+        self.m_textPhotosURL.SetValue(self.ConInstancePhotoURL)
 
         self.ProgressMessage(self._FTPbasedir+"/"+self._coninstancename+"/index.html downloaded")
         Log(self._FTPbasedir+"/"+self._coninstancename+"/index.html downloaded")
@@ -336,11 +336,11 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
     # ------------------
     def OnTextConInstanceName(self, event):
-        self.ConInstanceName=self.tConInstanceName.Value
+        self.ConInstanceName=self.tConInstanceName.GetValue()
 
     # ------------------
     def OnTextConInstanceNameKeyUp(self, event):
-        self.tConInstanceFancyURL.Value="fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.tConInstanceName.Value)
+        self.tConInstanceFancyURL.SetValue("fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.tConInstanceName.GetValue()))
         self.Updated=True
         self.RefreshWindow()
 
@@ -352,19 +352,19 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
     # ------------------
     def OnTextConInstanceFancyURL(self, event):
-        self.ConInstanceFancyURL=self.tConInstanceFancyURL.Value
+        self.ConInstanceFancyURL=self.tConInstanceFancyURL.GetValue()
         self.Updated=True
         self.RefreshWindow()
 
     # ------------------
     def OnTextPhotosURL(self, event):
-        self.ConInstancePhotoURL=self.m_textPhotosURL.Value
+        self.ConInstancePhotoURL=self.m_textPhotosURL.GetValue()
         self.Updated=True
         self.RefreshWindow()
 
     # ------------------
     def OnTextComments(self, event):
-        self.ConInstanceStuff=self.topText.Value
+        self.ConInstanceStuff=self.topText.GetValue()
 
     # ------------------
     def OnRadioFileListFormat(self, event):

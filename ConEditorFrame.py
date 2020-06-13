@@ -247,7 +247,7 @@ class ConEditorFrame(GenConEditorFrame):
 
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name might be tagged with <fanac-instance>, the random text with "fanac-headertext"
-        file=SubstituteHTML(file, "fanac-stuff", self.m_textCtrlTopText.Value)
+        file=SubstituteHTML(file, "fanac-stuff", self.m_textCtrlTopText.GetValue())
 
         # Now construct the table which we'll then substitute.
         newtable="  <thead>\n"
@@ -351,7 +351,7 @@ class ConEditorFrame(GenConEditorFrame):
         #        dlg.tConInstanceName.Value=name
         ret=dlg.ShowModal()
         if ret == wx.OK:
-            conseriesname=dlg.tConSeries.Value
+            conseriesname=dlg.tConSeries.GetValue()
             self._grid.Datasource.Rows[self.clickedRow].URL="./"+conseriesname+"/index.html"
             self._grid.Datasource.Rows[self.clickedRow].Name=conseriesname
         dlg.Destroy()
@@ -401,7 +401,7 @@ class ConEditorFrame(GenConEditorFrame):
 
     # ------------------
     def OnTopTextUpdated(self, event):
-        self._grid.Datasource.toptext=self.m_textCtrlTopText.Value
+        self._grid.Datasource.toptext=self.m_textCtrlTopText.GetValue()
         self.Updated=True
         self.RefreshWindow()
 

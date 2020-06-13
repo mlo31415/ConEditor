@@ -154,11 +154,11 @@ class MainConSeriesFrame(GenConSeriesFrame):
             # Leave it empty, but add in the name
             self._textConSeriesName=seriesname
 
-        self.tConSeries.Value=self._textConSeriesName
-        self.tComments.Value=self._textComments
+        self.tConSeries.SetValue(self._textConSeriesName)
+        self.tComments.SetValue(self._textComments)
         if self._textFancyURL is None or len(self._textFancyURL) == 0:
             self._textFancyURL="fancyclopedia.org/"+WikiPagenameToWikiUrlname(seriesname)
-        self.tFancyURL.Value=self._textFancyURL
+        self.tFancyURL.SetValue(self._textFancyURL)
 
         self.Updated=False
         self.RefreshWindow()
@@ -323,7 +323,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
                 con.GoHs=row[ngoh]
 
             self._grid.Datasource.Rows.append(con)
-        self.tConSeries.Value=name
+        self.tConSeries.SetValue(name)
         self.Updated=True
         self._fancydownloadfailed=False
         self.RefreshWindow()
@@ -333,13 +333,12 @@ class MainConSeriesFrame(GenConSeriesFrame):
     #------------------
     # Create a new, empty, con series
     def OnCreateConSeries(self, event):                    # MainConSeriesFrame
-        if len(self.tConSeries.Value) == 0:
+        if len(self.tConSeries.GetValue()) == 0:
             self._dlgEnterFancyName=dlgEnterFancyNameWindow(None)
             name=self._dlgEnterFancyName._FancyName
-            self._seriesname=name
         else:
-            name=self.tConSeries.Value
-            self._seriesname=name
+            name=self.tConSeries.GetValue()
+        self._seriesname=name
 
         self.ProgressMessage("Loading "+name+" from Fancyclopedia 3")
         self._grid.Datasource=ConSeries()
@@ -365,6 +364,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
         if self.Updated:
             s=s+" *"
         self.Title=s
+        self.tConSeries.SetValue(self._seriesname)
         self.bUploadConSeries.Enabled=self.Updated
 
     #------------------
@@ -424,7 +424,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
             self._grid.ExpandDataSourceToInclude(irow, 0)   # Add rows if needed
 
         dlg=MainConInstanceDialogClass(self._basedirectoryFTP+"/"+self._seriesname, self._seriesname, name)
-        dlg.tConInstanceName.Value=name
+        dlg.tConInstanceName.Setvalue(name)
 
         # Construct a description of the convention from the information in the con series entry, if any.
         if irow < self._grid.Datasource.NumRows:
@@ -448,7 +448,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
                     description+="  The GoHs were "+gohs
                 else:
                     description+="  The GoH was "+gohs
-            dlg.topText.Value=description
+            dlg.topText.SetValue(description)
 
         dlg.ShowModal()
         cal=dlg.ReturnValue
@@ -456,8 +456,8 @@ class MainConSeriesFrame(GenConSeriesFrame):
             if self._grid.Datasource.NumRows <= irow:
                 for i in range(irow-self._grid.Datasource.NumRows+1):
                     self._grid.Datasource.Rows.append(Con())
-            self._grid.Datasource.Rows[irow].Name=dlg.tConInstanceName.Value
-            self._grid.Datasource.Rows[irow].URL=dlg.tConInstanceName.Value
+            self._grid.Datasource.Rows[irow].Name=dlg.tConInstanceName.GetValue()
+            self._grid.Datasource.Rows[irow].URL=dlg.tConInstanceName.GetValue()
             self.Updated=True
             self.RefreshWindow()
         dlg.Destroy()
@@ -482,27 +482,27 @@ class MainConSeriesFrame(GenConSeriesFrame):
     def OnTextFancyURL(self, event):                    # MainConSeriesFrame
         self._textFancyURL=self.tFancyURL.GetValue()
         self.Updated=True
-        self.RefreshWindow()
+        #self.RefreshWindow()
 
     #------------------
     def OnTextConSeriesName( self, event ):                    # MainConSeriesFrame
         self._textConSeriesName=self.tConSeries.GetValue()
         self.bUploadConSeries.Enabled=len(self._textConSeriesName) > 0
         self.Updated=True
-        self.RefreshWindow()
+        #self.RefreshWindow()
 
     #-----------------
     # When the user edits the ConSeries name, we update the Fancy URL (but not vice-versa)
     def ConTextConSeriesKeyUp(self, event):                    # MainConSeriesFrame
-        self.tFancyURL.Value="fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.tConSeries.GetValue())
+        self.tFancyURL.SetValue("fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.tConSeries.GetValue()))
         self.Updated=True
-        self.RefreshWindow()
+        #self.RefreshWindow()
 
     #------------------
     def OnTextComments(self, event):                    # MainConSeriesFrame
         self._textComments=self.tComments.GetValue()
         self.Updated=True
-        self.RefreshWindow()
+        #self.RefreshWindow()
 
     #------------------
     def OnGridCellRightClick(self, event):                    # MainConSeriesFrame

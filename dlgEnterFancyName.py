@@ -12,4 +12,4 @@ class dlgEnterFancyNameWindow(dlgEnterFancyName):
         self.Hide()
 
     def OnTextChanged(self, event):
-        self._FancyName=self.m_textCtrl4.Value
+        self._FancyName=self.m_textCtrl4.GetValue()
