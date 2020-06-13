@@ -114,7 +114,7 @@ class FTP:
             Log("FTP.DeleteDir: '"+dirname+"' does not exist.")
             return True
 
-#Need to recursively delete
+#TODO Need to recursively delete, which implies telling the difference between directories and files
         try:
             msg=self.g_ftp.rmd(dirname)
         except Exception as e:
