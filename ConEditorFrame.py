@@ -162,8 +162,8 @@ class ConEditorFrame(GenConEditorFrame):
         self._allowCellEdits=[]     # A list of cells where editing has specifically been permitted
 
         self._grid: DataGrid=DataGrid(self.gRowGrid)
-        self._grid._datasource=ConList()
-        self._grid.SetColHeaders(self._grid._datasource._colheaders)
+        self._grid.Datasource=ConList()
+        self._grid.SetColHeaders(self._grid.Datasource._colheaders)
         self._grid.SetColTypes(ConList._coldatatypes)
         self._grid._grid.HideRowLabels()
         self._updated=False
@@ -177,7 +177,7 @@ class ConEditorFrame(GenConEditorFrame):
     def ToJson(self) -> str:            # ConEditorFrame
         d={"ver": 1,
            #"_textConSeries": self._textConSeriesName,
-           "_datasource": self._grid._datasource.ToJson()
+           "_datasource": self._grid.Datasource.ToJson()
            }
 
         return json.dumps(d)
@@ -186,18 +186,18 @@ class ConEditorFrame(GenConEditorFrame):
     def FromJson(self, val: str) -> ConEditorFrame:            # ConEditorFrame
         d=json.loads(val)
         #self._textConSeriesName=d["_textConSeries"]
-        self._grid._datasource=ConList().FromJson(d["_datasource"])
+        self._grid.Datasource=ConList().FromJson(d["_datasource"])
 
         return self
 
     @property
     def Updated(self) -> bool:
-        return self._updated or (self._grid._datasource.Updated is not None and self._grid._datasource.Updated)
+        return self._updated or (self._grid.Datasource.Updated is not None and self._grid.Datasource.Updated)
     @Updated.setter
     def Updated(self, val: bool) -> None:
         self._updated=val
         if val == False:    # If we're setting the updated flag to False, set the grid's flag, too.
-            self._grid._datasource.Updated=False
+            self._grid.Datasource.Updated=False
 
     #------------------
     def ProgressMessage(self, s: str) -> None:            # ConEditorFrame
@@ -207,7 +207,7 @@ class ConEditorFrame(GenConEditorFrame):
     def Load(self):            # ConEditorFrame
 
         # Clear out any old information
-        self._grid._datasource=ConList()
+        self._grid.Datasource=ConList()
 
         self.ProgressMessage("Loading root/index.html")
         file=FTP().GetFileAsString("", "index.html")
@@ -256,7 +256,7 @@ class ConEditorFrame(GenConEditorFrame):
         newtable+='    </tr>\n'
         newtable+='  </thead>\n'
         newtable+='  <tbody>\n'
-        for row in self._grid._datasource.Rows:
+        for row in self._grid.Datasource.Rows:
             newtable+="    <tr>\n"
             newtable+='      <td>'+FormatLink(row.URL, row.Name)+'</td>\n'
             newtable+="    </tr>\n"
@@ -294,8 +294,8 @@ class ConEditorFrame(GenConEditorFrame):
 
     #------------------
     def OnButtonSortClick(self, event):            # ConEditorFrame
-        self._grid._datasource.Rows=sorted(self._grid._datasource.Rows, key=lambda r: r.Name.upper() if r.Name != "Worldcon" else " ")  # Worldcon sorts ahead of everything else
-        self._grid._datasource.Updated=True
+        self._grid.Datasource.Rows=sorted(self._grid.Datasource.Rows, key=lambda r: r.Name.upper() if r.Name != "Worldcon" else " ")  # Worldcon sorts ahead of everything else
+        self._grid.Datasource.Updated=True
         self.RefreshWindow()
 
     #------------------
@@ -311,11 +311,11 @@ class ConEditorFrame(GenConEditorFrame):
         self._grid.OnGridCellRightClick(event, self.m_menuPopupConEditor)  # Set enabled state of default items; set all others to False
 
         self.m_menuItemInsert.Enabled=True
-        if self._grid._datasource.NumRows > irow:
+        if self._grid.Datasource.NumRows > irow:
             self.m_menuItemDelete.Enabled=True
-        if irow < self._grid._datasource.NumRows:
+        if irow < self._grid.Datasource.NumRows:
             self.m_menuItemEdit.Enabled=True
-        #if self._grid._datasource._coleditable[icol] == "maybe":
+        #if self._grid.Datasource._coleditable[icol] == "maybe":
             #self.m_popupAllowEditCell.Enabled=True
         self.PopupMenu(self.m_menuPopupConEditor, pos=self.gRowGrid.Position+event.Position)
 
@@ -323,10 +323,10 @@ class ConEditorFrame(GenConEditorFrame):
     def OnGridEditorShown(self, event):
         irow=event.GetRow()
         icol=event.GetCol()
-        if self._grid._datasource._coleditable[icol] == "no":
+        if self._grid.Datasource._coleditable[icol] == "no":
             event.Veto()
             return
-        if self._grid._datasource._coleditable[icol] == "maybe":
+        if self._grid.Datasource._coleditable[icol] == "maybe":
             for it in self._allowCellEdits:
                 if irow == it[0] and icol == it[1]:
                     return
@@ -335,7 +335,7 @@ class ConEditorFrame(GenConEditorFrame):
 
     # ------------------
     def OnGridCellDoubleClick(self, event):            # ConEditorFrame
-        if event.GetRow() > self._grid._datasource.NumRows:
+        if event.GetRow() > self._grid.Datasource.NumRows:
             return      # For now, we do nothing when you double-click in an empty cell
         self.clickedColumn=event.GetCol()
         self.clickedRow=event.GetRow()
@@ -343,17 +343,17 @@ class ConEditorFrame(GenConEditorFrame):
 
     # ------------------
     def EditConSeries(self):
-        if self.clickedRow >= self._grid._datasource.NumRows:
-            self._grid._datasource.Rows.insert(self.clickedRow, Convention())
+        if self.clickedRow >= self._grid.Datasource.NumRows:
+            self._grid.Datasource.Rows.insert(self.clickedRow, Convention())
             self.RefreshWindow()
-        conseriesname=self._grid._datasource.GetData(self.clickedRow, 0)
+        conseriesname=self._grid.Datasource.GetData(self.clickedRow, 0)
         dlg=MainConSeriesFrame(self._baseDirFTP, conseriesname)
         #        dlg.tConInstanceName.Value=name
         ret=dlg.ShowModal()
         if ret == wx.OK:
             conseriesname=dlg.tConSeries.Value
-            self._grid._datasource.Rows[self.clickedRow].URL="./"+conseriesname+"/index.html"
-            self._grid._datasource.Rows[self.clickedRow].Name=conseriesname
+            self._grid.Datasource.Rows[self.clickedRow].URL="./"+conseriesname+"/index.html"
+            self._grid.Datasource.Rows[self.clickedRow].Name=conseriesname
         self.RefreshWindow()
 
     # ------------------
@@ -382,14 +382,14 @@ class ConEditorFrame(GenConEditorFrame):
 
     #------------------
     def OnPopupInsertCon(self, event):            # ConEditorFrame
-        self._grid._datasource.Rows.insert(self.clickedRow, Convention())
+        self._grid.Datasource.Rows.insert(self.clickedRow, Convention())
         self.EditConSeries()    # clickedRow is set by the RMB clicked event that must have preceeded this.
-        name=self._grid._datasource.Rows[self.clickedRow].Name
+        name=self._grid.Datasource.Rows[self.clickedRow].Name
         self.RefreshWindow()
 
     # ------------------
     def OnPopupDeleteCon(self, event):            # ConEditorFrame
-        del self._grid._datasource.Rows[self.clickedRow]
+        del self._grid.Datasource.Rows[self.clickedRow]
         self.RefreshWindow()
         event.Skip()
 
@@ -400,7 +400,7 @@ class ConEditorFrame(GenConEditorFrame):
 
     # ------------------
     def OnTopTextUpdated(self, event):
-        self._grid._datasource.toptext=self.m_textCtrlTopText.Value
+        self._grid.Datasource.toptext=self.m_textCtrlTopText.Value
         self.Updated=True
         self.RefreshWindow()
 

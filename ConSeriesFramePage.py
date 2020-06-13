@@ -46,8 +46,8 @@ class MainConSeriesFrame(GenConSeriesFrame):
         self._basedirectoryFTP: str=basedirFTP
 
         self._grid: DataGrid=DataGrid(self.gRowGrid)
-        self._grid._datasource=ConSeries()
-        self._grid.SetColHeaders(self._grid._datasource.ColHeaders)
+        self._grid.Datasource=ConSeries()
+        self._grid.SetColHeaders(self._grid.Datasource.ColHeaders)
         self._grid.SetColTypes(ConSeries._coldatatypes)
 
         self._allowCellEdits=[]     # A list of cells where editing has specifically been permitted
@@ -83,7 +83,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
            "_textComments": self._textComments,
            "_filename": self._seriesname,
            "_dirname": self._basedirectoryFTP,
-           "_datasource": self._grid._datasource.ToJson()}
+           "_datasource": self._grid.Datasource.ToJson()}
         return json.dumps(d)
 
     def FromJson(self, val: str) -> MainConSeriesFrame:                    # MainConSeriesFrame
@@ -92,17 +92,17 @@ class MainConSeriesFrame(GenConSeriesFrame):
             self._textConSeriesName=d["_textConSeries"]
             self._textFancyURL=d["_textFancyURL"]
             self._textComments=d["_textComments"]
-            self._grid._datasource=ConSeries().FromJson(d["_datasource"])
+            self._grid.Datasource=ConSeries().FromJson(d["_datasource"])
         return self
 
     @property
     def Updated(self) -> bool:
-        return self._updated or (self._grid._datasource.Updated is not None and self._grid._datasource.Updated)
+        return self._updated or (self._grid.Datasource.Updated is not None and self._grid.Datasource.Updated)
     @Updated.setter
     def Updated(self, val: bool) -> None:
         self._updated=val
         if val == False:    # If we're setting the updated flag to False, set the grid's flag, too.
-            self._grid._datasource.Updated=False
+            self._grid.Datasource.Updated=False
 
     #------------------
     def ProgressMessage(self, s: str) -> None:                    # MainConSeriesFrame
@@ -114,7 +114,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
     def DownloadConSeries(self, seriesname) -> None:                    # MainConSeriesFrame
 
         # Clear out any old information
-        self._grid._datasource=ConSeries()
+        self._grid.Datasource=ConSeries()
 
         if seriesname is None or len(seriesname) == 0:
             # Nothing to load. Just return.
@@ -192,7 +192,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
         newtable+='    </tr>\n'
         newtable+='  </thead>\n'
         newtable+='  <tbody>\n'
-        for row in self._grid._datasource.Rows:
+        for row in self._grid.Datasource.Rows:
             if (row.URL is None or row.URL == "") and not showempty:    # Skip empty cons?
                 continue
             newtable+="    <tr>\n"
@@ -317,7 +317,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
             if ngoh is not None:
                 con.GoHs=row[ngoh]
 
-            self._grid._datasource.Rows.append(con)
+            self._grid.Datasource.Rows.append(con)
         self.tConSeries.Value=name
         self.Updated=True
         self._fancydownloadfailed=False
@@ -337,8 +337,8 @@ class MainConSeriesFrame(GenConSeriesFrame):
             self._seriesname=name
 
         self.ProgressMessage("Loading "+name+" from Fancyclopedia 3")
-        self._grid._datasource=ConSeries()
-        self._grid._datasource.Name=name
+        self._grid.Datasource=ConSeries()
+        self._grid.Datasource.Name=name
 
         ret=self.FetchConSeriesFromFancy(name)
         if not ret:
@@ -371,9 +371,9 @@ class MainConSeriesFrame(GenConSeriesFrame):
     def OnPopupEditConPage(self, event):                    # MainConSeriesFrame
         irow=self.rightClickedRow
         # If the RMB is a click on a convention instance name, we edit that name
-        if "Name" in self._grid._datasource.ColHeaders:
-            col=self._grid._datasource.ColHeaders.index("Name")
-            name=self._grid._datasource.GetData(irow, col)
+        if "Name" in self._grid.Datasource.ColHeaders:
+            col=self._grid.Datasource.ColHeaders.index("Name")
+            name=self._grid.Datasource.GetData(irow, col)
             self.EditConInstancePage(name, irow)
             self._grid.Grid.SelectBlock(irow, col, irow, col)
 
@@ -387,10 +387,10 @@ class MainConSeriesFrame(GenConSeriesFrame):
     def OnGridEditorShown(self, event):
         irow=event.GetRow()
         icol=event.GetCol()
-        if self._grid._datasource._coleditable[icol] == "no":
+        if self._grid.Datasource._coleditable[icol] == "no":
             event.Veto()
             return
-        if self._grid._datasource._coleditable[icol] == "maybe":
+        if self._grid.Datasource._coleditable[icol] == "maybe":
             for it in self._allowCellEdits:
                 if irow == it[0] and icol == it[1]:
                     return
@@ -415,8 +415,8 @@ class MainConSeriesFrame(GenConSeriesFrame):
         dlg.tConInstanceName.Value=name
 
         # Construct a description of the convention from the information in the con series entry, if any.
-        if irow < self._grid._datasource.NumRows:
-            row=self._grid._datasource.Rows[irow]
+        if irow < self._grid.Datasource.NumRows:
+            row=self._grid.Datasource.Rows[irow]
             dates=None
             if row.Dates is not None and not row.Dates.IsEmpty():
                 dates=str(row.Dates)
@@ -441,19 +441,20 @@ class MainConSeriesFrame(GenConSeriesFrame):
         dlg.ShowModal()
         cal=dlg.ReturnValue
         if cal == wx.ID_OK:
-            if self._grid._datasource.NumRows <= irow:
-                for i in range(irow-self._grid._datasource.NumRows+1):
-                    self._grid._datasource.Rows.append(Con())
-            self._grid._datasource.Rows[irow].URL=dlg.tConInstanceName.Value
+            if self._grid.Datasource.NumRows <= irow:
+                for i in range(irow-self._grid.Datasource.NumRows+1):
+                    self._grid.Datasource.Rows.append(Con())
+            self._grid.Datasource.Rows[irow].Name=dlg.tConInstanceName.Value
+            self._grid.Datasource.Rows[irow].URL=dlg.tConInstanceName.Value
             self.Updated=True
             self.RefreshWindow()
 
     #------------------
     def OnPopupDeleteConPage(self, event):                    # MainConSeriesFrame
         irow=self.rightClickedRow
-        if irow >=0 and irow < self._grid._datasource.NumRows:
-            row=self._grid._datasource.Rows[irow]
-            del self._grid._datasource.Rows[irow]
+        if irow >=0 and irow < self._grid.Datasource.NumRows:
+            row=self._grid.Datasource.Rows[irow]
+            del self._grid.Datasource.Rows[irow]
             if not FTP().SetDirectory(self._basedirectoryFTP+"/"+ self._seriesname):
                 Log("OnPopupDeleteConPage: SetDirectory("+self._basedirectoryFTP+"/"+ self._seriesname+") failed")
                 return
@@ -497,12 +498,12 @@ class MainConSeriesFrame(GenConSeriesFrame):
         self.rightClickedRow=irow
         self._grid.OnGridCellRightClick(event, self.m_menuPopup)  # Set enabled state of default items; set all others to False
         if icol == 0:      # All of the popup options work on the 1st column only
-            if irow >= self._grid._datasource.NumRows:
+            if irow >= self._grid.Datasource.NumRows:
                 self.m_popupCreateNewConPage.Enabled=True
             else:
                 self.m_popupDeleteConPage.Enabled=True
                 self.m_popupEditConPage.Enabled=True
-        if self._grid._datasource._coleditable[icol] == "maybe":
+        if self._grid.Datasource._coleditable[icol] == "maybe":
             self.m_popupAllowEditCell.Enabled=True
         self.PopupMenu(self.m_menuPopup)
 

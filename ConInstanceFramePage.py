@@ -20,10 +20,10 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
     def __init__(self, basedirFTP, seriesname, coninstancename):
         GenConInstanceFrame.__init__(self, None)
         self._grid: DataGrid=DataGrid(self.gRowGrid)
-        self._grid._datasource=ConInstancePage()
+        self._grid.Datasource=ConInstancePage()
 
-        self._grid.SetColHeaders(self._grid._datasource.ColHeaders)
-        self._grid.SetColTypes(self._grid._datasource.ColDataTypes)
+        self._grid.SetColHeaders(self._grid.Datasource.ColHeaders)
+        self._grid.SetColTypes(self._grid.Datasource.ColDataTypes)
         self._grid._grid.HideRowLabels()
 
         self._FTPbasedir=basedirFTP
@@ -54,7 +54,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
            "ConInstanceStuff": self.ConInstanceStuff,
            "ConInstanceFancyURL": self.ConInstanceFancyURL,
            "ConInstancePhotoURL": self.ConInstancePhotoURL,
-           "_datasource": self._grid._datasource.ToJson()}
+           "_datasource": self._grid.Datasource.ToJson()}
         return json.dumps(d)
 
     def FromJson(self, val: str) -> GenConInstanceFrame:
@@ -62,19 +62,19 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self.ConInstanceName=d["ConInstanceName"]
         self.ConInstanceStuff=d["ConInstanceStuff"]
         self.ConInstanceFancyURL=d["ConInstanceFancyURL"]
-        self._grid._datasource=ConInstancePage().FromJson(d["_datasource"])
+        self._grid.Datasource=ConInstancePage().FromJson(d["_datasource"])
         self.ConInstancePhotoURL=d["ConInstancePhotoURL"]
         return self
 
 
     @property
     def Updated(self) -> bool:
-        return self._updated or (self._grid._datasource.Updated is not None and self._grid._datasource.Updated)
+        return self._updated or (self._grid.Datasource.Updated is not None and self._grid.Datasource.Updated)
     @Updated.setter
     def Updated(self, val: bool) -> None:
         self._updated=val
         if val == False:    # If we're setting the updated flag to False, set the grid's flag, too.
-            self._grid._datasource.Updated=False
+            self._grid.Datasource.Updated=False
 
 
     def OnAddFilesButton(self, event):
@@ -106,8 +106,8 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             conf.LocalPathname=os.path.join(os.path.join(dlg.Directory), fn)
             conf.Filename=fn
             conf.Size=os.path.getsize(conf.LocalPathname)
-            self._grid._datasource.Rows.append(conf)
-            self._grid._datasource.Updated=True
+            self._grid.Datasource.Rows.append(conf)
+            self._grid.Datasource.Updated=True
         dlg.Destroy()
         self.RefreshWindow()
         return True
@@ -125,7 +125,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
                     event.Veto()
                     return
 
-        if self._grid._datasource.NumRows > 0 or self._uploaded:
+        if self._grid.Datasource.NumRows > 0 or self._uploaded:
             self.ReturnValue=wx.ID_OK
         if self.ReturnValue is None:
             self.ReturnValue=wx.ID_CANCEL
@@ -176,7 +176,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             newtable+='    </tr>\n'
             newtable+='  </thead>\n'
             newtable+='  <tbody>\n'
-            for i, row in enumerate(self._grid._datasource.Rows):
+            for i, row in enumerate(self._grid.Datasource.Rows):
                 newtable+="    <tr>\n"
                 if len(row.Filename) > 0:
                     newtable+='      <td>'+FormatLink(row.Filename, row.DisplayTitle)+'</td>\n'
@@ -193,7 +193,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         else:
             # Construct a list which we'll then substitute.
             newtable="<ul>"
-            for row in self._grid._datasource.Rows:
+            for row in self._grid.Datasource.Rows:
                 if len(row.Filename) > 0:
                     newtable+="    <li>"+FormatLink(row.Filename, row.DisplayTitle)
                     if row.Size > 0:
@@ -215,14 +215,14 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             return
 
         # Finally, Upload any files which are newly added.
-        for row in self._grid._datasource.Rows:
+        for row in self._grid.Datasource.Rows:
             if row.Filename is not None and len(row.Filename) > 0:
                 if not FTP().Exists(row.Filename):
                     if not FTP().PutFile(row.LocalPathname, row.Filename):
                         Log("OnUploadConInstancePage: Putfile of "+row.LocalPathname+" failed")
 
         # And remove any that have been dropped.  (PDFs only, for now.)
-        files=[row.Filename for row in self._grid._datasource.Rows]
+        files=[row.Filename for row in self._grid.Datasource.Rows]
         fileupthere=FTP().g_ftp.nlst()
         for f in fileupthere:
             if f not in files:
@@ -242,7 +242,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
     def DownloadConInstancePage(self) -> None:
 
         # Clear out any old information
-        self._grid._datasource=ConInstancePage()
+        self._grid.Datasource=ConInstancePage()
 
         # Read the existing CIP
         self.ProgressMessage("Downloading "+self._FTPbasedir+"/"+self._coninstancename+"/index.html")
@@ -279,7 +279,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self.m_popupAddFiles.Enabled=True
         self.m_popupInsertRow.Enabled=True
 
-        if self._grid._datasource.NumRows > event.GetRow():
+        if self._grid.Datasource.NumRows > event.GetRow():
             self.m_popupDeleteFile.Enabled=True
 
         self.PopupMenu(self.m_menuPopup, pos=self.gRowGrid.Position+event.Position)
@@ -315,18 +315,18 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
     def OnPopupDeleteFile(self, event):
         if self._grid.HasSelection():
             top, left, bottom, right=self._grid.LocateSelection()
-            nrows=self._grid._datasource.NumRows
+            nrows=self._grid.Datasource.NumRows
             if top >= nrows:
                 top=nrows-1
             if bottom >= nrows:
                 bottom=nrows-1
         else:
-            if self._grid.rightClickedRow >= self._grid._datasource.NumRows:
+            if self._grid.rightClickedRow >= self._grid.Datasource.NumRows:
                 return
             top=bottom=self._grid.rightClickedRow
         self._grid.Grid.ClearSelection()
-        del self._grid._datasource.Rows[top:bottom+1]
-        self._grid._datasource.Updated=True
+        del self._grid.Datasource.Rows[top:bottom+1]
+        self._grid.Datasource.Updated=True
 
         self.RefreshWindow()
 

@@ -147,6 +147,9 @@ class DataGrid():
     @property
     def Datasource(self) -> GridDataSource:
         return self._datasource
+    @Datasource.setter
+    def Datasource(self, val: GridDataSource):
+        self._datasource=val
 
     @property
     def Grid(self):        # Grid
