@@ -141,11 +141,15 @@ class Grid():
             self._grid.AppendCols(nCols, self._grid.NumberCols-nCols)
 
     @property
+    def NumRows(self) -> int:
+        return self._grid.NumberRows
+
+    @property
     def Grid(self):        # Grid
         return self._grid
 
     def AppendRows(self, rows: int) -> None:        # Grid
-        assert (False)
+        assert False
 
     def AppendEmptyRows(self, nrows: int) -> None:        # Grid
         self._grid.AppendRows(nrows)
