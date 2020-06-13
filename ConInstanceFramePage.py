@@ -6,7 +6,7 @@ import math
 from datetime import date
 
 from GenConInstanceFrame import GenConInstanceFrame
-from Grid import Grid
+from DataGrid import DataGrid
 from ConInstance import ConInstancePage, ConFile
 from FTP import FTP
 from Settings import Settings
@@ -19,7 +19,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
     def __init__(self, basedirFTP, seriesname, coninstancename):
         GenConInstanceFrame.__init__(self, None)
-        self._grid: Grid=Grid(self.gRowGrid)
+        self._grid: DataGrid=DataGrid(self.gRowGrid)
         self._grid._datasource=ConInstancePage()
 
         self._grid.SetColHeaders(self._grid._datasource.ColHeaders)

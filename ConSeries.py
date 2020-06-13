@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Optional, List, Union
 import json
 
-from Grid import GridDataSource
+from DataGrid import GridDataSource
 
 from FanzineIssueSpecPackage import FanzineDateRange
 

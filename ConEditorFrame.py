@@ -9,7 +9,7 @@ import json
 from datetime import date
 
 from GenConEditorFrame import GenConEditorFrame
-from Grid import Grid, GridDataSource
+from DataGrid import DataGrid, GridDataSource
 from ConSeriesFramePage import MainConSeriesFrame
 from FTP import FTP
 from Settings import Settings
@@ -147,6 +147,9 @@ class ConList(GridDataSource):
         self._updated=val
 
 
+###############################################################################
+###############################################################################
+
 class ConEditorFrame(GenConEditorFrame):
     def __init__(self, parent):
         GenConEditorFrame.__init__(self, parent)
@@ -158,7 +161,7 @@ class ConEditorFrame(GenConEditorFrame):
 
         self._allowCellEdits=[]     # A list of cells where editing has specifically been permitted
 
-        self._grid: Grid=Grid(self.gRowGrid)
+        self._grid: DataGrid=DataGrid(self.gRowGrid)
         self._grid._datasource=ConList()
         self._grid.SetColHeaders(self._grid._datasource._colheaders)
         self._grid.SetColTypes(ConList._coldatatypes)

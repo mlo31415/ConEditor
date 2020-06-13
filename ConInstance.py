@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import List, Union
-from Grid import GridDataSource
+from DataGrid import GridDataSource
 import json
 
 # An individual file to be listed under a convention

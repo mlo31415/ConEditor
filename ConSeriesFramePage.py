@@ -13,7 +13,7 @@ from datetime import date
 from GenConSeriesFrame import GenConSeriesFrame
 from FTP import FTP
 from ConSeries import ConSeries, Con
-from Grid import Grid
+from DataGrid import DataGrid
 from dlgEnterFancyName import dlgEnterFancyNameWindow
 from ConInstanceFramePage import MainConInstanceDialogClass
 from Settings import Settings
@@ -45,7 +45,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
         self._seriesname: str=conseriesname
         self._basedirectoryFTP: str=basedirFTP
 
-        self._grid: Grid=Grid(self.gRowGrid)
+        self._grid: DataGrid=DataGrid(self.gRowGrid)
         self._grid._datasource=ConSeries()
         self._grid.SetColHeaders(self._grid._datasource.ColHeaders)
         self._grid.SetColTypes(ConSeries._coldatatypes)

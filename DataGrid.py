@@ -71,7 +71,7 @@ class GridDataSource():
 
 
 ################################################################################
-class Grid():
+class DataGrid():
 
     def __init__(self, grid: wx.grid.Grid):         # Grid
         self._grid: wx.grid.Grid=grid
@@ -143,6 +143,10 @@ class Grid():
     @property
     def NumRows(self) -> int:
         return self._grid.NumberRows
+
+    @property
+    def Datasource(self) -> GridDataSource:
+        return self._datasource
 
     @property
     def Grid(self):        # Grid
