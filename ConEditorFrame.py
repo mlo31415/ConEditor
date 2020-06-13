@@ -352,6 +352,7 @@ class ConEditorFrame(GenConEditorFrame):
             conseriesname=dlg.tConSeries.Value
             self._grid._datasource.Rows[self.clickedRow].URL="./"+conseriesname+"/index.html"
             self._grid._datasource.Rows[self.clickedRow].Name=conseriesname
+        self.RefreshWindow()
 
     # ------------------
     def OnGridLabelRightClick(self, event):  # Grid
