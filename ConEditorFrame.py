@@ -291,10 +291,9 @@ class ConEditorFrame(GenConEditorFrame):
 
     #------------------
     def OnButtonSortClick(self, event):            # ConEditorFrame
-        self._grid._datasource.Rows=sorted(self._grid._datasource.Rows, key=lambda r: r.Name if r.Name != "Worldcon" else " ")  # Worldcon sorts ahead of everything else
+        self._grid._datasource.Rows=sorted(self._grid._datasource.Rows, key=lambda r: r.Name.upper() if r.Name != "Worldcon" else " ")  # Worldcon sorts ahead of everything else
         self._grid._datasource.Updated=True
         self.RefreshWindow()
-
 
     #------------------
     def OnButtonExitClick(self, event):            # ConEditorFrame
