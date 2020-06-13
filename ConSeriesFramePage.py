@@ -33,6 +33,15 @@ class MainConSeriesFrame(GenConSeriesFrame):
         self.userSelection=None
         self.cntlDown: bool=False
         self.rightClickedColumn: Optional[int]=None
+
+        if len(conseriesname) == 0:
+            dlg=wx.TextEntryDialog(None, "Please enter the name of the Convention Series you wish to create.", "Enter Convention Series name")
+            if dlg.ShowModal() == wx.CANCEL:
+                return
+            if len(dlg.Value) == 0:
+                return
+            conseriesname=dlg.Value
+
         self._seriesname: str=conseriesname
         self._basedirectoryFTP: str=basedirFTP
 
@@ -390,32 +399,44 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
 
     #------------------
-    def EditConInstancePage(self, name: str, irow: int):
+    def EditConInstancePage(self, name: str, irow: int) -> None:
+        if len(name) == 0:
+            dlg=wx.TextEntryDialog(None, "Please enter the name of the Convention Instance you wish to create.", "Enter Convention Instance name")
+            if dlg.ShowModal() == wx.CANCEL:
+                return
+            if len(dlg.Value) == 0:
+                return
+            name=dlg.Value
+
+        if irow >= self._grid.NumRows:
+            self._grid.ExpandDataSourceToInclude(irow, 0)   # Add rows if needed
+
         dlg=MainConInstanceDialogClass(self._basedirectoryFTP+"/"+self._seriesname, self._seriesname, name)
         dlg.tConInstanceName.Value=name
 
         # Construct a description of the convention from the information in the con series entry, if any.
-        row=self._grid._datasource.Rows[irow]
-        dates=None
-        if row.Dates is not None and not row.Dates.IsEmpty():
-            dates=str(row.Dates)
-        locale=None
-        if row.Locale is not None and len(row.Locale) > 0:
-            locale=row.Locale
-        description=name
-        if dates is not None and locale is not None:
-            description+=" was held "+dates+" in "+locale+"."
-        elif dates is not None:
-            description+=" was held "+dates+"."
-        elif locale is not None:
-            description+=" was held in " +locale+"."
-        if row.GoHs is not None and len(row.GoHs) > 0:
-            gohs=row.GoHs.replace("&amp;", "&")
-            if "," in gohs or "&" in gohs:
-                description+="  The GoHs were "+gohs
-            else:
-                description+="  The GoH was "+gohs
-        dlg.topText.Value=description
+        if irow < self._grid._datasource.NumRows:
+            row=self._grid._datasource.Rows[irow]
+            dates=None
+            if row.Dates is not None and not row.Dates.IsEmpty():
+                dates=str(row.Dates)
+            locale=None
+            if row.Locale is not None and len(row.Locale) > 0:
+                locale=row.Locale
+            description=name
+            if dates is not None and locale is not None:
+                description+=" was held "+dates+" in "+locale+"."
+            elif dates is not None:
+                description+=" was held "+dates+"."
+            elif locale is not None:
+                description+=" was held in " +locale+"."
+            if row.GoHs is not None and len(row.GoHs) > 0:
+                gohs=row.GoHs.replace("&amp;", "&")
+                if "," in gohs or "&" in gohs:
+                    description+="  The GoHs were "+gohs
+                else:
+                    description+="  The GoH was "+gohs
+            dlg.topText.Value=description
 
         dlg.ShowModal()
         cal=dlg.ReturnValue
