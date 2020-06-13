@@ -37,10 +37,15 @@ class MainConSeriesFrame(GenConSeriesFrame):
         if len(conseriesname) == 0:
             dlg=wx.TextEntryDialog(None, "Please enter the name of the Convention Series you wish to create.", "Enter Convention Series name")
             if dlg.ShowModal() == wx.CANCEL:
+                dlg.Destroy()
                 return
-            if len(dlg.Value) == 0:
+
+            if len(dlg.GetValue().strip()) == 0:
+                dlg.Destroy()
                 return
-            conseriesname=dlg.Value
+
+            conseriesname=dlg.GetValue()
+            dlg.Destroy()
 
         self._seriesname: str=conseriesname
         self._basedirectoryFTP: str=basedirFTP
@@ -405,10 +410,15 @@ class MainConSeriesFrame(GenConSeriesFrame):
         if len(name) == 0:
             dlg=wx.TextEntryDialog(None, "Please enter the name of the Convention Instance you wish to create.", "Enter Convention Instance name")
             if dlg.ShowModal() == wx.CANCEL:
+                dlg.Destroy()
                 return
-            if len(dlg.Value) == 0:
+
+            if len(dlg.GetValue().strip()) == 0: # Do nothing if the user returns an empty string as name
+                dlg.Destroy()
                 return
-            name=dlg.Value
+
+            name=dlg.GetValue()
+            dlg.Destroy()
 
         if irow >= self._grid.NumRows:
             self._grid.ExpandDataSourceToInclude(irow, 0)   # Add rows if needed
@@ -450,6 +460,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
             self._grid.Datasource.Rows[irow].URL=dlg.tConInstanceName.Value
             self.Updated=True
             self.RefreshWindow()
+        dlg.Destroy()
 
     #------------------
     def OnPopupDeleteConPage(self, event):                    # MainConSeriesFrame

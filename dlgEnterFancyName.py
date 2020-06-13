@@ -6,6 +6,7 @@ class dlgEnterFancyNameWindow(dlgEnterFancyName):
         dlgEnterFancyName.__init__(self, parent)
         self._FancyName: str=""
         self.ShowModal()
+        self.Destroy()
 
     def OnBuCreateConSeries(self, event):
         self.Hide()

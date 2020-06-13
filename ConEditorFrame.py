@@ -354,6 +354,7 @@ class ConEditorFrame(GenConEditorFrame):
             conseriesname=dlg.tConSeries.Value
             self._grid.Datasource.Rows[self.clickedRow].URL="./"+conseriesname+"/index.html"
             self._grid.Datasource.Rows[self.clickedRow].Name=conseriesname
+        dlg.Destroy()
         self.RefreshWindow()
 
     # ------------------
@@ -431,3 +432,5 @@ Settings().Load("ConEditor settings.json")
 app = wx.App(False)
 frame = ConEditorFrame(None)
 app.MainLoop()
+
+pass
