@@ -500,3 +500,7 @@ class DataGrid():
         top, left, _, _=self.LocateSelection()
         self.PasteCells(top, left)
         event.Skip()
+
+    # ------------------
+    def HideRowLabels(self) -> None:
+        self._grid.HideRowLabels()

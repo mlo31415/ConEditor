@@ -24,7 +24,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
         self._grid.SetColHeaders(self._grid.Datasource.ColHeaders)
         self._grid.SetColTypes(self._grid.Datasource.ColDataTypes)
-        self._grid._grid.HideRowLabels()
+        self._grid.HideRowLabels()
 
         self._FTPbasedir=basedirFTP
         self._seriesname=seriesname

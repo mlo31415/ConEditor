@@ -52,7 +52,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
         self._allowCellEdits=[]     # A list of cells where editing has specifically been permitted
 
-        self._grid._grid.HideRowLabels()
+        self._grid.HideRowLabels()
 
         self._textConSeriesName: str=""
         self._textFancyURL: str=""
