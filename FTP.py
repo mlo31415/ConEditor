@@ -27,8 +27,10 @@ class FTP:
         # Now we need to restore the current working directory
         predir=FTP.g_curdirpath
         FTP().SetDirectory("/")
-        return FTP().SetDirectory(predir)
-
+        if not FTP().SetDirectory(predir):
+            Log("Reconnect failed")
+            return False
+        return True
 
     def UpdateCurpath(self, newdir: str) -> None:
         if newdir == "/":
@@ -51,7 +53,6 @@ class FTP:
         except Exception as e:
             Log("FTP connection failure. Exception="+str(e))
             if not self.Reconnect():
-                Log("Retry failed.")
                 return False
             msg=self.g_ftp.cwd(newdir)
 
@@ -70,7 +71,6 @@ class FTP:
         except Exception as e:
             Log("FTP connection failure. Exception="+str(e))
             if not self.Reconnect():
-                Log("Retry failed.")
                 return False
             msg=self.g_ftp.mkd(newdir)
         Log(msg+"\n")
@@ -93,7 +93,6 @@ class FTP:
         except Exception as e:
             Log("FTP connection failure. Exception="+str(e))
             if not self.Reconnect():
-                Log("Retry failed.")
                 return False
             msg=self.g_ftp.delete(fname)
         Log(msg+"\n")
@@ -120,7 +119,6 @@ class FTP:
         except Exception as e:
             Log("FTP connection failure. Exception="+str(e))
             if not self.Reconnect():
-                Log("Retry failed.")
                 return False
             msg=self.g_ftp.rmd(dirname)
         Log(msg+"\n")
@@ -133,7 +131,6 @@ class FTP:
         except Exception as e:
             Log("FTP connection failure. Exception="+str(e))
             if not self.Reconnect():
-                Log("Retry failed.")
                 return False
             dir=self.g_ftp.pwd()
         Log("pwd is '"+dir+"'")
@@ -150,11 +147,16 @@ class FTP:
         Log("Does '"+filedir+"' exist?")
         if filedir == "/":
             return True     # "/" always exists
-        if filedir in self.g_ftp.nlst():
-            Log("'"+filedir+"' exists")
-            return True
-        Log("'"+filedir+"' does not exist")
-        return False
+        try:
+            if filedir in self.g_ftp.nlst():
+                Log("'"+filedir+"' exists")
+                return True
+            Log("'"+filedir+"' does not exist")
+            return False
+        except:
+            if not self.Reconnect():
+                return False
+            return self.Exists(str)
 
 
     #-------------------------------
@@ -216,7 +218,6 @@ class FTP:
             except Exception as e:
                 Log("FTP connection failure. Exception="+str(e))
                 if not self.Reconnect():
-                    Log("Retry failed.")
                     return False
                 Log(self.g_ftp.storbinary("STOR "+fname, f))
         return True
@@ -243,7 +244,6 @@ class FTP:
             except Exception as e:
                 Log("FTP connection failure. Exception="+str(e))
                 if not self.Reconnect():
-                    Log("Retry failed.")
                     return False
                 Log(self.g_ftp.storbinary("STOR "+toname, f))
         return True
@@ -268,7 +268,6 @@ class FTP:
             except Exception as e:
                 Log("FTP connection failure. Exception="+str(e))
                 if not self.Reconnect():
-                    Log("Retry failed.")
                     return None
                 msg=self.g_ftp.retrbinary("RETR "+fname, f.write)
             Log(msg)
