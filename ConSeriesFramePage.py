@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Optional
+from typing import Optional, List, Tuple
 
 import os
 import wx
@@ -34,9 +34,14 @@ class MainConSeriesFrame(GenConSeriesFrame):
         self.cntlDown: bool=False
         self.rightClickedColumn: Optional[int]=None
 
-        self._textConSeriesName: str=""     # Linked to the con series text box
-        self._textFancyURL: str=""          # Linked to the Fancy URL text box
-        self._textComments: str=""          # Linked to the comments text box
+        self._textConSeriesName: str=""         # Linked to the con series text box
+        self._textFancyURL: str=""              # Linked to the Fancy URL text box
+        self._textComments: str=""              # Linked to the comments text box
+        self._basedirectoryFTP: str=basedirFTP
+        self._allowCellEdits: List[Tuple[int, int]]=[]     # A list of cells where editing has specifically been permitted
+
+        self._updated: bool=False                   # Has the class been changed since it was last uploaded?
+        self._fancydownloadfailed: bool=False       # If a download from Fancyclopedia was attempted, did it fail? (This will be used to generate the return code)
 
         if len(conseriesname) == 0:
             dlg=wx.TextEntryDialog(None, "Please enter the name of the Convention Series you wish to create.", "Enter Convention Series name")
@@ -53,15 +58,12 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
         self._seriesname: str=conseriesname
         self._textConSeriesName=conseriesname
-        self._basedirectoryFTP: str=basedirFTP
 
         # Set up the grid
         self._grid: DataGrid=DataGrid(self.gRowGrid)
         self._grid.Datasource=ConSeries()
         self._grid.SetColHeaders(self._grid.Datasource.ColHeaders)
         self._grid.SetColTypes(ConSeries._coldatatypes)
-
-        self._allowCellEdits=[]     # A list of cells where editing has specifically been permitted
 
         self._grid.HideRowLabels()
 
@@ -70,9 +72,6 @@ class MainConSeriesFrame(GenConSeriesFrame):
         val=Settings().Get("ConSeriesFramePage:Show empty")
         if val is not None:
             self.m_radioBoxShowEmpty.SetSelection(int(val))
-
-        self._updated: bool=False                   # Has the class been changed since it was last uploaded?
-        self._fancydownloadfailed: bool=False       # If a download from Fancyclopedia was attempted, did it fail? (This will be used to generate the return code)
 
         # Download the convention series from the FTP server
         if len(conseriesname) > 0:
