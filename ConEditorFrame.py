@@ -176,7 +176,6 @@ class ConEditorFrame(GenConEditorFrame):
     # Serialize and deserialize
     def ToJson(self) -> str:            # ConEditorFrame
         d={"ver": 1,
-           #"_textConSeries": self._textConSeriesName,
            "_datasource": self._grid.Datasource.ToJson()
            }
 
@@ -185,7 +184,6 @@ class ConEditorFrame(GenConEditorFrame):
     #------------------
     def FromJson(self, val: str) -> ConEditorFrame:            # ConEditorFrame
         d=json.loads(val)
-        #self._textConSeriesName=d["_textConSeries"]
         self._grid.Datasource=ConList().FromJson(d["_datasource"])
 
         return self
