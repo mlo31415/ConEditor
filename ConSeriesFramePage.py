@@ -50,6 +50,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
         self._seriesname: str=conseriesname
         self._basedirectoryFTP: str=basedirFTP
 
+        # Set up the grid
         self._grid: DataGrid=DataGrid(self.gRowGrid)
         self._grid.Datasource=ConSeries()
         self._grid.SetColHeaders(self._grid.Datasource.ColHeaders)
@@ -74,7 +75,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
         if len(conseriesname) > 0:
             self.DownloadConSeries(conseriesname)
 
-        mi=self.bUploadConSeries.Enabled=len(self._textConSeriesName) > 0     # Enable only if a series name is present
+        self.bUploadConSeries.Enabled=len(self._textConSeriesName) > 0     # Enable only if a series name is present
 
         self.RefreshWindow()
 
