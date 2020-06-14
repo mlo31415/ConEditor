@@ -429,7 +429,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
             self._grid.ExpandDataSourceToInclude(irow, 0)   # Add rows if needed
 
         dlg=MainConInstanceDialogClass(self._basedirectoryFTP+"/"+self._seriesname, self._seriesname, name)
-        dlg.tConInstanceName.Setvalue(name)
+        dlg.tConInstanceName.SetValue(name)
 
         # Construct a description of the convention from the information in the con series entry, if any.
         if irow < self._grid.Datasource.NumRows:
@@ -507,7 +507,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
     def OnTextComments(self, event):                    # MainConSeriesFrame
         self._textComments=self.tComments.GetValue()
         self.Updated=True
-        #self.RefreshWindow()
+        self.RefreshWindow()
 
     #------------------
     def OnGridCellRightClick(self, event):                    # MainConSeriesFrame
