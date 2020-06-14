@@ -223,6 +223,7 @@ class FTP:
         return True
 
 
+    #-------------------------------
     def PutFileAsString(self, directory: str, fname: str, s: str, create: bool=False) -> bool:
         if not FTP().SetDirectory(directory, create=create):
             Log("PutFieAsString: Bailing out...")
@@ -248,6 +249,8 @@ class FTP:
                 Log(self.g_ftp.storbinary("STOR "+toname, f))
         return True
 
+
+    #-------------------------------
     # Download the ascii file named fname in the current directory on fanac.org into a string
     def GetAsString(self, fname: str) -> Optional[str]:
         if self.g_ftp is None:
@@ -281,6 +284,7 @@ class FTP:
         return out
 
 
+    #-------------------------------
     def GetFileAsString(self, directory: str, fname: str) -> Optional[str]:
         if not self.SetDirectory(directory):
             Log("GetFileAsString: Bailing out...")
