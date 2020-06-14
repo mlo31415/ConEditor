@@ -30,7 +30,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
     def __init__(self, basedirFTP, conseriesname):
         GenConSeriesFrame.__init__(self, None)
 
-        self.userSelection=None
+        self.userSelection=None     #TODO: Still needed?
         self.cntlDown: bool=False
         self.rightClickedColumn: Optional[int]=None
 
@@ -70,6 +70,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
         self._updated: bool=False                   # Has the class been changed since it was last uploaded?
         self._fancydownloadfailed: bool=False       # If a download from Fancyclopedia was attempted, did it fail? (This will be used to generate the return code)
 
+        # Download the convention series from the FTP server
         if len(conseriesname) > 0:
             self.DownloadConSeries(conseriesname)
 
