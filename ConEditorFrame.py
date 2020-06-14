@@ -348,6 +348,8 @@ class ConEditorFrame(GenConEditorFrame):
             self.RefreshWindow()
         conseriesname=self._grid.Datasource.GetData(self.clickedRow, 0)
         dlg=MainConSeriesFrame(self._baseDirFTP, conseriesname)
+        if len(conseriesname.strip()) == 0:
+            return
         #        dlg.tConInstanceName.Value=name
         ret=dlg.ShowModal()
         if ret == wx.OK:
@@ -355,6 +357,7 @@ class ConEditorFrame(GenConEditorFrame):
             self._grid.Datasource.Rows[self.clickedRow].URL="./"+conseriesname+"/index.html"
             self._grid.Datasource.Rows[self.clickedRow].Name=conseriesname
         dlg.Destroy()
+
         self.RefreshWindow()
 
     # ------------------
