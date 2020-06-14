@@ -34,6 +34,10 @@ class MainConSeriesFrame(GenConSeriesFrame):
         self.cntlDown: bool=False
         self.rightClickedColumn: Optional[int]=None
 
+        self._textConSeriesName: str=""     # Linked to the con series text box
+        self._textFancyURL: str=""          # Linked to the Fancy URL text box
+        self._textComments: str=""          # Linked to the comments text box
+
         if len(conseriesname) == 0:
             dlg=wx.TextEntryDialog(None, "Please enter the name of the Convention Series you wish to create.", "Enter Convention Series name")
             if dlg.ShowModal() == wx.CANCEL:
@@ -48,6 +52,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
             dlg.Destroy()
 
         self._seriesname: str=conseriesname
+        self._textConSeriesName=conseriesname
         self._basedirectoryFTP: str=basedirFTP
 
         # Set up the grid
@@ -60,9 +65,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
         self._grid.HideRowLabels()
 
-        self._textConSeriesName: str=""
-        self._textFancyURL: str=""
-        self._textComments: str=""
+        self.tConSeries.SetValue(conseriesname)
 
         val=Settings().Get("ConSeriesFramePage:Show empty")
         if val is not None:
