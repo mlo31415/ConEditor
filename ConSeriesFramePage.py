@@ -350,8 +350,8 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
         ret=self.FetchConSeriesFromFancy(name)
         if not ret:
-            self.ProgressMessage(name+" load from Fancyclopedia 3 failed")
-            wx.MessageBox(name+" load from Fancyclopedia 3 failed. Is it possible that its name on Fancy 3 is different?")
+            self.ProgressMessage("Load of " +name+" from Fancyclopedia 3 failed")
+            wx.MessageBox("Load of " +name+" from Fancyclopedia 3 failed. Is it possible that its name on Fancy 3 is different?")
             return
 
         self.RefreshWindow()
