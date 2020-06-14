@@ -77,10 +77,10 @@ class MainConSeriesFrame(GenConSeriesFrame):
         if len(conseriesname) > 0:
             self.DownloadConSeries(conseriesname)
 
+        self._updated=False     # Up to this point we have no new information
         self.bUploadConSeries.Enabled=len(self._textConSeriesName) > 0     # Enable only if a series name is present
 
         self.RefreshWindow()
-
         self.Show(True)
 
 
@@ -368,7 +368,8 @@ class MainConSeriesFrame(GenConSeriesFrame):
         if self.Updated:
             s=s+" *"
         self.Title=s
-        self.tConSeries.SetValue(self._seriesname)
+        if self.tConSeries.GetValue() != self._seriesname:
+            self.tConSeries.SetValue(self._seriesname)
         self.bUploadConSeries.Enabled=self.Updated
 
     #------------------
