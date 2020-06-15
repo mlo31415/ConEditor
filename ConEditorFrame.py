@@ -347,6 +347,7 @@ class ConEditorFrame(GenConEditorFrame):
         conseriesname=self._grid.Datasource.GetData(self.clickedRow, 0)
         dlg=MainConSeriesFrame(self._baseDirFTP, conseriesname)
         if len(conseriesname.strip()) == 0: # If the user didn't supply a con series name, we exit and don't show the dialog
+            dlg.Destroy()
             return
         ret=dlg.ShowModal()
         if ret == wx.OK:
