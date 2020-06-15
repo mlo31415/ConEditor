@@ -12,7 +12,7 @@ from FTP import FTP
 from Settings import Settings
 from Log import Log
 
-from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, PrependHTTP
+from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, PrependHTTP, ModalDialogManager
 
 #####################################################################################
 class MainConInstanceDialogClass(GenConInstanceFrame):
@@ -83,32 +83,31 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
     def AddFiles(self) -> bool:
 
         # Call the File Open dialog to get an con series HTML file
-        dlg=wx.FileDialog(self, "Select files to upload", ".", "", "*.*", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE | wx.FD_CHANGE_DIR)
+        with ModalDialogManager(wx.FileDialog, "Select files to upload", ".", "", "*.*", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE | wx.FD_CHANGE_DIR) as dlg:
 
-        # Do we have a last directory?
-        dir=Settings().Get("Last FileDialog directory")
-        if dir is not None:
-            if not os.path.exists(dir) or not os.path.isdir(dir):
-                Log("AddFiles: SetDirectory("+dir+") failed because the directory does not exist")
-                return  False
-            dlg.SetDirectory(dir)
+            # Do we have a last directory?
+            dir=Settings().Get("Last FileDialog directory")
+            if dir is not None:
+                if not os.path.exists(dir) or not os.path.isdir(dir):
+                    Log("AddFiles: SetDirectory("+dir+") failed because the directory does not exist")
+                    return  False
+                dlg.SetDirectory(dir)
 
-        if dlg.ShowModal() == wx.ID_CANCEL:
+            if dlg.ShowModal() == wx.ID_CANCEL:
+                Settings().Put("Last FileDialog directory", dlg.GetDirectory())
+                #dlg.Raise()
+                return True #TODO: Is this the correct return?
+
             Settings().Put("Last FileDialog directory", dlg.GetDirectory())
-            dlg.Raise()
-            dlg.Destroy()
-            return True #TODO: Is this the correct return?
+            for fn in dlg.GetFilenames():
+                conf=ConFile()
+                conf.DisplayTitle=fn
+                conf.LocalPathname=os.path.join(os.path.join(dlg.Directory), fn)
+                conf.Filename=fn
+                conf.Size=os.path.getsize(conf.LocalPathname)
+                self._grid.Datasource.Rows.append(conf)
+                self._grid.Datasource.Updated=True
 
-        Settings().Put("Last FileDialog directory", dlg.GetDirectory())
-        for fn in dlg.GetFilenames():
-            conf=ConFile()
-            conf.DisplayTitle=fn
-            conf.LocalPathname=os.path.join(os.path.join(dlg.Directory), fn)
-            conf.Filename=fn
-            conf.Size=os.path.getsize(conf.LocalPathname)
-            self._grid.Datasource.Rows.append(conf)
-            self._grid.Datasource.Updated=True
-        dlg.Destroy()
         self.RefreshWindow()
         return True
 

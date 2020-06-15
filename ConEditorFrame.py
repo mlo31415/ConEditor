@@ -15,7 +15,7 @@ from FTP import FTP
 from Settings import Settings
 
 
-from HelpersPackage import SubstituteHTML, FindBracketedText, FormatLink
+from HelpersPackage import SubstituteHTML, FindBracketedText, FormatLink, ModalDialogManager
 from Log import LogOpen, Log
 
 class Convention:
@@ -353,16 +353,25 @@ class ConEditorFrame(GenConEditorFrame):
             self._grid.Datasource.Rows.insert(self.clickedRow, Convention())
             self.RefreshWindow()
         conseriesname=self._grid.Datasource.GetData(self.clickedRow, 0)
-        dlg=MainConSeriesFrame(self._baseDirFTP, conseriesname)
-        if len(dlg._seriesname.strip()) == 0: # If the user didn't supply a con series name, we exit and don't show the dialog
-            dlg.Destroy()
-            return
-        ret=dlg.ShowModal()
-        if ret == wx.OK:
-            conseriesname=dlg.tConSeries.GetValue()
-            self._grid.Datasource.Rows[self.clickedRow].URL="./"+conseriesname+"/index.html"
-            self._grid.Datasource.Rows[self.clickedRow].Name=conseriesname
-        dlg.Destroy()
+        with ModalDialogManager(MainConSeriesFrame, self._baseDirFTP, conseriesname) as dlg:
+            if len(dlg._seriesname.strip()) == 0:  # If the user didn't supply a con series name, we exit and don't show the dialog
+                return
+            ret=dlg.ShowModal()
+            if ret == wx.OK:
+                conseriesname=dlg.tConSeries.GetValue()
+                self._grid.Datasource.Rows[self.clickedRow].URL="./"+conseriesname+"/index.html"
+                self._grid.Datasource.Rows[self.clickedRow].Name=conseriesname
+
+        # dlg=MainConSeriesFrame(self._baseDirFTP, conseriesname)
+        # if len(dlg._seriesname.strip()) == 0: # If the user didn't supply a con series name, we exit and don't show the dialog
+        #     dlg.Destroy()
+        #     return
+        # ret=dlg.ShowModal()
+        # if ret == wx.OK:
+        #     conseriesname=dlg.tConSeries.GetValue()
+        #     self._grid.Datasource.Rows[self.clickedRow].URL="./"+conseriesname+"/index.html"
+        #     self._grid.Datasource.Rows[self.clickedRow].Name=conseriesname
+        # dlg.Destroy()
 
         self.RefreshWindow()
 

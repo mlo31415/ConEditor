@@ -17,7 +17,7 @@ from DataGrid import DataGrid
 from ConInstanceFramePage import MainConInstanceDialogClass
 from Settings import Settings
 
-from HelpersPackage import Bailout, StripExternalTags, SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, UnformatLinks, RemoveAllHTMLTags
+from HelpersPackage import ModalDialogManager, SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, UnformatLinks, RemoveAllHTMLTags
 from HelpersPackage import FindIndexOfStringInList
 from Log import Log
 from FanzineIssueSpecPackage import FanzineDateRange
@@ -43,13 +43,11 @@ class MainConSeriesFrame(GenConSeriesFrame):
         self._fancydownloadfailed: bool=False       # If a download from Fancyclopedia was attempted, did it fail? (This will be used to generate the return code)
 
         if len(conseriesname) == 0:
-            dlg=wx.TextEntryDialog(None, "Please enter the name of the Convention Series you wish to create.", "Enter Convention Series name")
-            if dlg.ShowModal() == wx.CANCEL or len(dlg.GetValue().strip()) == 0:
-                dlg.Destroy()
-                return
+            with ModalDialogManager(wx.TextEntryDialog, "Please enter the name of the Convention Series you wish to create.", "Enter Convention Series name") as dlg:
+                if dlg.ShowModal() == wx.CANCEL or len(dlg.GetValue().strip()) == 0:
+                    return
+                conseriesname=dlg.GetValue()
 
-            conseriesname=dlg.GetValue()
-            dlg.Destroy()
 
         self._seriesname: str=conseriesname
 
@@ -403,55 +401,53 @@ class MainConSeriesFrame(GenConSeriesFrame):
     #------------------
     def EditConInstancePage(self, name: str, irow: int) -> None:
         if len(name) == 0:
-            dlg=wx.TextEntryDialog(None, "Please enter the name of the Convention Instance you wish to create.", "Enter Convention Instance name")
-            if dlg.ShowModal() == wx.CANCEL or len(dlg.GetValue().strip()) == 0: # Do nothing if the user returns an empty string as name
-                dlg.Destroy()
-                return
-
-            name=dlg.GetValue()
-            dlg.Destroy()
+            with ModalDialogManager(wx.TextEntryDialog, "Please enter the name of the Convention Instance you wish to create.", "Enter Convention Instance name") as dlg:
+                if dlg.ShowModal() == wx.CANCEL or len(dlg.GetValue().strip()) == 0: # Do nothing if the user returns an empty string as name
+                    return
+                name=dlg.GetValue()
 
         if irow >= self._grid.NumRows:
             self._grid.ExpandDataSourceToInclude(irow, 0)   # Add rows if needed
 
-        dlg=MainConInstanceDialogClass(self._basedirectoryFTP+"/"+self._seriesname, self._seriesname, name)
-        dlg.tConInstanceName.SetValue(name)
 
-        # Construct a description of the convention from the information in the con series entry, if any.
-        if irow < self._grid.Datasource.NumRows:
-            row=self._grid.Datasource.Rows[irow]
-            dates=None
-            if row.Dates is not None and not row.Dates.IsEmpty():
-                dates=str(row.Dates)
-            locale=None
-            if row.Locale is not None and len(row.Locale) > 0:
-                locale=row.Locale
-            description=name
-            if dates is not None and locale is not None:
-                description+=" was held "+dates+" in "+locale+"."
-            elif dates is not None:
-                description+=" was held "+dates+"."
-            elif locale is not None:
-                description+=" was held in " +locale+"."
-            if row.GoHs is not None and len(row.GoHs) > 0:
-                gohs=row.GoHs.replace("&amp;", "&")
-                if "," in gohs or "&" in gohs:
-                    description+="  The GoHs were "+gohs
-                else:
-                    description+="  The GoH was "+gohs
-            dlg.topText.SetValue(description)
+        with ModalDialogManager(MainConInstanceDialogClass, self._basedirectoryFTP+"/"+self._seriesname, self._seriesname, name) as dlg:
+            dlg.tConInstanceName.SetValue(name)
 
-        dlg.ShowModal()
-        cal=dlg.ReturnValue
-        if cal == wx.ID_OK:
-            if self._grid.Datasource.NumRows <= irow:
-                for i in range(irow-self._grid.Datasource.NumRows+1):
-                    self._grid.Datasource.Rows.append(Con())
-            self._grid.Datasource.Rows[irow].Name=dlg.tConInstanceName.GetValue()
-            self._grid.Datasource.Rows[irow].URL=dlg.tConInstanceName.GetValue()
-            self.Updated=True
-            self.RefreshWindow()
-        dlg.Destroy()
+            # Construct a description of the convention from the information in the con series entry, if any.
+            if irow < self._grid.Datasource.NumRows:
+                row=self._grid.Datasource.Rows[irow]
+                dates=None
+                if row.Dates is not None and not row.Dates.IsEmpty():
+                    dates=str(row.Dates)
+                locale=None
+                if row.Locale is not None and len(row.Locale) > 0:
+                    locale=row.Locale
+                description=name
+                if dates is not None and locale is not None:
+                    description+=" was held "+dates+" in "+locale+"."
+                elif dates is not None:
+                    description+=" was held "+dates+"."
+                elif locale is not None:
+                    description+=" was held in " +locale+"."
+                if row.GoHs is not None and len(row.GoHs) > 0:
+                    gohs=row.GoHs.replace("&amp;", "&")
+                    if "," in gohs or "&" in gohs:
+                        description+="  The GoHs were "+gohs
+                    else:
+                        description+="  The GoH was "+gohs
+                dlg.topText.SetValue(description)
+
+            dlg.ShowModal()
+            cal=dlg.ReturnValue
+            if cal == wx.ID_OK:
+                if self._grid.Datasource.NumRows <= irow:
+                    for i in range(irow-self._grid.Datasource.NumRows+1):
+                        self._grid.Datasource.Rows.append(Con())
+                self._grid.Datasource.Rows[irow].Name=dlg.tConInstanceName.GetValue()
+                self._grid.Datasource.Rows[irow].URL=dlg.tConInstanceName.GetValue()
+                self.Updated=True
+                self.RefreshWindow()
+
 
     #------------------
     def OnPopupDeleteConPage(self, event):                    # MainConSeriesFrame
