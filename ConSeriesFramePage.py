@@ -333,18 +333,18 @@ class MainConSeriesFrame(GenConSeriesFrame):
     def OnCreateConSeries(self, event):                    # MainConSeriesFrame
         self._seriesname=self.tConSeries.GetValue()
 
-        self.ProgressMessage("Loading "+self._seriesnam+" from Fancyclopedia 3")
+        self.ProgressMessage("Loading "+self._seriesname+" from Fancyclopedia 3")
         self._grid.Datasource=ConSeries()
-        self._grid.Datasource.Name=self._seriesnam
+        self._grid.Datasource.Name=self._seriesname
 
-        ret=self.FetchConSeriesFromFancy(self._seriesnam)
+        ret=self.FetchConSeriesFromFancy(self._seriesname)
         if not ret:
-            self.ProgressMessage("Load of " +self._seriesnam+" from Fancyclopedia 3 failed")
-            wx.MessageBox("Load of " +self._seriesnam+" from Fancyclopedia 3 failed. Is it possible that its name on Fancy 3 is different?")
+            self.ProgressMessage("Load of "+self._seriesname+" from Fancyclopedia 3 failed")
+            wx.MessageBox("Load of "+self._seriesname+" from Fancyclopedia 3 failed. Is it possible that its name on Fancy 3 is different?")
             return
 
         self.RefreshWindow()
-        self.ProgressMessage(self._seriesnam+" loaded successfully from Fancyclopedia 3")
+        self.ProgressMessage(self._seriesname+" loaded successfully from Fancyclopedia 3")
         self.Updated=True
         pass
 
