@@ -78,12 +78,10 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
     # Serialize and deserialize
     def ToJson(self) -> str:                    # MainConSeriesFrame
-        d={"ver": 3,
+        d={"ver": 4,
            "_textConSeries": self._seriesname,
            "_textFancyURL": self._textFancyURL,
            "_textComments": self._textComments,
-           "_filename": self._seriesname,
-           "_dirname": self._basedirectoryFTP,
            "_datasource": self._grid.Datasource.ToJson()}
         return json.dumps(d)
 
