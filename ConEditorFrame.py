@@ -13,7 +13,7 @@ from DataGrid import DataGrid, GridDataSource
 from ConSeriesFramePage import MainConSeriesFrame
 from FTP import FTP
 from Settings import Settings
-from dlgEnterFancyName import dlgEnterFancyNameWindow
+
 
 from HelpersPackage import SubstituteHTML, FindBracketedText, FormatLink
 from Log import LogOpen, Log

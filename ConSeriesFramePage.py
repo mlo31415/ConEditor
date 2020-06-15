@@ -14,7 +14,6 @@ from GenConSeriesFrame import GenConSeriesFrame
 from FTP import FTP
 from ConSeries import ConSeries, Con
 from DataGrid import DataGrid
-from dlgEnterFancyName import dlgEnterFancyNameWindow
 from ConInstanceFramePage import MainConInstanceDialogClass
 from Settings import Settings
 
@@ -34,7 +33,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
         self.cntlDown: bool=False
         self.rightClickedColumn: Optional[int]=None
 
-        self._textConSeriesName: str=""         # Linked to the con series text box
+        self._seriesname: str=""         # Linked to the con series text box
         self._textFancyURL: str=""              # Linked to the Fancy URL text box
         self._textComments: str=""              # Linked to the comments text box
         self._basedirectoryFTP: str=basedirFTP
@@ -45,11 +44,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
         if len(conseriesname) == 0:
             dlg=wx.TextEntryDialog(None, "Please enter the name of the Convention Series you wish to create.", "Enter Convention Series name")
-            if dlg.ShowModal() == wx.CANCEL:
-                dlg.Destroy()
-                return
-
-            if len(dlg.GetValue().strip()) == 0:
+            if dlg.ShowModal() == wx.CANCEL or len(dlg.GetValue().strip()) == 0:
                 dlg.Destroy()
                 return
 
@@ -57,7 +52,6 @@ class MainConSeriesFrame(GenConSeriesFrame):
             dlg.Destroy()
 
         self._seriesname: str=conseriesname
-        self._textConSeriesName=conseriesname
 
         # Set up the grid
         self._grid: DataGrid=DataGrid(self.gRowGrid)
@@ -78,7 +72,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
             self.DownloadConSeries(conseriesname)
 
         self._updated=False     # Up to this point we have no new information
-        self.bUploadConSeries.Enabled=len(self._textConSeriesName) > 0     # Enable only if a series name is present
+        self.bUploadConSeries.Enabled=len(self._seriesname) > 0     # Enable only if a series name is present
 
         self.RefreshWindow()
         self.Show(True)
@@ -87,7 +81,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
     # Serialize and deserialize
     def ToJson(self) -> str:                    # MainConSeriesFrame
         d={"ver": 3,
-           "_textConSeries": self._textConSeriesName,
+           "_textConSeries": self._seriesname,
            "_textFancyURL": self._textFancyURL,
            "_textComments": self._textComments,
            "_filename": self._seriesname,
@@ -98,7 +92,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
     def FromJson(self, val: str) -> MainConSeriesFrame:                    # MainConSeriesFrame
         d=json.loads(val)
         if d["ver"] >= 3:
-            self._textConSeriesName=d["_textConSeries"]
+            self._seriesname=d["_textConSeries"]
             self._textFancyURL=d["_textFancyURL"]
             self._textComments=d["_textComments"]
             self._grid.Datasource=ConSeries().FromJson(d["_datasource"])
@@ -156,9 +150,9 @@ class MainConSeriesFrame(GenConSeriesFrame):
                 return
         else:
             # Leave it empty, but add in the name
-            self._textConSeriesName=seriesname
+            self._seriesname=seriesname
 
-        self.tConSeries.SetValue(self._textConSeriesName)
+        self.tConSeries.SetValue(self._seriesname)
         self.tComments.SetValue(self._textComments)
         if self._textFancyURL is None or len(self._textFancyURL) == 0:
             self._textFancyURL="fancyclopedia.org/"+WikiPagenameToWikiUrlname(seriesname)
@@ -182,8 +176,8 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name is tagged with <fanac-instance>, the random text with "fanac-headertext"
-        link=FormatLink("http://fancyclopedia.org/"+WikiPagenameToWikiUrlname(self._textConSeriesName), self._textConSeriesName)
-        file=SubstituteHTML(file, "title", self._textConSeriesName)
+        link=FormatLink("http://fancyclopedia.org/"+WikiPagenameToWikiUrlname(self._seriesname), self._seriesname)
+        file=SubstituteHTML(file, "title", self._seriesname)
         file=SubstituteHTML(file, "fanac-instance", link)
         file=SubstituteHTML(file, "fanac-headertext", self._textComments)
         file=SubstituteHTML(file, "fanac-fancylink", link)
@@ -337,25 +331,20 @@ class MainConSeriesFrame(GenConSeriesFrame):
     #------------------
     # Create a new, empty, con series
     def OnCreateConSeries(self, event):                    # MainConSeriesFrame
-        if len(self.tConSeries.GetValue()) == 0:
-            self._dlgEnterFancyName=dlgEnterFancyNameWindow(None)
-            name=self._dlgEnterFancyName._FancyName
-        else:
-            name=self.tConSeries.GetValue()
-        self._seriesname=name
+        self._seriesname=self.tConSeries.GetValue()
 
-        self.ProgressMessage("Loading "+name+" from Fancyclopedia 3")
+        self.ProgressMessage("Loading "+self._seriesnam+" from Fancyclopedia 3")
         self._grid.Datasource=ConSeries()
-        self._grid.Datasource.Name=name
+        self._grid.Datasource.Name=self._seriesnam
 
-        ret=self.FetchConSeriesFromFancy(name)
+        ret=self.FetchConSeriesFromFancy(self._seriesnam)
         if not ret:
-            self.ProgressMessage("Load of " +name+" from Fancyclopedia 3 failed")
-            wx.MessageBox("Load of " +name+" from Fancyclopedia 3 failed. Is it possible that its name on Fancy 3 is different?")
+            self.ProgressMessage("Load of " +self._seriesnam+" from Fancyclopedia 3 failed")
+            wx.MessageBox("Load of " +self._seriesnam+" from Fancyclopedia 3 failed. Is it possible that its name on Fancy 3 is different?")
             return
 
         self.RefreshWindow()
-        self.ProgressMessage(name+" loaded successfully from Fancyclopedia 3")
+        self.ProgressMessage(self._seriesnam+" loaded successfully from Fancyclopedia 3")
         self.Updated=True
         pass
 
@@ -368,9 +357,10 @@ class MainConSeriesFrame(GenConSeriesFrame):
         if self.Updated:
             s=s+" *"
         self.Title=s
-        if self.tConSeries.GetValue() != self._seriesname:
+        if self.tConSeries.GetValue() != self._seriesname:  # Done as a conditional so as to not trigger unnecessary OnUpdates
             self.tConSeries.SetValue(self._seriesname)
         self.bUploadConSeries.Enabled=self.Updated
+
 
     #------------------
     def OnPopupCreateNewConPage(self, event):                    # MainConSeriesFrame
@@ -414,11 +404,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
     def EditConInstancePage(self, name: str, irow: int) -> None:
         if len(name) == 0:
             dlg=wx.TextEntryDialog(None, "Please enter the name of the Convention Instance you wish to create.", "Enter Convention Instance name")
-            if dlg.ShowModal() == wx.CANCEL:
-                dlg.Destroy()
-                return
-
-            if len(dlg.GetValue().strip()) == 0: # Do nothing if the user returns an empty string as name
+            if dlg.ShowModal() == wx.CANCEL or len(dlg.GetValue().strip()) == 0: # Do nothing if the user returns an empty string as name
                 dlg.Destroy()
                 return
 
@@ -491,8 +477,8 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
     #------------------
     def OnTextConSeriesName( self, event ):                    # MainConSeriesFrame
-        self._textConSeriesName=self.tConSeries.GetValue()
-        self.bUploadConSeries.Enabled=len(self._textConSeriesName) > 0
+        self._seriesname=self.tConSeries.GetValue()
+        self.bUploadConSeries.Enabled=len(self._seriesname) > 0
         self.Updated=True
         #self.RefreshWindow()
 
