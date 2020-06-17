@@ -54,8 +54,6 @@ class MainConSeriesFrame(GenConSeriesFrame):
         # Set up the grid
         self._grid: DataGrid=DataGrid(self.gRowGrid)
         self._grid.Datasource=ConSeries()
-        self._grid.SetColHeaders(self._grid.Datasource.ColHeaders)
-        self._grid.SetColTypes(ConSeries._coldatatypes)
 
         self._grid.HideRowLabels()
 

@@ -117,6 +117,7 @@ class Con:
 
 ####################################################################################
 class ConSeries(GridDataSource):
+    # Fixed information shared by all instances
     _colheaders: List[str]=["Name", "Dates", "Locale", "GoHs"]
     _coldatatypes: List[str]=["url", "date range", "str", "str"]
     _colminwidths: List[int]=[30, 30, 30, 30]
@@ -127,6 +128,7 @@ class ConSeries(GridDataSource):
         self._name: str=""
         self._series: List[Con]=[]
         self._stuff: str=""
+        self._updated: bool=False
 
     # Serialize and deserialize
     def ToJson(self) -> str:
@@ -173,6 +175,10 @@ class ConSeries(GridDataSource):
         return ConSeries._colminwidths
 
     @property
+    def ColEditable(self) -> List[str]:
+        return ConSeries._coleditable
+
+    @property
     def NumRows(self) -> int:
         return len(self._series)
 
@@ -190,9 +196,11 @@ class ConSeries(GridDataSource):
     @Rows.setter
     def Rows(self, rows: List) -> None:
         self._series=rows
+        self._updated=True
 
     def SetDataVal(self, irow: int, icol: int, val: Union[int, str, FanzineDateRange]) -> None:
         self._series[irow].SetVal(icol, val)
+        self._updated=True
 
     #------------
     @property
@@ -211,3 +219,12 @@ class ConSeries(GridDataSource):
     @Stuff.setter
     def Stuff(self, val: str) -> None:
         self._stuff=val
+
+    # ------------
+    @property
+    def Updated(self) -> bool:
+        return self._updated
+
+    @Updated.setter
+    def Updated(self, val: bool) -> None:
+        self._updated=val

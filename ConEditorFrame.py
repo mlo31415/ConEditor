@@ -114,6 +114,10 @@ class ConList(GridDataSource):
         return ConList._colheaders
 
     @property
+    def ColEditable(self) -> List[str]:
+        return ConList._coleditable
+
+    @property
     def ColDataTypes(self) -> List[str]:
         return ConList._coldatatypes
 
@@ -163,8 +167,6 @@ class ConEditorFrame(GenConEditorFrame):
 
         self._grid: DataGrid=DataGrid(self.gRowGrid)
         self._grid.Datasource=ConList()
-        self._grid.SetColHeaders(self._grid.Datasource._colheaders)
-        self._grid.SetColTypes(ConList._coldatatypes)
         self._grid.HideRowLabels()
         self._updated=False
 

@@ -16,6 +16,7 @@ class Color:
      LightGreen=wx.Colour(240, 255, 240)
      LightBlue=wx.Colour(240, 230, 255)
      Blue=wx.Colour(100, 100, 255)
+     LightGray=wx.Colour(242, 242, 242)
      White=wx.Colour(255, 255, 255)
 
 class GridDataSource():
@@ -26,38 +27,54 @@ class GridDataSource():
 
     @property
     def ColHeaders(self) -> List[str]:
+        assert False
         return []
 
     @property
     def ColDataTypes(self) -> List[str]:
+        assert False
         return []
 
     @property
     def ColMinWidths(self) -> List[int]:
+        assert False
+        return []
+
+    @property
+    def ColEditable(self) -> List[int]:
+        assert False
         return []
 
     @property
     def NumRows(self) -> int:
+        assert False
         return -1
 
     def GetData(self, iRow: int, iCol: int) -> str:
+        assert False
         pass
 
     @property
     def Rows(self) -> List:     # Types of list elements needs to be undefined since we don't know what they will be.
+        assert False
         return []
     @Rows.setter
     def Rows(self, rows: List) -> None:
+        assert False
         pass
 
     def SetDataVal(self, irow: int, icol: int, val: Union[int, str, FanzineDateRange]) -> None:
+        assert False
         pass
 
     @property
     def Updated(self) -> bool:
+        assert False
         pass
+
     @Updated.setter
     def Updated(self, val: bool) -> None:
+        assert False
         pass
 
     @property
@@ -176,7 +193,6 @@ class DataGrid():
         self._grid.AppendCols(ncols)
 
     def SetColHeaders(self, headers: List[str]) -> None:        # Grid
-        self._colheaders=headers
         self.Numcols=len(headers)
         if len(headers) == self.Numcols:
             # Add the column headers
@@ -184,14 +200,6 @@ class DataGrid():
             for colhead in headers:
                 self._grid.SetColLabelValue(iCol, colhead)
                 iCol+=1
-
-    # --------------------------------------------------------
-    def SetColTypes(self, coldatatypes: List[str]) -> None:        # Grid
-        self._coldatatypes=coldatatypes
-
-    # --------------------------------------------------------
-    def SetColMinWidths(self, defaultwidths: List[int]) -> None:        # Grid
-        self._colminwidths=defaultwidths
 
     # --------------------------------------------------------
     def AutoSizeColumns(self):        # Grid
@@ -220,16 +228,24 @@ class DataGrid():
         val=self._grid.GetCellValue(row, col)
         # We skip testing for "str"-type columns since anything at all is OK in a str column
 
-        if self._coldatatypes[col] == "int":
-            if val is not None and val != "" and not IsInt(val):
-                self.SetCellBackgroundColor(row, col, Color.Pink)
-        elif self._coldatatypes[col] == "date range":
-            if val is not None and val != "" and FanzineDateRange().Match(val).IsEmpty():
-                self.SetCellBackgroundColor(row, col, Color.Pink)
-        elif self._coldatatypes[col] == "date":
-            if val is not None and val != "" and FanzineDate().Match(val).IsEmpty():
-                self.SetCellBackgroundColor(row, col, Color.Pink)
-        elif self._coldatatypes[col] == "url":
+        # If the column is not editable, color it light gray regardless of its value
+        if self._datasource.ColEditable[col] == "no":
+            self.SetCellBackgroundColor(row, col, Color.LightGray)
+
+        else:
+            # If it *is* editable or potentially editable, then color it according to its value
+            if self._datasource.ColDataTypes[col] == "int":
+                if val is not None and val != "" and not IsInt(val):
+                    self.SetCellBackgroundColor(row, col, Color.Pink)
+            elif self._datasource.ColDataTypes[col] == "date range":
+                if val is not None and val != "" and FanzineDateRange().Match(val).IsEmpty():
+                    self.SetCellBackgroundColor(row, col, Color.Pink)
+            elif self._datasource.ColDataTypes[col] == "date":
+                if val is not None and val != "" and FanzineDate().Match(val).IsEmpty():
+                    self.SetCellBackgroundColor(row, col, Color.Pink)
+
+        # Special handling for URLs
+        if self._datasource.ColDataTypes[col] == "url":
             if val is not None and val != "" and len(self._datasource.Rows[row].URL) > 0:
                 self._grid.SetCellTextColour(row, col, Color.Blue)
                 font=self._grid.GetCellFont(row, col)
@@ -249,11 +265,11 @@ class DataGrid():
         self.EvtHandlerEnabled=False
         self._grid.ClearGrid()
 
-        self.SetColHeaders(self._colheaders)
+        self.SetColHeaders(self._datasource.ColHeaders)
 
         # Fill in the cells
         for i in range(self._datasource.NumRows):
-            for j in range(len(self._colheaders)):
+            for j in range(len(self._datasource.ColHeaders)):
                 self.SetCellValue(i, j, self._datasource.GetData(i, j))
                 #Log("set grid("+str(i)+", "+str(j)+")="+self._datasource.GetData(i, j))
 

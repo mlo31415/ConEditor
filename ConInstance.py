@@ -124,6 +124,7 @@ class ConInstancePage(GridDataSource):
     def __init__(self):
         self._conFileList: List[ConFile]=[]
         self._name=""
+        self._updated=False
 
     # Serialize and deserialize
     def ToJson(self) -> str:
@@ -162,6 +163,7 @@ class ConInstancePage(GridDataSource):
             self._coldatatypes=["str", "str", "str"]
 
         self._colheaders=["Notes" if ch == "Description" else ch for ch in self._colheaders]    # Change Description column to Notes in old files #TODO: Remove when no longer needed
+        self._updated=False
         return self
 
 
@@ -177,6 +179,10 @@ class ConInstancePage(GridDataSource):
     @property
     def ColMinWidths(self) -> List[int]:
         return self._colminwidths
+
+    @property
+    def ColEditable(self) -> List[int]:
+        return self._coleditable
 
     @property
     def Rows(self) -> List:
@@ -204,5 +210,12 @@ class ConInstancePage(GridDataSource):
     def GetData(self, iRow: int, iCol: int) -> str:
         r=self.Rows[iRow]
         return r.GetVal(self.ColHeaders[iCol])
+
+    @property
+    def Updated(self) -> bool:
+        return self._updated
+    @Updated.setter
+    def Updated(self, val: bool) -> None:
+        self._updated=val
 
 

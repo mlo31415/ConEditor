@@ -22,8 +22,6 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self._grid: DataGrid=DataGrid(self.gRowGrid)
         self._grid.Datasource=ConInstancePage()
 
-        self._grid.SetColHeaders(self._grid.Datasource.ColHeaders)
-        self._grid.SetColTypes(self._grid.Datasource.ColDataTypes)
         self._grid.HideRowLabels()
 
         self._FTPbasedir=basedirFTP
