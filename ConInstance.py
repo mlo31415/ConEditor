@@ -6,29 +6,35 @@ import json
 # An individual file to be listed under a convention
 class ConFile:
     def __init__(self):
-        self._displayTitle: str=""      # The name as shown to the world
+        self._displayTitle: str=""      # The name as shown to the world on the website
         self._notes: str=""             # The free-format description
-        self._filename: str=""          # The filename of the source file
+        self._localfilename: str=""     # The filename of the source file
         self._localpathname: str="."    # The local pathname of the source file (path+filename)
+        self._sitefilename: str=""      # The name to be used for this file on the website
         self._size: int=0               # The file's size in bytes
 
     # Serialize and deserialize
     def ToJson(self) -> str:
-        d={"ver": 4,
+        d={"ver": 5,
            "_displayTitle": self._displayTitle,
            "_notes": self._notes,
            "_localpathname": self._localpathname,
-           "_size": self._size,
-           "_filename": self._filename}
+           "_filename": self._localfilename,
+           "_sitefilename": self._sitefilename,
+           "_size": self._size}
         return json.dumps(d)
 
     def FromJson(self, val: str) -> ConFile:
         d=json.loads(val)
         self._displayTitle=d["_displayTitle"]
-        self._localpathname=d["_localpathname"]
-        self._size=d["_size"]
         self._notes=d["_notes"]
-        self._filename=d["_filename"]
+        self._localpathname=d["_localpathname"]
+        self._localfilename=d["_filename"]
+        self._size=d["_size"]
+        if d["ver"] > 4:
+            self._sitefilename=d["_sitefilename"]
+        else:
+            self._sitefilename=self._localfilename
         return self
 
     @property
@@ -54,10 +60,10 @@ class ConFile:
 
     @property
     def Filename(self) -> str:
-        return self._filename
+        return self._localfilename
     @Filename.setter
     def Filename(self, val: str):
-        self._filename=val
+        self._localfilename=val
 
     @property
     def Size(self) -> int:
@@ -70,23 +76,28 @@ class ConFile:
     # Get or set a value by name or column number in the grid
     def GetVal(self, name: Union[str, int]) -> Union[str, int]:
         # (Could use return eval("self."+name))
-        if name == "File Name" or name == 0:
-            return self.Filename
-        if name == "Display Name" or name == 1:
+        if name == "Source File Name" or name == 0:
+            return self.Filename  #TODO
+        if name == "Site Name" or name == 1:
+            return self.DisplayTitle#TODO
+        if name == "Display Name" or name == 2:
             return self.DisplayTitle
-        if name == "Notes" or name == 2:
+        if name == "Notes" or name == 3:
             return self.Notes
         return "Val can't interpret '"+str(name)+"'"
 
     def SetVal(self, nameOrCol: Union[str, int], val: Union[str, int]) -> None:
         # (Could use return eval("self."+name))
-        if nameOrCol == "File Name" or nameOrCol == 0:
-            self.Filename=val
+        if nameOrCol == "Source File Name" or nameOrCol == 0:
+            self.Filename=val#TODO
             return
-        if nameOrCol == "Display Name" or nameOrCol == 1:
+        if nameOrCol == "Site Name" or nameOrCol == 1:
+            self.DisplayTitle=val#TODO
+            return
+        if nameOrCol == "Display Name" or nameOrCol == 2:
             self.DisplayTitle=val
             return
-        if nameOrCol == "Notes" or nameOrCol == 2:
+        if nameOrCol == "Notes" or nameOrCol == 3:
             self.Notes=val
             return
         print("SetVal can't interpret '"+str(nameOrCol)+"'")
@@ -97,10 +108,10 @@ class ConFile:
 
 class ConInstancePage(GridDataSource):
     # an array of tuples: column header, min col width, col type
-    _colheaders=["File Name", "Display Name", "Notes"]
-    _colminwidths=[50, 50, 200]
-    _coldatatypes=["str", "str", "str"]
-    _coleditable=["maybe", "yes", "yes"]
+    _colheaders=["Source File Name", "Site Name", "Display Name", "Notes"]
+    _colminwidths=[100, 75, 75, 150]
+    _coldatatypes=["str", "str", "str", "str"]
+    _coleditable=["maybe", "yes", "yes", "yes"]
     _element=ConFile
 
     def __init__(self):
@@ -124,9 +135,9 @@ class ConInstancePage(GridDataSource):
     def FromJson(self, val: str) -> ConInstancePage:
         d=json.loads(val)
         if d["ver"] >= 1:
-            self._colheaders=d["_colheaders"]
-            self._colminwidths=d["_colminwidths"]
-            self._coldatatypes=d["_coldatatypes"]
+            #self._colheaders=d["_colheaders"]
+            #self._colminwidths=d["_colminwidths"]
+            #self._coldatatypes=d["_coldatatypes"]
             self._name=d["_name"]
             cfld=d["_conFileList"]
             self._conFileList=[]
