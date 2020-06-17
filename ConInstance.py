@@ -111,7 +111,7 @@ class ConInstancePage(GridDataSource):
     _colheaders=["Source File Name", "Site Name", "Display Name", "Notes"]
     _colminwidths=[100, 75, 75, 150]
     _coldatatypes=["str", "str", "str", "str"]
-    _coleditable=["maybe", "yes", "yes", "yes"]
+    _coleditable=["no", "yes", "yes", "yes"]
     _element=ConFile
 
     def __init__(self):
