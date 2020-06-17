@@ -534,11 +534,11 @@ class MainConSeriesFrame(GenConSeriesFrame):
     def OnPopupPaste(self, event):                    # MainConSeriesFrame
         self._grid.OnPopupPaste(event)
 
-    def OnGridCellChanged(self, event):                    # MainConSeriesFrame
+    def OnGridCellChanged(self, event):               # MainConSeriesFrame
         self._grid.OnGridCellChanged(event)
 
     # ------------------
-    def OnClose(self, event):            # ConEditorFrame
+    def OnClose(self, event):                        # MainConSeriesFrame
         self.SetReturnCode(wx.OK)
 
         if self._fancydownloadfailed:
@@ -550,8 +550,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
                 if resp == wx.CANCEL:
                     event.Veto()
                     return
-
-        self.Destroy()
+        self.EndModal(0)
 
 
     def OnSetShowEmptyRadioBox(self, event):
