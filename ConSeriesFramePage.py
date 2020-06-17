@@ -373,20 +373,22 @@ class MainConSeriesFrame(GenConSeriesFrame):
             self._grid.Grid.SelectBlock(irow, col, irow, col)
             self.RefreshWindow()
 
+
     #------------------
     def OnPopupAllowEditCell(self, event):
         irow=self.rightClickedRow
         icol=self.rightClickedColumn
         self._allowCellEdits.append((irow, icol))   # Append a (row, col) tuple. This only lives for the life of this instance.
 
+
     # ------------------
     def OnGridEditorShown(self, event):
         irow=event.GetRow()
         icol=event.GetCol()
-        if self._grid.Datasource._coleditable[icol] == "no":
+        if self._grid.Datasource.ColEditable[icol] == "no":
             event.Veto()
             return
-        if self._grid.Datasource._coleditable[icol] == "maybe":
+        if self._grid.Datasource.ColEditable[icol] == "maybe":
             for it in self._allowCellEdits:
                 if irow == it[0] and icol == it[1]:
                     return
@@ -500,7 +502,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
             else:
                 self.m_popupDeleteConPage.Enabled=True
                 self.m_popupEditConPage.Enabled=True
-        if self._grid.Datasource._coleditable[icol] == "maybe":
+        if self._grid.Datasource.ColEditable[icol] == "maybe":
             self.m_popupAllowEditCell.Enabled=True
         self.PopupMenu(self.m_menuPopup)
 
