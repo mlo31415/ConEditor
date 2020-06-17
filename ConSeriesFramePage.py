@@ -392,7 +392,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
             for it in self._allowCellEdits:
                 if irow == it[0] and icol == it[1]:
                     return
-        event.Veto()
+            event.Veto()
         return
 
 
