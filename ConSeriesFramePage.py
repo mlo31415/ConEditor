@@ -43,10 +43,10 @@ class MainConSeriesFrame(GenConSeriesFrame):
         self._fancydownloadfailed: bool=False       # If a download from Fancyclopedia was attempted, did it fail? (This will be used to generate the return code)
 
         if len(conseriesname) == 0:
-            with ModalDialogManager(wx.TextEntryDialog, "Please enter the name of the Convention Series you wish to create.", "Enter Convention Series name") as dlg:
-                if dlg.ShowModal() == wx.CANCEL or len(dlg.GetValue().strip()) == 0:
-                    return
-                conseriesname=dlg.GetValue()
+            dlg=wx.TextEntryDialog(None, "Please enter the name of the Convention Series you wish to create.", "Enter Convention Series name")
+            if dlg.ShowModal() == wx.CANCEL or len(dlg.GetValue().strip()) == 0:
+                return
+            conseriesname=dlg.GetValue()
 
 
         self._seriesname: str=conseriesname
