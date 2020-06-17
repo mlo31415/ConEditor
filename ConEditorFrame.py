@@ -331,10 +331,10 @@ class ConEditorFrame(GenConEditorFrame):
     def OnGridEditorShown(self, event):
         irow=event.GetRow()
         icol=event.GetCol()
-        if self._grid.Datasource._coleditable[icol] == "no":
+        if self._grid.Datasource.ColEditable[icol] == "no":
             event.Veto()
             return
-        if self._grid.Datasource._coleditable[icol] == "maybe":
+        if self._grid.Datasource.ColEditablee[icol] == "maybe":
             for it in self._allowCellEdits:
                 if irow == it[0] and icol == it[1]:
                     return
