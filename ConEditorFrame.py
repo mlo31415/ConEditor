@@ -93,11 +93,11 @@ class ConList(GridDataSource):
 
     def FromJson(self, val: str) -> ConList:
         d=json.loads(val)
-        self._colheaders=d["_colheaders"]
-        self._coldatatypes=d["_coldatatypes"]
-        self._colminwidths=d["_colminwidths"]
-        if "_coleditable" in d.keys():
-            self._coleditable=d["_coleditable"]
+        # self._colheaders=d["_colheaders"]
+        # self._coldatatypes=d["_coldatatypes"]
+        # self._colminwidths=d["_colminwidths"]
+        # if "_coleditable" in d.keys():
+        #     self._coleditable=d["_coleditable"]
         self._conlist=[]
         i=0
         while str(i) in d.keys():       # Using str(i) is because json merges 1 and "1" as the same. (It appears to be a bug.)

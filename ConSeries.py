@@ -145,9 +145,9 @@ class ConSeries(GridDataSource):
 
     def FromJson(self, val: str) -> ConSeries:
         d=json.loads(val)
-        self._colheaders=d["_colheaders"]
-        self._coldatatypes=d["_coldatatypes"]
-        self._colminwidths=d["_colminwidths"]
+        # self._colheaders=d["_colheaders"]
+        # self._coldatatypes=d["_coldatatypes"]
+        # self._colminwidths=d["_colminwidths"]
         self._name=d["_name"]
         self._stuff=d["_stuff"]
         self._series=[]
