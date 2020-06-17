@@ -38,10 +38,10 @@ class ConFile:
         return self
 
     @property
-    def DisplayTitle(self) -> str:
+    def DisplayName(self) -> str:
         return self._displayTitle
-    @DisplayTitle.setter
-    def DisplayTitle(self, val: str):
+    @DisplayName.setter
+    def DisplayName(self, val: str):
         self._displayTitle=val
 
     @property
@@ -59,10 +59,17 @@ class ConFile:
         self._localpathname=val
 
     @property
-    def Filename(self) -> str:
+    def SiteFilename(self) -> str:
+        return self._sitefilename
+    @SiteFilename.setter
+    def SiteFilename(self, val: str):
+        self._sitefilename=val
+
+    @property
+    def SourceFilename(self) -> str:
         return self._localfilename
-    @Filename.setter
-    def Filename(self, val: str):
+    @SourceFilename.setter
+    def SourceFilename(self, val: str):
         self._localfilename=val
 
     @property
@@ -77,11 +84,11 @@ class ConFile:
     def GetVal(self, name: Union[str, int]) -> Union[str, int]:
         # (Could use return eval("self."+name))
         if name == "Source File Name" or name == 0:
-            return self.Filename  #TODO
+            return self.SourceFilename
         if name == "Site Name" or name == 1:
-            return self.DisplayTitle#TODO
+            return self.SiteFilename
         if name == "Display Name" or name == 2:
-            return self.DisplayTitle
+            return self.DisplayName
         if name == "Notes" or name == 3:
             return self.Notes
         return "Val can't interpret '"+str(name)+"'"
@@ -89,13 +96,13 @@ class ConFile:
     def SetVal(self, nameOrCol: Union[str, int], val: Union[str, int]) -> None:
         # (Could use return eval("self."+name))
         if nameOrCol == "Source File Name" or nameOrCol == 0:
-            self.Filename=val#TODO
+            self.SourceFilename=val#
             return
         if nameOrCol == "Site Name" or nameOrCol == 1:
-            self.DisplayTitle=val#TODO
+            self.SiteFilename=val
             return
         if nameOrCol == "Display Name" or nameOrCol == 2:
-            self.DisplayTitle=val
+            self.DisplayName=val
             return
         if nameOrCol == "Notes" or nameOrCol == 3:
             self.Notes=val

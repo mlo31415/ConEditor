@@ -101,9 +101,9 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             Settings().Put("Last FileDialog directory", dlg.GetDirectory())
             for fn in dlg.GetFilenames():
                 conf=ConFile()
-                conf.DisplayTitle=fn
+                conf.DisplayName=fn
                 conf.LocalPathname=os.path.join(os.path.join(dlg.Directory), fn)
-                conf.Filename=fn
+                conf.SourceFilename=fn
                 conf.Size=os.path.getsize(conf.LocalPathname)
                 self._grid.Datasource.Rows.append(conf)
                 self._grid.Datasource.Updated=True
@@ -177,15 +177,15 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             newtable+='  <tbody>\n'
             for i, row in enumerate(self._grid.Datasource.Rows):
                 newtable+="    <tr>\n"
-                if len(row.Filename) > 0:
-                    newtable+='      <td>'+FormatLink(row.Filename, row.DisplayTitle)+'</td>\n'
+                if len(row.SourceFilename) > 0:
+                    newtable+='      <td>'+FormatLink(row.SourceFilename, row.DisplayName)+'</td>\n'
                     if row.Size > 0:
                         newtable+='      <td>'+"{:,.1f}".format(row.Size/(1024**2))+'&nbsp;MB</td>\n'
                     else:
                         newtable+='      <td>--</td>\n'
                     newtable+='      <td>'+str(row.Notes)+'</td>\n'
                 else:
-                    newtable+='    <td><b>'+row.DisplayTitle+'</b></td>\n'
+                    newtable+='    <td><b>'+row.DisplayName+'</b></td>\n'
                 newtable+="    </tr>\n"
             newtable+="    </tbody>\n"
             newtable+="  </table>\n"
@@ -193,15 +193,15 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             # Construct a list which we'll then substitute.
             newtable="<ul>"
             for row in self._grid.Datasource.Rows:
-                if len(row.Filename) > 0:
-                    newtable+="    <li>"+FormatLink(row.Filename, row.DisplayTitle)
+                if len(row.SourceFilename) > 0:
+                    newtable+="    <li>"+FormatLink(row.SourceFilename, row.DisplayName)
                     if row.Size > 0:
                         newtable+="&nbsp;&nbsp;("+"{:,.1f}".format(row.Size/(1024**2))+'&nbsp;MB)</td>\n'
                     else:
                         newtable+='&nbsp;&nbsp;(--)\n'
                     newtable+="&nbsp;&nbsp;"+str(row.Notes)+"</li>\n"
                 else:
-                    newtable+='    </ul><b>'+row.DisplayTitle+'</b><ul>\n'
+                    newtable+='    </ul><b>'+row.DisplayName+'</b><ul>\n'
 
             newtable+="  </ul>\n"
 
@@ -215,13 +215,13 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
         # Finally, Upload any files which are newly added.
         for row in self._grid.Datasource.Rows:
-            if row.Filename is not None and len(row.Filename) > 0:
-                if not FTP().Exists(row.Filename):
-                    if not FTP().PutFile(row.LocalPathname, row.Filename):
+            if row.SourceFilename is not None and len(row.SourceFilename) > 0:
+                if not FTP().Exists(row.SourceFilename):
+                    if not FTP().PutFile(row.LocalPathname, row.SourceFilename):
                         Log("OnUploadConInstancePage: Putfile of "+row.LocalPathname+" failed")
 
         # And remove any that have been dropped.  (PDFs only, for now.)
-        files=[row.Filename for row in self._grid.Datasource.Rows]
+        files=[row.SourceFilename for row in self._grid.Datasource.Rows]
         fileupthere=FTP().g_ftp.nlst()
         for f in fileupthere:
             if f not in files:
