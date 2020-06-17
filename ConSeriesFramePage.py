@@ -390,7 +390,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
             return
         if self._grid.Datasource.ColEditable[icol] == "maybe":
             for it in self._allowCellEdits:
-                if irow == it[0] and icol == it[1]:
+                if (irow, icol) == it:
                     return
             event.Veto()
         return
