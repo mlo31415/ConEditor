@@ -236,7 +236,8 @@ class DataGrid():
         # If the column is not editable, color it light gray regardless of its value
         if self._datasource.ColEditable[col] == "no":
             self.SetCellBackgroundColor(row, col, Color.LightGray)
-
+        elif self._datasource.ColEditable[col] == "maybe" and (row, col) not in self._datasource.AllowCellEdits:
+            self.SetCellBackgroundColor(row, col, Color.LightGray)
         else:
             # If it *is* editable or potentially editable, then color it according to its value
             if self._datasource.ColDataTypes[col] == "int":
