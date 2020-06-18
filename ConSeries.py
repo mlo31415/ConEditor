@@ -157,8 +157,8 @@ class ConSeries(GridDataSource):
             self._series.append(Con().FromJson(d[str(i)]))
             i+=1
 
-        if "_coleditable" in d.keys():
-            self._coleditable=d["_coleditable"]
+        # if "_coleditable" in d.keys():
+        #     self._coleditable=d["_coleditable"]
 
         return self
 
