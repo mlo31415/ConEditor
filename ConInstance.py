@@ -118,7 +118,7 @@ class ConInstancePage(GridDataSource):
     _colheaders=["Source File Name", "Site Name", "Display Name", "Notes"]
     _colminwidths=[100, 75, 75, 150]
     _coldatatypes=["str", "str", "str", "str"]
-    _coleditable=["no", "yes", "yes", "yes"]
+    _coleditable=["no", "yes", "yes", "yes"]        # Choices are: yes, no, maybe
     _element=ConFile
 
     def __init__(self):
@@ -152,17 +152,16 @@ class ConInstancePage(GridDataSource):
             for c in cfld:
                 self._conFileList.append(ConFile().FromJson(c))
 
-        self._coleditable=["yes"]*len(self._colheaders)
-        if "_coleditable" in d.keys():
-            self._coleditable=d["_coleditable"]
+        # self._coleditable=["yes"]*len(self._colheaders)
+        # if "_coleditable" in d.keys():
+        #     self._coleditable=d["_coleditable"]
 
+        # if len(self._colheaders) == 2:  # Old-style had just two: "File" and "Notes".  We need to rename "File" and insert "Display Name" #TODO: Remove when no longer needed
+        #     self._colheaders=["File Name", "Display Name", "Notes"]
+        #     self._colminwidths=[50, 50, 200]
+        #     self._coldatatypes=["str", "str", "str"]
 
-        if len(self._colheaders) == 2:  # Old-style had just two: "File" and "Notes".  We need to rename "File" and insert "Display Name" #TODO: Remove when no longer needed
-            self._colheaders=["File Name", "Display Name", "Notes"]
-            self._colminwidths=[50, 50, 200]
-            self._coldatatypes=["str", "str", "str"]
-
-        self._colheaders=["Notes" if ch == "Description" else ch for ch in self._colheaders]    # Change Description column to Notes in old files #TODO: Remove when no longer needed
+        #self._colheaders=["Notes" if ch == "Description" else ch for ch in self._colheaders]    # Change Description column to Notes in old files #TODO: Remove when no longer needed
         self._updated=False
         return self
 
