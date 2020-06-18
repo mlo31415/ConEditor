@@ -37,7 +37,6 @@ class MainConSeriesFrame(GenConSeriesFrame):
         self._textFancyURL: str=""              # Linked to the Fancy URL text box
         self._textComments: str=""              # Linked to the comments text box
         self._basedirectoryFTP: str=basedirFTP
-        self._allowCellEdits: List[Tuple[int, int]]=[]     # A list of cells where editing has specifically been permitted
 
         self._updated: bool=False                   # Has the class been changed since it was last uploaded?
         self._fancydownloadfailed: bool=False       # If a download from Fancyclopedia was attempted, did it fail? (This will be used to generate the return code)
@@ -68,6 +67,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
             self.DownloadConSeries(conseriesname)
 
         self._updated=False     # Up to this point we have no new information
+        self._uploaded=False    # Set to true if the con series was uploaded to the website
         self.bUploadConSeries.Enabled=len(self._seriesname) > 0     # Enable only if a series name is present
 
         self.RefreshWindow()
@@ -100,6 +100,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
         self._updated=val
         if val == False:    # If we're setting the updated flag to False, set the grid's flag, too.
             self._grid.Datasource.Updated=False
+
 
     #------------------
     def ProgressMessage(self, s: str) -> None:                    # MainConSeriesFrame
@@ -216,7 +217,8 @@ class MainConSeriesFrame(GenConSeriesFrame):
         if not FTP().PutFileAsString("/"+self._seriesname, "index.html", file, create=True):
             wx.MessageBox("Upload failed")
 
-        self.Updated=False      # It was just saved
+        self.Updated=False      # It was just saved, so unless it's updated again, the dialog can exit without uploading
+        self._uploaded=True     # Something's been uploaded
         self.RefreshWindow()
 
     #------------------
@@ -228,6 +230,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
         wait=wx.BusyCursor()
         self.UploadConSeries()
         del wait    # End the wait cursor
+
 
 
     #--------------------------------------------
@@ -378,7 +381,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
     def OnPopupAllowEditCell(self, event):
         irow=self.rightClickedRow
         icol=self.rightClickedColumn
-        self._allowCellEdits.append((irow, icol))   # Append a (row, col) tuple. This only lives for the life of this instance.
+        self.AllowCellEdits.append((irow, icol))   # Append a (row, col) tuple. This only lives for the life of this instance.
 
 
     # ------------------
@@ -389,7 +392,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
             event.Veto()
             return
         if self._grid.Datasource.ColEditable[icol] == "maybe":
-            for it in self._allowCellEdits:
+            for it in self._grid.Datasource.AllowCellEdits:
                 if (irow, icol) == it:
                     return
             event.Veto()
@@ -399,10 +402,10 @@ class MainConSeriesFrame(GenConSeriesFrame):
     #------------------
     def EditConInstancePage(self, name: str, irow: int) -> None:
         if len(name) == 0:
-            with ModalDialogManager(wx.TextEntryDialog, "Please enter the name of the Convention Instance you wish to create.", "Enter Convention Instance name") as dlg:
-                if dlg.ShowModal() == wx.CANCEL or len(dlg.GetValue().strip()) == 0: # Do nothing if the user returns an empty string as name
-                    return
-                name=dlg.GetValue()
+            dlg=wx.TextEntryDialog(None, "Please enter the name of the Convention Instance you wish to create.", "Enter Convention Instance name")
+            if dlg.ShowModal() == wx.CANCEL or len(dlg.GetValue().strip()) == 0: # Do nothing if the user returns an empty string as name
+                return
+            name=dlg.GetValue()
 
         if irow >= self._grid.NumRows:
             self._grid.ExpandDataSourceToInclude(irow, 0)   # Add rows if needed
@@ -550,7 +553,14 @@ class MainConSeriesFrame(GenConSeriesFrame):
                 if resp == wx.CANCEL:
                     event.Veto()
                     return
-        self.EndModal(0)
+
+        # If anything was upladed to the website, then we return OK indicating something happened
+        if self._uploaded:
+            self.EndModal(wx.OK)
+            return
+
+        # Otherwise, we return Cancel
+        self.EndModal(wx.CANCEL)
 
 
     def OnSetShowEmptyRadioBox(self, event):

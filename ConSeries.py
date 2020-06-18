@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Optional, List, Union
+from typing import Optional, List, Union, Tuple
 import json
 
 from DataGrid import GridDataSource
@@ -129,6 +129,7 @@ class ConSeries(GridDataSource):
         self._series: List[Con]=[]
         self._stuff: str=""
         self._updated: bool=False
+        self._allowCellEdits: List[Tuple[int, int]]=[]     # A list of cells where editing has been permitted by overriding a "maybe" for the col
 
     # Serialize and deserialize
     def ToJson(self) -> str:
@@ -177,6 +178,11 @@ class ConSeries(GridDataSource):
     @property
     def ColEditable(self) -> List[str]:
         return ConSeries._coleditable
+
+    @property
+    def AllowCellEdits(self) -> List[Tuple[int, int]]:
+        return self._allowCellEdits
+
 
     @property
     def NumRows(self) -> int:

@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List, Union
+from typing import List, Union, Tuple
 
 import wx
 import wx.grid
@@ -42,6 +42,11 @@ class GridDataSource():
 
     @property
     def ColEditable(self) -> List[int]:
+        assert False
+        return []
+
+    @property
+    def AllowCellEdits(self) -> List[Tuple[int, int]]:
         assert False
         return []
 
@@ -256,6 +261,7 @@ class DataGrid():
     def ColorCellsByValue(self):        # Grid
         # Analyze the data and highlight cells where the data type doesn't match the header.  (E.g., Volume='August', Month='17', year='20')
         # Col 0 is a number and 3 is a date and the rest are strings.   We walk the rows checking the type of data in that column.
+        pass
         for iRow in range(self._grid.NumberRows):
             for iCol in range(self._grid.NumberCols):
                 self.ColorCellByValue(iRow, iCol)
@@ -271,7 +277,6 @@ class DataGrid():
         for i in range(self._datasource.NumRows):
             for j in range(len(self._datasource.ColHeaders)):
                 self.SetCellValue(i, j, self._datasource.GetData(i, j))
-                #Log("set grid("+str(i)+", "+str(j)+")="+self._datasource.GetData(i, j))
 
         self.ColorCellsByValue()
         self.AutoSizeColumns()

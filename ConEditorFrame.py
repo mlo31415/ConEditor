@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Optional, List, Union
+from typing import Optional, List, Union, Tuple
 
 import os
 import sys
@@ -78,6 +78,7 @@ class ConList(GridDataSource):
         self._conlist: List[Convention]=[]
         self._updated: bool=False
         self._toptext: str=""
+        self._allowCellEdits: List[Tuple[int, int]]=[]     # A list of cells where editing has been permitted by overriding a "maybe" for the col
 
     # Serialize and deserialize
     def ToJson(self) -> str:
@@ -162,8 +163,6 @@ class ConEditorFrame(GenConEditorFrame):
         self.cntlDown: bool=False
         self.clickedColumn: Optional[int]=None
         self._baseDirFTP: str=""
-
-        self._allowCellEdits=[]     # A list of cells where editing has specifically been permitted
 
         self._grid: DataGrid=DataGrid(self.gRowGrid)
         self._grid.Datasource=ConList()
@@ -335,7 +334,7 @@ class ConEditorFrame(GenConEditorFrame):
             event.Veto()
             return
         if self._grid.Datasource.ColEditablee[icol] == "maybe":
-            for it in self._allowCellEdits:
+            for it in self._grid.Datasource.AllowCellEdits:
                 if irow == it[0] and icol == it[1]:
                     return
         event.Veto()
