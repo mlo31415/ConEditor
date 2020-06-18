@@ -65,6 +65,10 @@ class Convention:
     def URL(self, val: str) -> None:
         self._URL=val
 
+    @property
+    def IsText(self) -> bool:
+        return False
+
 
 
 class ConList(GridDataSource):

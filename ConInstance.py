@@ -1,6 +1,7 @@
 from __future__ import annotations
-from typing import List, Union
-from DataGrid import GridDataSource
+from typing import List, Union, Optional
+
+from DataGrid import GridDataSource, Color
 import json
 
 # An individual file to be listed under a convention
@@ -12,15 +13,17 @@ class ConFile:
         self._localpathname: str="."    # The local pathname of the source file (path+filename)
         self._sitefilename: str=""      # The name to be used for this file on the website
         self._size: int=0               # The file's size in bytes
+        self._isText: bool=False        # Is this a piece of text rather than a convention?
 
     # Serialize and deserialize
     def ToJson(self) -> str:
-        d={"ver": 5,
+        d={"ver": 6,
            "_displayTitle": self._displayTitle,
            "_notes": self._notes,
            "_localpathname": self._localpathname,
            "_filename": self._localfilename,
            "_sitefilename": self._sitefilename,
+           "_isText": self._isText,
            "_size": self._size}
         return json.dumps(d)
 
@@ -35,6 +38,8 @@ class ConFile:
             self._sitefilename=d["_sitefilename"]
         else:
             self._sitefilename=self._localfilename
+        if d["ver"] > 5:
+            self._isText=d["_isText"]
         return self
 
     @property
@@ -78,6 +83,14 @@ class ConFile:
     @Size.setter
     def Size(self, val: int):
         self._size=val
+
+    @property
+    def IsText(self) -> bool:
+        return self._isText
+    @IsText.setter
+    def IsText(self, val: bool) -> None:
+        self._isText=val
+
 
 
     # Get or set a value by name or column number in the grid
@@ -123,8 +136,9 @@ class ConInstancePage(GridDataSource):
 
     def __init__(self):
         self._conFileList: List[ConFile]=[]
-        self._name=""
-        self._updated=False
+        self._name: str=""
+        self._updated: bool=False
+        self._specialTextColor: Optional[Color]=Color.LightGreen
 
     # Serialize and deserialize
     def ToJson(self) -> str:
@@ -163,7 +177,7 @@ class ConInstancePage(GridDataSource):
         return self._colminwidths
 
     @property
-    def ColEditable(self) -> List[int]:
+    def ColEditable(self) -> List[str]:
         return self._coleditable
 
     @property
@@ -200,4 +214,9 @@ class ConInstancePage(GridDataSource):
     def Updated(self, val: bool) -> None:
         self._updated=val
 
-
+    @property
+    def SpecialTextColor(self) -> Optional[Color]:
+        return self._specialTextColor
+    @SpecialTextColor.setter
+    def SpecialTextColor(self, val: Optional[Color]) -> None:
+        self._specialTextColor=val

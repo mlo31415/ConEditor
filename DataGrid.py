@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List, Union, Tuple
+from typing import List, Union, Tuple, Optional
 
 import wx
 import wx.grid
@@ -19,6 +19,7 @@ class Color:
      LightGray=wx.Colour(242, 242, 242)
      White=wx.Colour(255, 255, 255)
 
+# An abstract class which defines the structure of a data source for the Grid class
 class GridDataSource():
 
     @property
@@ -90,6 +91,16 @@ class GridDataSource():
     def CanEditColumnHeaders(self) -> bool:
         return False            # Override this if editing the column headers is allowed
 
+    @property
+    def IsText(self, row: int) -> bool:
+        return False            # Override only if needed
+
+    @property
+    def SpecialTextColor(self) -> Optional[Color]:
+        return None
+    @SpecialTextColor.setter
+    def SpecialTextColor(self, val: Optional[Color]) -> None:
+        return
 
 
 ################################################################################
@@ -231,15 +242,20 @@ class DataGrid():
             return
 
         val=self._grid.GetCellValue(row, col)
-        # We skip testing for "str"-type columns since anything at all is OK in a str column
+
+        # If the row is a text row and if there's a special text color, color it thus
+        if row < self._datasource.NumRows and self._datasource.Rows[row].IsText and self._datasource.SpecialTextColor is not None:
+            self.SetCellBackgroundColor(row, col, self._datasource.SpecialTextColor)
 
         # If the column is not editable, color it light gray regardless of its value
-        if self._datasource.ColEditable[col] == "no":
+        elif self._datasource.ColEditable[col] == "no":
             self.SetCellBackgroundColor(row, col, Color.LightGray)
         elif self._datasource.ColEditable[col] == "maybe" and (row, col) not in self._datasource.AllowCellEdits:
             self.SetCellBackgroundColor(row, col, Color.LightGray)
+
         else:
             # If it *is* editable or potentially editable, then color it according to its value
+            # We skip testing for "str"-type columns since anything at all is OK in a str column
             if self._datasource.ColDataTypes[col] == "int":
                 if val is not None and val != "" and not IsInt(val):
                     self.SetCellBackgroundColor(row, col, Color.Pink)
@@ -250,7 +266,7 @@ class DataGrid():
                 if val is not None and val != "" and FanzineDate().Match(val).IsEmpty():
                     self.SetCellBackgroundColor(row, col, Color.Pink)
 
-        # Special handling for URLs
+        # Special handling for URLs: we add an underline
         if self._datasource.ColDataTypes[col] == "url":
             if val is not None and val != "" and len(self._datasource.Rows[row].URL) > 0:
                 self._grid.SetCellTextColour(row, col, Color.Blue)

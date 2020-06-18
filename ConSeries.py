@@ -84,6 +84,10 @@ class Con:
     def URL(self, val: str):
         self._URL=val
 
+    @property
+    def IsText(self) -> bool:
+        return False
+
     # Get or set a value by name or column number
     def GetVal(self, name: Union[str, int]) -> Union[str, int, FanzineDateRange]:
         # (Could use return eval("self."+name))

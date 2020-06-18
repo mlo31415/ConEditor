@@ -40,6 +40,8 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         if val is not None:
             self.radioBoxFileListFormat.SetSelection(int(val))
 
+        self._grid.Datasource.SpecialTextColor=Color.LightGreen
+
         self.DownloadConInstancePage()
 
         self.RefreshWindow()
