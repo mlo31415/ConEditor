@@ -131,11 +131,7 @@ class ConInstancePage(GridDataSource):
         dl=[]
         for con in self._conFileList:
             dl.append(con.ToJson())
-        d={"ver": 2,
-           "_colheaders": self._colheaders,
-           "_colminwidths": self._colminwidths,
-           "_coldatatypes": self._coldatatypes,
-           "_coleditable": self._coleditable,
+        d={"ver": 3,
            "_name": self._name,
            "_conFileList": dl}
         return json.dumps(d)
@@ -143,25 +139,12 @@ class ConInstancePage(GridDataSource):
     def FromJson(self, val: str) -> ConInstancePage:
         d=json.loads(val)
         if d["ver"] >= 1:
-            #self._colheaders=d["_colheaders"]
-            #self._colminwidths=d["_colminwidths"]
-            #self._coldatatypes=d["_coldatatypes"]
             self._name=d["_name"]
             cfld=d["_conFileList"]
             self._conFileList=[]
             for c in cfld:
                 self._conFileList.append(ConFile().FromJson(c))
 
-        # self._coleditable=["yes"]*len(self._colheaders)
-        # if "_coleditable" in d.keys():
-        #     self._coleditable=d["_coleditable"]
-
-        # if len(self._colheaders) == 2:  # Old-style had just two: "File" and "Notes".  We need to rename "File" and insert "Display Name" #TODO: Remove when no longer needed
-        #     self._colheaders=["File Name", "Display Name", "Notes"]
-        #     self._colminwidths=[50, 50, 200]
-        #     self._coldatatypes=["str", "str", "str"]
-
-        #self._colheaders=["Notes" if ch == "Description" else ch for ch in self._colheaders]    # Change Description column to Notes in old files #TODO: Remove when no longer needed
         self._updated=False
         return self
 
