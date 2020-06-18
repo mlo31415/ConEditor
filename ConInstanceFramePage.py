@@ -76,6 +76,14 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             self._grid.Datasource.Updated=False
 
 
+    @property
+    def Uploaded(self) -> bool:
+        return self._uploaded
+    @Uploaded.setter
+    def Uploaded(self, val: bool) -> None:
+        self._uploaded=val
+
+
     def OnAddFilesButton(self, event):
         self.AddFiles()
 
@@ -125,7 +133,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
                     event.Veto()
                     return
 
-        if self._grid.Datasource.NumRows > 0 or self._uploaded:
+        if self.Uploaded:
             self.ReturnValue=wx.ID_OK
         if self.ReturnValue is None:
             self.ReturnValue=wx.ID_CANCEL
@@ -233,7 +241,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self.ProgressMessage("Upload succeeded: /"+self._seriesname+"/"+self._coninstancename+"/index.html")
         Log("Upload succeeded: /"+self._seriesname+"/"+self._coninstancename+"/index.html")
         self.Updated=False
-        self._uploaded=True
+        self.Uploaded=True
         self.RefreshWindow()
 
 
