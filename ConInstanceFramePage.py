@@ -188,7 +188,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             newtable+='  <tbody>\n'
             for i, row in enumerate(self._grid.Datasource.Rows):
                 newtable+="    <tr>\n"
-                if len(row.SourceFilename) > 0:
+                if not row.IsText:
                     newtable+='      <td>'+FormatLink(row.SourceFilename, row.DisplayName)+'</td>\n'
                     if row.Size > 0:
                         newtable+='      <td>'+"{:,.1f}".format(row.Size/(1024**2))+'&nbsp;MB</td>\n'
@@ -196,7 +196,8 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
                         newtable+='      <td>--</td>\n'
                     newtable+='      <td>'+str(row.Notes)+'</td>\n'
                 else:
-                    newtable+='    <td><b>'+row.DisplayName+'</b></td>\n'
+                    text=row.SourceFilename+" "+row.SiteFilename+" "+row.DisplayName+" "+row.Notes
+                    newtable+='    <td><i><b>'+text.strip()+'</b></i></td>\n'
                 newtable+="    </tr>\n"
             newtable+="    </tbody>\n"
             newtable+="  </table>\n"
@@ -204,7 +205,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             # Construct a list which we'll then substitute.
             newtable="<ul>"
             for row in self._grid.Datasource.Rows:
-                if len(row.SourceFilename) > 0:
+                if not row.IsText:
                     newtable+="    <li>"+FormatLink(row.SourceFilename, row.DisplayName)
                     if row.Size > 0:
                         newtable+="&nbsp;&nbsp;("+"{:,.1f}".format(row.Size/(1024**2))+'&nbsp;MB)</td>\n'
@@ -212,7 +213,8 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
                         newtable+='&nbsp;&nbsp;(--)\n'
                     newtable+="&nbsp;&nbsp;"+str(row.Notes)+"</li>\n"
                 else:
-                    newtable+='    </ul><b>'+row.DisplayName+'</b><ul>\n'
+                    text=row.SourceFilename+" "+row.SiteFilename+" "+row.DisplayName+" "+row.Notes
+                    newtable+='    </ul><b>'+text.strip()+'</b><ul>\n'
 
             newtable+="  </ul>\n"
 
