@@ -46,42 +46,42 @@ class ConFile:
     def DisplayName(self) -> str:
         return self._displayTitle
     @DisplayName.setter
-    def DisplayName(self, val: str):
+    def DisplayName(self, val: str) -> None:
         self._displayTitle=val
 
     @property
     def Notes(self) -> str:
         return self._notes
     @Notes.setter
-    def Notes(self, val: str):
+    def Notes(self, val: str) -> None:
         self._notes=val
 
     @property
     def LocalPathname(self) -> str:
         return self._localpathname
     @LocalPathname.setter
-    def LocalPathname(self, val: str):
+    def LocalPathname(self, val: str) -> None:
         self._localpathname=val
 
     @property
     def SiteFilename(self) -> str:
         return self._sitefilename
     @SiteFilename.setter
-    def SiteFilename(self, val: str):
+    def SiteFilename(self, val: str) -> None:
         self._sitefilename=val
 
     @property
     def SourceFilename(self) -> str:
         return self._localfilename
     @SourceFilename.setter
-    def SourceFilename(self, val: str):
+    def SourceFilename(self, val: str) -> None:
         self._localfilename=val
 
     @property
     def Size(self) -> int:
         return self._size
     @Size.setter
-    def Size(self, val: int):
+    def Size(self, val: int) -> None:
         self._size=val
 
     @property
