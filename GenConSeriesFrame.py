@@ -53,8 +53,8 @@ class GenConSeriesFrame ( wx.Dialog ):
 		fgSizer8.Fit( self.m_panel2 )
 		fgSizer6.Add( self.m_panel2, 1, wx.EXPAND |wx.ALL, 5 )
 
-		self.bCreateConSeries = wx.Button( self, wx.ID_ANY, u"Load New ConSeries from Fancy 3", wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer6.Add( self.bCreateConSeries, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+		self.bLoadSeriesFromFancy = wx.Button( self, wx.ID_ANY, u"Load New ConSeries from Fancy 3", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer6.Add( self.bLoadSeriesFromFancy, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
 
 		bSizerMainBox.Add( fgSizer6, 0, wx.EXPAND, 5 )
@@ -188,7 +188,7 @@ class GenConSeriesFrame ( wx.Dialog ):
 		self.Bind( wx.EVT_CLOSE, self.OnClose )
 		self.bUploadConSeries.Bind( wx.EVT_BUTTON, self.OnUploadConSeries )
 		self.m_radioBoxShowEmpty.Bind( wx.EVT_RADIOBOX, self.OnSetShowEmptyRadioBox )
-		self.bCreateConSeries.Bind( wx.EVT_BUTTON, self.OnCreateConSeries )
+		self.bLoadSeriesFromFancy.Bind( wx.EVT_BUTTON, self.OnLoadSeriesFromFancy )
 		self.tConSeries.Bind( wx.EVT_KEY_UP, self.ConTextConSeriesKeyUp )
 		self.tConSeries.Bind( wx.EVT_TEXT, self.OnTextConSeriesName )
 		self.tFancyURL.Bind( wx.EVT_TEXT, self.OnTextFancyURL )
@@ -220,7 +220,7 @@ class GenConSeriesFrame ( wx.Dialog ):
 	def OnSetShowEmptyRadioBox( self, event ):
 		event.Skip()
 
-	def OnCreateConSeries( self, event ):
+	def OnLoadSeriesFromFancy( self, event ):
 		event.Skip()
 
 	def ConTextConSeriesKeyUp( self, event ):
@@ -276,3 +276,5 @@ class GenConSeriesFrame ( wx.Dialog ):
 
 	def GenConSeriesFrameOnContextMenu( self, event ):
 		self.PopupMenu( self.m_menuPopup, event.GetPosition() )
+
+

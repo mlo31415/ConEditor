@@ -330,7 +330,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
     #------------------
     # Create a new, empty, con series
-    def OnCreateConSeries(self, event):                    # MainConSeriesFrame
+    def OnLoadSeriesFromFancy(self, event):                    # MainConSeriesFrame
         self.DownloadConSeriesFromFancy(self.tConSeries.GetValue())
 
     def DownloadConSeriesFromFancy(self, seriesname: str):
@@ -360,8 +360,8 @@ class MainConSeriesFrame(GenConSeriesFrame):
         self.Title=s
         if self.tConSeries.GetValue() != self._seriesname:  # Done as a conditional so as to not trigger unnecessary OnUpdates
             self.tConSeries.SetValue(self._seriesname)
-        self.bUploadConSeries.Enabled=self.Updated
-        self.bCreateConSeries .Enabled=self._grid.Datasource.NumRows == 0  # If any con instances have been created, don't offer a download from Fancy
+        self.bUploadConSeries.Enabled=self.Updated      # Don't offer to upload unless something has changed
+        self.bLoadSeriesFromFancy .Enabled=self._grid.Datasource.NumRows == 0  # If any con instances have been created, don't offer a download from Fancy
 
 
     #------------------
