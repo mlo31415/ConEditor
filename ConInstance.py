@@ -139,7 +139,7 @@ class ConInstancePage(GridDataSource):
         self._conFileList: List[ConFile]=[]
         self._name: str=""
         self.Updated: bool=False   # In base class
-        self._specialTextColor: Optional[Color]=Color.LightGreen
+        self._specialTextColor: Optional[Color]=None
 
 
     # Serialize and deserialize
