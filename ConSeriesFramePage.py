@@ -412,7 +412,8 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
 
         with ModalDialogManager(MainConInstanceDialogClass, self._basedirectoryFTP+"/"+self._seriesname, self._seriesname, name) as dlg:
-            dlg.tConInstanceName.SetValue(name)
+            if dlg.tConInstanceName.GetValue() != name:
+                dlg.tConInstanceName.SetValue(name)
 
             # Construct a description of the convention from the information in the con series entry, if any.
             if irow < self._grid.Datasource.NumRows:
@@ -436,8 +437,9 @@ class MainConSeriesFrame(GenConSeriesFrame):
                         description+="  The GoHs were "+gohs
                     else:
                         description+="  The GoH was "+gohs
-                dlg.topText.SetValue(description)
+                self.ConInstanceStuff=description
 
+            self.Updated=False
             dlg.ShowModal()
             cal=dlg.ReturnValue
             if cal == wx.ID_OK:
@@ -470,7 +472,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
     def OnTextFancyURL(self, event):                    # MainConSeriesFrame
         self._textFancyURL=self.tFancyURL.GetValue()
         self.Updated=True
-        #self.RefreshWindow()
+        self.RefreshWindow()
 
     #------------------
     def OnTextConSeriesName( self, event ):                    # MainConSeriesFrame

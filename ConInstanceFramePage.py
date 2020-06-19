@@ -74,6 +74,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
     @Updated.setter
     def Updated(self, val: bool) -> None:
         self._updated=val
+        Log("_updated="+str(val))
         if val == False:    # If we're setting the updated flag to False, set the grid's flag, too.
             self._grid.Datasource.Updated=False
 
@@ -271,7 +272,6 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             self.FromJson(j)
 
         self.Title="Editing "+self._coninstancename
-        self.tConInstanceFancyURL.SetValue(self.ConInstanceFancyURL)
         self.m_textPhotosURL.SetValue(self.ConInstancePhotoURL)
 
         self.ProgressMessage(self._FTPbasedir+"/"+self._coninstancename+"/index.html downloaded")
@@ -384,10 +384,8 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
     # ------------------
     def OnTextConInstanceNameKeyUp(self, event):
-        self.tConInstanceFancyURL.SetValue("fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.tConInstanceName.GetValue()))
-        self.Updated=True
+        self.ConInstanceFancyURL="fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.tConInstanceName.GetValue())
         self.RefreshWindow()
-
 
     # ------------------
     def OnTextConInstanceFancyURL(self, event):
@@ -410,7 +408,6 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
     # ------------------
     def OnRadioFileListFormat(self, event):
         Settings().Put("ConInstanceFramePage:File list format", str(self.radioBoxFileListFormat.GetSelection()))
-        self.Updated=True
 
     #------------------
     def RefreshWindow(self) -> None:
