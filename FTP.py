@@ -239,14 +239,18 @@ class FTP:
             return False
 
         Log("STOR "+toname+"  from "+pathname)
-        with open(pathname, "rb") as f:
-            try:
-                Log(self.g_ftp.storbinary("STOR "+toname, f))
-            except Exception as e:
-                Log("FTP connection failure. Exception="+str(e))
-                if not self.Reconnect():
-                    return False
-                Log(self.g_ftp.storbinary("STOR "+toname, f))
+        try:
+            with open(pathname, "rb") as f:
+                try:
+                    Log(self.g_ftp.storbinary("STOR "+toname, f))
+                except Exception as e:
+                    Log("FTP connection failure. Exception="+str(e))
+                    if not self.Reconnect():
+                        return False
+                    Log(self.g_ftp.storbinary("STOR "+toname, f))
+        except Exception as e:
+            Log("FTP.PutFile: Exception on Open("+pathname+" 'rb') ")
+            Log(str(e))
         return True
 
 
