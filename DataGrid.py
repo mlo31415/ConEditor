@@ -316,7 +316,7 @@ class DataGrid():
         # Fill in the cells
         for i in range(self._datasource.NumRows):
             if self._datasource.Rows[i].IsText:
-                self._grid.SetCellSize(i, 0, 1, self.Numcols)
+                self._grid.SetCellSize(i, 0, 1, self.Numcols)   # Make text rows all one cell
             for j in range(len(self._datasource.ColHeaders)):
                 self.SetCellValue(i, j, self._datasource.GetData(i, j))
 
