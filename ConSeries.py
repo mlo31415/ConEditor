@@ -129,11 +129,11 @@ class ConSeries(GridDataSource):
     _element=Con
 
     def __init__(self):
+        GridDataSource.__init__(self)
         self._name: str=""
         self._series: List[Con]=[]
         self._stuff: str=""
         self._updated: bool=False
-        self._allowCellEdits: List[Tuple[int, int]]=[]     # A list of cells where editing has been permitted by overriding a "maybe" for the col
 
     # Serialize and deserialize
     def ToJson(self) -> str:
@@ -182,10 +182,6 @@ class ConSeries(GridDataSource):
     @property
     def ColEditable(self) -> List[str]:
         return ConSeries._coleditable
-
-    @property
-    def AllowCellEdits(self) -> List[Tuple[int, int]]:
-        return self._allowCellEdits
 
 
     @property

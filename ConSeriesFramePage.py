@@ -381,7 +381,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
     def OnPopupAllowEditCell(self, event):
         irow=self.rightClickedRow
         icol=self.rightClickedColumn
-        self.AllowCellEdits.append((irow, icol))   # Append a (row, col) tuple. This only lives for the life of this instance.
+        self._grid.Datasource.AllowCellEdits.append((irow, icol))   # Append a (row, col) tuple. This only lives for the life of this instance.
 
 
     # ------------------

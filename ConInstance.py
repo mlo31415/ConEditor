@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List, Union, Optional
+from typing import List, Union, Optional, Tuple
 
 from DataGrid import GridDataSource, Color
 import json
@@ -135,10 +135,12 @@ class ConInstancePage(GridDataSource):
     _element=ConFile
 
     def __init__(self):
+        GridDataSource.__init__(self)
         self._conFileList: List[ConFile]=[]
         self._name: str=""
         self._updated: bool=False
         self._specialTextColor: Optional[Color]=Color.LightGreen
+
 
     # Serialize and deserialize
     def ToJson(self) -> str:
@@ -220,3 +222,4 @@ class ConInstancePage(GridDataSource):
     @SpecialTextColor.setter
     def SpecialTextColor(self, val: Optional[Color]) -> None:
         self._specialTextColor=val
+

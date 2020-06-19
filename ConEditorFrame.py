@@ -79,10 +79,10 @@ class ConList(GridDataSource):
     _element=Convention
 
     def __init__(self):
+        GridDataSource.__init__(self)
         self._conlist: List[Convention]=[]
         self._updated: bool=False
         self._toptext: str=""
-        self._allowCellEdits: List[Tuple[int, int]]=[]     # A list of cells where editing has been permitted by overriding a "maybe" for the col
 
     # Serialize and deserialize
     def ToJson(self) -> str:

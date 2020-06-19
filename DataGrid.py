@@ -22,6 +22,10 @@ class Color:
 # An abstract class which defines the structure of a data source for the Grid class
 class GridDataSource():
 
+    def __init__(self):
+        self._allowCellEdits: List[Tuple[int, int]]=[]     # A list of cells where editing has been permitted by overriding a "maybe" for the col
+
+
     @property
     def Element(self):
         return self._element
@@ -48,8 +52,7 @@ class GridDataSource():
 
     @property
     def AllowCellEdits(self) -> List[Tuple[int, int]]:
-        assert False
-        return []
+        return self._allowCellEdits
 
     @property
     def NumRows(self) -> int:
@@ -101,6 +104,8 @@ class GridDataSource():
     @SpecialTextColor.setter
     def SpecialTextColor(self, val: Optional[Color]) -> None:
         return
+
+
 
 
 ################################################################################
@@ -204,6 +209,7 @@ class DataGrid():
         if irow < self._datasource.NumRows-1:
             newrows.extend(rows[irow:])
         self._datasource.Rows=newrows
+        #TODO: This also needs to update editable status of non-editable cols
 
     def AppendEmptyCols(self, ncols: int) -> None:        # Grid
         self._grid.AppendCols(ncols)
