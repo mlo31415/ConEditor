@@ -405,20 +405,19 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
 
     #------------------
-    def EditConInstancePage(self, name: str, irow: int) -> None:
-        if len(name) == 0:
+    def EditConInstancePage(self, instancename: str, irow: int) -> None:
+        if len(instancename) == 0:
             dlg=wx.TextEntryDialog(None, "Please enter the name of the Convention Instance you wish to create.", "Enter Convention Instance name")
             if dlg.ShowModal() == wx.CANCEL or len(dlg.GetValue().strip()) == 0: # Do nothing if the user returns an empty string as name
                 return
-            name=dlg.GetValue()
+            instancename=dlg.GetValue()
 
         if irow >= self._grid.NumRows:
             self._grid.ExpandDataSourceToInclude(irow, 0)   # Add rows if needed
 
 
-        with ModalDialogManager(MainConInstanceDialogClass, self._basedirectoryFTP+"/"+self._seriesname, self._seriesname, name) as dlg:
-            if dlg.tConInstanceName.GetValue() != name:
-                dlg.tConInstanceName.SetValue(name)
+        with ModalDialogManager(MainConInstanceDialogClass, self._basedirectoryFTP+"/"+self._seriesname, self._seriesname, instancename) as dlg:
+            dlg.ConInstanceName=instancename
 
             # Construct a description of the convention from the information in the con series entry, if any.
             if irow < self._grid.Datasource.NumRows:
@@ -429,7 +428,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
                 locale=None
                 if row.Locale is not None and len(row.Locale) > 0:
                     locale=row.Locale
-                description=name
+                description=instancename
                 if dates is not None and locale is not None:
                     description+=" was held "+dates+" in "+locale+"."
                 elif dates is not None:
