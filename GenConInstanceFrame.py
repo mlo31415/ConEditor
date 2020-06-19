@@ -154,7 +154,7 @@ class GenConInstanceFrame ( wx.Dialog ):
 		self.m_popupAddFiles = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Add Files", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_menuPopup.Append( self.m_popupAddFiles )
 
-		self.m_popupDeleteFile = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Delete File(s)", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_popupDeleteFile = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Delete Selected Row(s)", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_menuPopup.Append( self.m_popupDeleteFile )
 
 		self.m_popupInsertText = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Insert Text Line", wx.EmptyString, wx.ITEM_NORMAL )
