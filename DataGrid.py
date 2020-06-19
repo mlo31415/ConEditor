@@ -55,6 +55,10 @@ class GridDataSource():
         return self._allowCellEdits
 
     @property
+    def NumCols(self) -> int:
+        return len(self.ColHeaders)
+
+    @property
     def NumRows(self) -> int:
         assert False
         return -1
@@ -105,7 +109,12 @@ class GridDataSource():
     def SpecialTextColor(self, val: Optional[Color]) -> None:
         return
 
-
+    def MakeTextLinesEditable(self) -> None:
+        for irow, row in enumerate(self.Rows):
+            if row.IsText:
+                for icol in range(self.NumCols):
+                    if self.ColEditable[icol] == "maybe":
+                        self.AllowCellEdits.append((irow, icol))
 
 
 ################################################################################

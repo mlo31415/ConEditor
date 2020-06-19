@@ -131,7 +131,7 @@ class ConInstancePage(GridDataSource):
     _colheaders=["Source File Name", "Site Name", "Display Name", "Notes"]
     _colminwidths=[100, 75, 75, 150]
     _coldatatypes=["str", "str", "str", "str"]
-    _coleditable=["no", "yes", "yes", "yes"]        # Choices are: yes, no, maybe
+    _coleditable=["maybe", "yes", "yes", "yes"]        # Choices are: yes, no, maybe
     _element=ConFile
 
     def __init__(self):
@@ -160,6 +160,8 @@ class ConInstancePage(GridDataSource):
             self._conFileList=[]
             for c in cfld:
                 self._conFileList.append(ConFile().FromJson(c))
+
+        self.MakeTextLinesEditable()
 
         self._updated=False
         return self

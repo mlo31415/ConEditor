@@ -94,6 +94,7 @@ class ConList(GridDataSource):
         for i, s in enumerate(self._conlist):
             d[i]=s.ToJson()
 
+        self.MakeTextLinesEditable()
         return json.dumps(d)
 
     def FromJson(self, val: str) -> ConList:

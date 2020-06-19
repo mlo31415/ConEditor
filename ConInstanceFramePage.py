@@ -358,6 +358,22 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
     def OnGridCellChanged(self, event):
         self._grid.OnGridCellChanged(event)
 
+
+    # ------------------
+    def OnGridEditorShown(self, event):
+        irow=event.GetRow()
+        icol=event.GetCol()
+        if self._grid.Datasource.ColEditable[icol] == "no":
+            event.Veto()
+            return
+        if self._grid.Datasource.ColEditable[icol] == "maybe":
+            for it in self._grid.Datasource.AllowCellEdits:
+                if (irow, icol) == it:
+                    return
+            event.Veto()
+        return
+
+
     # ------------------
     def OnTextConInstanceName(self, event):
         self.ConInstanceName=self.tConInstanceName.GetValue()
@@ -368,11 +384,6 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self.Updated=True
         self.RefreshWindow()
 
-    # ------------------
-    def OnGridEditorShown(self, event):
-        icol=event.GetCol()
-        if icol == 0:   # Don't allow editing of the 1st column
-            event.Veto()
 
     # ------------------
     def OnTextConInstanceFancyURL(self, event):
