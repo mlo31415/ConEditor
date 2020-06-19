@@ -327,6 +327,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self._grid.ExpandDataSourceToInclude(irow, 0)
         self._grid.InsertEmptyRows(irow, 1)
         self._grid.Datasource.Rows[irow].IsText=True
+        self._grid._grid.SetCellSize(irow, 0, 1, self._grid.Numcols)
         for icol in range(self._grid.Numcols):
             self._grid.Datasource.AllowCellEdits.append((irow, icol))
         self._grid.Datasource.Updated=True

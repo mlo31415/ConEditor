@@ -106,6 +106,7 @@ class GridDataSource():
     def SpecialTextColor(self, val: Optional[Color]) -> None:
         return
 
+    # Make text lines to be merged and editable
     def MakeTextLinesEditable(self) -> None:
         for irow, row in enumerate(self.Rows):
             if row.IsText:
@@ -125,23 +126,24 @@ class DataGrid():
         self.cntlDown=False         # There's no cntl-key currently down
 
 
+    # --------------------------------------------------------
     # Set a value in the source data using logical coordinates
     # Note that we can handle irow== -1 indicating a column header
-    def SetSourceValue(self, iRow: int, iCol: int, val) -> None:        # Grid
-        assert iCol > -1
-        self.ExpandDataSourceToInclude(iRow, iCol)
-
-        if iRow == -1:
-            self._datasource.ColHeaders[iCol]=val
-            self._datasource.Updated=True
-            return
-
-        c=self._datasource.Rows[iRow]
-        try:
-            c.SetVal(c, iCol, val)
-            self._datasource.Updated=True
-        except:
-            pass
+    # def SetSourceValue(self, iRow: int, iCol: int, val) -> None:        # Grid
+    #     assert iCol > -1
+    #     self.ExpandDataSourceToInclude(iRow, iCol)
+    #
+    #     if iRow == -1:
+    #         self._datasource.ColHeaders[iCol]=val
+    #         self._datasource.Updated=True
+    #         return
+    #
+    #     c=self._datasource.Rows[iRow]
+    #     try:
+    #         c.SetVal(c, iCol, val)
+    #         self._datasource.Updated=True
+    #     except:
+    #         pass
 
 
     # Set a grid cell value
@@ -163,13 +165,14 @@ class DataGrid():
 
         self._grid.SetCellValue(iRow, iCol, val)
 
-
+    # --------------------------------------------------------
     # Get a cell value
     # Note that this does not change the underlying data
     def Get(self, row: int, col: int) -> str:
         return self._grid.GetCellValue(row, col)
 
 
+    # --------------------------------------------------------
     @property
     # Get the number of columns
     def Numcols(self) -> int:
@@ -184,10 +187,12 @@ class DataGrid():
         else:
             self._grid.AppendCols(nCols, self._grid.NumberCols-nCols)
 
+    # --------------------------------------------------------
     @property
     def NumRows(self) -> int:
         return self._grid.NumberRows
 
+    # --------------------------------------------------------
     @property
     def Datasource(self) -> GridDataSource:
         return self._datasource
@@ -195,16 +200,20 @@ class DataGrid():
     def Datasource(self, val: GridDataSource):
         self._datasource=val
 
+    # --------------------------------------------------------
     @property
     def Grid(self):        # Grid
         return self._grid
 
+    # --------------------------------------------------------
     def AppendRows(self, rows: int) -> None:        # Grid
         assert False
 
+    # --------------------------------------------------------
     def AppendEmptyRows(self, nrows: int) -> None:        # Grid
         self._grid.AppendRows(nrows)
 
+    # --------------------------------------------------------
     def InsertEmptyRows(self, irow: int, nrows: int) -> None:        # Grid
         self._grid.InsertRows(irow, nrows)
         rows=self._datasource.Rows
@@ -217,9 +226,11 @@ class DataGrid():
         self._datasource.Rows=newrows
         #TODO: This also needs to update editable status of non-editable cols
 
+    # --------------------------------------------------------
     def AppendEmptyCols(self, ncols: int) -> None:        # Grid
         self._grid.AppendCols(ncols)
 
+    # --------------------------------------------------------
     def SetColHeaders(self, headers: List[str]) -> None:        # Grid
         self.Numcols=len(headers)
         if len(headers) == self.Numcols:
@@ -304,6 +315,8 @@ class DataGrid():
 
         # Fill in the cells
         for i in range(self._datasource.NumRows):
+            if self._datasource.Rows[i].IsText:
+                self._grid.SetCellSize(i, 0, 1, self.Numcols)
             for j in range(len(self._datasource.ColHeaders)):
                 self.SetCellValue(i, j, self._datasource.GetData(i, j))
 
@@ -388,6 +401,7 @@ class DataGrid():
         self._datasource.Updated=True
         self.RefreshGridFromData()
 
+    # --------------------------------------------------------
     # Expand the grid's data source so that the local item (irow, icol) exists.
     def ExpandDataSourceToInclude(self, irow: int, icol: int):
         if irow >= 0:   # This test is needed in case we were working on the column headers (irowR->0) and then had to pass in irowR-1
@@ -448,9 +462,11 @@ class DataGrid():
         mi=m_menuPopup.FindItemById(m_menuPopup.FindItem("Paste"))
         mi.Enabled=self.clipboard is not None and len(self.clipboard) > 0 and len(self.clipboard[0]) > 0  # Enable only if the clipboard contains actual content
 
+    #-------------------
     def OnGridCellDoubleClick(self):        # Grid
         pass
 
+    #-------------------
     def OnGridLabelRightClick(self, event):        # Grid
         # This might be a good place to pop up a dialog to change a column header
         pass
