@@ -317,6 +317,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         irow=self._grid.rightClickedRow
         self._grid.ExpandDataSourceToInclude(irow, 0)
         self._grid.InsertEmptyRows(irow, 1)
+        self._grid.Datasource.Updated=True
         self.RefreshWindow()
         event.Skip()
 
@@ -328,6 +329,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self._grid.Datasource.Rows[irow].IsText=True
         for icol in range(self._grid.Numcols):
             self._grid.Datasource.AllowCellEdits.append((irow, icol))
+        self._grid.Datasource.Updated=True
         self.RefreshWindow()
         event.Skip()
 
@@ -377,6 +379,8 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
     # ------------------
     def OnTextConInstanceName(self, event):
         self.ConInstanceName=self.tConInstanceName.GetValue()
+        self.Updated=True
+        self.RefreshWindow()
 
     # ------------------
     def OnTextConInstanceNameKeyUp(self, event):
@@ -400,6 +404,8 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
     # ------------------
     def OnTextComments(self, event):
         self.ConInstanceStuff=self.topText.GetValue()
+        self.Updated=True
+        self.RefreshWindow()
 
     # ------------------
     def OnRadioFileListFormat(self, event):
