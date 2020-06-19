@@ -81,16 +81,11 @@ class ConList(GridDataSource):
     def __init__(self):
         GridDataSource.__init__(self)
         self._conlist: List[Convention]=[]
-        self._updated: bool=False
         self._toptext: str=""
 
     # Serialize and deserialize
     def ToJson(self) -> str:
-        d={"ver": 2,
-           "_colheaders": self._colheaders,
-           "_coldatatypes": self._coldatatypes,
-           "_coleditable": self._coleditable,
-           "_colminwidths": self._colminwidths}
+        d={"ver": 2}
         for i, s in enumerate(self._conlist):
             d[i]=s.ToJson()
 
@@ -99,11 +94,6 @@ class ConList(GridDataSource):
 
     def FromJson(self, val: str) -> ConList:
         d=json.loads(val)
-        # self._colheaders=d["_colheaders"]
-        # self._coldatatypes=d["_coldatatypes"]
-        # self._colminwidths=d["_colminwidths"]
-        # if "_coleditable" in d.keys():
-        #     self._coleditable=d["_coleditable"]
         self._conlist=[]
         i=0
         while str(i) in d.keys():       # Using str(i) is because json merges 1 and "1" as the same. (It appears to be a bug.)
@@ -149,12 +139,6 @@ class ConList(GridDataSource):
     def SetDataVal(self, irow: int, icol: int, val: Union[int, str]) -> None:
         self._conlist[irow].SetVal(icol, val)
 
-    @property
-    def Updated(self) -> bool:
-        return self._updated
-    @Updated.setter
-    def Updated(self, val: bool) -> None:
-        self._updated=val
 
 
 ###############################################################################

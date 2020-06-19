@@ -24,7 +24,7 @@ class GridDataSource():
 
     def __init__(self):
         self._allowCellEdits: List[Tuple[int, int]]=[]     # A list of cells where editing has been permitted by overriding a "maybe" for the col
-
+        self._updated: bool=False                           # Has this datasource been updated since it was last in synch with the website?
 
     @property
     def Element(self):
@@ -82,13 +82,10 @@ class GridDataSource():
 
     @property
     def Updated(self) -> bool:
-        assert False
-        pass
-
+        return self._updated
     @Updated.setter
     def Updated(self, val: bool) -> None:
-        assert False
-        pass
+        self._updated=val
 
     @property
     def CanAddColumns(self) -> bool:

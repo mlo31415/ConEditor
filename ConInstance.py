@@ -138,7 +138,7 @@ class ConInstancePage(GridDataSource):
         GridDataSource.__init__(self)
         self._conFileList: List[ConFile]=[]
         self._name: str=""
-        self._updated: bool=False
+        self.Updated: bool=False   # In base class
         self._specialTextColor: Optional[Color]=Color.LightGreen
 
 
@@ -163,7 +163,7 @@ class ConInstancePage(GridDataSource):
 
         self.MakeTextLinesEditable()
 
-        self._updated=False
+        self.Updated=False
         return self
 
 
@@ -210,13 +210,6 @@ class ConInstancePage(GridDataSource):
     def GetData(self, iRow: int, iCol: int) -> str:
         r=self.Rows[iRow]
         return r.GetVal(self.ColHeaders[iCol])
-
-    @property
-    def Updated(self) -> bool:
-        return self._updated
-    @Updated.setter
-    def Updated(self, val: bool) -> None:
-        self._updated=val
 
     @property
     def SpecialTextColor(self) -> Optional[Color]:
