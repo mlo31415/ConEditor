@@ -36,8 +36,8 @@ class ConFile:
         self._size=d["_size"]
         if d["ver"] > 4:
             self._sitefilename=d["_sitefilename"]
-        else:
-            self._sitefilename=self._localfilename
+        if d["ver"] <= 4 or self._sitefilename.strip() == "":
+            self._sitefilename=self._displayTitle
         if d["ver"] > 5:
             self._isText=d["_isText"]
         return self
