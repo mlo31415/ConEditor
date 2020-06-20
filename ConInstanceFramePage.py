@@ -359,7 +359,25 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
     # ------------------
     def OnGridCellChanged(self, event):
-        self._grid.OnGridCellChanged(event)
+        row=event.GetRow()
+        col=event.GetCol()
+
+        if self._grid.Datasource.ColHeaders[col] == "Site Name":
+            originalfname=self._grid.Datasource.GetData(row, col)
+            _, oext=os.path.splitext(originalfname)
+            self._grid.OnGridCellChanged(event)
+            newfname=self._grid.Datasource.GetData(row, col)
+            # If we don't allow extensions to be edited (the default), restore the old extension before proceeding.
+            if not self.m_checkBoxAllowEditExtentions.IsChecked():
+                newname, _=os.path.splitext(newfname)
+                newfname=newname+oext
+                self._grid.Datasource.SetDataVal(row, col, newfname)
+                self.RefreshWindow()
+
+            if originalfname != newfname:
+                self._grid.Datasource.Rows[row].Change="renamed"
+        else:
+            self._grid.OnGridCellChanged(event)
 
 
     # ------------------

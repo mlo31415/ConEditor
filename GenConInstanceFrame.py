@@ -80,16 +80,24 @@ class GenConInstanceFrame ( wx.Dialog ):
 
 		fgSizer4.Add( self.topText, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.EXPAND, 5 )
 
-		self.m_button10 = wx.Button( self, wx.ID_ANY, u"Photo page", wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer4.Add( self.m_button10, 0, wx.ALL, 5 )
-
-		self.m_staticTextPhotoPage = wx.StaticText( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticTextPhotoPage.Wrap( -1 )
-
-		fgSizer4.Add( self.m_staticTextPhotoPage, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
-
 
 		bSizerMainBox.Add( fgSizer4, 0, wx.EXPAND, 5 )
+
+		fgSizer9 = wx.FlexGridSizer( 0, 3, 0, 0 )
+		fgSizer9.SetFlexibleDirection( wx.BOTH )
+		fgSizer9.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.m_button10 = wx.Button( self, wx.ID_ANY, u"Photo page", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer9.Add( self.m_button10, 0, wx.ALL, 5 )
+
+
+		fgSizer9.Add( ( 30, 0), 0, wx.EXPAND, 5 )
+
+		self.m_checkBoxAllowEditExtentions = wx.CheckBox( self, wx.ID_ANY, u"Allow editing of extensions", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer9.Add( self.m_checkBoxAllowEditExtentions, 0, wx.ALL, 5 )
+
+
+		bSizerMainBox.Add( fgSizer9, 1, wx.EXPAND, 5 )
 
 		theIssueGrid = wx.BoxSizer( wx.VERTICAL )
 
