@@ -430,7 +430,7 @@ class DataGrid():
         self.ExpandDataSourceToInclude(row, col)
 
         newVal=self.Get(row, col)
-        self._datasource.Rows[row].SetVal(col, newVal)
+        self._datasource.SetDataVal(row, col, newVal)
         self._datasource.Updated=True
         #Log("set datasource("+str(row)+", "+str(col)+")="+newVal)
         self.ColorCellByValue(row, col)
