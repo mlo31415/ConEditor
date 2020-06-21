@@ -43,10 +43,10 @@ class ConFile:
         return self
 
     @property
-    def DisplayName(self) -> str:
+    def DisplayTitle(self) -> str:
         return self._displayTitle
-    @DisplayName.setter
-    def DisplayName(self, val: str) -> None:
+    @DisplayTitle.setter
+    def DisplayTitle(self, val: str) -> None:
         self._displayTitle=val
 
     @property
@@ -101,7 +101,7 @@ class ConFile:
         if name == "Site Name" or name == 1:
             return self.SiteFilename
         if name == "Display Name" or name == 2:
-            return self.DisplayName
+            return self.DisplayTitle
         if name == "Notes" or name == 3:
             return self.Notes
         return "Val can't interpret '"+str(name)+"'"
@@ -115,7 +115,7 @@ class ConFile:
             self.SiteFilename=val
             return
         if nameOrCol == "Display Name" or nameOrCol == 2:
-            self.DisplayName=val
+            self.DisplayTitle=val
             return
         if nameOrCol == "Notes" or nameOrCol == 3:
             self.Notes=val

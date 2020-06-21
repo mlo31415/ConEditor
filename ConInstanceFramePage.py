@@ -8,6 +8,7 @@ from datetime import date
 from GenConInstanceFrame import GenConInstanceFrame
 from DataGrid import DataGrid, Color
 from ConInstance import ConInstancePage, ConFile
+from ConInstanceDeltaTracker import ConInstanceDeltaTracker
 from FTP import FTP
 from Settings import Settings
 from Log import Log
@@ -28,6 +29,9 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self._seriesname=seriesname
         self._coninstancename=coninstancename
 
+        # A list of changes to the file stored on the website which will need to be made upon upload.
+        self.conInstanceDeltaTracker=ConInstanceDeltaTracker()
+
         self.ConInstanceName=""
         self.ConInstanceStuff=""
         self.ConInstanceFancyURL=""
@@ -47,7 +51,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self.RefreshWindow()
         self.ReturnValue=None
 
-
+    # ----------------------------------------------
     # Serialize and deserialize
     def ToJson(self) -> str:
         d={"ver": 2,
@@ -67,7 +71,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self.ConInstancePhotoURL=d["ConInstancePhotoURL"]
         return self
 
-
+    # ----------------------------------------------
     @property
     def Updated(self) -> bool:
         return self._updated or (self._grid.Datasource.Updated is not None and self._grid.Datasource.Updated)
@@ -78,7 +82,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         if val == False:    # If we're setting the updated flag to False, set the grid's flag, too.
             self._grid.Datasource.Updated=False
 
-
+    # ----------------------------------------------
     @property
     def Uploaded(self) -> bool:
         return self._uploaded
@@ -86,7 +90,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
     def Uploaded(self, val: bool) -> None:
         self._uploaded=val
 
-
+    # ----------------------------------------------
     def OnAddFilesButton(self, event):
         self.AddFiles()
 
@@ -112,10 +116,12 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         Settings().Put("Last FileDialog directory", dlg.GetDirectory())
         for fn in dlg.GetFilenames():
             conf=ConFile()
-            conf.DisplayName=fn
-            conf.LocalPathname=os.path.join(os.path.join(dlg.GetDirectory()), fn)
+            conf.DisplayTitle=fn
+            conf.SiteFilename=fn
             conf.SourceFilename=fn
+            conf.LocalPathname=os.path.join(os.path.join(dlg.GetDirectory()), fn)
             conf.Size=os.path.getsize(conf.LocalPathname)
+            self.conInstanceDeltaTracker.Add(conf)
             self._grid.Datasource.Rows.append(conf)
             self._grid.Datasource.Updated=True
 
@@ -123,10 +129,11 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self.RefreshWindow()
         return True
 
+    # ----------------------------------------------
     def OnUploadConInstance(self, event):
         self.OnUploadConInstancePage()
 
-
+    # ----------------------------------------------
     def OnClose(self, event):
         if self.Updated:
             if event.CanVeto():
@@ -142,7 +149,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             self.ReturnValue=wx.ID_CANCEL
         self.EndModal(self.ReturnValue)
 
-
+    # ----------------------------------------------
     def OnUploadConInstancePage(self) -> None:
         # First read in the template
         file=None
@@ -190,14 +197,14 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             for i, row in enumerate(self._grid.Datasource.Rows):
                 newtable+="    <tr>\n"
                 if not row.IsText:
-                    newtable+='      <td>'+FormatLink(row.SourceFilename, row.DisplayName)+'</td>\n'
+                    newtable+='      <td>'+FormatLink(row.SiteFilename, row.DisplayTitle)+'</td>\n'
                     if row.Size > 0:
                         newtable+='      <td>'+"{:,.1f}".format(row.Size/(1024**2))+'&nbsp;MB</td>\n'
                     else:
                         newtable+='      <td>--</td>\n'
                     newtable+='      <td>'+str(row.Notes)+'</td>\n'
                 else:
-                    text=row.SourceFilename+" "+row.SiteFilename+" "+row.DisplayName+" "+row.Notes
+                    text=row.SourceFilename+" "+row.SiteFilename+" "+row.DisplayTitle+" "+row.Notes
                     newtable+='    <td><i><b>'+text.strip()+'</b></i></td>\n'
                 newtable+="    </tr>\n"
             newtable+="    </tbody>\n"
@@ -207,14 +214,14 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             newtable="<ul>"
             for row in self._grid.Datasource.Rows:
                 if not row.IsText:
-                    newtable+="    <li>"+FormatLink(row.SourceFilename, row.DisplayName)
+                    newtable+="    <li>"+FormatLink(row.SiteFilename, row.DisplayTitle)
                     if row.Size > 0:
                         newtable+="&nbsp;&nbsp;("+"{:,.1f}".format(row.Size/(1024**2))+'&nbsp;MB)</td>\n'
                     else:
                         newtable+='&nbsp;&nbsp;(--)\n'
                     newtable+="&nbsp;&nbsp;"+str(row.Notes)+"</li>\n"
                 else:
-                    text=row.SourceFilename+" "+row.SiteFilename+" "+row.DisplayName+" "+row.Notes
+                    text=row.SourceFilename+" "+row.SiteFilename+" "+row.DisplayTitle+" "+row.Notes
                     newtable+='    </ul><b>'+text.strip()+'</b><ul>\n'
 
             newtable+="  </ul>\n"
@@ -227,21 +234,22 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             Log("Upload failed: /"+self._seriesname+"/"+self._coninstancename+"/index.html")
             return
 
-        # Finally, Upload any files which are newly added.
-        for row in self._grid.Datasource.Rows:
-            if row.SourceFilename is not None and len(row.SourceFilename) > 0:
-                if not FTP().Exists(row.SourceFilename):
-                    if not FTP().PutFile(row.LocalPathname, row.SourceFilename):
-                        Log("OnUploadConInstancePage: Putfile of "+row.LocalPathname+" failed")
+        wd="/"+self._seriesname+"/"+self._coninstancename
+        FTP().CWD(wd)
+        for delta in self.conInstanceDeltaTracker.Deltas:
+            if delta[0] == "add":
+                Log("delta-ADD: "+delta[1].SiteFilename)
+                FTP().PutFile(delta[1].LocalPathname, delta[1].SiteFilename)
+            elif delta[0] == "rename":
+                Log("delta-RENAME: "+delta[2]+ "  to "+delta[1].SiteFilename)
+                FTP().Rename(delta[2], delta[1].SiteFilename)
+            elif delta[0] == "delete":
+                Log("delta-DELETE: "+delta[1].SiteFilename)
+                FTP().DeleteFile(delta[1].SiteFilename)
+            else:
+                Log("delta-UNRECOGNIZED: "+str(delta))
 
-        # And remove any that have been dropped.  (PDFs only, for now.)
-        files=[row.SourceFilename for row in self._grid.Datasource.Rows]
-        fileupthere=FTP().g_ftp.nlst()
-        for f in fileupthere:
-            if f not in files:
-                if os.path.splitext(f)[1] == ".pdf":
-                    if not FTP().DeleteFile(f):
-                        Log("OnUploadConInstancePage: Delete("+f+") failed")
+        self.conInstanceDeltaTracker=ConInstanceDeltaTracker()  # The upload is complete. Start tracking changes afresh
 
         self.ProgressMessage("Upload succeeded: /"+self._seriesname+"/"+self._coninstancename+"/index.html")
         Log("Upload succeeded: /"+self._seriesname+"/"+self._coninstancename+"/index.html")
@@ -351,10 +359,15 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             if self._grid.rightClickedRow >= self._grid.Datasource.NumRows:
                 return
             top=bottom=self._grid.rightClickedRow
-        self._grid.Grid.ClearSelection()
-        del self._grid.Datasource.Rows[top:bottom+1]
-        self._grid.Datasource.Updated=True
 
+        self._grid.Grid.ClearSelection()
+
+        for row in self._grid.Datasource.Rows[top:bottom+1]:
+            self.conInstanceDeltaTracker.Delete(row)
+
+        del self._grid.Datasource.Rows[top:bottom+1]
+
+        self._grid.Datasource.Updated=True
         self.RefreshWindow()
 
     # ------------------
@@ -375,10 +388,9 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
                 self.RefreshWindow()
 
             if originalfname != newfname:
-                self._grid.Datasource.Rows[row].Change="renamed"
+                self.conInstanceDeltaTracker.Rename(self._grid.Datasource.Rows[row], originalfname)
         else:
             self._grid.OnGridCellChanged(event)
-
 
     # ------------------
     def OnGridEditorShown(self, event):
