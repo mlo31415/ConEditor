@@ -110,7 +110,29 @@ class FTP:
         Log(msg+"\n")
         return msg.startswith("250 ")
 
+    # ---------------------------------------------
+    def Rename(self, oldname: str, newname: str) -> bool:
+        Log("**rename file: '"+oldname+"'  as  '"+newname+"'")
+        if len(oldname.strip()) == 0 or len(newname.strip()) == 0:
+            Log("FTP.Rename: oldname or newname not supplied.")
+            LogFlush()
+            assert False
 
+        if not self.Exists(oldname):
+            Log("FTP.Rename: '"+oldname+"' does not exist.")
+            return False
+
+        try:
+            msg=self.g_ftp.rename(oldname, newname)
+        except Exception as e:
+            Log("FTP connection failure. Exception="+str(e))
+            if not self.Reconnect():
+                return False
+            msg=self.g_ftp.rename(oldname, newname)
+        Log(msg+"\n")
+        return msg.startswith("250 ")
+
+    # ---------------------------------------------
     def DeleteDir(self, dirname: str) -> bool:
         Log("**delete directory: '"+dirname+"'")
         if len(dirname.strip()) == 0:
