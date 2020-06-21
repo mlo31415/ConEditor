@@ -322,11 +322,11 @@ class ConEditorFrame(GenConEditorFrame):
         if self._grid.Datasource.ColEditable[icol] == "no":
             event.Veto()
             return
-        if self._grid.Datasource.ColEditablee[icol] == "maybe":
+        if self._grid.Datasource.ColEditable[icol] == "maybe":
             for it in self._grid.Datasource.AllowCellEdits:
-                if irow == it[0] and icol == it[1]:
+                if (irow, icol) == it:
                     return
-        event.Veto()
+        event.Veto()    # Prohibit editing this cell
         return
 
     # ------------------

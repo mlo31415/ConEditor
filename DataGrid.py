@@ -126,26 +126,6 @@ class DataGrid():
         self.cntlDown=False         # There's no cntl-key currently down
 
 
-    # --------------------------------------------------------
-    # Set a value in the source data using logical coordinates
-    # Note that we can handle irow== -1 indicating a column header
-    # def SetSourceValue(self, iRow: int, iCol: int, val) -> None:        # Grid
-    #     assert iCol > -1
-    #     self.ExpandDataSourceToInclude(iRow, iCol)
-    #
-    #     if iRow == -1:
-    #         self._datasource.ColHeaders[iCol]=val
-    #         self._datasource.Updated=True
-    #         return
-    #
-    #     c=self._datasource.Rows[iRow]
-    #     try:
-    #         c.SetVal(c, iCol, val)
-    #         self._datasource.Updated=True
-    #     except:
-    #         pass
-
-
     # Set a grid cell value
     # Note that this does not change the underlying source data
     def SetCellValue(self, iRow: int, iCol: int, val) -> None:        # Grid
@@ -335,35 +315,42 @@ class DataGrid():
     # All row numbers are logical
     # Oldrow is the 1st row of the block to be moved
     # Newrow is the target position to which oldrow is moved
+
     def MoveRows(self, oldrow, numrows, newrow):        # Grid
-        if newrow <= 0:
-            # The old rows are being moved to the beginning
-            newrows=self._datasource.Rows[oldrow:oldrow+numrows]
-            newrows.extend(self._datasource.Rows[0:oldrow])
-            newrows.extend(self._datasource.Rows[oldrow+numrows:])
+        rows=self._datasource.Rows
 
-        elif newrow >= len(self._datasource.Rows):
-            # The old rows are being moved to the end
-            newrows=self._datasource.Rows[0:oldrow]
-            newrows.extend(self._datasource.Rows[oldrow+numrows:])
-            newrows.extend(self._datasource.Rows[oldrow:oldrow+numrows])
-
+        dest=newrow
+        start=oldrow
+        end=oldrow+numrows-1
+        if newrow < oldrow:
+            # Move earlier
+            b1=rows[0:dest]
+            i1=list(range(0, dest))
+            b2=rows[dest:start]
+            i2=list(range(dest, start))
+            b3=rows[start:end+1]
+            i3=list(range(start, end+1))
+            b4=rows[end+1:]
+            i4=list(range(end+1, len(rows)))
         else:
-            # The old rows are being moved internally
-            if oldrow > newrow:
-                # Moving earlier
-                newrows=self._datasource.Rows[0:newrow]                         # Unchanged rows before newrow
-                newrows.extend(self._datasource.Rows[oldrow:oldrow+numrows])    # The moving block (numrows long)
-                newrows.extend(self._datasource.Rows[newrow:oldrow])            # Rows displaced towards the end by the move
-                newrows.extend(self._datasource.Rows[oldrow+numrows:])          # Rows after the displaced block's final position which are unaffected
-            else:
-                # Moving later
-                newrows=self._datasource.Rows[0:oldrow]                         # Unchanged rows before oldrow
-                newrows.extend(self._datasource.Rows[oldrow+numrows:newrow+numrows])        # Rows after the moving block which are displaced forward
-                newrows.extend(self._datasource.Rows[oldrow:oldrow+numrows])    # The moving block (numrows long)
-                newrows.extend(self._datasource.Rows[newrow+numrows:])          # Row after the moving block's final position which are unaffected
+            # Move later
+            b1=rows[0:start]
+            i1=list(range(0, start))
+            b2=rows[start:end+1]
+            i2=list(range(start, end+1))
+            b3=rows[end+1:end+1+dest-start]
+            i3=list(range(end+1, end+1+dest-start))
+            b4=rows[end+1+dest-start:]
+            i4=list(range(end+1+dest-start, len(rows)))
 
-        self._datasource.Rows=newrows
+        rows=b1+b3+b2+b4
+        permuter=i1+i3+i2+i4
+
+        self._datasource.Rows=rows
+
+        for i, (row, col) in enumerate(self._datasource.AllowCellEdits):
+            self._datasource.AllowCellEdits[i]=(permuter[row], col)
+
         self._datasource.Updated=True
 
         
