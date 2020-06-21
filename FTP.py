@@ -13,13 +13,13 @@ class FTP:
     g_curdirpath: str="/"
     g_credentials: Dict={}      # Saves the credentials for reconnection if the server times out
 
-
+    # ---------------------------------------------
     def OpenConnection(self, cre: str) -> bool:
         with open(cre) as f:
             FTP.g_credentials=json.loads(f.read())
         return self.Reconnect()
 
-
+    # ---------------------------------------------
     def Reconnect(self) -> bool:
         if len(FTP.g_credentials) == 0:
             return False
@@ -32,22 +32,34 @@ class FTP:
             return False
         return True
 
+    # ---------------------------------------------
+    # Update the saved current working directory path
+    # If the input is an absolute path, just use if (removing any trailing filename)
+    # If it's a relative move, compute the new wd path
     def UpdateCurpath(self, newdir: str) -> None:
-        if newdir == "/":
-            FTP.g_curdirpath="/"
-        elif newdir == "..":
-            if FTP.g_curdirpath != "/":
-                head, _=os.path.split(self.g_curdirpath)
+        if newdir[0] == "/":    # Absolute directory move
+            FTP.g_curdirpath=newdir
+        elif newdir == "..":    # Relative move up one directory
+            #TODO: Note that we don't handle things like "../.." yet
+            if FTP.g_curdirpath != "/":     # If we're already at the top, we stay put.
+                head, _=os.path.split(self.g_curdirpath)    # But we're not, so we slice off the last directory in the saved wd path
                 FTP.g_curdirpath=head
         else:
+            # What's left is a CD downwards
             if FTP.g_curdirpath == "/":
                 FTP.g_curdirpath+=newdir
             else:
                 FTP.g_curdirpath+="/"+newdir
 
 
+    #---------------------------------------------
     def CWD(self, newdir: str) -> bool:
-        Log("**cwd from '"+self.PWD()+"' to '"+newdir+"'")
+        wd=self.PWD()
+        Log("**cwd from '"+wd+"' to '"+newdir+"'")
+        if wd == newdir:
+            Log("  Already there!")
+            return True
+
         try:
             msg=self.g_ftp.cwd(newdir)
         except Exception as e:
@@ -63,7 +75,7 @@ class FTP:
         self.PWD()
         return ret
 
-
+    # ---------------------------------------------
     def MKD(self, newdir: str) -> bool:
         Log("**make directory: '"+newdir+"'")
         try:
@@ -76,7 +88,7 @@ class FTP:
         Log(msg+"\n")
         return msg == newdir or msg.startswith("250 ") or msg.startswith("257 ")     # Web doc shows all three as possible.
 
-
+    # ---------------------------------------------
     def DeleteFile(self, fname: str) -> bool:
         Log("**delete file: '"+fname+"'")
         if len(fname.strip()) == 0:
@@ -124,7 +136,7 @@ class FTP:
         Log(msg+"\n")
         return msg.startswith("250 ")
 
-
+    # ---------------------------------------------
     def PWD(self) -> str:
         try:
             dir=self.g_ftp.pwd()
@@ -142,7 +154,7 @@ class FTP:
             assert False
         return dir
 
-
+    # ---------------------------------------------
     def Exists(self, filedir: str) -> bool:
         Log("Does '"+filedir+"' exist?")
         if filedir == "/":
