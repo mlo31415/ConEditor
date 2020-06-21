@@ -224,7 +224,13 @@ class DataGrid():
         if irow < self._datasource.NumRows-1:
             newrows.extend(rows[irow:])
         self._datasource.Rows=newrows
-        #TODO: This also needs to update editable status of non-editable cols
+
+        # Now update the editable status of non-editable columns
+        # All row numbers >= irow are incremented by nrows
+        for i, (row, col) in enumerate(self._datasource.AllowCellEdits):
+            if row >= irow:
+                self._datasource.AllowCellEdits[i]=(row+nrows, col)
+
 
     # --------------------------------------------------------
     def AppendEmptyCols(self, ncols: int) -> None:        # Grid
