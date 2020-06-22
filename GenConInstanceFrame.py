@@ -97,7 +97,7 @@ class GenConInstanceFrame ( wx.Dialog ):
 		fgSizer9.Add( self.m_checkBoxAllowEditExtentions, 0, wx.ALL, 5 )
 
 
-		bSizerMainBox.Add( fgSizer9, 1, wx.EXPAND, 5 )
+		bSizerMainBox.Add( fgSizer9, 0, wx.EXPAND, 5 )
 
 		theIssueGrid = wx.BoxSizer( wx.VERTICAL )
 
@@ -136,7 +136,7 @@ class GenConInstanceFrame ( wx.Dialog ):
 
 		self.gRowGrid.Bind( wx.EVT_RIGHT_DOWN, self.gRowGridOnContextMenu )
 
-		theIssueGrid.Add( self.gRowGrid, 0, wx.ALL|wx.EXPAND, 5 )
+		theIssueGrid.Add( self.gRowGrid, 1, wx.ALL|wx.EXPAND, 5 )
 
 		self.m_status = wx.StaticText( self, wx.ID_ANY, u"MyLabel", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_status.Wrap( -1 )
