@@ -33,7 +33,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self.conInstanceDeltaTracker=ConInstanceDeltaTracker()
 
         self.ConInstanceName=""
-        self.ConInstanceStuff=""
+        self._conInstanceStuff=""
         self.ConInstanceFancyURL=""
         self.ConInstancePhotoURL=""
 
@@ -49,14 +49,15 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self.DownloadConInstancePage()
 
         self.RefreshWindow()
-        self.ReturnValue=None
+        self.Show()
+
 
     # ----------------------------------------------
     # Serialize and deserialize
     def ToJson(self) -> str:
         d={"ver": 2,
            "ConInstanceName": self.ConInstanceName,
-           "ConInstanceStuff": self.ConInstanceStuff,
+           "ConInstanceStuff": self._conInstanceStuff,
            "ConInstanceFancyURL": self.ConInstanceFancyURL,
            "ConInstancePhotoURL": self.ConInstancePhotoURL,
            "_datasource": self._grid.Datasource.ToJson()}
@@ -65,7 +66,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
     def FromJson(self, val: str) -> GenConInstanceFrame:
         d=json.loads(val)
         self.ConInstanceName=d["ConInstanceName"]
-        self.ConInstanceStuff=d["ConInstanceStuff"]
+        self._conInstanceStuff=d["ConInstanceStuff"]
         self.ConInstanceFancyURL=d["ConInstanceFancyURL"]
         self._grid.Datasource=ConInstancePage().FromJson(d["_datasource"])
         self.ConInstancePhotoURL=d["ConInstancePhotoURL"]
@@ -89,6 +90,15 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
     @Uploaded.setter
     def Uploaded(self, val: bool) -> None:
         self._uploaded=val
+
+    # ----------------------------------------------
+    @property
+    def ConInstanceStuff(self) -> str:
+        return self._conInstanceStuff
+
+    @ConInstanceStuff.setter
+    def ConInstanceStuff(self, val: str) -> None:
+        self._conInstanceStuff=val
 
     # ----------------------------------------------
     def OnAddFilesButton(self, event):
@@ -130,6 +140,15 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         return True
 
     # ----------------------------------------------
+    def UpdateTopText(self, val: str, NoEvent=False) -> None:
+
+        if NoEvent:
+            self.topText.Unbind(wx.EVT_TEXT)    # Detach the event handler
+        self.topText.SetValue(val)
+        if NoEvent:
+            self.topText.Bind(wx.EVT_TEXT, self.OnTextComments) # Restore the event handler
+
+    # ----------------------------------------------
     def OnUploadConInstance(self, event):
         self.OnUploadConInstancePage()
 
@@ -143,11 +162,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
                     event.Veto()
                     return
 
-        if self.Uploaded:
-            self.ReturnValue=wx.ID_OK
-        if self.ReturnValue is None:
-            self.ReturnValue=wx.ID_CANCEL
-        self.EndModal(self.ReturnValue)
+        self.EndModal(wx.ID_OK if self.Uploaded else wx.ID_CANCEL)
 
     # ----------------------------------------------
     def OnUploadConInstancePage(self) -> None:
@@ -288,7 +303,6 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self.RefreshWindow()
 
 
-
     # ------------------
     def OnGridCellRightClick(self, event):
         self._grid.OnGridCellRightClick(event, self.m_menuPopup)
@@ -321,6 +335,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
     def OnPopupPaste(self, event):
         self._grid.OnPopupPaste(event)
 
+    # ------------------
     def OnPopupInsertRow(self, event):
         irow=self._grid.rightClickedRow
         self._grid.ExpandDataSourceToInclude(irow, 0)
@@ -442,7 +457,9 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
     #------------------
     def RefreshWindow(self) -> None:
+        Log("ConInstancePage.RefreshWindow() called")
         self._grid.RefreshGridFromData()
+        self.UpdateTopText(self.ConInstanceStuff, NoEvent=True)
         s=self.Title
         if s.endswith(" *"):
             s=s[:-2]

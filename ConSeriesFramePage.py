@@ -233,8 +233,6 @@ class MainConSeriesFrame(GenConSeriesFrame):
         self.UploadConSeries()
         del wait    # End the wait cursor
 
-
-
     #--------------------------------------------
     # Given the name of the ConSeries, go to fancy 3 and fetch the con series information and fill in a con seres from it.
     def FetchConSeriesFromFancy(self, name) -> bool:                    # MainConSeriesFrame
@@ -441,12 +439,11 @@ class MainConSeriesFrame(GenConSeriesFrame):
                         description+="  The GoHs were "+gohs
                     else:
                         description+="  The GoH was "+gohs
-                self.ConInstanceStuff=description
+                dlg.ConInstanceStuff=description
 
             self.Updated=False
-            dlg.ShowModal()
-            cal=dlg.ReturnValue
-            if cal == wx.ID_OK:
+            dlg.RefreshWindow()
+            if dlg.ShowModal() == wx.ID_OK:
                 if self._grid.Datasource.NumRows <= irow:
                     for i in range(irow-self._grid.Datasource.NumRows+1):
                         self._grid.Datasource.Rows.append(Con())
