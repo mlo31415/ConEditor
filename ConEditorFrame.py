@@ -346,8 +346,8 @@ class ConEditorFrame(GenConEditorFrame):
         with ModalDialogManager(MainConSeriesFrame, self._baseDirFTP, conseriesname) as dlg:
             if len(dlg._seriesname.strip()) == 0:  # If the user didn't supply a con series name, we exit and don't show the dialog
                 return
-            ret=dlg.ShowModal()
-            if ret == wx.OK:
+
+            if dlg.ShowModal() == wx.OK:
                 conseriesname=dlg.tConSeries.GetValue()
                 self._grid.Datasource.Rows[self.clickedRow].URL="./"+conseriesname+"/index.html"
                 self._grid.Datasource.Rows[self.clickedRow].Name=conseriesname
