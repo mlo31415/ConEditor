@@ -441,6 +441,9 @@ class MainConSeriesFrame(GenConSeriesFrame):
                         description+="  The GoH was "+gohs
                 dlg.ConInstanceStuff=description
 
+            dlg.ConInstanceName=instancename
+            dlg.ConInstanceFancyURL="http://fancyclopedia.org/"+WikiPagenameToWikiUrlname(instancename)
+
             self.Updated=False
             dlg.RefreshWindow()
             if dlg.ShowModal() == wx.ID_OK:
