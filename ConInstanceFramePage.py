@@ -2,7 +2,6 @@ import wx
 import os
 import sys
 import json
-import math
 from datetime import date
 
 from GenConInstanceFrame import GenConInstanceFrame
@@ -32,11 +31,6 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         # A list of changes to the file stored on the website which will need to be made upon upload.
         self.conInstanceDeltaTracker=ConInstanceDeltaTracker()
 
-        self.ConInstanceName=""
-        self._conInstanceStuff=""
-        self.ConInstanceFancyURL=""
-        self.ConInstancePhotoURL=""
-
         self._updated=False
         self._uploaded=False    # Has this instance been uploaded? (This is needed to generate the return value from the dialog.)
 
@@ -57,7 +51,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
     def ToJson(self) -> str:
         d={"ver": 2,
            "ConInstanceName": self.ConInstanceName,
-           "ConInstanceStuff": self._conInstanceStuff,
+           "ConInstanceStuff": self.ConInstanceStuff,
            "ConInstanceFancyURL": self.ConInstanceFancyURL,
            "ConInstancePhotoURL": self.ConInstancePhotoURL,
            "_datasource": self._grid.Datasource.ToJson()}
@@ -66,7 +60,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
     def FromJson(self, val: str) -> GenConInstanceFrame:
         d=json.loads(val)
         self.ConInstanceName=d["ConInstanceName"]
-        self._conInstanceStuff=d["ConInstanceStuff"]
+        self.ConInstanceStuff=d["ConInstanceStuff"]
         self.ConInstanceFancyURL=d["ConInstanceFancyURL"]
         self._grid.Datasource=ConInstancePage().FromJson(d["_datasource"])
         self.ConInstancePhotoURL=d["ConInstancePhotoURL"]
@@ -94,11 +88,46 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
     # ----------------------------------------------
     @property
     def ConInstanceStuff(self) -> str:
-        return self._conInstanceStuff
+        return self.topText.GetValue()
 
     @ConInstanceStuff.setter
     def ConInstanceStuff(self, val: str) -> None:
-        self._conInstanceStuff=val
+        self.topText.SetValue(val)
+
+    # ----------------------------------------------
+    @property
+    def ConInstanceName(self) -> str:
+        return self.tConInstanceName.GetValue()
+
+    @ConInstanceName.setter
+    def ConInstanceName(self, val: str) -> None:
+        self.tConInstanceName.SetValue(val)
+
+    # ----------------------------------------------
+    @property
+    def ConInstancePhotoURL(self) -> str:
+        return self.m_textPhotosURL.GetValue()
+
+    @ConInstancePhotoURL.setter
+    def ConInstancePhotoURL(self, val: str) -> None:
+        self.m_textPhotosURL.SetValue(val)
+
+    # ----------------------------------------------
+    @property
+    def ConInstanceFancyURL(self) -> str:
+        return self.tConInstanceFancyURL.GetValue()
+
+    @ConInstanceFancyURL.setter
+    def ConInstanceFancyURL(self, val: str) -> None:
+        self.tConInstanceFancyURL.SetValue(val)
+
+    # ----------------------------------------------
+    def UpdateTopText(self, val: str, NoEvent=False) -> None:
+        if NoEvent:
+            self.topText.Unbind(wx.EVT_TEXT)  # Detach the event handler
+        self.topText.SetValue(val)
+        if NoEvent:
+            self.topText.Bind(wx.EVT_TEXT, self.OnTextComments)  # Restore the event handler
 
     # ----------------------------------------------
     def OnAddFilesButton(self, event):
@@ -139,14 +168,6 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self.RefreshWindow()
         return True
 
-    # ----------------------------------------------
-    def UpdateTopText(self, val: str, NoEvent=False) -> None:
-
-        if NoEvent:
-            self.topText.Unbind(wx.EVT_TEXT)    # Detach the event handler
-        self.topText.SetValue(val)
-        if NoEvent:
-            self.topText.Bind(wx.EVT_TEXT, self.OnTextComments) # Restore the event handler
 
     # ----------------------------------------------
     def OnUploadConInstance(self, event):
@@ -424,7 +445,6 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
     # ------------------
     def OnTextConInstanceName(self, event):
-        self.ConInstanceName=self.tConInstanceName.GetValue()
         self.Updated=True
         self.RefreshWindow()
 
@@ -435,19 +455,16 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
     # ------------------
     def OnTextConInstanceFancyURL(self, event):
-        self.ConInstanceFancyURL=self.tConInstanceFancyURL.GetValue()
         self.Updated=True
         self.RefreshWindow()
 
     # ------------------
     def OnTextPhotosURL(self, event):
-        self.ConInstancePhotoURL=self.m_textPhotosURL.GetValue()
         self.Updated=True
         self.RefreshWindow()
 
     # ------------------
     def OnTextComments(self, event):
-        self.ConInstanceStuff=self.topText.GetValue()
         self.Updated=True
         self.RefreshWindow()
 
@@ -459,7 +476,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
     def RefreshWindow(self) -> None:
         Log("ConInstancePage.RefreshWindow() called")
         self._grid.RefreshGridFromData()
-        self.UpdateTopText(self.ConInstanceStuff, NoEvent=True)
+        #self.UpdateTopText(self.ConInstanceStuff, NoEvent=True)
         s=self.Title
         if s.endswith(" *"):
             s=s[:-2]
