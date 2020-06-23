@@ -15,6 +15,10 @@ class ConFile:
         self._size: int=0               # The file's size in bytes
         self._isText: bool=False        # Is this a piece of text rather than a convention?
 
+    def Signature(self) -> int:
+        sum=hash(self._displayTitle.strip()+self._notes.strip()+self._localfilename.strip()+self._localpathname.strip()+self._sitefilename.strip())
+        return sum+self._size+hash(self._isText)
+
     # Serialize and deserialize
     def ToJson(self) -> str:
         d={"ver": 6,

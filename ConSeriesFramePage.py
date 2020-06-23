@@ -444,7 +444,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
             dlg.ConInstanceName=instancename
             dlg.ConInstanceFancyURL="http://fancyclopedia.org/"+WikiPagenameToWikiUrlname(instancename)
 
-            self.Updated=False
+#           self.Updated=False
             dlg.RefreshWindow()
             if dlg.ShowModal() == wx.ID_OK:
                 if self._grid.Datasource.NumRows <= irow:

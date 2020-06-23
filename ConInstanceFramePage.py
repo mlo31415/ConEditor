@@ -12,10 +12,11 @@ from FTP import FTP
 from Settings import Settings
 from Log import Log
 
-from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, PrependHTTP, ModalDialogManager
+from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, PrependHTTP
 
 #####################################################################################
 class MainConInstanceDialogClass(GenConInstanceFrame):
+
 
     def __init__(self, basedirFTP, seriesname, coninstancename):
         GenConInstanceFrame.__init__(self, None)
@@ -28,10 +29,11 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self._seriesname=seriesname
         self._coninstancename=coninstancename
 
+        self._signature=0
+
         # A list of changes to the file stored on the website which will need to be made upon upload.
         self.conInstanceDeltaTracker=ConInstanceDeltaTracker()
 
-        self._updated=False
         self._uploaded=False    # Has this instance been uploaded? (This is needed to generate the return value from the dialog.)
 
         val=Settings().Get("ConInstanceFramePage:File list format")
@@ -42,8 +44,25 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
         self.DownloadConInstancePage()
 
+        self.MarkAsSaved()
         self.RefreshWindow()
+
         self.Show()
+
+    # ----------------------------------------------
+    # Used to determine if anything has been updated
+    def Signature(self) -> int:
+        stuff=self.ConInstanceName.strip()+self.ConInstanceStuff.strip()+self.ConInstanceFancyURL.strip()+self.ConInstancePhotoURL.strip()
+        return hash(stuff)+self._grid.Datasource.Signature()
+
+    def MarkAsSaved(self):
+        Log("ConInstancePage.MarkAsSaved -- "+str(self.Signature()))
+        self._signature=self.Signature()
+
+    def NeedsSaving(self):
+        if self._signature != self.Signature():
+            Log("ConInstancePage.NeedsSaving -- "+str(self._signature)+" != "+str(self.Signature()))
+        return self._signature != self.Signature()
 
 
     # ----------------------------------------------
@@ -66,16 +85,6 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self.ConInstancePhotoURL=d["ConInstancePhotoURL"]
         return self
 
-    # ----------------------------------------------
-    @property
-    def Updated(self) -> bool:
-        return self._updated or (self._grid.Datasource.Updated is not None and self._grid.Datasource.Updated)
-    @Updated.setter
-    def Updated(self, val: bool) -> None:
-        self._updated=val
-        Log("_updated="+str(val))
-        if val == False:    # If we're setting the updated flag to False, set the grid's flag, too.
-            self._grid.Datasource.Updated=False
 
     # ----------------------------------------------
     @property
@@ -101,7 +110,8 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
     @ConInstanceName.setter
     def ConInstanceName(self, val: str) -> None:
-        self.tConInstanceName.SetValue(val)
+        if val != self.tConInstanceName.GetValue():
+            self.tConInstanceName.SetValue(val)
 
     # ----------------------------------------------
     @property
@@ -110,7 +120,8 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
     @ConInstancePhotoURL.setter
     def ConInstancePhotoURL(self, val: str) -> None:
-        self.m_textPhotosURL.SetValue(val)
+        if val != self.m_textPhotosURL.GetValue():
+            self.m_textPhotosURL.SetValue(val)
 
     # ----------------------------------------------
     @property
@@ -119,15 +130,17 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
     @ConInstanceFancyURL.setter
     def ConInstanceFancyURL(self, val: str) -> None:
-        self.tConInstanceFancyURL.SetValue(val)
+        if val != self.tConInstanceFancyURL.GetValue():
+            self.tConInstanceFancyURL.SetValue(val)
 
     # ----------------------------------------------
     def UpdateTopText(self, val: str, NoEvent=False) -> None:
-        if NoEvent:
-            self.topText.Unbind(wx.EVT_TEXT)  # Detach the event handler
-        self.topText.SetValue(val)
-        if NoEvent:
-            self.topText.Bind(wx.EVT_TEXT, self.OnTextComments)  # Restore the event handler
+        if val != self.topText.GetValue():
+            if NoEvent:
+                self.topText.Unbind(wx.EVT_TEXT)  # Detach the event handler
+            self.topText.SetValue(val)
+            if NoEvent:
+                self.topText.Bind(wx.EVT_TEXT, self.OnTextComments)  # Restore the event handler
 
     # ----------------------------------------------
     def OnAddFilesButton(self, event):
@@ -162,7 +175,6 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
             conf.Size=os.path.getsize(conf.LocalPathname)
             self.conInstanceDeltaTracker.Add(conf)
             self._grid.Datasource.Rows.append(conf)
-            self._grid.Datasource.Updated=True
 
         dlg.Destroy()
         self.RefreshWindow()
@@ -175,7 +187,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
     # ----------------------------------------------
     def OnClose(self, event):
-        if self.Updated:
+        if self.NeedsSaving():
             if event.CanVeto():
                 resp=wx.MessageBox("This file list has been updated and not yet saved. Exit anyway?", 'Warning',
                        wx.OK|wx.CANCEL|wx.ICON_WARNING)
@@ -289,7 +301,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
         self.ProgressMessage("Upload succeeded: /"+self._seriesname+"/"+self._coninstancename+"/index.html")
         Log("Upload succeeded: /"+self._seriesname+"/"+self._coninstancename+"/index.html")
-        self.Updated=False
+        self.MarkAsSaved()
         self.Uploaded=True
         self.RefreshWindow()
 
@@ -320,7 +332,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
         self.ProgressMessage(self._FTPbasedir+"/"+self._coninstancename+"/index.html downloaded")
         Log(self._FTPbasedir+"/"+self._coninstancename+"/index.html downloaded")
-        self.Updated=False
+        self.MarkAsSaved()
         self.RefreshWindow()
 
 
@@ -361,7 +373,6 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         irow=self._grid.rightClickedRow
         self._grid.ExpandDataSourceToInclude(irow, 0)
         self._grid.InsertEmptyRows(irow, 1)
-        self._grid.Datasource.Updated=True
         self.RefreshWindow()
         event.Skip()
 
@@ -374,7 +385,6 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self._grid._grid.SetCellSize(irow, 0, 1, self._grid.Numcols)
         for icol in range(self._grid.Numcols):
             self._grid.Datasource.AllowCellEdits.append((irow, icol))
-        self._grid.Datasource.Updated=True
         self.RefreshWindow()
         event.Skip()
 
@@ -400,10 +410,8 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
         for row in self._grid.Datasource.Rows[top:bottom+1]:
             self.conInstanceDeltaTracker.Delete(row)
-
         del self._grid.Datasource.Rows[top:bottom+1]
 
-        self._grid.Datasource.Updated=True
         self.RefreshWindow()
 
     # ------------------
@@ -445,7 +453,6 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
     # ------------------
     def OnTextConInstanceName(self, event):
-        self.Updated=True
         self.RefreshWindow()
 
     # ------------------
@@ -455,17 +462,14 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
     # ------------------
     def OnTextConInstanceFancyURL(self, event):
-        self.Updated=True
         self.RefreshWindow()
 
     # ------------------
     def OnTextPhotosURL(self, event):
-        self.Updated=True
         self.RefreshWindow()
 
     # ------------------
     def OnTextComments(self, event):
-        self.Updated=True
         self.RefreshWindow()
 
     # ------------------
@@ -476,11 +480,10 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
     def RefreshWindow(self) -> None:
         Log("ConInstancePage.RefreshWindow() called")
         self._grid.RefreshGridFromData()
-        #self.UpdateTopText(self.ConInstanceStuff, NoEvent=True)
         s=self.Title
         if s.endswith(" *"):
             s=s[:-2]
-        if self.Updated:
+        if self.NeedsSaving():
             s=s+" *"
         self.Title=s
 

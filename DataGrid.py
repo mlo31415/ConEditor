@@ -26,6 +26,9 @@ class GridDataSource():
         self._allowCellEdits: List[Tuple[int, int]]=[]     # A list of cells where editing has been permitted by overriding a "maybe" for the col
         self._updated: bool=False                           # Has this datasource been updated since it was last in synch with the website?
 
+    def Signature(self) -> int:
+        return hash(self)
+
     @property
     def Element(self):
         return self._element
@@ -114,6 +117,11 @@ class GridDataSource():
                     if self.ColEditable[icol] == "maybe":
                         self.AllowCellEdits.append((irow, icol))
 
+    def Signature(self) -> int:
+        sum=0
+        for row in self.Rows:
+            sum+=row.Signature()
+        return sum
 
 ################################################################################
 class DataGrid():
