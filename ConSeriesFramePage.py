@@ -38,8 +38,8 @@ class MainConSeriesFrame(GenConSeriesFrame):
         self._textComments: str=""              # Linked to the comments text box
         self._basedirectoryFTP: str=basedirFTP
 
-        self._updated: bool=False                   # Has the class been changed since it was last uploaded?
         self._fancydownloadfailed: bool=False       # If a download from Fancyclopedia was attempted, did it fail? (This will be used to generate the return code)
+        self._signature: int=0
 
         if len(conseriesname) == 0:
             dlg=wx.TextEntryDialog(None, "Please enter the name of the Convention Series you wish to create.", "Enter Convention Series name")
@@ -48,7 +48,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
             conseriesname=dlg.GetValue()
 
 
-        self._seriesname: str=conseriesname
+        self._seriesname=conseriesname
 
         # Set up the grid
         self._grid: DataGrid=DataGrid(self.gRowGrid)
@@ -65,12 +65,28 @@ class MainConSeriesFrame(GenConSeriesFrame):
         # Download the convention series from the FTP server
         self.DownloadConSeries(conseriesname)
 
-        self._updated=False     # Up to this point we have no new information
         self._uploaded=False    # Set to true if the con series was uploaded to the website
         self.bUploadConSeries.Enabled=len(self._seriesname) > 0     # Enable only if a series name is present
 
+        self.MarkAsSaved()
         self.RefreshWindow()
         self.Show(True)
+
+
+    # ----------------------------------------------
+    # Used to determine if anything has been updated
+    def Signature(self) -> int:
+        stuff=self._seriesname.strip()+self._textFancyURL.strip()+self._textComments.strip()+self._basedirectoryFTP.strip()
+        return hash(stuff)+self._grid.Datasource.Signature()
+
+    def MarkAsSaved(self):
+        Log("MainConSeriesFrame.MarkAsSaved -- "+str(self.Signature()))
+        self._signature=self.Signature()
+
+    def NeedsSaving(self):
+        if self._signature != self.Signature():
+            Log("MainConSeriesFrame.NeedsSaving -- "+str(self._signature)+" != "+str(self.Signature()))
+        return self._signature != self.Signature()
 
 
     # Serialize and deserialize
@@ -90,15 +106,6 @@ class MainConSeriesFrame(GenConSeriesFrame):
             self._textComments=d["_textComments"]
             self._grid.Datasource=ConSeries().FromJson(d["_datasource"])
         return self
-
-    @property
-    def Updated(self) -> bool:
-        return self._updated or (self._grid.Datasource.Updated is not None and self._grid.Datasource.Updated)
-    @Updated.setter
-    def Updated(self, val: bool) -> None:
-        self._updated=val
-        if val == False:    # If we're setting the updated flag to False, set the grid's flag, too.
-            self._grid.Datasource.Updated=False
 
 
     #------------------
@@ -154,7 +161,6 @@ class MainConSeriesFrame(GenConSeriesFrame):
             self._textFancyURL="fancyclopedia.org/"+WikiPagenameToWikiUrlname(seriesname)
         self.tFancyURL.SetValue(self._textFancyURL)
 
-        self.Updated=False
         self.RefreshWindow()
         self.ProgressMessage(self._seriesname+" Loaded")
         Log("DownloadConSeries: "+self._seriesname+" Loaded")
@@ -219,7 +225,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
         if not FTP().PutFileAsString("/"+self._seriesname, "index.html", file, create=True):
             wx.MessageBox("Upload failed")
 
-        self.Updated=False      # It was just saved, so unless it's updated again, the dialog can exit without uploading
+        self.MarkAsSaved()      # It was just saved, so unless it's updated again, the dialog can exit without uploading
         self._uploaded=True     # Something's been uploaded
         self.RefreshWindow()
 
@@ -320,7 +326,6 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
             self._grid.Datasource.Rows.append(con)
         self.tConSeries.SetValue(name)
-        self.Updated=True
         self._fancydownloadfailed=False
         self.RefreshWindow()
         return True
@@ -344,7 +349,6 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
         self.RefreshWindow()
         self.ProgressMessage(self._seriesname+" loaded successfully from Fancyclopedia 3")
-        self.Updated=True
         pass
 
     #------------------
@@ -353,12 +357,12 @@ class MainConSeriesFrame(GenConSeriesFrame):
         s=self.Title
         if s.endswith(" *"):
             s=s[:-2]
-        if self.Updated:
+        if self.NeedsSaving():
             s=s+" *"
         self.Title=s
         if self.tConSeries.GetValue() != self._seriesname:  # Done as a conditional so as to not trigger unnecessary OnUpdates
             self.tConSeries.SetValue(self._seriesname)
-        self.bUploadConSeries.Enabled=self.Updated      # Don't offer to upload unless something has changed
+        self.bUploadConSeries.Enabled=self.NeedsSaving()      # Don't offer to upload unless something has changed
         self.bLoadSeriesFromFancy .Enabled=self._grid.Datasource.NumRows == 0  # If any con instances have been created, don't offer a download from Fancy
 
 
@@ -442,9 +446,8 @@ class MainConSeriesFrame(GenConSeriesFrame):
                 dlg.ConInstanceStuff=description
 
             dlg.ConInstanceName=instancename
-            dlg.ConInstanceFancyURL="http://fancyclopedia.org/"+WikiPagenameToWikiUrlname(instancename)
+            dlg.ConInstanceFancyURL="fancyclopedia.org/"+WikiPagenameToWikiUrlname(instancename)
 
-#           self.Updated=False
             dlg.RefreshWindow()
             if dlg.ShowModal() == wx.ID_OK:
                 if self._grid.Datasource.NumRows <= irow:
@@ -452,7 +455,6 @@ class MainConSeriesFrame(GenConSeriesFrame):
                         self._grid.Datasource.Rows.append(Con())
                 self._grid.Datasource.Rows[irow].Name=dlg.ConInstanceName
                 self._grid.Datasource.Rows[irow].URL=dlg.ConInstanceName
-                self.Updated=True
                 self.RefreshWindow()
 
 
@@ -468,34 +470,28 @@ class MainConSeriesFrame(GenConSeriesFrame):
             if len(row.Name.strip()) > 0:
                 if not FTP().DeleteDir(row.Name):
                     Log("OnPopupDeleteConPage: Delete("+row.Name+" failed")
-            self.Updated=True
             self.RefreshWindow()
 
 
     #------------------
     def OnTextFancyURL(self, event):                    # MainConSeriesFrame
         self._textFancyURL=self.tFancyURL.GetValue()
-        self.Updated=True
         self.RefreshWindow()
 
     #------------------
     def OnTextConSeriesName( self, event ):                    # MainConSeriesFrame
         self._seriesname=self.tConSeries.GetValue()
         self.bUploadConSeries.Enabled=len(self._seriesname) > 0
-        self.Updated=True
-        #self.RefreshWindow()
 
     #-----------------
     # When the user edits the ConSeries name, we update the Fancy URL (but not vice-versa)
     def ConTextConSeriesKeyUp(self, event):                    # MainConSeriesFrame
         self.tFancyURL.SetValue("fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.tConSeries.GetValue()))
-        self.Updated=True
-        #self.RefreshWindow()
+
 
     #------------------
     def OnTextComments(self, event):                    # MainConSeriesFrame
         self._textComments=self.tComments.GetValue()
-        self.Updated=True
         self.RefreshWindow()
 
     #------------------
@@ -552,7 +548,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
         if self._fancydownloadfailed:
             self.SetReturnCode(wx.CANCEL)   # We tried a download from Fancy and it failed.
-        elif self.Updated:
+        elif self.NeedsSaving():
             if event.CanVeto():
                 resp=wx.MessageBox("The convention series has been updated and not yet saved. Exit anyway?", 'Warning',
                        wx.OK|wx.CANCEL|wx.ICON_WARNING)
@@ -571,4 +567,3 @@ class MainConSeriesFrame(GenConSeriesFrame):
 
     def OnSetShowEmptyRadioBox(self, event):
         Settings().Put("ConSeriesFramePage:Show empty", str(self.m_radioBoxShowEmpty.GetSelection()))
-        self.Updated=True

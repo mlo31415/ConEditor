@@ -23,6 +23,10 @@ class Convention:
         self._name: str=""      # The name of the convention series
         self._URL: str=""       # The location of the convention series html page relative to the main cons page; empty if no series page exists yet
 
+
+    def Signature(self) -> int:
+        return hash(self._name.strip()+self._URL.strip())
+
     # Serialize and deserialize
     def ToJson(self) -> str:
         d={"ver": 2,
@@ -83,6 +87,11 @@ class ConList(GridDataSource):
         self._conlist: List[Convention]=[]
         self._toptext: str=""
 
+    #-----------------------------
+    def Signature(self) -> int:
+        return hash(self._toptext.strip())+GridDataSource().Signature()
+
+    # -----------------------------
     # Serialize and deserialize
     def ToJson(self) -> str:
         d={"ver": 2}
@@ -101,6 +110,7 @@ class ConList(GridDataSource):
             i+=1
         return self
 
+    # -----------------------------
     @property
     def ColMinWidths(self) -> List[int]:
         return ConList._colminwidths
@@ -136,6 +146,7 @@ class ConList(GridDataSource):
     def Rows(self, rows: List) -> None:
         self._conlist=rows
 
+    # -----------------------------
     def SetDataVal(self, irow: int, icol: int, val: Union[int, str]) -> None:
         self._conlist[irow].SetVal(icol, val)
 
@@ -153,14 +164,30 @@ class ConEditorFrame(GenConEditorFrame):
         self.clickedColumn: Optional[int]=None
         self._baseDirFTP: str=""
 
+        self._signature=0
+
         self._grid: DataGrid=DataGrid(self.gRowGrid)
         self._grid.Datasource=ConList()
         self._grid.HideRowLabels()
-        self._updated=False
 
         self.Load()
-
+        self.MarkAsSaved()
         self.Show()
+
+
+    # ----------------------------------------------
+    # Used to determine if anything has been updated
+    def Signature(self) -> int:
+        return self._grid.Datasource.Signature()+hash(self.m_textCtrlTopText.GetValue().strip())
+
+    def MarkAsSaved(self):
+        Log("ConEditorFrame.MarkAsSaved -- "+str(self.Signature()))
+        self._signature=self.Signature()
+
+    def NeedsSaving(self):
+        if self._signature != self.Signature():
+            Log("ConEditorFrame.NeedsSaving -- "+str(self._signature)+" != "+str(self.Signature()))
+        return self._signature != self.Signature()
 
     # ------------------
     # Serialize and deserialize
@@ -171,21 +198,11 @@ class ConEditorFrame(GenConEditorFrame):
 
         return json.dumps(d)
 
-    #------------------
     def FromJson(self, val: str) -> ConEditorFrame:            # ConEditorFrame
         d=json.loads(val)
         self._grid.Datasource=ConList().FromJson(d["_datasource"])
 
         return self
-
-    @property
-    def Updated(self) -> bool:
-        return self._updated or (self._grid.Datasource.Updated is not None and self._grid.Datasource.Updated)
-    @Updated.setter
-    def Updated(self, val: bool) -> None:
-        self._updated=val
-        if val == False:    # If we're setting the updated flag to False, set the grid's flag, too.
-            self._grid.Datasource.Updated=False
 
     #------------------
     def ProgressMessage(self, s: str) -> None:            # ConEditorFrame
@@ -216,10 +233,9 @@ class ConEditorFrame(GenConEditorFrame):
             wx.MessageBox("JSONDecodeError when loading convention information from conpubs' index.html")
             return
 
-        # Insert the row data into the grid
+        self.MarkAsSaved()
         self.RefreshWindow()
         self.ProgressMessage("root/index.html Loaded")
-        self.Updated=False   # Freshly loaded is in a saved state
 
 
     #------------------
@@ -266,7 +282,7 @@ class ConEditorFrame(GenConEditorFrame):
         else:
             self.ProgressMessage("Upload of /index.html succeeded")
 
-        self.Updated=False
+        self.MarkAsSaved()
         self.RefreshWindow()
 
     #------------------
@@ -275,7 +291,7 @@ class ConEditorFrame(GenConEditorFrame):
         s=self.Title
         if s.endswith(" *"):
             s=s[:-2]
-        if self.Updated:
+        if self.NeedsSaving():
             s=s+" *"
         self.Title=s
 
@@ -291,7 +307,6 @@ class ConEditorFrame(GenConEditorFrame):
                 return "ZZZZZZZZZ"
             return n
         self._grid.Datasource.Rows=sorted(self._grid.Datasource.Rows, key=sorter)
-        self._grid.Datasource.Updated=True
         self.RefreshWindow()
 
     #------------------
@@ -399,12 +414,11 @@ class ConEditorFrame(GenConEditorFrame):
     # ------------------
     def OnTopTextUpdated(self, event):
         self._grid.Datasource.toptext=self.m_textCtrlTopText.GetValue()
-        self.Updated=True
         self.RefreshWindow()
 
     # ------------------
     def OnClose(self, event):            # ConEditorFrame
-        if self.Updated:
+        if self.NeedsSaving():
             if event.CanVeto():
                 resp=wx.MessageBox("The main con list has been updated and not yet saved. Exit anyway?", 'Warning',
                        wx.OK|wx.CANCEL|wx.ICON_WARNING)

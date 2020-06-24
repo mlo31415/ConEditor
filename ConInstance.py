@@ -96,7 +96,6 @@ class ConFile:
         self._isText=val
 
 
-
     # Get or set a value by name or column number in the grid
     def GetVal(self, name: Union[str, int]) -> Union[str, int]:
         # (Could use return eval("self."+name))
@@ -142,9 +141,7 @@ class ConInstancePage(GridDataSource):
         GridDataSource.__init__(self)
         self._conFileList: List[ConFile]=[]
         self._name: str=""
-        self.Updated: bool=False   # In base class
         self._specialTextColor: Optional[Color]=None
-
 
     # Serialize and deserialize
     def ToJson(self) -> str:
@@ -166,8 +163,6 @@ class ConInstancePage(GridDataSource):
                 self._conFileList.append(ConFile().FromJson(c))
 
         self.MakeTextLinesEditable()
-
-        self.Updated=False
         return self
 
 

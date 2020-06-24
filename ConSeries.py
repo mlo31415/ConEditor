@@ -10,17 +10,19 @@ from FanzineIssueSpecPackage import FanzineDateRange
 ####################################################################################
 class Con:
     def __init__(self):
-        self._seq: Optional[int]=None       # Sequence number starting from from 1 or 0
         self._name: str=""                  # Name including number designation
         self._locale: str=""                # Name of locale where the con was held
         self._dates: Optional[FanzineDateRange]=None      # Date range of the con
         self._gohs: str=""                  # A list of the con's GoHs
         self._URL: str=""                   # The URL of the individual con page, if any
 
+    def Signature(self) -> int:
+        sum=hash(self._name.strip()+self._locale.strip()+self._gohs.strip()+self._URL.strip())
+        return sum+hash(self._dates)
+
     # Serialize and deserialize
     def ToJson(self) -> str:
-        d={"ver": 2,
-           "_seq": self._seq,
+        d={"ver": 3,
            "_name": self._name,
            "_locale": self._locale,
            "_dates": str(self._dates),
@@ -30,7 +32,6 @@ class Con:
 
     def FromJson(self, val: str) -> Con:
         d=json.loads(val)
-        self._seq=d["_seq"]
         self._name=d["_name"]
         self._locale=d["_locale"]
         self._gohs=d["_gohs"]
@@ -41,13 +42,6 @@ class Con:
             self._URL=""
         return self
 
-
-    @property
-    def Seq(self) ->Optional[int]:
-        return self._seq
-    @Seq.setter
-    def Seq(self, val: int):
-        self._seq=val
 
     @property
     def Name(self) -> str:
@@ -200,11 +194,9 @@ class ConSeries(GridDataSource):
     @Rows.setter
     def Rows(self, rows: List) -> None:
         self._series=rows
-        self.Updated=True
 
     def SetDataVal(self, irow: int, icol: int, val: Union[int, str, FanzineDateRange]) -> None:
         self._series[irow].SetVal(icol, val)
-        self.Updated=True
 
     #------------
     @property

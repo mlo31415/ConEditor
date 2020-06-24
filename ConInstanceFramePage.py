@@ -12,7 +12,7 @@ from FTP import FTP
 from Settings import Settings
 from Log import Log
 
-from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, PrependHTTP
+from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, PrependHTTP, RemoveHTTP
 
 #####################################################################################
 class MainConInstanceDialogClass(GenConInstanceFrame):
@@ -47,7 +47,6 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self.MarkAsSaved()
         self.RefreshWindow()
 
-        self.Show()
 
     # ----------------------------------------------
     # Used to determine if anything has been updated
@@ -81,6 +80,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
         self.ConInstanceName=d["ConInstanceName"]
         self.ConInstanceStuff=d["ConInstanceStuff"]
         self.ConInstanceFancyURL=d["ConInstanceFancyURL"]
+        self.ConInstanceFancyURL=RemoveHTTP(self.ConInstanceFancyURL)
         self._grid.Datasource=ConInstancePage().FromJson(d["_datasource"])
         self.ConInstancePhotoURL=d["ConInstancePhotoURL"]
         return self
@@ -457,7 +457,7 @@ class MainConInstanceDialogClass(GenConInstanceFrame):
 
     # ------------------
     def OnTextConInstanceNameKeyUp(self, event):
-        self.ConInstanceFancyURL="fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.tConInstanceName.GetValue())
+        self.ConInstanceFancyURL="fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.tConInstanceName.GetValue().strip())
         self.RefreshWindow()
 
     # ------------------

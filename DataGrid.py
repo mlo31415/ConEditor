@@ -24,7 +24,6 @@ class GridDataSource():
 
     def __init__(self):
         self._allowCellEdits: List[Tuple[int, int]]=[]     # A list of cells where editing has been permitted by overriding a "maybe" for the col
-        self._updated: bool=False                           # Has this datasource been updated since it was last in synch with the website?
 
     def Signature(self) -> int:
         return hash(self)
@@ -72,7 +71,6 @@ class GridDataSource():
 
     @property
     def Rows(self) -> List:     # Types of list elements needs to be undefined since we don't know what they will be.
-        assert False
         return []
     @Rows.setter
     def Rows(self, rows: List) -> None:
@@ -83,12 +81,6 @@ class GridDataSource():
         assert False
         pass
 
-    @property
-    def Updated(self) -> bool:
-        return self._updated
-    @Updated.setter
-    def Updated(self, val: bool) -> None:
-        self._updated=val
 
     @property
     def CanAddColumns(self) -> bool:
@@ -117,11 +109,13 @@ class GridDataSource():
                     if self.ColEditable[icol] == "maybe":
                         self.AllowCellEdits.append((irow, icol))
 
+
     def Signature(self) -> int:
         sum=0
         for row in self.Rows:
             sum+=row.Signature()
         return sum
+
 
 ################################################################################
 class DataGrid():
@@ -359,9 +353,6 @@ class DataGrid():
         for i, (row, col) in enumerate(self._datasource.AllowCellEdits):
             self._datasource.AllowCellEdits[i]=(permuter[row], col)
 
-        self._datasource.Updated=True
-
-        
     #------------------
     def MoveRow(self, oldrow, newnumf):        # Grid
         newrow=math.ceil(newnumf)-1
@@ -376,7 +367,6 @@ class DataGrid():
             for jCol in range(left, right+1):
                 v.append(self._datasource.GetData(iRow, jCol))
             self.clipboard.append(v)
-        self._datasource.Updated=True
 
 
     # ------------------
@@ -399,7 +389,6 @@ class DataGrid():
         for i, row in enumerate(self.clipboard, start=pasteTop):
             for j, cellval in enumerate(row, start=pasteLeft):
                 self._datasource.SetDataVal(i, j, cellval)
-        self._datasource.Updated=True
         self.RefreshGridFromData()
 
     # --------------------------------------------------------
@@ -408,7 +397,6 @@ class DataGrid():
         if irow >= 0:   # This test is needed in case we were working on the column headers (irowR->0) and then had to pass in irowR-1
             while irow >= len(self._datasource.Rows):
                 self._datasource.Rows.append(self._datasource.Element())
-            self._datasource.Updated=True
 
         # Many data sources do not allow expanding the number of columns, so check that first
         assert icol < len(self._datasource.ColHeaders) or self._datasource.CanAddColumns
@@ -418,7 +406,6 @@ class DataGrid():
                     self._datasource.ColHeaders.append("")
                     for j in range(self._datasource.NumRows):
                         self._datasource.Rows[j].append("")
-                self._datasource.Updated=True
 
 
     #------------------
@@ -432,7 +419,6 @@ class DataGrid():
 
         newVal=self.Get(row, col)
         self._datasource.SetDataVal(row, col, newVal)
-        self._datasource.Updated=True
         #Log("set datasource("+str(row)+", "+str(col)+")="+newVal)
         self.ColorCellByValue(row, col)
         self.AutoSizeColumns()
