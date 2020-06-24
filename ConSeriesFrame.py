@@ -38,20 +38,17 @@ class ConSeriesFrame(GenConSeriesFrame):
         self._fancydownloadfailed: bool=False       # If a download from Fancyclopedia was attempted, did it fail? (This will be used to generate the return code)
         self._signature: int=0
 
-        if len(conseriesname) == 0:
-            dlg=wx.TextEntryDialog(None, "Please enter the name of the Convention Series you wish to create.", "Enter Convention Series name")
-            if dlg.ShowModal() == wx.CANCEL or len(dlg.GetValue().strip()) == 0:
-                return
-            conseriesname=dlg.GetValue()
-
-
-        self.Seriesname=conseriesname
-
         # Set up the grid
         self._grid: DataGrid=DataGrid(self.gRowGrid)
         self._grid.Datasource=ConSeries()
 
         self._grid.HideRowLabels()
+
+        if len(conseriesname) == 0:
+            dlg=wx.TextEntryDialog(None, "Please enter the name of the Convention Series you wish to create.", "Enter Convention Series name")
+            if dlg.ShowModal() == wx.CANCEL or len(dlg.GetValue().strip()) == 0:
+                return
+            conseriesname=dlg.GetValue()
 
         self.Seriesname=conseriesname
 
@@ -63,7 +60,6 @@ class ConSeriesFrame(GenConSeriesFrame):
         self.DownloadConSeries(conseriesname)
 
         self._uploaded=False    # Set to true if the con series was uploaded to the website
-        self.bUploadConSeries.Enabled=len(self.Seriesname) > 0     # Enable only if a series name is present
 
         self.MarkAsSaved()
         self.RefreshWindow()
@@ -374,7 +370,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         if self.NeedsSaving():
             s=s+" *"
         self.Title=s
-        self.bUploadConSeries.Enabled=self.NeedsSaving()      # Don't offer to upload unless something has changed
+        self.bUploadConSeries.Enabled=len(self.Seriesname) > 0
         self.bLoadSeriesFromFancy .Enabled=self._grid.Datasource.NumRows == 0  # If any con instances have been created, don't offer a download from Fancy
 
 
@@ -491,7 +487,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
     #------------------
     def OnTextConSeriesName( self, event ):                    # MainConSeriesFrame
-        self.bUploadConSeries.Enabled=len(self.Seriesname) > 0
+        self.RefreshWindow()
 
     #-----------------
     # When the user edits the ConSeries name, we update the Fancy URL (but not vice-versa)
