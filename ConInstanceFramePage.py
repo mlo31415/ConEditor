@@ -51,7 +51,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     # ----------------------------------------------
     # Used to determine if anything has been updated
     def Signature(self) -> int:
-        stuff=self.ConInstanceName.strip()+self.ConInstanceStuff.strip()+self.ConInstanceFancyURL.strip()+self.ConInstancePhotoURL.strip()
+        stuff=self.ConInstanceName.strip()+self.ConInstanceTopText.strip()+self.ConInstanceFancyURL.strip()+self.ConInstancePhotoURL.strip()
         return hash(stuff)+self._grid.Datasource.Signature()
 
     def MarkAsSaved(self):
@@ -69,7 +69,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     def ToJson(self) -> str:
         d={"ver": 2,
            "ConInstanceName": self.ConInstanceName,
-           "ConInstanceStuff": self.ConInstanceStuff,
+           "ConInstanceStuff": self.ConInstanceTopText,
            "ConInstanceFancyURL": self.ConInstanceFancyURL,
            "ConInstancePhotoURL": self.ConInstancePhotoURL,
            "_datasource": self._grid.Datasource.ToJson()}
@@ -78,7 +78,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     def FromJson(self, val: str) -> GenConInstanceFrame:
         d=json.loads(val)
         self.ConInstanceName=d["ConInstanceName"]
-        self.ConInstanceStuff=d["ConInstanceStuff"]
+        self.ConInstanceTopText=d["ConInstanceStuff"]
         self.ConInstanceFancyURL=d["ConInstanceFancyURL"]
         self.ConInstanceFancyURL=RemoveHTTP(self.ConInstanceFancyURL)
         self._grid.Datasource=ConInstancePage().FromJson(d["_datasource"])
@@ -96,11 +96,11 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
     # ----------------------------------------------
     @property
-    def ConInstanceStuff(self) -> str:
+    def ConInstanceTopText(self) -> str:
         return self.topText.GetValue()
 
-    @ConInstanceStuff.setter
-    def ConInstanceStuff(self, val: str) -> None:
+    @ConInstanceTopText.setter
+    def ConInstanceTopText(self, val: str) -> None:
         self.topText.SetValue(val)
 
     # ----------------------------------------------
@@ -210,7 +210,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         file=SubstituteHTML(file, "fanac-instance", link)
         file=SubstituteHTML(file, "fanac-headerlink", link)
         file=SubstituteHTML(file, "fanac-fancylink", link)
-        file=SubstituteHTML(file, "fanac-stuff", self.ConInstanceStuff)
+        file=SubstituteHTML(file, "fanac-stuff", self.ConInstanceTopText)
         file=SubstituteHTML(file, "fanac-linkupwards", FormatLink("..", "All "+self._seriesname+"s"))
 
         # Are there photos?\\
