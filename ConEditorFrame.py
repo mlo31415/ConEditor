@@ -10,7 +10,7 @@ from datetime import date
 
 from GenConEditorFrame import GenConEditorFrame
 from DataGrid import DataGrid, GridDataSource
-from ConSeriesFramePage import MainConSeriesFrame
+from ConSeriesFrame import ConSeriesFrame
 from FTP import FTP
 from Settings import Settings
 
@@ -358,7 +358,7 @@ class ConEditorFrame(GenConEditorFrame):
             self._grid.Datasource.Rows.insert(self.clickedRow, Convention())
             self.RefreshWindow()
         conseriesname=self._grid.Datasource.GetData(self.clickedRow, 0)
-        with ModalDialogManager(MainConSeriesFrame, self._baseDirFTP, conseriesname) as dlg:
+        with ModalDialogManager(ConSeriesFrame, self._baseDirFTP, conseriesname) as dlg:
             if len(dlg._seriesname.strip()) == 0:  # If the user didn't supply a con series name, we exit and don't show the dialog
                 return
 

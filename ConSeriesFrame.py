@@ -25,7 +25,7 @@ from FanzineIssueSpecPackage import FanzineDateRange
 
 
 #####################################################################################
-class MainConSeriesFrame(GenConSeriesFrame):
+class ConSeriesFrame(GenConSeriesFrame):
     def __init__(self, basedirFTP, conseriesname):
         GenConSeriesFrame.__init__(self, None)
 
@@ -98,7 +98,7 @@ class MainConSeriesFrame(GenConSeriesFrame):
            "_datasource": self._grid.Datasource.ToJson()}
         return json.dumps(d)
 
-    def FromJson(self, val: str) -> MainConSeriesFrame:                    # MainConSeriesFrame
+    def FromJson(self, val: str) -> ConSeriesFrame:                    # MainConSeriesFrame
         d=json.loads(val)
         if d["ver"] >= 3:
             self._seriesname=d["_textConSeries"]
