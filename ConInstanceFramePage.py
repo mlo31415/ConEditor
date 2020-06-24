@@ -134,15 +134,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             self.tConInstanceFancyURL.SetValue(val)
 
     # ----------------------------------------------
-    def UpdateTopText(self, val: str, NoEvent=False) -> None:
-        if val != self.topText.GetValue():
-            if NoEvent:
-                self.topText.Unbind(wx.EVT_TEXT)  # Detach the event handler
-            self.topText.SetValue(val)
-            if NoEvent:
-                self.topText.Bind(wx.EVT_TEXT, self.OnTextComments)  # Restore the event handler
-
-    # ----------------------------------------------
     def OnAddFilesButton(self, event):
         self.AddFiles()
 
