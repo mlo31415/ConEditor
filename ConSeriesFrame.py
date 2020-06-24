@@ -33,9 +33,6 @@ class ConSeriesFrame(GenConSeriesFrame):
         self.cntlDown: bool=False
         self.rightClickedColumn: Optional[int]=None
 
-        self._seriesname: str=""         # Linked to the con series text box
-        self._textFancyURL: str=""              # Linked to the Fancy URL text box
-        self._textComments: str=""              # Linked to the comments text box
         self._basedirectoryFTP: str=basedirFTP
 
         self._fancydownloadfailed: bool=False       # If a download from Fancyclopedia was attempted, did it fail? (This will be used to generate the return code)
@@ -48,7 +45,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             conseriesname=dlg.GetValue()
 
 
-        self._seriesname=conseriesname
+        self.Seriesname=conseriesname
 
         # Set up the grid
         self._grid: DataGrid=DataGrid(self.gRowGrid)
@@ -56,7 +53,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         self._grid.HideRowLabels()
 
-        self.tConSeries.SetValue(conseriesname)
+        self.Seriesname=conseriesname
 
         val=Settings().Get("ConSeriesFramePage:Show empty")
         if val is not None:
@@ -66,7 +63,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         self.DownloadConSeries(conseriesname)
 
         self._uploaded=False    # Set to true if the con series was uploaded to the website
-        self.bUploadConSeries.Enabled=len(self._seriesname) > 0     # Enable only if a series name is present
+        self.bUploadConSeries.Enabled=len(self.Seriesname) > 0     # Enable only if a series name is present
 
         self.MarkAsSaved()
         self.RefreshWindow()
@@ -76,7 +73,7 @@ class ConSeriesFrame(GenConSeriesFrame):
     # ----------------------------------------------
     # Used to determine if anything has been updated
     def Signature(self) -> int:
-        stuff=self._seriesname.strip()+self._textFancyURL.strip()+self._textComments.strip()+self._basedirectoryFTP.strip()
+        stuff=self.Seriesname.strip()+self.TextFancyURL.strip()+self.TextComments.strip()+self._basedirectoryFTP.strip()
         return hash(stuff)+self._grid.Datasource.Signature()
 
     def MarkAsSaved(self):
@@ -92,21 +89,41 @@ class ConSeriesFrame(GenConSeriesFrame):
     # Serialize and deserialize
     def ToJson(self) -> str:                    # MainConSeriesFrame
         d={"ver": 4,
-           "_textConSeries": self._seriesname,
-           "_textFancyURL": self._textFancyURL,
-           "_textComments": self._textComments,
+           "_textConSeries": self.Seriesname,
+           "_textFancyURL": self.TextFancyURL,
+           "_textComments": self.TextComments,
            "_datasource": self._grid.Datasource.ToJson()}
         return json.dumps(d)
 
     def FromJson(self, val: str) -> ConSeriesFrame:                    # MainConSeriesFrame
         d=json.loads(val)
         if d["ver"] >= 3:
-            self._seriesname=d["_textConSeries"]
-            self._textFancyURL=d["_textFancyURL"]
-            self._textComments=d["_textComments"]
+            self.Seriesname=d["_textConSeries"]
+            self.TextFancyURL=d["_textFancyURL"]
+            self.TextComments=d["_textComments"]
             self._grid.Datasource=ConSeries().FromJson(d["_datasource"])
         return self
 
+    @property
+    def Seriesname(self) -> str:
+        return self.tConSeries.GetValue()
+    @Seriesname.setter
+    def Seriesname(self, val: str) -> None:
+        self.tConSeries.SetValue(val)
+
+    @property
+    def TextComments(self) -> str:
+        return self.tComments.GetValue()
+    @TextComments.setter
+    def TextComments(self, val: str) -> None:
+        self.tComments.SetValue(val)
+
+    @property
+    def TextFancyURL(self) -> str:
+        return self.tFancyURL.GetValue()
+    @TextFancyURL.setter
+    def TextFancyURL(self, val: str) -> None:
+        self.tFancyURL.SetValue(val)
 
     #------------------
     def ProgressMessage(self, s: str) -> None:                    # MainConSeriesFrame
@@ -126,10 +143,10 @@ class ConSeriesFrame(GenConSeriesFrame):
         if self._basedirectoryFTP is None:
             assert(False)   # Never take this branch.  Delete when I'm sure.
 
-        self.ProgressMessage("Loading "+self._seriesname+"/index.html from fanac.org")
-        file=FTP().GetFileAsString("/"+self._seriesname, "index.html")
+        self.ProgressMessage("Loading "+self.Seriesname+"/index.html from fanac.org")
+        file=FTP().GetFileAsString("/"+self.Seriesname, "index.html")
 
-        pathname=self._seriesname+"/index.html"
+        pathname=self.Seriesname+"/index.html"
         if len(self._basedirectoryFTP) > 0:
             pathname=self._basedirectoryFTP+"/"+pathname
 
@@ -150,20 +167,17 @@ class ConSeriesFrame(GenConSeriesFrame):
                 return False
         else:
             # Offer to download the data from Fancy 3
-            self._seriesname=seriesname
+            self.Seriesname=seriesname
             resp=wx.MessageBox("Do you wish to download the convention series "+seriesname+" from Fancyclopedia 3?", 'Shortcut', wx.YES|wx.NO|wx.ICON_QUESTION)
             if resp == wx.YES:
                 self.DownloadConSeriesFromFancy(seriesname)
 
-        self.tConSeries.SetValue(self._seriesname)
-        self.tComments.SetValue(self._textComments)
-        if self._textFancyURL is None or len(self._textFancyURL) == 0:
-            self._textFancyURL="fancyclopedia.org/"+WikiPagenameToWikiUrlname(seriesname)
-        self.tFancyURL.SetValue(self._textFancyURL)
+        if self.TextFancyURL is None or len(self.TextFancyURL) == 0:
+            self.TextFancyURL="fancyclopedia.org/"+WikiPagenameToWikiUrlname(seriesname)
 
         self.RefreshWindow()
-        self.ProgressMessage(self._seriesname+" Loaded")
-        Log("DownloadConSeries: "+self._seriesname+" Loaded")
+        self.ProgressMessage(self.Seriesname+" Loaded")
+        Log("DownloadConSeries: "+self.Seriesname+" Loaded")
         return True
 
 
@@ -179,10 +193,10 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name is tagged with <fanac-instance>, the random text with "fanac-headertext"
-        link=FormatLink("http://fancyclopedia.org/"+WikiPagenameToWikiUrlname(self._seriesname), self._seriesname)
-        file=SubstituteHTML(file, "title", self._seriesname)
+        link=FormatLink("http://fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.Seriesname), self.Seriesname)
+        file=SubstituteHTML(file, "title", self.Seriesname)
         file=SubstituteHTML(file, "fanac-instance", link)
-        file=SubstituteHTML(file, "fanac-headertext", self._textComments)
+        file=SubstituteHTML(file, "fanac-headertext", self.TextComments)
         file=SubstituteHTML(file, "fanac-fancylink", link)
 
         showempty=self.m_radioBoxShowEmpty.GetSelection() == 0  # Radio button: Show Empty cons?
@@ -219,10 +233,10 @@ class ConSeriesFrame(GenConSeriesFrame):
         file=SubstituteHTML(file, "fanac-date", date.today().strftime("%A %B %d, %Y"))
 
         # Now try to FTP the data up to fanac.org
-        if self._seriesname is None or len(self._seriesname) == 0:
+        if self.Seriesname is None or len(self.Seriesname) == 0:
             Log("UploadConSeries: No series name provided")
             return
-        if not FTP().PutFileAsString("/"+self._seriesname, "index.html", file, create=True):
+        if not FTP().PutFileAsString("/"+self.Seriesname, "index.html", file, create=True):
             wx.MessageBox("Upload failed")
 
         self.MarkAsSaved()      # It was just saved, so unless it's updated again, the dialog can exit without uploading
@@ -232,7 +246,7 @@ class ConSeriesFrame(GenConSeriesFrame):
     #------------------
     # Save a con series object to disk.
     def OnUploadConSeries(self, event):                    # MainConSeriesFrame
-        if self._seriesname is None or len(self._seriesname) == 0:
+        if self.Seriesname is None or len(self.Seriesname) == 0:
             wx.MessageBox("You must supply a convention series name to upload")
             return
         wait=wx.BusyCursor()
@@ -325,7 +339,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                 con.GoHs=row[ngoh]
 
             self._grid.Datasource.Rows.append(con)
-        self.tConSeries.SetValue(name)
+        self.Seriesname=name
         self._fancydownloadfailed=False
         self.RefreshWindow()
         return True
@@ -337,18 +351,18 @@ class ConSeriesFrame(GenConSeriesFrame):
         self.DownloadConSeriesFromFancy(self.tConSeries.GetValue())
 
     def DownloadConSeriesFromFancy(self, seriesname: str):
-        self._seriesname=seriesname
+        self.Seriesname=seriesname
 
-        self.ProgressMessage("Loading "+self._seriesname+" from Fancyclopedia 3")
+        self.ProgressMessage("Loading "+self.Seriesname+" from Fancyclopedia 3")
         self._grid.Datasource=ConSeries()
-        self._grid.Datasource.Name=self._seriesname
+        self._grid.Datasource.Name=self.Seriesname
 
-        ret=self.FetchConSeriesFromFancy(self._seriesname)
+        ret=self.FetchConSeriesFromFancy(self.Seriesname)
         if not ret:
             return
 
         self.RefreshWindow()
-        self.ProgressMessage(self._seriesname+" loaded successfully from Fancyclopedia 3")
+        self.ProgressMessage(self.Seriesname+" loaded successfully from Fancyclopedia 3")
         pass
 
     #------------------
@@ -360,8 +374,6 @@ class ConSeriesFrame(GenConSeriesFrame):
         if self.NeedsSaving():
             s=s+" *"
         self.Title=s
-        if self.tConSeries.GetValue() != self._seriesname:  # Done as a conditional so as to not trigger unnecessary OnUpdates
-            self.tConSeries.SetValue(self._seriesname)
         self.bUploadConSeries.Enabled=self.NeedsSaving()      # Don't offer to upload unless something has changed
         self.bLoadSeriesFromFancy .Enabled=self._grid.Datasource.NumRows == 0  # If any con instances have been created, don't offer a download from Fancy
 
@@ -418,7 +430,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             self._grid.ExpandDataSourceToInclude(irow, 0)   # Add rows if needed
 
 
-        with ModalDialogManager(ConInstanceDialogClass, self._basedirectoryFTP+"/"+self._seriesname, self._seriesname, instancename) as dlg:
+        with ModalDialogManager(ConInstanceDialogClass, self._basedirectoryFTP+"/"+self.Seriesname, self.Seriesname, instancename) as dlg:
             dlg.ConInstanceName=instancename
 
             # Construct a description of the convention from the information in the con series entry, if any.
@@ -464,8 +476,8 @@ class ConSeriesFrame(GenConSeriesFrame):
         if irow >=0 and irow < self._grid.Datasource.NumRows:
             row=self._grid.Datasource.Rows[irow]
             del self._grid.Datasource.Rows[irow]
-            if not FTP().SetDirectory(self._basedirectoryFTP+"/"+ self._seriesname):
-                Log("OnPopupDeleteConPage: SetDirectory("+self._basedirectoryFTP+"/"+ self._seriesname+") failed")
+            if not FTP().SetDirectory(self._basedirectoryFTP+"/"+ self.Seriesname):
+                Log("OnPopupDeleteConPage: SetDirectory("+self._basedirectoryFTP+"/"+self.Seriesname+") failed")
                 return
             if len(row.Name.strip()) > 0:
                 if not FTP().DeleteDir(row.Name):
@@ -475,23 +487,19 @@ class ConSeriesFrame(GenConSeriesFrame):
 
     #------------------
     def OnTextFancyURL(self, event):                    # MainConSeriesFrame
-        self._textFancyURL=self.tFancyURL.GetValue()
         self.RefreshWindow()
 
     #------------------
     def OnTextConSeriesName( self, event ):                    # MainConSeriesFrame
-        self._seriesname=self.tConSeries.GetValue()
-        self.bUploadConSeries.Enabled=len(self._seriesname) > 0
+        self.bUploadConSeries.Enabled=len(self.Seriesname) > 0
 
     #-----------------
     # When the user edits the ConSeries name, we update the Fancy URL (but not vice-versa)
     def ConTextConSeriesKeyUp(self, event):                    # MainConSeriesFrame
-        self.tFancyURL.SetValue("fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.tConSeries.GetValue()))
-
+        self.TextFancyURL="fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.tConSeries.GetValue())
 
     #------------------
     def OnTextComments(self, event):                    # MainConSeriesFrame
-        self._textComments=self.tComments.GetValue()
         self.RefreshWindow()
 
     #------------------

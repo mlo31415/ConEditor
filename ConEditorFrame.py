@@ -359,7 +359,7 @@ class ConEditorFrame(GenConEditorFrame):
             self.RefreshWindow()
         conseriesname=self._grid.Datasource.GetData(self.clickedRow, 0)
         with ModalDialogManager(ConSeriesFrame, self._baseDirFTP, conseriesname) as dlg:
-            if len(dlg._seriesname.strip()) == 0:  # If the user didn't supply a con series name, we exit and don't show the dialog
+            if len(dlg.Seriesname.strip()) == 0:  # If the user didn't supply a con series name, we exit and don't show the dialog
                 return
 
             if dlg.ShowModal() == wx.OK:
