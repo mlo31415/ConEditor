@@ -15,7 +15,7 @@ from Log import Log
 from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, PrependHTTP, RemoveHTTP
 
 #####################################################################################
-class MainConInstanceDialogClass(GenConInstanceFrame):
+class ConInstanceDialogClass(GenConInstanceFrame):
 
 
     def __init__(self, basedirFTP, seriesname, coninstancename):

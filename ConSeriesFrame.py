@@ -14,7 +14,7 @@ from GenConSeriesFrame import GenConSeriesFrame
 from FTP import FTP
 from ConSeries import ConSeries, Con
 from DataGrid import DataGrid
-from ConInstanceFramePage import MainConInstanceDialogClass
+from ConInstanceFramePage import ConInstanceDialogClass
 from Settings import Settings
 
 from HelpersPackage import ModalDialogManager, SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, UnformatLinks, RemoveAllHTMLTags
@@ -418,7 +418,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             self._grid.ExpandDataSourceToInclude(irow, 0)   # Add rows if needed
 
 
-        with ModalDialogManager(MainConInstanceDialogClass, self._basedirectoryFTP+"/"+self._seriesname, self._seriesname, instancename) as dlg:
+        with ModalDialogManager(ConInstanceDialogClass, self._basedirectoryFTP+"/"+self._seriesname, self._seriesname, instancename) as dlg:
             dlg.ConInstanceName=instancename
 
             # Construct a description of the convention from the information in the con series entry, if any.
