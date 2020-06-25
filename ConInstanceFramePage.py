@@ -335,7 +335,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.clickedRow=event.GetRow()
 
         self.m_popupAddFiles.Enabled=True
-        self.m_popupInsertRow.Enabled=True
         self.m_popupInsertText.Enabled=True
 
         if self._grid.Datasource.NumRows > event.GetRow():
@@ -358,14 +357,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     # ------------------
     def OnPopupPaste(self, event):
         self._grid.OnPopupPaste(event)
-
-    # ------------------
-    def OnPopupInsertRow(self, event):
-        irow=self._grid.rightClickedRow
-        self._grid.ExpandDataSourceToInclude(irow, 0)
-        self._grid.InsertEmptyRows(irow, 1)
-        self.RefreshWindow()
-        event.Skip()
 
     # ------------------
     def OnPopupInsertText(self, event):
