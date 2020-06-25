@@ -18,6 +18,7 @@ from Settings import Settings
 from HelpersPackage import SubstituteHTML, FindBracketedText, FormatLink, ModalDialogManager
 from Log import LogOpen, Log
 
+
 class Convention:
     def __init__(self):
         self._name: str=""      # The name of the convention series
@@ -175,7 +176,7 @@ class ConEditorFrame(GenConEditorFrame):
 
         self.Load()
         self.MarkAsSaved()
-        #self.Show()
+        self.Show()
 
 
     # ----------------------------------------------
@@ -438,9 +439,9 @@ if not f.OpenConnection("FTP Credentials.json"):
 # Load the global settings dictionary
 Settings().Load("ConEditor settings.json")
 
-
-app = wx.App(False)
-frame = ConEditorFrame(None)
+app=wx.App(False)
+frame=ConEditorFrame(None)
 app.MainLoop()
-
 pass
+
+
