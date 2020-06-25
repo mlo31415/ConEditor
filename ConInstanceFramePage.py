@@ -460,7 +460,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
     #------------------
     def RefreshWindow(self) -> None:
-        Log("ConInstancePage.RefreshWindow() called")
         self._grid.RefreshGridFromData()
         s=self.Title
         if s.endswith(" *"):

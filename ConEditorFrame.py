@@ -159,9 +159,12 @@ class ConEditorFrame(GenConEditorFrame):
     def __init__(self, parent):
         GenConEditorFrame.__init__(self, parent)
 
+        # Class instance variables associated with RMB actions, etc.
         self.userSelection=None
         self.cntlDown: bool=False
         self.clickedColumn: Optional[int]=None
+        self.clickedRow: Optional[int]=None
+
         self._baseDirFTP: str=""
 
         self._signature=0
@@ -172,7 +175,7 @@ class ConEditorFrame(GenConEditorFrame):
 
         self.Load()
         self.MarkAsSaved()
-        self.Show()
+        #self.Show()
 
 
     # ----------------------------------------------
@@ -210,7 +213,6 @@ class ConEditorFrame(GenConEditorFrame):
 
     # ------------------
     def Load(self):            # ConEditorFrame
-
         # Clear out any old information
         self._grid.Datasource=ConList()
 
@@ -300,11 +302,11 @@ class ConEditorFrame(GenConEditorFrame):
     def OnButtonSortClick(self, event):            # ConEditorFrame
         # Worldcon sorts ahead of everything else; empty lines after everything else
         def sorter(c: Convention) -> str:
-            n=c.Name.upper()
+            n=c.Name.upper()        # Convert to all UC so that sort is case-insensitive
             if n == "WORLDCON":
                 return " "
             if len(n.strip()) == 0:
-                return "ZZZZZZZZZ"
+                return "ZZZZZZZZZ"      # This should sort last
             return n
         self._grid.Datasource.Rows=sorted(self._grid.Datasource.Rows, key=sorter)
         self.RefreshWindow()
@@ -326,8 +328,6 @@ class ConEditorFrame(GenConEditorFrame):
             self.m_menuItemDelete.Enabled=True
         if irow < self._grid.Datasource.NumRows:
             self.m_menuItemEdit.Enabled=True
-        #if self._grid.Datasource._coleditable[icol] == "maybe":
-            #self.m_popupAllowEditCell.Enabled=True
         self.PopupMenu(self.m_menuPopupConEditor, pos=self.gRowGrid.Position+event.Position)
 
     # ------------------
