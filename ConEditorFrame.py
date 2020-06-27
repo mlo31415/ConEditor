@@ -403,7 +403,10 @@ class ConEditorFrame(GenConEditorFrame):
 
     # ------------------
     def OnPopupDeleteCon(self, event):            # ConEditorFrame
-        del self._grid.Datasource.Rows[self.clickedRow]
+        ret=wx.MessageBox("This will delete "+self._grid.Datasource.Rows[self.clickedRow].Name+" from the list of convention series, but will not delete "+
+                          "its directory or files from fanac.org. You must use FTP to do that.", 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
+        if ret == wx.OK:
+            del self._grid.Datasource.Rows[self.clickedRow]
         self.RefreshWindow()
         event.Skip()
 
