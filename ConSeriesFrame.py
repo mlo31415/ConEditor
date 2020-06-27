@@ -465,21 +465,16 @@ class ConSeriesFrame(GenConSeriesFrame):
                 self._grid.Datasource.Rows[irow].URL=dlg.ConInstanceName
                 self.RefreshWindow()
 
-
     #------------------
     def OnPopupDeleteConPage(self, event):                    # MainConSeriesFrame
         irow=self.rightClickedRow
-        if irow >=0 and irow < self._grid.Datasource.NumRows:
+        if irow >= 0 and irow < self._grid.Datasource.NumRows:
             row=self._grid.Datasource.Rows[irow]
-            del self._grid.Datasource.Rows[irow]
-            if not FTP().SetDirectory(self._basedirectoryFTP+"/"+ self.Seriesname):
-                Log("OnPopupDeleteConPage: SetDirectory("+self._basedirectoryFTP+"/"+self.Seriesname+") failed")
-                return
-            if len(row.Name.strip()) > 0:
-                if not FTP().DeleteDir(row.Name):
-                    Log("OnPopupDeleteConPage: Delete("+row.Name+" failed")
+            ret=wx.MessageBox("This will delete "+self._grid.Datasource.Rows[irow].Name+" from the list of conventions on this page, but will not delete "+
+                              "its directory or files from fanac.org. You must use FTP to do that.", 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
+            if ret == wx.OK:
+                del self._grid.Datasource.Rows[irow]
             self.RefreshWindow()
-
 
     #------------------
     def OnTextFancyURL(self, event):                    # MainConSeriesFrame
