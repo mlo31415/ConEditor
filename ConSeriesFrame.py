@@ -187,6 +187,9 @@ class ConSeriesFrame(GenConSeriesFrame):
         except:
             wx.MessageBox("Can't read 'Template-ConSeries.html'")
 
+        # Determine if we're missing 100% of the data for the Dates, Location, or GoH columns so we can drop them from the listing
+
+
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name is tagged with <fanac-instance>, the random text with "fanac-headertext"
         link=FormatLink("http://fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.Seriesname), self.Seriesname)
@@ -196,15 +199,21 @@ class ConSeriesFrame(GenConSeriesFrame):
         file=SubstituteHTML(file, "fanac-fancylink", link)
 
         showempty=self.m_radioBoxShowEmpty.GetSelection() == 0  # Radio button: Show Empty cons?
+        hasdates=len([d.Dates for d in self._grid.Datasource.Rows if not d.Dates.IsEmpty()]) > 0
+        haslocations=len([d.Locale for d in self._grid.Datasource.Rows if len(d.Locale) > 0]) > 0
+        hasgohs=len([d.GoHs for d in self._grid.Datasource.Rows if len(d.GoHs) > 0]) > 0
 
         # Now construct the table which we'll then substitute.
         newtable='<table class="table" id="conseriestable">\n'
         newtable+="  <thead>\n"
         newtable+='    <tr id="conseriestable">\n'
         newtable+='      <th scope="col">Conventions</th>\n'
-        newtable+='      <th scope="col">Dates</th>\n'
-        newtable+='      <th scope="col">Location</th>\n'
-        newtable+='      <th scope="col">GoHs</th>\n'
+        if hasdates:
+            newtable+='      <th scope="col">Dates</th>\n'
+        if haslocations:
+            newtable+='      <th scope="col">Location</th>\n'
+        if hasgohs:
+            newtable+='      <th scope="col">GoHs</th>\n'
         newtable+='    </tr>\n'
         newtable+='  </thead>\n'
         newtable+='  <tbody>\n'
@@ -216,9 +225,12 @@ class ConSeriesFrame(GenConSeriesFrame):
                 newtable+='      <td>'+row.Name+'</td>\n'
             else:
                 newtable+='      <td>'+FormatLink(row.URL+"/index.html", row.Name)+'</td>\n'
-            newtable+='      <td>'+str(row.Dates)+'</td>\n'
-            newtable+='      <td>'+row.Locale+'</td>\n'
-            newtable+='      <td>'+row.GoHs+'</td>\n'
+            if hasdates:
+                newtable+='      <td>'+str(row.Dates)+'</td>\n'
+            if haslocations:
+                newtable+='      <td>'+row.Locale+'</td>\n'
+            if hasgohs:
+                newtable+='      <td>'+row.GoHs+'</td>\n'
             newtable+="    </tr>\n"
         newtable+="    </tbody>\n"
         newtable+="  </table>\n"
