@@ -198,9 +198,9 @@ class ConSeriesFrame(GenConSeriesFrame):
         showempty=self.m_radioBoxShowEmpty.GetSelection() == 0  # Radio button: Show Empty cons?
 
         # Now construct the table which we'll then substitute.
-        newtable='<table class="table">\n'
+        newtable='<table class="table" id="conseriestable">\n'
         newtable+="  <thead>\n"
-        newtable+="    <tr>\n"
+        newtable+='    <tr id="conseriestable">\n'
         newtable+='      <th scope="col">Conventions</th>\n'
         newtable+='      <th scope="col">Dates</th>\n'
         newtable+='      <th scope="col">Location</th>\n'
