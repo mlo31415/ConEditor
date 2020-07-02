@@ -258,7 +258,9 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                         newtable+="&nbsp;&nbsp;("+"{:,.1f}".format(row.Size/(1024**2))+'&nbsp;MB)</td>\n'
                     else:
                         newtable+='&nbsp;&nbsp;(--)\n'
-                    newtable+="&nbsp;&nbsp;"+str(row.Notes)+"</li>\n"
+                    if len(row.Notes) > 0:
+                        newtable+="&nbsp;&nbsp;"+str(row.Notes)
+                    newtable+="</li>\n"
                 else:
                     text=row.SourceFilename+" "+row.SiteFilename+" "+row.DisplayTitle+" "+row.Notes
                     newtable+='    </ul><b>'+text.strip()+'</b><ul id="conpagetable">\n'
