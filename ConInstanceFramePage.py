@@ -224,7 +224,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         if self.radioBoxFileListFormat.GetSelection() == 0:
             # Now construct the table which we'll then substitute.
-            newtable='<table class="table">\n'
+            newtable='<table class="table"  id="conpagetable">\n'
             newtable+="  <thead>\n"
             newtable+="    <tr>\n"
             newtable+='      <th scope="col">Document</th>\n'
@@ -250,10 +250,10 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             newtable+="  </table>\n"
         else:
             # Construct a list which we'll then substitute.
-            newtable="<ul>"
+            newtable='<ul  id="conpagetable">\n'
             for row in self._grid.Datasource.Rows:
                 if not row.IsText:
-                    newtable+="    <li>"+FormatLink(row.SiteFilename, row.DisplayTitle)
+                    newtable+='    <li id="conpagetable">'+FormatLink(row.SiteFilename, row.DisplayTitle)
                     if row.Size > 0:
                         newtable+="&nbsp;&nbsp;("+"{:,.1f}".format(row.Size/(1024**2))+'&nbsp;MB)</td>\n'
                     else:
@@ -261,7 +261,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     newtable+="&nbsp;&nbsp;"+str(row.Notes)+"</li>\n"
                 else:
                     text=row.SourceFilename+" "+row.SiteFilename+" "+row.DisplayTitle+" "+row.Notes
-                    newtable+='    </ul><b>'+text.strip()+'</b><ul>\n'
+                    newtable+='    </ul><b>'+text.strip()+'</b><ul id="conpagetable">\n'
 
             newtable+="  </ul>\n"
 
