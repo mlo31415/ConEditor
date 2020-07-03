@@ -16,3 +16,16 @@
     float: left;
     font-size: smaller
 }
+
+#conmaintable table, #conmaintable th, #conmaintable td, #conmaintable li, #conmaintable ul{
+    padding: .35rem;
+    line-height: 1.05;
+    background-color: #d1f1d0;
+    border-style: hidden;
+    vertical-align: top;
+    float: left;
+    font-size: smaller
+}
+#conmaintable row, #conmaintable col, #conmaintable col-md-9, #conmaintable col-md-3, #conmaintable col-md-8, #conmaintable col-md-2 {
+    border-style: hidden
+}

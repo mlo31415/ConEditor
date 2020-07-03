@@ -19,26 +19,29 @@
 	<style>
 	a:link {color: Blue}
     </style>
+          <link rel="stylesheet" type="text/css" href="../../conpubs.css">
 <title>Conventions on fanac.org</title>
 </head>
 
 <body>
-        <style> row, col, col-md-9, col-md-3, col-md-8, col-md-2 { border-style: hidden}</style>
-<div class="container">
+<div class="container"> <!--Overall container-->
 
-<div>
-<div class="row border-0">
-<div class="col-md-9">
+<div class="row border-0"> <!--This row contains the entire page-->
+<div class="col-md-9"> <!--Left main column: everything but logo/button col -->
+<div class="row"> <!--Top row with small logo and ConSeries name-->
+<div class="col-md-4"> <!--col for small logo-->
+<button class="btn-default rounded-lg ml-n2"><h2><a href="http://www.fanac.org">fanac.org</a></h2></button>
+</div>
+
+<div class="col-md-8" style="vertical-align:middle"> <!--Balance of space for con series name, etc -->
+<div class="row" style="line-height: 1; font-size: xx-large" >
+<fanac-instance>All Conventions</fanac-instance>
+</div>
 <div class="row">
-<div class="col-md-5">
-<button class="btn-default"><h1><a href="http://www.fanac.org">fanac.org</a></h1></button>
+<fanac-headerlink>&nbsp;</fanac-headerlink>     <!-- This is blank for the main conventions page-->
 </div>
-<div class="col-md-7" style="vertical-align:middle">
-<H2><fanac-headerlink>All Conventions</fanac-headerlink></H2>
-</div>
-</div>
-
-</div>
+</div>   <!--Close balance of space for con series name, etc -->
+</div>      <!--Close top row with small logo and ConSeries name-->
 
 <div>
 <div class="row border-0">
