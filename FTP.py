@@ -26,7 +26,7 @@ class FTP:
         FTP.g_ftp=ftplib.FTP(host=FTP.g_credentials["host"], user=FTP.g_credentials["ID"], passwd=FTP.g_credentials["PW"])
         # Now we need to restore the current working directory
         predir=FTP.g_curdirpath
-        FTP().SetDirectory("/")
+        FTP().SetDirectory("/", ErrorCheck=False)
         if not FTP().SetDirectory(predir):
             Log("Reconnect failed")
             return False
@@ -53,8 +53,8 @@ class FTP:
 
 
     #---------------------------------------------
-    def CWD(self, newdir: str) -> bool:
-        wd=self.PWD()
+    def CWD(self, newdir: str, ErrorCheck=True) -> bool:
+        wd=self.PWD(ErrorCheck)
         Log("**cwd from '"+wd+"' to '"+newdir+"'")
         if wd == newdir:
             Log("  Already there!")
@@ -159,7 +159,7 @@ class FTP:
         return msg.startswith("250 ")
 
     # ---------------------------------------------
-    def PWD(self) -> str:
+    def PWD(self, ErrorCheck=True) -> str:
         try:
             dir=self.g_ftp.pwd()
         except Exception as e:
@@ -169,11 +169,12 @@ class FTP:
             dir=self.g_ftp.pwd()
         Log("pwd is '"+dir+"'")
 
-        # Check to see if this matches what self._curdirpath thinks it ought to
-        _, tail=os.path.split(self.g_curdirpath)
-        if self.g_curdirpath != dir and tail != dir:
-            Log("PWD: error detected -- self._curdirpath='"+self.g_curdirpath+"' and pwd returns '"+dir+"'")
-            assert False
+        if ErrorCheck:
+            # Check to see if this matches what self._curdirpath thinks it ought to
+            _, tail=os.path.split(self.g_curdirpath)
+            if self.g_curdirpath != dir and tail != dir:
+                Log("PWD: error detected -- self._curdirpath='"+self.g_curdirpath+"' and pwd returns '"+dir+"'")
+                assert False
         return dir
 
     # ---------------------------------------------
@@ -196,7 +197,7 @@ class FTP:
     #-------------------------------
     # Setting create=True allows the creation of new directories as needed
     # Newdir can be a whole path starting with "/" or a path relative to the current directory if it doesn't starts with a "/"
-    def SetDirectory(self, newdir: str, create: bool=False) -> bool:
+    def SetDirectory(self, newdir: str, create: bool=False, ErrorCheck=True) -> bool:
         Log("**SetDirectory: "+newdir)
 
         # Split newdir into components
@@ -223,7 +224,7 @@ class FTP:
                     return False
 
             # Now cwd to it.
-            if not self.CWD(component):
+            if not self.CWD(component, ErrorCheck=ErrorCheck):
                 Log("cwd failed...bailing out...")
                 return False
 
