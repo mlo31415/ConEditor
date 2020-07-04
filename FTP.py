@@ -54,7 +54,7 @@ class FTP:
 
     #---------------------------------------------
     def CWD(self, newdir: str, ErrorCheck=True) -> bool:
-        wd=self.PWD(ErrorCheck)
+        wd=self.PWD(ErrorCheck=ErrorCheck)
         Log("**cwd from '"+wd+"' to '"+newdir+"'")
         if wd == newdir:
             Log("  Already there!")
@@ -174,6 +174,7 @@ class FTP:
             _, tail=os.path.split(self.g_curdirpath)
             if self.g_curdirpath != dir and tail != dir:
                 Log("PWD: error detected -- self._curdirpath='"+self.g_curdirpath+"' and pwd returns '"+dir+"'")
+                Log("PWD: ErrorCheck="+str(ErrorCheck))
                 assert False
         return dir
 
