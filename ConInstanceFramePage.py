@@ -401,6 +401,9 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     def OnGridCellChanged(self, event):
         row=event.GetRow()
         col=event.GetCol()
+        if row >= self._grid.Datasource.NumRows:
+            event.Veto()
+            return
 
         if self._grid.Datasource.ColHeaders[col] == "Site Name":
             originalfname=self._grid.Datasource.GetData(row, col)
