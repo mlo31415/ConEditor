@@ -7,7 +7,7 @@ import math
 
 from HelpersPackage import IsInt
 from FanzineIssueSpecPackage import FanzineDateRange, FanzineDate
-#from Log import Log
+from Log import Log
 
 class Color:
      # Define some RGB color constants
@@ -80,7 +80,6 @@ class GridDataSource():
     def SetDataVal(self, irow: int, icol: int, val: Union[int, str, FanzineDateRange]) -> None:
         assert False
         pass
-
 
     @property
     def CanAddColumns(self) -> bool:
@@ -196,16 +195,15 @@ class DataGrid():
         self._grid.AppendRows(nrows)
 
     # --------------------------------------------------------
+    # Insert one or more empty rows in the data source.
+    # irow and everything after it will be shifted later to make room for the new rows
+    # Expand the grid, also, but don't bother to repopulate it as a later RefreshWindow will take care of that
     def InsertEmptyRows(self, irow: int, nrows: int) -> None:        # Grid
-        self._grid.InsertRows(irow, nrows)
-        rows=self._datasource.Rows
-        newrows=[]
-        if irow > 0:
-            newrows=rows[:irow]
-        newrows.extend([self._datasource.Element()]*nrows)
-        if irow < self._datasource.NumRows-1:
-            newrows.extend(rows[irow:])
-        self._datasource.Rows=newrows
+        self._grid.InsertRows(irow, nrows)  # Expand the grid
+        # Append nrows at the end, them move the displaced rows to later
+        oldnumrows=self._datasource.NumRows
+        self._datasource.Rows.extend([self._datasource.Element() for _ in range(nrows)])
+        self.MoveRows(irow, oldnumrows-irow, irow+nrows)
 
         # Now update the editable status of non-editable columns
         # All row numbers >= irow are incremented by nrows
@@ -289,7 +287,6 @@ class DataGrid():
     def ColorCellsByValue(self):        # Grid
         # Analyze the data and highlight cells where the data type doesn't match the header.  (E.g., Volume='August', Month='17', year='20')
         # Col 0 is a number and 3 is a date and the rest are strings.   We walk the rows checking the type of data in that column.
-        pass
         for iRow in range(self._grid.NumberRows):
             for iCol in range(self._grid.NumberCols):
                 self.ColorCellByValue(iRow, iCol)
@@ -305,6 +302,9 @@ class DataGrid():
         for i in range(self._datasource.NumRows):
             if self._datasource.Rows[i].IsText:
                 self._grid.SetCellSize(i, 0, 1, self.Numcols)   # Make text rows all one cell
+            else:
+                self._grid.SetCellSize(i, 0, 1, 1)  # Set as normal unspanned cell
+
             for j in range(len(self._datasource.ColHeaders)):
                 self.SetCellValue(i, j, self._datasource.GetData(i, j))
 
@@ -346,12 +346,16 @@ class DataGrid():
             i4=list(range(end+1+dest-start, len(rows)))
 
         rows=b1+b3+b2+b4
-        permuter=i1+i3+i2+i4
+        tpermuter=i1+i3+i2+i4
+        permuter=[0]*len(tpermuter)     # This next bit of code inverts the permuter. (There ought to be a more elegant way to generate it!)
+        for i, r in enumerate(tpermuter):
+            permuter[r]=i
 
         self._datasource.Rows=rows
 
         for i, (row, col) in enumerate(self._datasource.AllowCellEdits):
             self._datasource.AllowCellEdits[i]=(permuter[row], col)
+
 
     #------------------
     def MoveRow(self, oldrow, newnumf):        # Grid
@@ -394,18 +398,17 @@ class DataGrid():
     # --------------------------------------------------------
     # Expand the grid's data source so that the local item (irow, icol) exists.
     def ExpandDataSourceToInclude(self, irow: int, icol: int):
-        if irow >= 0:   # This test is needed in case we were working on the column headers (irowR->0) and then had to pass in irowR-1
-            while irow >= len(self._datasource.Rows):
-                self._datasource.Rows.append(self._datasource.Element())
+        assert irow >= 0 and icol >= 0
+        while irow >= len(self._datasource.Rows):
+            self._datasource.Rows.append(self._datasource.Element())
 
         # Many data sources do not allow expanding the number of columns, so check that first
         assert icol < len(self._datasource.ColHeaders) or self._datasource.CanAddColumns
-        if icol >= 0:   # This test is needed in case we were working on the row headers (icolR->0) and then had to pass in icolR-1
-            if self._datasource.CanAddColumns:
-                while icol >= len(self._datasource.ColHeaders):
-                    self._datasource.ColHeaders.append("")
-                    for j in range(self._datasource.NumRows):
-                        self._datasource.Rows[j].append("")
+        if self._datasource.CanAddColumns:
+            while icol >= len(self._datasource.ColHeaders):
+                self._datasource.ColHeaders.append("")
+                for j in range(self._datasource.NumRows):
+                    self._datasource.Rows[j].append("")
 
 
     #------------------
