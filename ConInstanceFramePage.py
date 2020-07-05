@@ -213,7 +213,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         file=SubstituteHTML(file, "fanac-stuff", self.ConInstanceTopText)
         file=SubstituteHTML(file, "fanac-linkupwards", FormatLink("..", "All "+self._seriesname+"s"))
 
-        # Are there photos?\\
+        # Are there photos?
         if self.ConInstancePhotoURL is not None and len(self.ConInstancePhotoURL) > 0:
             link=FormatLink(PrependHTTP(self.ConInstancePhotoURL), "Convention Photos")
             file=SubstituteHTML(file, "fanac-photos", link)
@@ -363,7 +363,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     # ------------------
     def OnPopupInsertText(self, event):
         irow=self._grid.rightClickedRow
-        self._grid.ExpandDataSourceToInclude(irow, 0)
         self._grid.InsertEmptyRows(irow, 1)
         self._grid.Datasource.Rows[irow].IsText=True
         self._grid._grid.SetCellSize(irow, 0, 1, self._grid.Numcols)
