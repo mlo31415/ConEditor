@@ -87,12 +87,6 @@ class GenConInstanceFrame ( wx.Dialog ):
 		fgSizer9.SetFlexibleDirection( wx.BOTH )
 		fgSizer9.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
-		self.m_button10 = wx.Button( self, wx.ID_ANY, u"Photo page", wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer9.Add( self.m_button10, 0, wx.ALL, 5 )
-
-
-		fgSizer9.Add( ( 30, 0), 0, wx.EXPAND, 5 )
-
 		self.m_checkBoxAllowEditExtentions = wx.CheckBox( self, wx.ID_ANY, u"Allow editing of extensions", wx.DefaultPosition, wx.DefaultSize, 0 )
 		fgSizer9.Add( self.m_checkBoxAllowEditExtentions, 0, wx.ALL, 5 )
 

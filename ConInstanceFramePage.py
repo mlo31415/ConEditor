@@ -216,7 +216,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         # Are there photos?
         if self.ConInstancePhotoURL is not None and len(self.ConInstancePhotoURL) > 0:
             link=FormatLink(PrependHTTP(self.ConInstancePhotoURL), "Convention Photos")
-            file=SubstituteHTML(file, "fanac-photos", link)
+            file=SubstituteHTML(file, "fanac-photolink", "<p>See the "+self.ConInstanceName+" "+link+" page on fanac.org")
 
         file=SubstituteHTML(file, "fanac-json", self.ToJson())
 
@@ -321,7 +321,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             self.FromJson(j)
 
         self.Title="Editing "+self._coninstancename
-        self.m_textPhotosURL.SetValue(self.ConInstancePhotoURL)
 
         self.ProgressMessage(self._FTPbasedir+"/"+self._coninstancename+"/index.html downloaded")
         Log(self._FTPbasedir+"/"+self._coninstancename+"/index.html downloaded")
