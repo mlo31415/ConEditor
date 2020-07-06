@@ -196,6 +196,10 @@ class ConSeries(GridDataSource):
         self._series=rows
 
     def SetDataVal(self, irow: int, icol: int, val: Union[int, str, FanzineDateRange]) -> None:
+        if self._coldatatypes[icol] == "date range":
+            val=FanzineDateRange().Match(val)
+            if val.IsEmpty():
+                return
         self._series[irow].SetVal(icol, val)
 
     #------------
