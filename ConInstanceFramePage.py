@@ -259,7 +259,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     else:
                         newtable+='&nbsp;&nbsp;(--)\n'
                     if len(row.Notes) > 0:
-                        newtable+="&nbsp;&nbsp;"+str(row.Notes)
+                        newtable+="&nbsp;&nbsp;("+str(row.Notes)+")"
                     newtable+="</li>\n"
                 else:
                     text=row.SourceFilename+" "+row.SiteFilename+" "+row.DisplayTitle+" "+row.Notes
