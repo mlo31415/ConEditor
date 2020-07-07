@@ -229,7 +229,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         file=SubstituteHTML(file, "fanac-date", date.today().strftime("%A %B %d, %Y"))
 
-        if self.radioBoxFileListFormat.GetSelection() == 0:
+        if self.radioBoxFileListFormat.GetSelection() == 0: # Are we to output a table?
             # Now construct the table which we'll then substitute.
             newtable='<table class="table"  id="conpagetable">\n'
             newtable+="  <thead>\n"
@@ -242,32 +242,45 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             newtable+='  <tbody>\n'
             for i, row in enumerate(self._grid.Datasource.Rows):
                 newtable+="    <tr>\n"
-                if not row.IsText:
-                    newtable+='      <td>'+FormatLink(row.SiteFilename, row.DisplayTitle)+'</td>\n'
-                info='      <td>'
-                if row.Size > 0 or (row.Pages is not None and row.Pages > 0):
-                    if row.Size > 0:
-                        info+='      <td>'+"{:,.1f}".format(row.Size/(1024**2))+'&nbsp;MB'
-                    if row.Pages is not None and row.Pages > 0:
-                        if row.Size > 0:
-                            info+="&nbsp;"
-                        info+=str(row.Pages)+" pp"
-                    info+=")"
-                info+='</td>\n'
-                newtable+=info
-                if len(row.Notes) > 0:
-                    newtable+='      <td>'+str(row.Notes)+'</td>\n'
+                # Display title column
+                if row.IsText:
+                    newtable+='      <td colspan="3">'+row.SourceFilename+" "+row.SiteFilename+" "+row.DisplayTitle+" "+row.Notes+'</td>\n'
                 else:
-                    text=row.SourceFilename+" "+row.SiteFilename+" "+row.DisplayTitle+" "+row.Notes
-                    newtable+='    <td><i><b>'+text.strip()+'</b></i></td>\n'
+                    # The document title/link column
+                    newtable+='      <td>'+FormatLink(row.SiteFilename, row.DisplayTitle)+'</td>\n'
+
+                    # This is the size & page count column
+                    info='      <td> </td>\n'
+                    if row.Size > 0 or (row.Pages is not None and row.Pages > 0):
+                        info="      <td> ("
+                        if row.Size > 0:
+                            info+="{:,.1f}".format(row.Size/(1024**2))+'&nbsp;MB'
+                        if row.Pages is not None and row.Pages > 0:
+                            if row.Size > 0:
+                                info+=" "
+                            info+=str(row.Pages)+" pp"
+                        info+=")</td>\n"
+                    newtable+=info
+
+                    # Notes column
+                    info='      <td> </td>\n'
+                    if len(row.Notes) > 0:
+                        info='      <td>'+str(row.Notes)+'</td>\n'
+                    newtable+=info
+                    # else:
+                    #     text=row.SourceFilename+" "+row.SiteFilename+" "+row.DisplayTitle+" "+row.Notes
+                    #     newtable+='    <td><i><b>'+text.strip()+'</b></i></td>\n'
                 newtable+="    </tr>\n"
             newtable+="    </tbody>\n"
             newtable+="  </table>\n"
-        else:
+        else:   # Output a list
             # Construct a list which we'll then substitute.
             newtable='<ul  id="conpagetable">\n'
             for row in self._grid.Datasource.Rows:
-                if not row.IsText:
+                if row.IsText:
+                    text=row.SourceFilename+" "+row.SiteFilename+" "+row.DisplayTitle+" "+row.Notes
+                    newtable+='    </ul><b>'+text.strip()+'</b><ul id="conpagetable">\n'
+                else:
                     newtable+='    <li id="conpagetable">'+FormatLink(row.SiteFilename, row.DisplayTitle)
                     if row.Size > 0 or (row.Pages is not None and row.Pages > 0):
                         info="&nbsp;&nbsp;("
@@ -288,9 +301,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     if len(row.Notes) > 0:
                         newtable+="&nbsp;&nbsp;("+str(row.Notes)+")"
                     newtable+="</li>\n"
-                else:
-                    text=row.SourceFilename+" "+row.SiteFilename+" "+row.DisplayTitle+" "+row.Notes
-                    newtable+='    </ul><b>'+text.strip()+'</b><ul id="conpagetable">\n'
 
             newtable+="  </ul>\n"
 
