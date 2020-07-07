@@ -3,6 +3,7 @@ import os
 import sys
 import json
 from datetime import date
+from PyPDF4 import PdfFileReader
 
 from GenConInstanceFrame import GenConInstanceFrame
 from DataGrid import DataGrid, Color
@@ -156,6 +157,11 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             dlg.Destroy()
             return True #TODO: Is this the correct return?
 
+        def GetPdfPageCount(pathname: str):
+            with open(pathname, 'rb') as fl:
+                reader=PdfFileReader(fl)
+                return reader.getNumPages()
+
         Settings().Put("Last FileDialog directory", dlg.GetDirectory())
         for fn in dlg.GetFilenames():
             conf=ConFile()
@@ -164,6 +170,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             conf.SourceFilename=fn
             conf.LocalPathname=os.path.join(os.path.join(dlg.GetDirectory()), fn)
             conf.Size=os.path.getsize(conf.LocalPathname)
+            conf.Pages=GetPdfPageCount(conf.LocalPathname)
             self.conInstanceDeltaTracker.Add(conf)
             self._grid.Datasource.Rows.append(conf)
 
@@ -237,10 +244,18 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 newtable+="    <tr>\n"
                 if not row.IsText:
                     newtable+='      <td>'+FormatLink(row.SiteFilename, row.DisplayTitle)+'</td>\n'
+                info='      <td>'
+                if row.Size > 0 or (row.Pages is not None and row.Pages > 0):
                     if row.Size > 0:
-                        newtable+='      <td>'+"{:,.1f}".format(row.Size/(1024**2))+'&nbsp;MB</td>\n'
-                    else:
-                        newtable+='      <td>--</td>\n'
+                        info+='      <td>'+"{:,.1f}".format(row.Size/(1024**2))+'&nbsp;MB'
+                    if row.Pages is not None and row.Pages > 0:
+                        if row.Size > 0:
+                            info+="&nbsp;"
+                        info+=str(row.Pages)+" pp"
+                    info+=")"
+                info+='</td>\n'
+                newtable+=info
+                if len(row.Notes) > 0:
                     newtable+='      <td>'+str(row.Notes)+'</td>\n'
                 else:
                     text=row.SourceFilename+" "+row.SiteFilename+" "+row.DisplayTitle+" "+row.Notes
@@ -254,10 +269,22 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             for row in self._grid.Datasource.Rows:
                 if not row.IsText:
                     newtable+='    <li id="conpagetable">'+FormatLink(row.SiteFilename, row.DisplayTitle)
-                    if row.Size > 0:
-                        newtable+="&nbsp;&nbsp;("+"{:,.1f}".format(row.Size/(1024**2))+'&nbsp;MB)</td>\n'
+                    if row.Size > 0 or (row.Pages is not None and row.Pages > 0):
+                        info="&nbsp;&nbsp;("
+                        if row.Size > 0:
+                            info+="{:,.1f}".format(row.Size/(1024**2))+'&nbsp;MB'
+                        if row.Pages is not None and row.Pages > 0:
+                            if row.Size > 0:
+                                info+="&nbsp;"
+                            info+=str(row.Pages)+" pp"
+                        info+='\n'
                     else:
-                        newtable+='&nbsp;&nbsp;(--)\n'
+                        info='&nbsp;&nbsp;(--)\n'
+                    newtable+=info
+                    # if row.Size > 0:
+                    #     newtable+="&nbsp;&nbsp;("+"{:,.1f}".format(row.Size/(1024**2))+'&nbsp;MB)</td>\n'
+                    # else:
+                    #     newtable+='&nbsp;&nbsp;(--)\n'
                     if len(row.Notes) > 0:
                         newtable+="&nbsp;&nbsp;("+str(row.Notes)+")"
                     newtable+="</li>\n"
