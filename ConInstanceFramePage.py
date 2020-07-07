@@ -293,9 +293,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     if len(row.Notes) > 0:
                         info='      <td>'+str(row.Notes)+'</td>\n'
                     newtable+=info
-                    # else:
-                    #     text=row.SourceFilename+" "+row.SiteFilename+" "+row.DisplayTitle+" "+row.Notes
-                    #     newtable+='    <td><i><b>'+text.strip()+'</b></i></td>\n'
+
                 newtable+="    </tr>\n"
             newtable+="    </tbody>\n"
             newtable+="  </table>\n"
