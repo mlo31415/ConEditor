@@ -1,6 +1,8 @@
 from __future__ import annotations
 from typing import List, Union, Optional, Tuple
 
+from HelpersPackage import IsInt, Int
+
 from DataGrid import GridDataSource, Color
 import json
 
@@ -14,6 +16,7 @@ class ConFile:
         self._sitefilename: str=""      # The name to be used for this file on the website
         self._size: int=0               # The file's size in bytes
         self._isText: bool=False        # Is this a piece of text rather than a convention?
+        self._pages: int=None           # Page count
 
     def Signature(self) -> int:
         sum=hash(self._displayTitle.strip()+self._notes.strip()+self._localfilename.strip()+self._localpathname.strip()+self._sitefilename.strip())
@@ -21,13 +24,14 @@ class ConFile:
 
     # Serialize and deserialize
     def ToJson(self) -> str:
-        d={"ver": 6,
+        d={"ver": 7,
            "_displayTitle": self._displayTitle,
            "_notes": self._notes,
            "_localpathname": self._localpathname,
            "_filename": self._localfilename,
            "_sitefilename": self._sitefilename,
            "_isText": self._isText,
+           "_pages": self._pages,
            "_size": self._size}
         return json.dumps(d)
 
@@ -44,6 +48,8 @@ class ConFile:
             self._sitefilename=self._displayTitle
         if d["ver"] > 5:
             self._isText=d["_isText"]
+        if d["ver"] > 6:
+            self._pages=d["_pages"]
         return self
 
     @property
@@ -89,6 +95,15 @@ class ConFile:
         self._size=val
 
     @property
+    def Pages(self) -> Optional[int]:
+        return self._pages
+    @Pages.setter
+    def Pages(self, val: Union[int, str, None]) -> None:
+        if type(val) is str:
+            val=Int(val)
+        self._pages=val
+
+    @property
     def IsText(self) -> bool:
         return self._isText
     @IsText.setter
@@ -105,7 +120,9 @@ class ConFile:
             return self.SiteFilename
         if name == "Display Name" or name == 2:
             return self.DisplayTitle
-        if name == "Notes" or name == 3:
+        if name == "Pages" or name == 3:
+            return self.Pages
+        if name == "Notes" or name == 4:
             return self.Notes
         return "Val can't interpret '"+str(name)+"'"
 
@@ -120,7 +137,10 @@ class ConFile:
         if nameOrCol == "Display Name" or nameOrCol == 2:
             self.DisplayTitle=val
             return
-        if nameOrCol == "Notes" or nameOrCol == 3:
+        if nameOrCol == "Pages" or nameOrCol == 3:
+            self.Pages=val
+            return
+        if nameOrCol == "Notes" or nameOrCol == 4:
             self.Notes=val
             return
         print("SetVal can't interpret '"+str(nameOrCol)+"'")
@@ -131,10 +151,10 @@ class ConFile:
 
 class ConInstancePage(GridDataSource):
     # an array of tuples: column header, min col width, col type
-    _colheaders=["Source File Name", "Site Name", "Display Name", "Notes"]
-    _colminwidths=[100, 75, 75, 150]
-    _coldatatypes=["str", "str", "str", "str"]
-    _coleditable=["maybe", "yes", "yes", "yes"]        # Choices are: yes, no, maybe
+    _colheaders=["Source File Name", "Site Name", "Display Name", "Pages", "Notes"]
+    _colminwidths=[100, 75, 75, 50, 150]
+    _coldatatypes=["str", "str", "str", "int", "str"]
+    _coleditable=["maybe", "yes", "yes", "yes", "yes"]        # Choices are: yes, no, maybe
     _element=ConFile
 
     def __init__(self):
