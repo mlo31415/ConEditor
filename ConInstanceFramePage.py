@@ -394,6 +394,9 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         if self._grid.Datasource.NumRows > event.GetRow():
             self.m_popupDeleteFile.Enabled=True
 
+        if self._grid.Datasource.ColEditable[self.clickedColumn] == "maybe":
+            self.m_popupAllowEditCell.Enabled=True
+
         self.PopupMenu(self.m_menuPopup, pos=self.gRowGrid.Position+event.Position)
 
     # -------------------
@@ -422,6 +425,13 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             self._grid.Datasource.AllowCellEdits.append((irow, icol))
         self.RefreshWindow()
         event.Skip()
+
+    # ------------------
+    def OnPopupAllowEditCell(self, event):
+        irow=self._grid.rightClickedRow
+        icol=self._grid.rightClickedColumn
+        self._grid.Datasource.AllowCellEdits.append((irow, icol))  # Append a (row, col) tuple. This only lives for the life of this instance.
+        self.RefreshWindow()
 
     # ------------------
     def OnPopupAddFiles(self, event):

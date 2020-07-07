@@ -409,7 +409,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         irow=self.rightClickedRow
         icol=self.rightClickedColumn
         self._grid.Datasource.AllowCellEdits.append((irow, icol))   # Append a (row, col) tuple. This only lives for the life of this instance.
-
+        self.RefreshWindow()
 
     # ------------------
     def OnGridEditorShown(self, event):
