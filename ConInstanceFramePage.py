@@ -215,8 +215,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         # Are there photos?
         if self.ConInstancePhotoURL is not None and len(self.ConInstancePhotoURL) > 0:
-            link=FormatLink(PrependHTTP(self.ConInstancePhotoURL), "Convention Photos")
-            file=SubstituteHTML(file, "fanac-photolink", "<p>See the "+self.ConInstanceName+" "+link+" page on fanac.org")
+            link=FormatLink(PrependHTTP(self.ConInstancePhotoURL), self.ConInstanceName+" "+"Convention Photos")
+            file=SubstituteHTML(file, "fanac-photolink", "<p>See the "+link+" page on fanac.org.")
 
         file=SubstituteHTML(file, "fanac-json", self.ToJson())
 
