@@ -18,7 +18,7 @@ import wx.grid
 class GenConInstanceFrame ( wx.Dialog ):
 
 	def __init__( self, parent ):
-		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Convention Instance", pos = wx.DefaultPosition, size = wx.Size( 768,612 ), style = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER )
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Convention Instance", pos = wx.DefaultPosition, size = wx.Size( 926,752 ), style = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER )
 
 		self.SetSizeHints( wx.Size( 522,606 ), wx.DefaultSize )
 

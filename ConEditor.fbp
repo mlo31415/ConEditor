@@ -1153,7 +1153,7 @@
             <property name="minimum_size">522,606</property>
             <property name="name">GenConInstanceFrame</property>
             <property name="pos"></property>
-            <property name="size">768,612</property>
+            <property name="size">926,752</property>
             <property name="style">wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</property>
             <property name="subclass">; ; forward_declare</property>
             <property name="title">Convention Instance</property>
