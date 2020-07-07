@@ -13,7 +13,13 @@ from FTP import FTP
 from Settings import Settings
 from Log import Log
 
-from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, PrependHTTP, RemoveHTTP
+from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, PrependHTTP, RemoveHTTP, ExtensionMatches
+
+
+def GetPdfPageCount(pathname: str):
+    with open(pathname, 'rb') as fl:
+        reader=PdfFileReader(fl)
+        return reader.getNumPages()
 
 #####################################################################################
 class ConInstanceDialogClass(GenConInstanceFrame):
@@ -157,11 +163,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             dlg.Destroy()
             return True #TODO: Is this the correct return?
 
-        def GetPdfPageCount(pathname: str):
-            with open(pathname, 'rb') as fl:
-                reader=PdfFileReader(fl)
-                return reader.getNumPages()
-
         Settings().Put("Last FileDialog directory", dlg.GetDirectory())
         for fn in dlg.GetFilenames():
             conf=ConFile()
@@ -194,6 +195,22 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     return
 
         self.EndModal(wx.ID_OK if self.Uploaded else wx.ID_CANCEL)
+
+    # ----------------------------------------------
+    # With V7 of the ConInstance file format we addded page counts for PDFs.  Existing entries lack page counts.
+    # Run through the list of files, and for each PDF see if it is missing a page count.
+    # If it is, see if the file is locally available.
+    # If it is, check the page count and add it to the table.
+    def FillInMissingPDFPageCounts(self):
+        for i, row in enumerate(self._grid.Datasource.Rows):
+            if not row.IsText:
+                if row.Pages is None or  row.Pages == 0:
+                    if ExtensionMatches(row.LocalPathname, ".pdf"):
+                        if os.path.exists(row.LocalPathname):
+                            row.Pages=GetPdfPageCount(row.LocalPathname)
+                            self._grid.Datasource.Rows[i]=row
+
+
 
     # ----------------------------------------------
     def OnUploadConInstancePage(self) -> None:
@@ -229,6 +246,21 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         file=SubstituteHTML(file, "fanac-date", date.today().strftime("%A %B %d, %Y"))
 
+        self.FillInMissingPDFPageCounts()
+
+        def FormatSizes(row) -> str:
+            info=""
+            if row.Size > 0 or (row.Pages is not None and row.Pages > 0):
+                info="("
+                if row.Size > 0:
+                    info+="{:,.1f}".format(row.Size/(1024**2))+'&nbsp;MB'
+                if row.Pages is not None and row.Pages > 0:
+                    if row.Size > 0:
+                        info+="; "
+                    info+=str(row.Pages)+" pp"
+                info+=")"
+            return info
+
         if self.radioBoxFileListFormat.GetSelection() == 0: # Are we to output a table?
             # Now construct the table which we'll then substitute.
             newtable='<table class="table"  id="conpagetable">\n'
@@ -250,17 +282,11 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     newtable+='      <td>'+FormatLink(row.SiteFilename, row.DisplayTitle)+'</td>\n'
 
                     # This is the size & page count column
-                    info='      <td> </td>\n'
-                    if row.Size > 0 or (row.Pages is not None and row.Pages > 0):
-                        info="      <td> ("
-                        if row.Size > 0:
-                            info+="{:,.1f}".format(row.Size/(1024**2))+'&nbsp;MB'
-                        if row.Pages is not None and row.Pages > 0:
-                            if row.Size > 0:
-                                info+=" "
-                            info+=str(row.Pages)+" pp"
-                        info+=")</td>\n"
-                    newtable+=info
+                    val=FormatSizes(row)
+                    if len(val) > 0:
+                        newtable+='      <td>'+val+'</td>\n'
+                    else:
+                        newtable+='      <td> </td>\n'
 
                     # Notes column
                     info='      <td> </td>\n'
@@ -282,22 +308,14 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     newtable+='    </ul><b>'+text.strip()+'</b><ul id="conpagetable">\n'
                 else:
                     newtable+='    <li id="conpagetable">'+FormatLink(row.SiteFilename, row.DisplayTitle)
-                    if row.Size > 0 or (row.Pages is not None and row.Pages > 0):
-                        info="&nbsp;&nbsp;("
-                        if row.Size > 0:
-                            info+="{:,.1f}".format(row.Size/(1024**2))+'&nbsp;MB'
-                        if row.Pages is not None and row.Pages > 0:
-                            if row.Size > 0:
-                                info+="&nbsp;"
-                            info+=str(row.Pages)+" pp"
-                        info+='\n'
+
+                    val=FormatSizes(row)
+                    if len(val) > 0:
+                        newtable+='&nbsp;&nbsp;'+val+'\n'
                     else:
-                        info='&nbsp;&nbsp;(--)\n'
-                    newtable+=info
-                    # if row.Size > 0:
-                    #     newtable+="&nbsp;&nbsp;("+"{:,.1f}".format(row.Size/(1024**2))+'&nbsp;MB)</td>\n'
-                    # else:
-                    #     newtable+='&nbsp;&nbsp;(--)\n'
+                        newtable+='&nbsp;&nbsp;(--)\n'
+
+                    # Notes
                     if len(row.Notes) > 0:
                         newtable+="&nbsp;&nbsp;("+str(row.Notes)+")"
                     newtable+="</li>\n"
