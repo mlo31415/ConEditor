@@ -242,11 +242,11 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             link=FormatLink(PrependHTTP(self.ConInstancePhotoURL), self.ConInstanceName+" "+"Convention Photos")
             file=SubstituteHTML(file, "fanac-photolink", "<p>See the "+link+" page on fanac.org.")
 
-        file=SubstituteHTML(file, "fanac-json", self.ToJson())
-
-        file=SubstituteHTML(file, "fanac-date", date.today().strftime("%A %B %d, %Y"))
-
+        # If there are missing page counts for pdfs, try to gett hem. (This can eventually be eliminated as there will be no pre-V7 files on the server.)
         self.FillInMissingPDFPageCounts()
+
+        file=SubstituteHTML(file, "fanac-json", self.ToJson())
+        file=SubstituteHTML(file, "fanac-date", date.today().strftime("%A %B %d, %Y"))
 
         def FormatSizes(row) -> str:
             info=""
