@@ -483,6 +483,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 self.conInstanceDeltaTracker.Rename(self._grid.Datasource.Rows[row], originalfname)
         else:
             self._grid.OnGridCellChanged(event)
+            self.RefreshWindow()
 
     # ------------------
     def OnGridEditorShown(self, event):

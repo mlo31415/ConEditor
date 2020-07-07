@@ -20,7 +20,7 @@ class ConFile:
 
     def Signature(self) -> int:
         sum=hash(self._displayTitle.strip()+self._notes.strip()+self._localfilename.strip()+self._localpathname.strip()+self._sitefilename.strip())
-        return sum+self._size+hash(self._isText)
+        return sum+self._size+hash(self._isText)+(self._pages if self._pages is not None else 0)
 
     # Serialize and deserialize
     def ToJson(self) -> str:
