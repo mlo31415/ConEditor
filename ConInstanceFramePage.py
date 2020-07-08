@@ -17,6 +17,8 @@ from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPa
 
 
 def GetPdfPageCount(pathname: str):
+    if not ExtensionMatches(pathname, ".pdf"):
+        return None
     with open(pathname, 'rb') as fl:
         reader=PdfFileReader(fl)
         return reader.getNumPages()
