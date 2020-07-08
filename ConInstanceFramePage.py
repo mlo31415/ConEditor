@@ -16,12 +16,17 @@ from Log import Log
 from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, PrependHTTP, RemoveHTTP, ExtensionMatches
 
 
+# Get the file's page count if it's a pdf
 def GetPdfPageCount(pathname: str):
     if not ExtensionMatches(pathname, ".pdf"):
         return None
-    with open(pathname, 'rb') as fl:
-        reader=PdfFileReader(fl)
-        return reader.getNumPages()
+    try:
+        with open(pathname, 'rb') as fl:
+            reader=PdfFileReader(fl)
+            return reader.getNumPages()
+    except:
+        Log("GetPdfPageCount: Exception raised while getting page count for '"+pathname+"'")
+        return None
 
 #####################################################################################
 class ConInstanceDialogClass(GenConInstanceFrame):
