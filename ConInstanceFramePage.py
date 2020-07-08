@@ -282,11 +282,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     newtable+='      <td>'+FormatLink(row.SiteFilename, row.DisplayTitle)+'</td>\n'
 
                     # This is the size & page count column
-                    val=FormatSizes(row)
-                    if len(val) > 0:
-                        newtable+='      <td>'+val+'</td>\n'
-                    else:
-                        newtable+='      <td> </td>\n'
+                    newtable+='      <td>'+FormatSizes(row)+'</td>\n'
 
                     # Notes column
                     info='      <td> </td>\n'
