@@ -18,7 +18,7 @@ import wx.grid
 class GenConSeriesFrame ( wx.Dialog ):
 
 	def __init__( self, parent ):
-		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Edit Conventon Series", pos = wx.DefaultPosition, size = wx.Size( 700,533 ), style = wx.DEFAULT_DIALOG_STYLE )
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Edit Conventon Series", pos = wx.DefaultPosition, size = wx.Size( 700,682 ), style = wx.DEFAULT_DIALOG_STYLE )
 
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
