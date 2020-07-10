@@ -254,7 +254,11 @@ class DataGrid():
 
         # If the row is a text row and if there's a special text color, color it thus
         if row < self._datasource.NumRows and self._datasource.Rows[row].IsText and self._datasource.SpecialTextColor is not None:
-            self.SetCellBackgroundColor(row, col, self._datasource.SpecialTextColor)
+            if self._datasource.SpecialTextColor is not None:
+                if type(self._datasource.SpecialTextColor) is Color:
+                    self.SetCellBackgroundColor(row, col, self._datasource.SpecialTextColor)
+                else:
+                    self._grid.SetCellFont(row, col, self._grid.GetCellFont(row, col).Bold())
 
         # If the column is not editable, color it light gray regardless of its value
         elif self._datasource.ColEditable[col] == "no":

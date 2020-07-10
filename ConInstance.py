@@ -161,7 +161,7 @@ class ConInstancePage(GridDataSource):
         GridDataSource.__init__(self)
         self._conFileList: List[ConFile]=[]
         self._name: str=""
-        self._specialTextColor: Optional[Color]=None
+        self._specialTextColor: Optional[Color, bool]=True
 
     # Serialize and deserialize
     def ToJson(self) -> str:
