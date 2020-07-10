@@ -7,8 +7,8 @@
 }
 
 #conpagetable table, #conpagetable th, #conpagetable td, #conpagetable li, #conpagetable ul{
-    padding: .35rem;
-    line-height: 1.05;
+    padding: 0.08rem;
+    line-height: 1.1;
     border-style: hidden;
     vertical-align: top;
     font-size: smaller
@@ -23,6 +23,19 @@
     float: left;
     font-size: smaller
 }
+
 #conmaintable row, #conmaintable col, #conmaintable col-md-9, #conmaintable col-md-3, #conmaintable col-md-8, #conmaintable col-md-2 {
     border-style: hidden
 }
+
+#randomtext {
+    line-height: 1.1;
+    font-size: smaller;
+}
+
+    .narrowLeft {
+        max-width: 650px;
+        margin-left: 10px
+        }
+    a:link {color: Blue}
+

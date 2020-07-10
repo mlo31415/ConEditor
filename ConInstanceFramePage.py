@@ -247,7 +247,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         # Are there photos?
         if self.ConInstancePhotoURL is not None and len(self.ConInstancePhotoURL) > 0:
             link=FormatLink(PrependHTTP(self.ConInstancePhotoURL), self.ConInstanceName+" "+"Convention Photos")
-            file=SubstituteHTML(file, "fanac-photolink", "<p>See the "+link+" page on fanac.org.")
+            file=SubstituteHTML(file, "fanac-photolink", "See the "+link+" page on fanac.org.")
 
         # If there are missing page counts for pdfs, try to gett hem. (This can eventually be eliminated as there will be no pre-V7 files on the server.)
         self.FillInMissingPDFPageCounts()
