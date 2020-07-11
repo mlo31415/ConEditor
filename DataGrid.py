@@ -55,6 +55,9 @@ class GridDataSource():
     @property
     def AllowCellEdits(self) -> List[Tuple[int, int]]:
         return self._allowCellEdits
+    @AllowCellEdits.setter
+    def AllowCellEdits(self, val: List[Tuple[int, int]]) -> None:
+        self._allowCellEdits=val
 
     @property
     def NumCols(self) -> int:
@@ -247,7 +250,17 @@ class DataGrid():
         # Start by setting color to white
         self.SetCellBackgroundColor(row, col, Color.White)
 
+        # Deal with col overflow
         if col >= len(self._datasource.ColHeaders):
+            return
+
+        # Row overflow is permitted and extra rows (rows in the grid, but not in the datasource) are colored generically
+        if row >= self.Datasource.NumRows:
+            # These are trailing rows and should get default formatting
+            self._grid.SetCellSize(row, col, 1, 1)  # Eliminate any spans
+            self._grid.SetCellFont(row, col, self._grid.GetCellFont(row, col).GetBaseFont())
+            if self._datasource.ColEditable[col] == "no" or self._datasource.ColEditable[col] == "maybe":
+                self.SetCellBackgroundColor(row, col, Color.LightGray)
             return
 
         val=self._grid.GetCellValue(row, col)
@@ -300,6 +313,11 @@ class DataGrid():
     def RefreshGridFromData(self):        # Grid
         self.EvtHandlerEnabled=False
         self._grid.ClearGrid()
+        # if self._grid.NumberRows > self._datasource.NumRows:
+        #     # This is to get rid of any trailling formatted rows
+        #     self._grid.DeleteRows(self._datasource.NumRows, self._grid.NumberRows-self._datasource.NumRows)
+        #     self._grid.AppendRows(self._grid.NumberRows-self._datasource.NumRows)
+        #     #TODO: Need to decide if we're going to leave any empty rows
 
         self.SetColHeaders(self._datasource.ColHeaders)
 
