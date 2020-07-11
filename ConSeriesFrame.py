@@ -207,7 +207,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         newtable='<table class="table" id="conseriestable">\n'
         newtable+="  <thead>\n"
         newtable+='    <tr id="conseriestable">\n'
-        newtable+='      <th scope="col">Conventions</th>\n'
+        newtable+='      <th scope="col">Convention</th>\n'
         if hasdates:
             newtable+='      <th scope="col">Dates</th>\n'
         if haslocations:
