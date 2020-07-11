@@ -486,6 +486,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                               "its directory or files from fanac.org. You must use FTP to do that.", 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
             if ret == wx.OK:
                 del self._grid.Datasource.Rows[irow]
+                self._grid.Datasource.AllowCellEdits=[x for x in self._grid.Datasource.AllowCellEdits if x[0] != irow]
             self.RefreshWindow()
 
     #------------------

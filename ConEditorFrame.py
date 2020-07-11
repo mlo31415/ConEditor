@@ -407,6 +407,7 @@ class ConEditorFrame(GenConEditorFrame):
                           "its directory or files from fanac.org. You must use FTP to do that.", 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
         if ret == wx.OK:
             del self._grid.Datasource.Rows[self.clickedRow]
+            self._grid.Datasource.AllowCellEdits=[x for x in self._grid.Datasource.AllowCellEdits if x[0] != self.clickedRow]
         self.RefreshWindow()
         event.Skip()
 

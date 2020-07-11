@@ -341,8 +341,9 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 Log("delta-RENAME: "+delta[2]+ "  to "+delta[1].SiteFilename)
                 FTP().Rename(delta[2], delta[1].SiteFilename)
             elif delta[0] == "delete":
-                Log("delta-DELETE: "+delta[1].SiteFilename)
-                FTP().DeleteFile(delta[1].SiteFilename)
+                if not delta[1].IsText:
+                    Log("delta-DELETE: "+delta[1].SiteFilename)
+                    FTP().DeleteFile(delta[1].SiteFilename)
             else:
                 Log("delta-UNRECOGNIZED: "+str(delta))
 
@@ -459,8 +460,9 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         for row in self._grid.Datasource.Rows[top:bottom+1]:
             self.conInstanceDeltaTracker.Delete(row)
         del self._grid.Datasource.Rows[top:bottom+1]
-
+        self._grid.Datasource.AllowCellEdits=[x for x in self._grid.Datasource.AllowCellEdits if x[0] >= top or x[0] < bottom+1]
         self.RefreshWindow()
+
 
     # ------------------
     def OnGridCellChanged(self, event):
