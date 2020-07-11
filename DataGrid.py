@@ -253,6 +253,7 @@ class DataGrid():
         val=self._grid.GetCellValue(row, col)
 
         # If the row is a text row and if there's a special text color, color it thus
+        self._grid.SetCellFont(row, col, self._grid.GetCellFont(row, col).GetBaseFont())    # First turn off any special formatting
         if row < self._datasource.NumRows and self._datasource.Rows[row].IsText and self._datasource.SpecialTextColor is not None:
             if self._datasource.SpecialTextColor is not None:
                 if type(self._datasource.SpecialTextColor) is Color:
@@ -350,13 +351,14 @@ class DataGrid():
             i4=list(range(end+1+dest-start, len(rows)))
 
         rows=b1+b3+b2+b4
+        self._datasource.Rows=rows
+
         tpermuter=i1+i3+i2+i4
-        permuter=[0]*len(tpermuter)     # This next bit of code inverts the permuter. (There ought to be a more elegant way to generate it!)
+        permuter=[None]*len(tpermuter)     # This next bit of code inverts the permuter. (There ought to be a more elegant way to generate it!)
         for i, r in enumerate(tpermuter):
             permuter[r]=i
 
-        self._datasource.Rows=rows
-
+        # Now use the permuter to update the row numbers of the cells which are allowed to be edited
         for i, (row, col) in enumerate(self._datasource.AllowCellEdits):
             self._datasource.AllowCellEdits[i]=(permuter[row], col)
 
