@@ -226,7 +226,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             else:
                 newtable+='      <td>'+FormatLink(row.URL+"/index.html", row.Name)+'</td>\n'
             if hasdates:
-                newtable+='      <td>'+str(row.Dates)+'</td>\n'
+                newtable+='      <td>'+str(row.Dates) if not None else ""+'</td>\n'
             if haslocations:
                 newtable+='      <td>'+row.Locale+'</td>\n'
             if hasgohs:
