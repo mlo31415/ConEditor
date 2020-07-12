@@ -530,10 +530,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         self.rightClickedRow=event.GetRow()
         if self.rightClickedColumn == 0:
             name=self._grid.Get(self.rightClickedRow, 0)
-            if name is None or len(name) == 0:
-                self.OnPopupCreateNewConPage(event)
-            else:
-                self.EditConInstancePage(name, self.rightClickedRow)
+            self.EditConInstancePage(name, self.rightClickedRow)
             self.RefreshWindow()
 
     #-------------------
