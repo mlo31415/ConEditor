@@ -381,12 +381,6 @@ class DataGrid():
             self._datasource.AllowCellEdits[i]=(permuter[row], col)
 
 
-    #------------------
-    def MoveRow(self, oldrow, newnumf):        # Grid
-        newrow=math.ceil(newnumf)-1
-        self.MoveRows(oldrow, 1, newrow)
-
-
     # ------------------
     def CopyCells(self, top, left, bottom, right):        # Grid
         self.clipboard=[]
