@@ -463,7 +463,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                         description+="  The GoHs were "+gohs
                     else:
                         description+="  The GoH was "+gohs
-                dlg.ConInstanceStuff=description
+                dlg.ConInstanceTopText=description
 
             dlg.ConInstanceName=instancename
             dlg.ConInstanceFancyURL="fancyclopedia.org/"+WikiPagenameToWikiUrlname(instancename)
