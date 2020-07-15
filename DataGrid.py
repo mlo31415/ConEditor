@@ -241,7 +241,7 @@ class DataGrid():
                 iCol+=1
 
     # --------------------------------------------------------
-    def SetCellBackgroundColor(self, row, col, color):        # Grid
+    def SetCellBackgroundColor(self, row: int, col: int, color):        # Grid
         self._grid.SetCellBackgroundColour(row, col, color)
 
     # --------------------------------------------------------
@@ -310,6 +310,24 @@ class DataGrid():
                 self.ColorCellByValue(iRow, iCol)
 
     # --------------------------------------------------------
+    #
+    def GetSelectedRowRange(self) -> Optional[Tuple[int, int]]:
+        rows=self._grid.GetSelectedRows()
+        sel=self._grid.GetSelectionBlockTopLeft()
+        if len(sel) > 0:
+            rows.append(sel[0][0])
+        sel=self._grid.GetSelectionBlockBottomRight()
+        if len(sel) > 0:
+            rows.append(sel[0][0])
+        for cell in self._grid.GetSelectedCells():
+            rows.append(cell[0])
+
+        if len(rows) > 0:
+            return (min(rows), max(rows))
+
+        return None
+
+    # --------------------------------------------------------
     def RefreshGridFromData(self):        # Grid
         self.EvtHandlerEnabled=False
         self._grid.ClearGrid()
@@ -334,14 +352,17 @@ class DataGrid():
         self.ColorCellsByValue()
         self.AutoSizeColumns()
 
+        rows=self.GetSelectedRowRange()
+        if rows is not None:
+            self._grid.MakeCellVisible(rows[0], 0)
+
 
     #--------------------------------------------------------
     # Move a block of rows within the data source
     # All row numbers are logical
     # Oldrow is the 1st row of the block to be moved
     # Newrow is the target position to which oldrow is moved
-
-    def MoveRows(self, oldrow, numrows, newrow):        # Grid
+    def MoveRows(self, oldrow: int, numrows: int, newrow: int):        # Grid
         rows=self._datasource.Rows
 
         dest=newrow
@@ -382,7 +403,7 @@ class DataGrid():
 
 
     # ------------------
-    def CopyCells(self, top, left, bottom, right):        # Grid
+    def CopyCells(self, top: int, left: int, bottom: int, righ: int) -> None:        # Grid
         self.clipboard=[]
         for iRow in range(top, bottom+1):
             v=[]
@@ -392,7 +413,7 @@ class DataGrid():
 
 
     # ------------------
-    def PasteCells(self, top, left):        # Grid
+    def PasteCells(self, top: int, left: int) -> None:        # Grid
         # We paste the clipboard data into the block of the same size with the upper-left at the mouse's position
         # Might some of the new material be outside the current bounds?  If so, add some blank rows and/or columns
 
@@ -415,7 +436,7 @@ class DataGrid():
 
     # --------------------------------------------------------
     # Expand the grid's data source so that the local item (irow, icol) exists.
-    def ExpandDataSourceToInclude(self, irow: int, icol: int):
+    def ExpandDataSourceToInclude(self, irow: int, icol: int) -> None:
         assert irow >= 0 and icol >= 0
         while irow >= len(self._datasource.Rows):
             self._datasource.Rows.append(self._datasource.Element())
@@ -446,7 +467,6 @@ class DataGrid():
         self.RefreshGridFromData()
         self.EvtHandlerEnabled=True
 
-        return
 
     #------------------
     def OnGridCellRightClick(self, event, m_menuPopup):        # Grid
@@ -469,6 +489,7 @@ class DataGrid():
         # We enable the Paste popup menu item if there is something to paste
         mi=m_menuPopup.FindItemById(m_menuPopup.FindItem("Paste"))
         mi.Enabled=self.clipboard is not None and len(self.clipboard) > 0 and len(self.clipboard[0]) > 0  # Enable only if the clipboard contains actual content
+
 
     #-------------------
     def OnGridCellDoubleClick(self):        # Grid
