@@ -523,7 +523,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.RefreshWindow()
 
     # ------------------
-    def OnTextComments(self, event):
+    def OnTopTextComments(self, event):
         self.RefreshWindow()
 
     # ------------------

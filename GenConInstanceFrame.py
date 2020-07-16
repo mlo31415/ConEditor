@@ -176,7 +176,7 @@ class GenConInstanceFrame ( wx.Dialog ):
 		self.tConInstanceName.Bind( wx.EVT_TEXT, self.OnTextConInstanceName )
 		self.tConInstanceFancyURL.Bind( wx.EVT_TEXT, self.OnTextConInstanceFancyURL )
 		self.m_textPhotosURL.Bind( wx.EVT_TEXT, self.OnTextPhotosURL )
-		self.topText.Bind( wx.EVT_TEXT, self.OnTextComments )
+		self.topText.Bind( wx.EVT_TEXT, self.OnTopTextComments )
 		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_CHANGED, self.OnGridCellChanged )
 		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_LEFT_DCLICK, self.OnGridCellDoubleClick )
 		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnGridCellRightClick )
@@ -219,7 +219,7 @@ class GenConInstanceFrame ( wx.Dialog ):
 	def OnTextPhotosURL( self, event ):
 		event.Skip()
 
-	def OnTextComments( self, event ):
+	def OnTopTextComments( self, event ):
 		event.Skip()
 
 	def OnGridCellChanged( self, event ):
@@ -263,5 +263,3 @@ class GenConInstanceFrame ( wx.Dialog ):
 
 	def GenConInstanceFrameOnContextMenu( self, event ):
 		self.PopupMenu( self.m_menuPopup, event.GetPosition() )
-
-
