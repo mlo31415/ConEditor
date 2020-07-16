@@ -459,10 +459,10 @@ class ConSeriesFrame(GenConSeriesFrame):
                     description+=" was held in " +locale+"."
                 if row.GoHs is not None and len(row.GoHs) > 0:
                     gohs=row.GoHs.replace("&amp;", "&")
-                    if "," in gohs or "&" in gohs:
-                        description+="  The GoHs were "+gohs
+                    if ("," in gohs and not ", jr" in gohs) or "&" in gohs or " and " in gohs:
+                        description+="  The GoHs were "+gohs+"."
                     else:
-                        description+="  The GoH was "+gohs
+                        description+="  The GoH was "+gohs+"."
                 dlg.ConInstanceTopText=description
 
             dlg.ConInstanceName=instancename
