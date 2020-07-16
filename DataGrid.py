@@ -403,7 +403,7 @@ class DataGrid():
 
 
     # ------------------
-    def CopyCells(self, top: int, left: int, bottom: int, righ: int) -> None:        # Grid
+    def CopyCells(self, top: int, left: int, bottom: int, right: int) -> None:        # Grid
         self.clipboard=[]
         for iRow in range(top, bottom+1):
             v=[]
