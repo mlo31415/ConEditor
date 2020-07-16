@@ -442,7 +442,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             dlg.ConInstanceName=instancename
 
             # Construct a description of the convention from the information in the con series entry, if any.
-            if irow < self._grid.Datasource.NumRows:
+            if irow < self._grid.Datasource.NumRows and len(dlg.ConInstanceTopText.strip()) == 0:
                 row=self._grid.Datasource.Rows[irow]
                 dates=None
                 if row.Dates is not None and not row.Dates.IsEmpty():
