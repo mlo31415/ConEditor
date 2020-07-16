@@ -258,14 +258,14 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         def FormatSizes(row) -> str:
             info=""
             if row.Size > 0 or (row.Pages is not None and row.Pages > 0):
-                info="("
+                info="<small>("
                 if row.Size > 0:
                     info+="{:,.1f}".format(row.Size/(1024**2))+'&nbsp;MB'
                 if row.Pages is not None and row.Pages > 0:
                     if row.Size > 0:
                         info+="; "
                     info+=str(row.Pages)+" pp"
-                info+=")"
+                info+=")</small>"
             return info
 
         if self.radioBoxFileListFormat.GetSelection() == 0: # Are we to output a table?
