@@ -81,6 +81,9 @@ class Con:
     @property
     def IsText(self) -> bool:
         return False
+    @property
+    def IsLink(self) -> bool:
+        return False
 
     # Get or set a value by name or column number
     def GetVal(self, name: Union[str, int]) -> Union[str, int, FanzineDateRange]:

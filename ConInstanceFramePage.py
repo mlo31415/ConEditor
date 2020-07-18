@@ -204,13 +204,13 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.EndModal(wx.ID_OK if self.Uploaded else wx.ID_CANCEL)
 
     # ----------------------------------------------
-    # With V7 of the ConInstance file format we addded page counts for PDFs.  Existing entries lack page counts.
+    # With V7 of the ConInstance file format we added page counts for PDFs.  Existing entries lack page counts.
     # Run through the list of files, and for each PDF see if it is missing a page count.
     # If it is, see if the file is locally available.
     # If it is, check the page count and add it to the table.
     def FillInMissingPDFPageCounts(self):
         for i, row in enumerate(self._grid.Datasource.Rows):
-            if not row.IsText:
+            if not row.IsText and not row.IsLink:
                 if row.Pages is None or  row.Pages == 0:
                     if ExtensionMatches(row.LocalPathname, ".pdf"):
                         if os.path.exists(row.LocalPathname):
@@ -284,6 +284,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 # Display title column
                 if row.IsText:
                     newtable+='      <td colspan="3">'+row.SourceFilename+" "+row.SiteFilename+" "+row.DisplayTitle+" "+row.Notes+'</td>\n'
+                elif row.IsLink:
+                    newtable+='      <td colspan="3">a link...</td>\n'
                 else:
                     # The document title/link column
                     newtable+='      <td>'+FormatLink(row.SiteFilename, row.DisplayTitle)+'</td>\n'
@@ -307,6 +309,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 if row.IsText:
                     text=row.SourceFilename+" "+row.SiteFilename+" "+row.DisplayTitle+" "+row.Notes
                     newtable+='    </ul><b>'+text.strip()+'</b><ul id="conpagetable">\n'
+                elif row.IsLink:
+                    newtable+='    </ul><b>a link</b><ul id="conpagetable">\n'
                 else:
                     newtable+='    <li id="conpagetable">'+FormatLink(row.SiteFilename, row.DisplayTitle)
 
@@ -341,7 +345,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 Log("delta-RENAME: "+delta[2]+ "  to "+delta[1].SiteFilename)
                 FTP().Rename(delta[2], delta[1].SiteFilename)
             elif delta[0] == "delete":
-                if not delta[1].IsText:
+                if not delta[1].IsText and not delta[1].IsLink:
                     Log("delta-DELETE: "+delta[1].SiteFilename)
                     FTP().DeleteFile(delta[1].SiteFilename)
             else:
@@ -394,6 +398,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         self.m_popupAddFiles.Enabled=True
         self.m_popupInsertText.Enabled=True
+        self.m_popupInsertLink.Enabled=True
 
         if self._grid.Datasource.NumRows > event.GetRow():
             self.m_popupDeleteFile.Enabled=True
@@ -423,8 +428,18 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     def OnPopupInsertText(self, event):
         irow=self._grid.rightClickedRow
         self._grid.InsertEmptyRows(irow, 1)
-        self._grid.Datasource.Rows[irow].IsText=True
+        self._grid.Datasource.Rows[irow].IsText=True    #TODO: Add similar code for IsLink
         self._grid._grid.SetCellSize(irow, 0, 1, self._grid.Numcols)
+        for icol in range(self._grid.Numcols):
+            self._grid.Datasource.AllowCellEdits.append((irow, icol))
+        self.RefreshWindow()
+        event.Skip()
+
+    # ------------------
+    def OnPopupInsertLink(self, event):
+        irow=self._grid.rightClickedRow
+        self._grid.InsertEmptyRows(irow, 1)
+        self._grid.Datasource.Rows[irow].IsLink=True
         for icol in range(self._grid.Numcols):
             self._grid.Datasource.AllowCellEdits.append((irow, icol))
         self.RefreshWindow()
@@ -468,11 +483,11 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     def OnGridCellChanged(self, event):
         row=event.GetRow()
         col=event.GetCol()
-        if row >= self._grid.Datasource.NumRows:
+        if row >= self._grid.Datasource.NumRows:    # Ignore (and thus reject) data entry beyond the last Datasource row.  (Rows must be added using AddFiles or new Text Line, etc)
             event.Veto()
             return
 
-        if self._grid.Datasource.ColHeaders[col] == "Site Name":
+        if self._grid.Datasource.ColHeaders[col] == "Site Name":    #TODO: Why is this here???
             originalfname=self._grid.Datasource.GetData(row, col)
             _, oext=os.path.splitext(originalfname)
             self._grid.OnGridCellChanged(event)

@@ -159,6 +159,9 @@ class GenConInstanceFrame ( wx.Dialog ):
 		self.m_popupInsertText = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Insert Text Line", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_menuPopup.Append( self.m_popupInsertText )
 
+		self.m_popupInsertLink = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Insert Link Line", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_menuPopup.Append( self.m_popupInsertLink )
+
 		self.m_popupAllowEditCell = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Allow Cell Edit", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_menuPopup.Append( self.m_popupAllowEditCell )
 
@@ -188,6 +191,7 @@ class GenConInstanceFrame ( wx.Dialog ):
 		self.Bind( wx.EVT_MENU, self.OnPopupAddFiles, id = self.m_popupAddFiles.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupDeleteFile, id = self.m_popupDeleteFile.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupInsertText, id = self.m_popupInsertText.GetId() )
+		self.Bind( wx.EVT_MENU, self.OnPopupInsertLink, id = self.m_popupInsertLink.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupAllowEditCell, id = self.m_popupAllowEditCell.GetId() )
 
 	def __del__( self ):
@@ -253,6 +257,9 @@ class GenConInstanceFrame ( wx.Dialog ):
 		event.Skip()
 
 	def OnPopupInsertText( self, event ):
+		event.Skip()
+
+	def OnPopupInsertLink( self, event ):
 		event.Skip()
 
 	def OnPopupAllowEditCell( self, event ):

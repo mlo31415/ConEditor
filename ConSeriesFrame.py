@@ -137,7 +137,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             return False
 
         if self._basedirectoryFTP is None:
-            assert(False)   # Never take this branch.  Delete when I'm sure.
+            assert False   # Never take this branch.  Delete when I'm sure.
 
         self.ProgressMessage("Loading "+self.Seriesname+"/index.html from fanac.org")
         file=FTP().GetFileAsString("/"+self.Seriesname, "index.html")

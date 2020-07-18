@@ -16,21 +16,25 @@ class ConFile:
         self._sitefilename: str=""      # The name to be used for this file on the website
         self._size: int=0               # The file's size in bytes
         self._isText: bool=False        # Is this a piece of text rather than a convention?
+        self._isLink: bool=False        # Is this a link?
+        self._URL: str=""               # The URL to be used for a link. (This is ignored if _isLink == False.) It will be displayed using displayTitle as the link text.
         self._pages: int=None           # Page count
 
     def Signature(self) -> int:
-        sum=hash(self._displayTitle.strip()+self._notes.strip()+self._localfilename.strip()+self._localpathname.strip()+self._sitefilename.strip())
+        sum=hash(self._displayTitle.strip()+self._notes.strip()+self._localfilename.strip()+self._localpathname.strip()+self._sitefilename.strip()+self._URL.strip())
         return sum+self._size+hash(self._isText)+(self._pages if self._pages is not None else 0)
 
     # Serialize and deserialize
     def ToJson(self) -> str:
-        d={"ver": 7,
+        d={"ver": 9,
            "_displayTitle": self._displayTitle,
            "_notes": self._notes,
            "_localpathname": self._localpathname,
            "_filename": self._localfilename,
            "_sitefilename": self._sitefilename,
            "_isText": self._isText,
+           "_isLink": self._isLink,
+           "_URL": self._URL,
            "_pages": self._pages,
            "_size": self._size}
         return json.dumps(d)
@@ -50,6 +54,8 @@ class ConFile:
             self._isText=d["_isText"]
         if d["ver"] > 6:
             self._pages=d["_pages"]
+        if d["ver"] > 8:
+            self._URL=d["_URL"]
         return self
 
     @property
@@ -111,6 +117,20 @@ class ConFile:
         self._isText=val
 
 
+    @property
+    def IsLink(self) -> bool:
+        return self._isLink
+    @IsLink.setter
+    def IsLink(self, val: bool) -> None:
+        self._isLink=val
+    @property
+    def URL(self) -> str:
+        return self._URL
+    @URL.setter
+    def URL(self, val: str) -> None:
+        self._URL=val
+
+
     # Get or set a value by name or column number in the grid
     def GetVal(self, name: Union[str, int]) -> Union[str, int]:
         # (Could use return eval("self."+name))
@@ -151,7 +171,7 @@ class ConFile:
 
 class ConInstancePage(GridDataSource):
     # an array of tuples: column header, min col width, col type
-    _colheaders=["Source File Name", "Site Name", "Display Name", "Pages", "Notes"]
+    _colheaders=["Source File Name", "Site Name", "Display Name", "Pages", "Notes"]     # "Display Name" is special: change carefully
     _colminwidths=[100, 75, 75, 50, 150]
     _coldatatypes=["str", "str", "str", "int", "str"]
     _coleditable=["maybe", "yes", "yes", "maybe", "yes"]        # Choices are: yes, no, maybe

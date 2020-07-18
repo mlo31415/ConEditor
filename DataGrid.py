@@ -93,6 +93,10 @@ class GridDataSource():
         return False            # Override this if editing the column headers is allowed
 
     @property
+    def IsLink(self, row: int) -> bool:
+        return False            # Override only if needed
+
+    @property
     def IsText(self, row: int) -> bool:
         return False            # Override only if needed
 
@@ -106,7 +110,7 @@ class GridDataSource():
     # Make text lines to be merged and editable
     def MakeTextLinesEditable(self) -> None:
         for irow, row in enumerate(self.Rows):
-            if row.IsText:
+            if row.IsText or row.IsLink:
                 for icol in range(self.NumCols):
                     if self.ColEditable[icol] == "maybe":
                         self.AllowCellEdits.append((irow, icol))
@@ -241,65 +245,76 @@ class DataGrid():
                 iCol+=1
 
     # --------------------------------------------------------
-    def SetCellBackgroundColor(self, row: int, col: int, color):        # Grid
-        self._grid.SetCellBackgroundColour(row, col, color)
+    def SetCellBackgroundColor(self, irow: int, icol: int, color):        # Grid
+        self._grid.SetCellBackgroundColour(irow, icol, color)
 
     # --------------------------------------------------------
     # Row, col are Grid coordinates
-    def ColorCellByValue(self, row: int, col: int) -> None:        # Grid
+    def ColorCellByValue(self, irow: int, icol: int) -> None:        # Grid
         # Start by setting color to white
-        self.SetCellBackgroundColor(row, col, Color.White)
+        self.SetCellBackgroundColor(irow, icol, Color.White)
 
         # Deal with col overflow
-        if col >= len(self._datasource.ColHeaders):
+        if icol >= len(self._datasource.ColHeaders):
             return
 
         # Row overflow is permitted and extra rows (rows in the grid, but not in the datasource) are colored generically
-        if row >= self.Datasource.NumRows:
+        if irow >= self.Datasource.NumRows:
             # These are trailing rows and should get default formatting
-            self._grid.SetCellSize(row, col, 1, 1)  # Eliminate any spans
-            self._grid.SetCellFont(row, col, self._grid.GetCellFont(row, col).GetBaseFont())
-            if self._datasource.ColEditable[col] == "no" or self._datasource.ColEditable[col] == "maybe":
-                self.SetCellBackgroundColor(row, col, Color.LightGray)
+            self._grid.SetCellSize(irow, icol, 1, 1)  # Eliminate any spans
+            self._grid.SetCellFont(irow, icol, self._grid.GetCellFont(irow, icol).GetBaseFont())
+            if self._datasource.ColEditable[icol] == "no" or self._datasource.ColEditable[icol] == "maybe":
+                self.SetCellBackgroundColor(irow, icol, Color.LightGray)
             return
 
-        val=self._grid.GetCellValue(row, col)
+        val=self._grid.GetCellValue(irow, icol)
+
+        # First turn off any special formatting
+        self._grid.SetCellFont(irow, icol, self._grid.GetCellFont(irow, icol).GetBaseFont())
 
         # If the row is a text row and if there's a special text color, color it thus
-        self._grid.SetCellFont(row, col, self._grid.GetCellFont(row, col).GetBaseFont())    # First turn off any special formatting
-        if row < self._datasource.NumRows and self._datasource.Rows[row].IsText and self._datasource.SpecialTextColor is not None:
+        if irow < self._datasource.NumRows and self._datasource.Rows[irow].IsText and self._datasource.SpecialTextColor is not None:
             if self._datasource.SpecialTextColor is not None:
                 if type(self._datasource.SpecialTextColor) is Color:
-                    self.SetCellBackgroundColor(row, col, self._datasource.SpecialTextColor)
+                    self.SetCellBackgroundColor(irow, icol, self._datasource.SpecialTextColor)
                 else:
-                    self._grid.SetCellFont(row, col, self._grid.GetCellFont(row, col).Bold())
+                    self._grid.SetCellFont(irow, icol, self._grid.GetCellFont(irow, icol).Bold())
+
+        # If the row is a link row give it the look of a link
+        elif irow < self._datasource.NumRows and self._datasource.Rows[irow].IsLink:
+            # Locate the "Display Name" column
+            if not "Display Name" in self.Datasource.ColHeaders:
+                assert False  # This should never happen
+            colnum=self.Datasource.ColHeaders.index("Display Name")
+            if icol < colnum:
+                self._grid.SetCellFont(irow, icol, self._grid.GetCellFont(irow, icol).Underlined())
 
         # If the column is not editable, color it light gray regardless of its value
-        elif self._datasource.ColEditable[col] == "no":
-            self.SetCellBackgroundColor(row, col, Color.LightGray)
-        elif self._datasource.ColEditable[col] == "maybe" and (row, col) not in self._datasource.AllowCellEdits:
-            self.SetCellBackgroundColor(row, col, Color.LightGray)
+        elif self._datasource.ColEditable[icol] == "no":
+            self.SetCellBackgroundColor(irow, icol, Color.LightGray)
+        elif self._datasource.ColEditable[icol] == "maybe" and (irow, icol) not in self._datasource.AllowCellEdits:
+            self.SetCellBackgroundColor(irow, icol, Color.LightGray)
 
         else:
             # If it *is* editable or potentially editable, then color it according to its value
             # We skip testing for "str"-type columns since anything at all is OK in a str column
-            if self._datasource.ColDataTypes[col] == "int":
+            if self._datasource.ColDataTypes[icol] == "int":
                 if val is not None and val != "" and not IsInt(val):
-                    self.SetCellBackgroundColor(row, col, Color.Pink)
-            elif self._datasource.ColDataTypes[col] == "date range":
+                    self.SetCellBackgroundColor(irow, icol, Color.Pink)
+            elif self._datasource.ColDataTypes[icol] == "date range":
                 if val is not None and val != "" and FanzineDateRange().Match(val).IsEmpty():
-                    self.SetCellBackgroundColor(row, col, Color.Pink)
-            elif self._datasource.ColDataTypes[col] == "date":
+                    self.SetCellBackgroundColor(irow, icol, Color.Pink)
+            elif self._datasource.ColDataTypes[icol] == "date":
                 if val is not None and val != "" and FanzineDate().Match(val).IsEmpty():
-                    self.SetCellBackgroundColor(row, col, Color.Pink)
+                    self.SetCellBackgroundColor(irow, icol, Color.Pink)
 
         # Special handling for URLs: we add an underline
-        if self._datasource.ColDataTypes[col] == "url":
-            if val is not None and val != "" and len(self._datasource.Rows[row].URL) > 0:
-                self._grid.SetCellTextColour(row, col, Color.Blue)
-                font=self._grid.GetCellFont(row, col)
+        if self._datasource.ColDataTypes[icol] == "url":
+            if val is not None and val != "" and len(self._datasource.Rows[irow].URL) > 0:
+                self._grid.SetCellTextColour(irow, icol, Color.Blue)
+                font=self._grid.GetCellFont(irow, icol)
                 font.MakeUnderlined()
-                self._grid.SetCellFont(row, col, font)
+                self._grid.SetCellFont(irow, icol, font)
 
     # --------------------------------------------------------
     def ColorCellsByValue(self):        # Grid
@@ -340,14 +355,23 @@ class DataGrid():
         self.SetColHeaders(self._datasource.ColHeaders)
 
         # Fill in the cells
-        for i in range(self._datasource.NumRows):
-            if self._datasource.Rows[i].IsText:
-                self._grid.SetCellSize(i, 0, 1, self.Numcols)   # Make text rows all one cell
-            else:
-                self._grid.SetCellSize(i, 0, 1, 1)  # Set as normal unspanned cell
+        for irow in range(self._datasource.NumRows):
+            if self._datasource.Rows[irow].IsText:
+                self._grid.SetCellSize(irow, 0, 1, self.Numcols)   # Make text rows all one cell
 
-            for j in range(len(self._datasource.ColHeaders)):
-                self.SetCellValue(i, j, self._datasource.GetData(i, j))
+            elif self._datasource.Rows[irow].IsLink:    # If a grid allows IsLink to be set, its Datasource must have a column labelled "Display Name"
+                # Locate the "Display Name" column
+                if not "Display Name" in self.Datasource.ColHeaders:
+                    assert False  # This should never happen
+                colnum=self.Datasource.ColHeaders.index("Display Name")
+                self._grid.SetCellSize(irow, 0, 1, colnum)  # Merge all the cells up to the display name column
+                self._grid.SetCellSize(irow, colnum, 1, self.Numcols-colnum)  # Merge the rest the cells into a second column
+
+            else:
+                self._grid.SetCellSize(irow, 0, 1, 1)  # Set as normal unspanned cell
+
+            for icol in range(len(self._datasource.ColHeaders)):
+                self.SetCellValue(irow, icol, self._datasource.GetData(irow, icol))
 
         self.ColorCellsByValue()
         self.AutoSizeColumns()
