@@ -14,7 +14,7 @@ from GenConSeriesFrame import GenConSeriesFrame
 from FTP import FTP
 from ConSeries import ConSeries, Con
 from DataGrid import DataGrid
-from ConInstanceFramePage import ConInstanceDialogClass
+from ConInstanceFrame import ConInstanceDialogClass
 from Settings import Settings
 
 from HelpersPackage import ModalDialogManager, SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, UnformatLinks, RemoveAllHTMLTags
