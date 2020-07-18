@@ -74,9 +74,6 @@ class Con:
     @property
     def URL(self) -> str:
         return self._URL
-    @URL.setter
-    def URL(self, val: str):
-        self._URL=val
 
     @property
     def IsText(self) -> bool:

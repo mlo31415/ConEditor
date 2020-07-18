@@ -127,10 +127,7 @@ class ConFile:
         self._isLink=val
     @property
     def URL(self) -> str:
-        return self._URL
-    @URL.setter
-    def URL(self, val: str) -> None:
-        self._URL=val
+        return self.SourceFilename
 
 
     # Get or set a value by name or column number in the grid

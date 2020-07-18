@@ -285,7 +285,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 if row.IsText:
                     newtable+='      <td colspan="3">'+row.SourceFilename+" "+row.SiteFilename+" "+row.DisplayTitle+" "+row.Notes+'</td>\n'
                 elif row.IsLink:
-                    newtable+='      <td colspan="3">a link...</td>\n'
+                    newtable+='      <td colspan="3">'+FormatLink(row.URL, row.DisplayTitle)+'</td>\n'
                 else:
                     # The document title/link column
                     newtable+='      <td>'+FormatLink(row.SiteFilename, row.DisplayTitle)+'</td>\n'
@@ -310,7 +310,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     text=row.SourceFilename+" "+row.SiteFilename+" "+row.DisplayTitle+" "+row.Notes
                     newtable+='    </ul><b>'+text.strip()+'</b><ul id="conpagetable">\n'
                 elif row.IsLink:
-                    newtable+='    </ul><b>a link</b><ul id="conpagetable">\n'
+                    newtable+='    <li id="conpagetable">'+FormatLink(row.URL, row.DisplayTitle)+"</li>\n"
                 else:
                     newtable+='    <li id="conpagetable">'+FormatLink(row.SiteFilename, row.DisplayTitle)
 

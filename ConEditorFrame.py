@@ -66,9 +66,6 @@ class Convention:
     @property
     def URL(self) -> str:
         return self._URL
-    @URL.setter
-    def URL(self, val: str) -> None:
-        self._URL=val
 
     # These two properties supplies a default value so that other uses of the grid don't need to implement it.
     @property
