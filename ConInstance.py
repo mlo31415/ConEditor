@@ -54,6 +54,8 @@ class ConFile:
             self._isText=d["_isText"]
         if d["ver"] > 6:
             self._pages=d["_pages"]
+        if d["ver"] > 7:
+            self._isLink=d["_isLink"]
         if d["ver"] > 8:
             self._URL=d["_URL"]
         return self
