@@ -566,7 +566,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                     event.Veto()
                     return
 
-        # If anything was upladed to the website, then we return OK indicating something happened
+        # If anything was uploaded to the website, then we return OK indicating something happened
         if self._uploaded:
             self.EndModal(wx.OK)
             return
