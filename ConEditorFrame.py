@@ -179,6 +179,11 @@ class ConEditorFrame(GenConEditorFrame):
         self._grid.Datasource=ConList()
         self._grid.HideRowLabels()
 
+        # Position the window on the screen it was on before
+        tlwp=Settings().Get("Top Level Window Position")
+        if tlwp is not None and len(tlwp) > 0:
+            self.SetPosition(tlwp)
+
         self.Load()
         self.MarkAsSaved()
         self.Show()
@@ -434,6 +439,11 @@ class ConEditorFrame(GenConEditorFrame):
                 if ret == wx.CANCEL:
                     event.Veto()
                     return
+
+        # Save the window's position
+        pos=self.GetPosition()
+        Settings().Put("Top Level Window Position", (pos.x, pos.y))
+
         self.Destroy()
 
 
@@ -450,6 +460,7 @@ Settings().Load("ConEditor settings.json")
 
 app=wx.App(False)
 frame=ConEditorFrame(None)
+
 app.MainLoop()
 pass
 
