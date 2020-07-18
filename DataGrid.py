@@ -3,7 +3,6 @@ from typing import List, Union, Tuple, Optional
 
 import wx
 import wx.grid
-import math
 
 from HelpersPackage import IsInt
 from FanzineIssueSpecPackage import FanzineDateRange, FanzineDate
