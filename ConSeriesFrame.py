@@ -475,7 +475,6 @@ class ConSeriesFrame(GenConSeriesFrame):
                     for i in range(irow-self._grid.Datasource.NumRows+1):
                         self._grid.Datasource.Rows.append(Con())
                 self._grid.Datasource.Rows[irow].Name=dlg.ConInstanceName
-                self._grid.Datasource.Rows[irow].URL=dlg.ConInstanceName
                 self.RefreshWindow()
 
     #------------------
