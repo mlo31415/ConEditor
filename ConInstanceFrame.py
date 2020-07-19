@@ -18,6 +18,7 @@ from Settings import Settings
 from Log import Log
 
 from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, PrependHTTP, RemoveHTTP, ExtensionMatches
+from WxHelpers import ProgressMessage
 
 
 # Get the file's page count if it's a pdf
@@ -235,7 +236,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             Log("Can't read 'Template-ConPage.html'")
             return
 
-        self.ProgressMessage("Uploading /"+self._seriesname+"/"+self._coninstancename+"/index.html")
+        ProgressMessage(self).Show("Uploading /"+self._seriesname+"/"+self._coninstancename+"/index.html")
 
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name is tagged with <fanac-instance>, the random text with "fanac-headertext"
@@ -335,21 +336,21 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         if not FTP().PutFileAsString("/"+self._seriesname+"/"+self._coninstancename, "index.html", file, create=True):
             Log("Upload failed: /"+self._seriesname+"/"+self._coninstancename+"/index.html")
             wx.MessageBox("OnUploadConInstancePage: Upload failed: /"+self._seriesname+"/"+self._coninstancename+"/index.html")
-            self.ProgressMessage(None)
+            ProgressMessage(self).Close()
             return
 
         wd="/"+self._seriesname+"/"+self._coninstancename
         FTP().CWD(wd)
         for delta in self.conInstanceDeltaTracker.Deltas:
             if delta[0] == "add":
-                self.ProgressMessage("Adding "+delta[1].LocalPathname+" as "+delta[1].SiteFilename)
+                ProgressMessage(self).Show("Adding "+delta[1].LocalPathname+" as "+delta[1].SiteFilename)
                 FTP().PutFile(delta[1].LocalPathname, delta[1].SiteFilename)
             elif delta[0] == "rename":
-                self.ProgressMessage("Renaming "+delta[2]+ " to "+delta[1].SiteFilename)
+                ProgressMessage(self).Show("Renaming "+delta[2]+ " to "+delta[1].SiteFilename)
                 FTP().Rename(delta[2], delta[1].SiteFilename)
             elif delta[0] == "delete":
                 if not delta[1].IsText and not delta[1].IsLink:
-                    self.ProgressMessage("Deleting "+delta[1].SiteFilename)
+                    ProgressMessage(self).Show("Deleting "+delta[1].SiteFilename)
                     Log("delta-DELETE: "+delta[1].SiteFilename)
                     FTP().DeleteFile(delta[1].SiteFilename)
             else:
@@ -357,9 +358,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         self.conInstanceDeltaTracker=ConInstanceDeltaTracker()  # The upload is complete. Start tracking changes afresh
 
-        self.ProgressMessage("Upload succeeded: /"+self._seriesname+"/"+self._coninstancename+"/index.html")
-        time.sleep(.05)
-        self.ProgressMessage(None)
+        ProgressMessage(self).Show("Upload succeeded: /"+self._seriesname+"/"+self._coninstancename+"/index.html")
+        ProgressMessage(self).Close(delay=.1)
         self.MarkAsSaved()
         self.Uploaded=True
         self.RefreshWindow()
@@ -373,12 +373,12 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self._grid.Datasource=ConInstancePage()
 
         # Read the existing CIP
-        self.ProgressMessage("Downloading "+self._FTPbasedir+"/"+self._coninstancename+"/index.html")
+        ProgressMessage(self).Show("Downloading "+self._FTPbasedir+"/"+self._coninstancename+"/index.html")
         file=FTP().GetFileAsString(self._FTPbasedir+"/"+self._coninstancename, "index.html")
         if file is None:
             Log("DownloadConInstancePage: "+self._FTPbasedir+"/"+self._coninstancename+"/index.html does not exist -- create a new file and upload it")
             wx.MessageBox(self._FTPbasedir+"/"+self._coninstancename+"/index.html does not exist -- create a new file and upload it")
-            self.ProgressMessage(None)
+            ProgressMessage(self).Close()
             return  # Just return with the ConInstance page empty
 
         # Get the JSON
@@ -388,9 +388,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         self.Title="Editing "+self._coninstancename
 
-        self.ProgressMessage(self._FTPbasedir+"/"+self._coninstancename+"/index.html downloaded")
-        time.sleep(0.5)
-        self.ProgressMessage(None)
+        ProgressMessage(self).Show(self._FTPbasedir+"/"+self._coninstancename+"/index.html downloaded")
+        ProgressMessage(self).Close(delay=0.5)
         self.MarkAsSaved()
         self.RefreshWindow()
 
@@ -560,29 +559,3 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         if self.NeedsSaving():
             s=s+" *"
         self.Title=s
-
-
-    # ------------------
-    def ProgressMessage(self, s: Optional[str]) -> None:  # ConInstanceFramePage
-        try:
-            self._progressMessage   # If self._progressMessage does not yet exist, set it to None
-        except:
-            self._progressMessage=None
-
-        if s is None and self._progressMessage is None:
-            Log("ProgressMessage cancellation called with no ProgressDialog created")
-            return
-
-        if s is None:
-            self._progressMessage.WasCancelled()
-            self._progressMessage=None
-            self.SetFocus()
-            self.Raise()
-            return
-
-        if self._progressMessage is None:
-            self._progressMessage=wx.ProgressDialog("progress", s, maximum=100, parent=None, style=wx.PD_APP_MODAL|wx.PD_AUTO_HIDE)
-
-        Log(s)
-        self._progressMessage.Pulse(s)
-

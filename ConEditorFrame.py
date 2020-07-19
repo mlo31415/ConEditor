@@ -15,7 +15,8 @@ from FTP import FTP
 from Settings import Settings
 
 
-from HelpersPackage import SubstituteHTML, FindBracketedText, FormatLink, ModalDialogManager
+from HelpersPackage import SubstituteHTML, FindBracketedText, FormatLink
+from WxHelpers import ModalDialogManager
 from Log import LogOpen, Log
 
 

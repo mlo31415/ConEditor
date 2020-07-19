@@ -17,8 +17,9 @@ from DataGrid import DataGrid
 from ConInstanceFrame import ConInstanceDialogClass
 from Settings import Settings
 
-from HelpersPackage import ModalDialogManager, SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, UnformatLinks, RemoveAllHTMLTags
+from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, UnformatLinks, RemoveAllHTMLTags
 from HelpersPackage import FindIndexOfStringInList
+from WxHelpers import ModalDialogManager
 from Log import Log
 from FanzineIssueSpecPackage import FanzineDateRange
 
