@@ -170,8 +170,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             self.TextFancyURL="fancyclopedia.org/"+WikiPagenameToWikiUrlname(seriesname)
 
         self.RefreshWindow()
-        ProgressMessage(self).Show(self.Seriesname+" Loaded")
-        ProgressMessage(self).Close(delay=0.5)
+        ProgressMessage(self).Show(self.Seriesname+" Loaded", close=True, delay=0.5)
         return True
 
 
@@ -368,8 +367,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             return
 
         self.RefreshWindow()
-        ProgressMessage(self).Show(self.Seriesname+" loaded successfully from Fancyclopedia 3")
-        ProgressMessage(self).Close(delay=0.5)
+        ProgressMessage(self).Show(self.Seriesname+" loaded successfully from Fancyclopedia 3", close=True, delay=0.5)
         pass
 
     #------------------
@@ -439,6 +437,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         with ModalDialogManager(ConInstanceDialogClass, self._basedirectoryFTP+"/"+self.Seriesname, self.Seriesname, instancename) as dlg:
             dlg.ConInstanceName=instancename
+            #dlg.SetAffirmativeId()
 
             # Construct a description of the convention from the information in the con series entry, if any.
             if irow < self._grid.Datasource.NumRows and len(dlg.ConInstanceTopText.strip()) == 0:

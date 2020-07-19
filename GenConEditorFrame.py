@@ -15,10 +15,10 @@ import wx.grid
 ## Class GenConEditorFrame
 ###########################################################################
 
-class GenConEditorFrame ( wx.Dialog ):
+class GenConEditorFrame ( wx.Frame ):
 
 	def __init__( self, parent ):
-		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Conpubs Editor", pos = wx.DefaultPosition, size = wx.Size( 536,491 ), style = wx.DEFAULT_DIALOG_STYLE )
+		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Fanac.org Convention Editor", pos = wx.DefaultPosition, size = wx.Size( 498,569 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 

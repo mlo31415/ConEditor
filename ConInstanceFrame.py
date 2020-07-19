@@ -358,8 +358,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         self.conInstanceDeltaTracker=ConInstanceDeltaTracker()  # The upload is complete. Start tracking changes afresh
 
-        ProgressMessage(self).Show("Upload succeeded: /"+self._seriesname+"/"+self._coninstancename+"/index.html")
-        ProgressMessage(self).Close(delay=.1)
+        ProgressMessage(self).Show("Upload succeeded: /"+self._seriesname+"/"+self._coninstancename+"/index.html", close=True, delay=0.5)
         self.MarkAsSaved()
         self.Uploaded=True
         self.RefreshWindow()
@@ -388,8 +387,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         self.Title="Editing "+self._coninstancename
 
-        ProgressMessage(self).Show(self._FTPbasedir+"/"+self._coninstancename+"/index.html downloaded")
-        ProgressMessage(self).Close(delay=0.5)
+        ProgressMessage(self).Show(self._FTPbasedir+"/"+self._coninstancename+"/index.html downloaded", close=True, delay=0.5)
         self.MarkAsSaved()
         self.RefreshWindow()
 

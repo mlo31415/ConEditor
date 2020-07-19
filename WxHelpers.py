@@ -32,15 +32,18 @@ class ModalDialogManager():
 class ProgressMessage:
     _progressMessageDlg=None
 
-    def __init__(self, parent: wx.Dialog) -> None:
+    def __init__(self, parent: Optional[wx.Dialog]) -> None:
         self._parent=parent
 
 
-    def Show(self, s: Optional[str]) -> None:  # ConInstanceFramePage
+    def Show(self, s: Optional[str], close: bool=False, delay: float=0) -> None:  # ConInstanceFramePage
         if ProgressMessage._progressMessageDlg is None:
             ProgressMessage._progressMessageDlg=wx.ProgressDialog("progress", s, maximum=100, parent=None, style=wx.PD_APP_MODAL|wx.PD_AUTO_HIDE)
         Log(s)
         ProgressMessage._progressMessageDlg.Pulse(s)
+
+        if close:
+            self.Close(delay)
 
 
     def Close(self, delay: float=0) -> None:
@@ -52,5 +55,6 @@ class ProgressMessage:
             time.sleep(delay)
         ProgressMessage._progressMessageDlg.WasCancelled()
         ProgressMessage._progressMessageDlg=None
-        self._parent.SetFocus()
-        self._parent.Raise()
+        if self._parent is not None:
+            self._parent.SetFocus()
+            self._parent.Raise()

@@ -16,7 +16,7 @@ from Settings import Settings
 
 
 from HelpersPackage import SubstituteHTML, FindBracketedText, FormatLink
-from WxHelpers import ModalDialogManager, ProgressMessage
+from WxHelpers import ModalDialogManager
 from Log import LogOpen, Log
 
 
@@ -225,7 +225,7 @@ class ConEditorFrame(GenConEditorFrame):
         # Clear out any old information
         self._grid.Datasource=ConList()
 
-        ProgressMessage(self).Show("Loading root/index.html")
+        Log("Loading root/index.html")
         file=FTP().GetFileAsString("", "index.html")
         if file is None:
             # Present an empty grid
@@ -246,8 +246,6 @@ class ConEditorFrame(GenConEditorFrame):
 
         self.MarkAsSaved()
         self.RefreshWindow()
-        ProgressMessage(self).Show("root/index.html Loaded")
-        ProgressMessage(self).Close(delay=0.5)
 
 
     #------------------
@@ -285,15 +283,10 @@ class ConEditorFrame(GenConEditorFrame):
 
         file=SubstituteHTML(file, "fanac-date", date.today().strftime("%A %B %d, %Y"))
 
-        ProgressMessage(self).Show("Uploading /index.html")
         Log("Uploading /index.html")
         if not FTP().PutFileAsString("/", "index.html", file):
             Log("Upload of /index.html failed")
             wx.MessageBox("Upload of /index.html failed")
-            ProgressMessage(self).Show("Upload of /index.html failed")
-        else:
-            ProgressMessage(self).Show("Upload of /index.html succeeded")
-        ProgressMessage(self).Close(delay=0.5)
 
         self.MarkAsSaved()
         self.RefreshWindow()
@@ -460,7 +453,10 @@ Settings().Load("ConEditor settings.json")
 
 app=wx.App(False)
 frame=ConEditorFrame(None)
-
+# frame.ShowModal()
+# frame.SetFocus()
+# frame.Raise()
+#
 app.MainLoop()
 pass
 
