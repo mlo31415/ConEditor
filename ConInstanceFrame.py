@@ -63,6 +63,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         self.DownloadConInstancePage()
 
+        self.SetEscapeId(wx.ID_CANCEL)
+
         self.MarkAsSaved()
         self.RefreshWindow()
 

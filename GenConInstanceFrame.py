@@ -24,7 +24,7 @@ class GenConInstanceFrame ( wx.Dialog ):
 
 		bSizerMainBox = wx.BoxSizer( wx.VERTICAL )
 
-		fgSizer5 = wx.FlexGridSizer( 1, 3, 0, 0 )
+		fgSizer5 = wx.FlexGridSizer( 1, 4, 0, 0 )
 		fgSizer5.SetFlexibleDirection( wx.BOTH )
 		fgSizer5.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
@@ -38,6 +38,9 @@ class GenConInstanceFrame ( wx.Dialog ):
 
 		self.bAddFiles = wx.Button( self, wx.ID_ANY, u"Add Files", wx.DefaultPosition, wx.DefaultSize, 0 )
 		fgSizer5.Add( self.bAddFiles, 0, wx.ALL, 5 )
+
+		self.m_Cancel = wx.Button( self, wx.ID_CANCEL, u"Exit", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer5.Add( self.m_Cancel, 0, wx.ALL, 5 )
 
 
 		bSizerMainBox.Add( fgSizer5, 0, wx.EXPAND, 5 )
@@ -131,11 +134,6 @@ class GenConInstanceFrame ( wx.Dialog ):
 		self.gRowGrid.Bind( wx.EVT_RIGHT_DOWN, self.gRowGridOnContextMenu )
 
 		theIssueGrid.Add( self.gRowGrid, 1, wx.ALL|wx.EXPAND, 5 )
-
-		self.m_status = wx.StaticText( self, wx.ID_ANY, u"MyLabel", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_status.Wrap( -1 )
-
-		theIssueGrid.Add( self.m_status, 0, wx.ALL, 5 )
 
 
 		bSizerMainBox.Add( theIssueGrid, 1, wx.EXPAND, 5 )
@@ -270,3 +268,5 @@ class GenConInstanceFrame ( wx.Dialog ):
 
 	def GenConInstanceFrameOnContextMenu( self, event ):
 		self.PopupMenu( self.m_menuPopup, event.GetPosition() )
+
+
