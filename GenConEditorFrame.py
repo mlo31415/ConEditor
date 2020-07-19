@@ -15,10 +15,10 @@ import wx.grid
 ## Class GenConEditorFrame
 ###########################################################################
 
-class GenConEditorFrame ( wx.Frame ):
+class GenConEditorFrame ( wx.Dialog ):
 
 	def __init__( self, parent ):
-		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Fanac.org Convention Editor", pos = wx.DefaultPosition, size = wx.Size( 498,569 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Conpubs Editor", pos = wx.DefaultPosition, size = wx.Size( 536,491 ), style = wx.DEFAULT_DIALOG_STYLE )
 
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
@@ -92,7 +92,6 @@ class GenConEditorFrame ( wx.Frame ):
 
 		self.SetSizer( bSizer8 )
 		self.Layout()
-		self.m_statusBar = self.CreateStatusBar( 1, wx.STB_SIZEGRIP, wx.ID_ANY )
 		self.m_menuPopupConEditor = wx.Menu()
 		self.m_menuItemCopy = wx.MenuItem( self.m_menuPopupConEditor, wx.ID_ANY, u"Copy", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_menuPopupConEditor.Append( self.m_menuItemCopy )

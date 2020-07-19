@@ -16,7 +16,7 @@ from Settings import Settings
 
 
 from HelpersPackage import SubstituteHTML, FindBracketedText, FormatLink
-from WxHelpers import ModalDialogManager
+from WxHelpers import ModalDialogManager, ProgressMessage
 from Log import LogOpen, Log
 
 
@@ -219,16 +219,13 @@ class ConEditorFrame(GenConEditorFrame):
 
         return self
 
-    #------------------
-    def ProgressMessage(self, s: str) -> None:            # ConEditorFrame
-        self.m_statusBar.SetStatusText(s)
 
     # ------------------
     def Load(self):            # ConEditorFrame
         # Clear out any old information
         self._grid.Datasource=ConList()
 
-        self.ProgressMessage("Loading root/index.html")
+        ProgressMessage(self).Show("Loading root/index.html")
         file=FTP().GetFileAsString("", "index.html")
         if file is None:
             # Present an empty grid
@@ -249,7 +246,8 @@ class ConEditorFrame(GenConEditorFrame):
 
         self.MarkAsSaved()
         self.RefreshWindow()
-        self.ProgressMessage("root/index.html Loaded")
+        ProgressMessage(self).Show("root/index.html Loaded")
+        ProgressMessage(self).Close(delay=0.5)
 
 
     #------------------
@@ -287,14 +285,15 @@ class ConEditorFrame(GenConEditorFrame):
 
         file=SubstituteHTML(file, "fanac-date", date.today().strftime("%A %B %d, %Y"))
 
-        self.ProgressMessage("Uploading /index.html")
+        ProgressMessage(self).Show("Uploading /index.html")
         Log("Uploading /index.html")
         if not FTP().PutFileAsString("/", "index.html", file):
             Log("Upload of /index.html failed")
             wx.MessageBox("Upload of /index.html failed")
-            self.ProgressMessage("Upload of /index.html failed")
+            ProgressMessage(self).Show("Upload of /index.html failed")
         else:
-            self.ProgressMessage("Upload of /index.html succeeded")
+            ProgressMessage(self).Show("Upload of /index.html succeeded")
+        ProgressMessage(self).Close(delay=0.5)
 
         self.MarkAsSaved()
         self.RefreshWindow()

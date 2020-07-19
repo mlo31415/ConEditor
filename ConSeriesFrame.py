@@ -19,7 +19,7 @@ from Settings import Settings
 
 from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, UnformatLinks, RemoveAllHTMLTags
 from HelpersPackage import FindIndexOfStringInList
-from WxHelpers import ModalDialogManager
+from WxHelpers import ModalDialogManager, ProgressMessage
 from Log import Log
 from FanzineIssueSpecPackage import FanzineDateRange
 
@@ -122,9 +122,6 @@ class ConSeriesFrame(GenConSeriesFrame):
     def TextFancyURL(self, val: str) -> None:
         self.tFancyURL.SetValue(val)
 
-    #------------------
-    def ProgressMessage(self, s: str) -> None:                    # MainConSeriesFrame
-        self.m_status.Label=s
 
     #------------------
     # Download a ConSeries from Fanac.org
@@ -140,7 +137,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         if self._basedirectoryFTP is None:
             assert False   # Never take this branch.  Delete when I'm sure.
 
-        self.ProgressMessage("Loading "+self.Seriesname+"/index.html from fanac.org")
+        ProgressMessage(self).Show("Loading "+self.Seriesname+"/index.html from fanac.org")
         file=FTP().GetFileAsString("/"+self.Seriesname, "index.html")
 
         pathname=self.Seriesname+"/index.html"
@@ -173,8 +170,8 @@ class ConSeriesFrame(GenConSeriesFrame):
             self.TextFancyURL="fancyclopedia.org/"+WikiPagenameToWikiUrlname(seriesname)
 
         self.RefreshWindow()
-        self.ProgressMessage(self.Seriesname+" Loaded")
-        Log("DownloadConSeries: "+self.Seriesname+" Loaded")
+        ProgressMessage(self).Show(self.Seriesname+" Loaded")
+        ProgressMessage(self).Close(delay=0.5)
         return True
 
 
@@ -362,7 +359,7 @@ class ConSeriesFrame(GenConSeriesFrame):
     def DownloadConSeriesFromFancy(self, seriesname: str):
         self.Seriesname=seriesname
 
-        self.ProgressMessage("Loading "+self.Seriesname+" from Fancyclopedia 3")
+        ProgressMessage(self).Show("Loading "+self.Seriesname+" from Fancyclopedia 3")
         self._grid.Datasource=ConSeries()
         self._grid.Datasource.Name=self.Seriesname
 
@@ -371,7 +368,8 @@ class ConSeriesFrame(GenConSeriesFrame):
             return
 
         self.RefreshWindow()
-        self.ProgressMessage(self.Seriesname+" loaded successfully from Fancyclopedia 3")
+        ProgressMessage(self).Show(self.Seriesname+" loaded successfully from Fancyclopedia 3")
+        ProgressMessage(self).Close(delay=0.5)
         pass
 
     #------------------
