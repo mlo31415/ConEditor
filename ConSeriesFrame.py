@@ -62,6 +62,8 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         self._uploaded=False    # Set to true if the con series was uploaded to the website
 
+        self.SetEscapeId(wx.ID_CANCEL)
+
         self.MarkAsSaved()
         self.RefreshWindow()
         self.Show(True)
@@ -437,7 +439,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         with ModalDialogManager(ConInstanceDialogClass, self._basedirectoryFTP+"/"+self.Seriesname, self.Seriesname, instancename) as dlg:
             dlg.ConInstanceName=instancename
-            #dlg.SetAffirmativeId()
+
 
             # Construct a description of the convention from the information in the con series entry, if any.
             if irow < self._grid.Datasource.NumRows and len(dlg.ConInstanceTopText.strip()) == 0:
