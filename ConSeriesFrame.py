@@ -73,7 +73,7 @@ class ConSeriesFrame(GenConSeriesFrame):
     # Used to determine if anything has been updated
     def Signature(self) -> int:
         stuff=self.Seriesname.strip()+self.TextFancyURL.strip()+self.TextComments.strip()+self._basedirectoryFTP.strip()
-        return hash(stuff)+self._grid.Datasource.Signature()
+        return hash(stuff)+self._grid.Signature()
 
     def MarkAsSaved(self):
         Log("MainConSeriesFrame.MarkAsSaved -- "+str(self.Signature()))
@@ -551,6 +551,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
     def OnGridCellChanged(self, event):               # MainConSeriesFrame
         self._grid.OnGridCellChanged(event)
+        self.RefreshWindow()
 
     # ------------------
     def OnClose(self, event):                        # MainConSeriesFrame

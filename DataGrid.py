@@ -133,6 +133,10 @@ class DataGrid():
         self.cntlDown=False         # There's no cntl-key currently down
 
 
+    def Signature(self) -> int:
+        return hash(self._grid)+self._datasource.Signature()
+
+
     # Set a grid cell value
     # Note that this does not change the underlying source data
     def SetCellValue(self, iRow: int, iCol: int, val) -> None:        # Grid

@@ -73,7 +73,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     # Used to determine if anything has been updated
     def Signature(self) -> int:
         stuff=self.ConInstanceName.strip()+self.ConInstanceTopText.strip()+self.ConInstanceFancyURL.strip()+self.ConInstancePhotoURL.strip()
-        return hash(stuff)+self._grid.Datasource.Signature()
+        return hash(stuff)+self._grid.Signature()
 
     def MarkAsSaved(self):
         Log("ConInstancePage.MarkAsSaved -- "+str(self.Signature()))
@@ -497,7 +497,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             event.Veto()
             return
 
-        if self._grid.Datasource.ColHeaders[col] == "Site Name":    #TODO: Why is this here???
+        if self._grid.Datasource.ColHeaders[col] == "Site Name":    # Editing the filename on the Conpubs site
             originalfname=self._grid.Datasource.GetData(row, col)
             _, oext=os.path.splitext(originalfname)
             self._grid.OnGridCellChanged(event)
