@@ -193,7 +193,7 @@ class ConEditorFrame(GenConEditorFrame):
     # ----------------------------------------------
     # Used to determine if anything has been updated
     def Signature(self) -> int:
-        return self._grid.Datasource.Signature()+hash(self.m_textCtrlTopText.GetValue().strip())
+        return self._grid.Signature()+hash(self.m_textCtrlTopText.GetValue().strip())
 
     def MarkAsSaved(self):
         Log("ConEditorFrame.MarkAsSaved -- "+str(self.Signature()))
@@ -396,6 +396,8 @@ class ConEditorFrame(GenConEditorFrame):
     #------------------
     def OnGridCellChanged(self, event):            # ConEditorFrame
         self._grid.OnGridCellChanged(event)
+        self.RefreshWindow()
+
 
     #------------------
     def OnPopupInsertCon(self, event):            # ConEditorFrame
