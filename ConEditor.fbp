@@ -46,7 +46,7 @@
             <property name="name">GenConSeriesFrame</property>
             <property name="pos"></property>
             <property name="size">700,682</property>
-            <property name="style">wxDEFAULT_DIALOG_STYLE</property>
+            <property name="style">wxCLOSE_BOX|wxDEFAULT_DIALOG_STYLE|wxMAXIMIZE_BOX|wxMINIMIZE_BOX</property>
             <property name="subclass">; ; forward_declare</property>
             <property name="title">Edit Conventon Series</property>
             <property name="tooltip"></property>
@@ -489,6 +489,7 @@
                                 <property name="window_extra_style"></property>
                                 <property name="window_name"></property>
                                 <property name="window_style"></property>
+                                <event name="OnButtonClick">OnClose</event>
                             </object>
                         </object>
                     </object>
@@ -1538,6 +1539,7 @@
                                 <property name="window_extra_style"></property>
                                 <property name="window_name"></property>
                                 <property name="window_style"></property>
+                                <event name="OnButtonClick">OnClose</event>
                             </object>
                         </object>
                     </object>

@@ -18,7 +18,7 @@ import wx.grid
 class GenConSeriesFrame ( wx.Dialog ):
 
 	def __init__( self, parent ):
-		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Edit Conventon Series", pos = wx.DefaultPosition, size = wx.Size( 700,682 ), style = wx.DEFAULT_DIALOG_STYLE )
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Edit Conventon Series", pos = wx.DefaultPosition, size = wx.Size( 700,682 ), style = wx.CLOSE_BOX|wx.DEFAULT_DIALOG_STYLE|wx.MAXIMIZE_BOX|wx.MINIMIZE_BOX )
 
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
@@ -192,6 +192,7 @@ class GenConSeriesFrame ( wx.Dialog ):
 		self.bUploadConSeries.Bind( wx.EVT_BUTTON, self.OnUploadConSeries )
 		self.m_radioBoxShowEmpty.Bind( wx.EVT_RADIOBOX, self.OnSetShowEmptyRadioBox )
 		self.bLoadSeriesFromFancy.Bind( wx.EVT_BUTTON, self.OnLoadSeriesFromFancy )
+		self.m_Cancel.Bind( wx.EVT_BUTTON, self.OnClose )
 		self.tConSeries.Bind( wx.EVT_KEY_UP, self.ConTextConSeriesKeyUp )
 		self.tConSeries.Bind( wx.EVT_TEXT, self.OnTextConSeriesName )
 		self.tFancyURL.Bind( wx.EVT_TEXT, self.OnTextFancyURL )
@@ -225,6 +226,7 @@ class GenConSeriesFrame ( wx.Dialog ):
 
 	def OnLoadSeriesFromFancy( self, event ):
 		event.Skip()
+
 
 	def ConTextConSeriesKeyUp( self, event ):
 		event.Skip()

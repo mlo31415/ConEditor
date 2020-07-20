@@ -201,7 +201,12 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     # ----------------------------------------------
     def OnClose(self, event):
         if self.NeedsSaving():
-            if event.CanVeto():
+            if type(event) == wx._core.CommandEvent:  # When the close event is an ESC or the ID_Cancel button, it's not a vetoable event, so it needs to be handled separately
+                resp=wx.MessageBox("This file list has been updated and not yet saved. Exit anyway?", 'Warning',
+                                   wx.OK|wx.CANCEL|wx.ICON_WARNING)
+                if resp == wx.CANCEL:
+                    return
+            elif event.CanVeto():
                 resp=wx.MessageBox("This file list has been updated and not yet saved. Exit anyway?", 'Warning',
                        wx.OK|wx.CANCEL|wx.ICON_WARNING)
                 if resp == wx.CANCEL:

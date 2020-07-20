@@ -173,6 +173,7 @@ class GenConInstanceFrame ( wx.Dialog ):
 		self.bUploadCon.Bind( wx.EVT_BUTTON, self.OnUploadConInstance )
 		self.radioBoxFileListFormat.Bind( wx.EVT_RADIOBOX, self.OnRadioFileListFormat )
 		self.bAddFiles.Bind( wx.EVT_BUTTON, self.OnAddFilesButton )
+		self.m_Cancel.Bind( wx.EVT_BUTTON, self.OnClose )
 		self.tConInstanceName.Bind( wx.EVT_KEY_UP, self.OnTextConInstanceNameKeyUp )
 		self.tConInstanceName.Bind( wx.EVT_TEXT, self.OnTextConInstanceName )
 		self.tConInstanceFancyURL.Bind( wx.EVT_TEXT, self.OnTextConInstanceFancyURL )
@@ -208,6 +209,7 @@ class GenConInstanceFrame ( wx.Dialog ):
 
 	def OnAddFilesButton( self, event ):
 		event.Skip()
+
 
 	def OnTextConInstanceNameKeyUp( self, event ):
 		event.Skip()
