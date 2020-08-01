@@ -20,6 +20,20 @@ class ConFile:
         self._URL: str=""               # The URL to be used for a link. (This is ignored if _isLink == False.) It will be displayed using displayTitle as the link text.
         self._pages: int=None           # Page count
 
+    def __str__(self):
+        s=""
+        if len(self.SourceFilename) > 0:
+            s+="Source="+self.SourceFilename
+        if len(self.SiteFilename) > 0:
+            s+="Sitename="+self.SiteFilename
+        if len(self.DisplayTitle) > 0:
+            s+="Display="+self.DisplayTitle
+        if len(self.DisplayTitle) > 0:
+            s+="Notes="+self.Notes
+        if len(self.URL) > 0:
+            s+="URL="+self.URL
+        return s
+
     def Signature(self) -> int:
         sum=hash(self._displayTitle.strip()+self._notes.strip()+self._localfilename.strip()+self._localpathname.strip()+self._sitefilename.strip()+self._URL.strip())
         return sum+self._size+hash(self._isText)+(self._pages if self._pages is not None else 0)
