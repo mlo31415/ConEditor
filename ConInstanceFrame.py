@@ -233,7 +233,39 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
     # ----------------------------------------------
     def OnUploadConInstancePage(self) -> None:
-        # First read in the template
+
+        # Check to see if the data is valid
+        error=False
+        for i, row in enumerate(self._grid.Datasource.Rows):
+            # Valid data requires
+            #   If a text row, that some text exists
+            #   If an external link row, that text and a properly formed URL exists (but does not check to see target exists)
+            #   For a file, that there is an entry in the "Source File Name", "Site Name", and "Display Name" columns
+            if row.IsText:
+                if len((row.SourceFilename+row.SiteFilename+row.DisplayTitle+row.Notes).strip()) == 0:
+                    error=True
+                    Log("Malformed text row: #"+str(i)+"  "+ str(row))
+                    for j in range(self._grid.Numcols):
+                        self._grid.SetCellBackgroundColor(i, j, Color.Pink)
+            elif row.IsLink:
+                if len(row.URL.strip()) == 0  or len(row.DisplayTitle.Strip()) == 0:
+                    error=True
+                    Log("Malformed link row: #"+str(i)+"  "+ str(row))
+                    for j in range(self._grid.Numcols):
+                        self._grid.SetCellBackgroundColor(i, j, Color.Pink)
+            else:
+                if len(row.SourceFilename.strip()) == 0 or len(row.SiteFilename.strip()) == 0 or len(row.DisplayTitle.strip()) == 0:
+                    error=True
+                    Log("Malformed file row: #"+str(i)+"  "+ str(row))
+                    for j in range(self._grid.Numcols):
+                        self._grid.SetCellBackgroundColor(i, j, Color.Pink)
+        if error:
+            self._grid.Grid.ForceRefresh()
+            wx.MessageBox("Malformed row found")
+            return
+
+
+        # Read in the template
         file=None
         try:
             with open(os.path.join(os.path.split( sys.argv[0])[0], "Template-ConPage.html")) as f:
