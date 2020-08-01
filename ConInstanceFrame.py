@@ -415,7 +415,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         file=FTP().GetFileAsString(self._FTPbasedir+"/"+self._coninstancename, "index.html")
         if file is None:
             Log("DownloadConInstancePage: "+self._FTPbasedir+"/"+self._coninstancename+"/index.html does not exist -- create a new file and upload it")
-            wx.MessageBox(self._FTPbasedir+"/"+self._coninstancename+"/index.html does not exist -- create a new file and upload it")
+            #wx.MessageBox(self._FTPbasedir+"/"+self._coninstancename+"/index.html does not exist -- create a new file and upload it")
             ProgressMessage(self).Close()
             return  # Just return with the ConInstance page empty
 
