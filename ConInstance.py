@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List, Union, Optional, Tuple
+from typing import List, Union, Optional
 
 from HelpersPackage import IsInt, Int
 
@@ -18,7 +18,7 @@ class ConFile:
         self._isText: bool=False        # Is this a piece of text rather than a convention?
         self._isLink: bool=False        # Is this a link?
         self._URL: str=""               # The URL to be used for a link. (This is ignored if _isLink == False.) It will be displayed using displayTitle as the link text.
-        self._pages: int=None           # Page count
+        self._pages: Optional[int]=None # Page count
 
     def __str__(self):
         s=""
@@ -35,8 +35,8 @@ class ConFile:
         return s
 
     def Signature(self) -> int:
-        sum=hash(self._displayTitle.strip()+self._notes.strip()+self._localfilename.strip()+self._localpathname.strip()+self._sitefilename.strip()+self._URL.strip())
-        return sum+self._size+hash(self._isText)+(self._pages if self._pages is not None else 0)
+        tot=hash(self._displayTitle.strip()+self._notes.strip()+self._localfilename.strip()+self._localpathname.strip()+self._sitefilename.strip()+self._URL.strip())
+        return tot+self._size+hash(self._isText)+(self._pages if self._pages is not None else 0)
 
     # Serialize and deserialize
     def ToJson(self) -> str:
