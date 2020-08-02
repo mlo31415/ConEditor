@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import List, Union, Optional
 
-from HelpersPackage import IsInt, Int
+from HelpersPackage import Int, RemoveAccents
 
 from DataGrid import GridDataSource, Color
 import json
@@ -100,7 +100,7 @@ class ConFile:
         return self._sitefilename
     @SiteFilename.setter
     def SiteFilename(self, val: str) -> None:
-        self._sitefilename=val
+        self._sitefilename=RemoveAccents(val)
 
     @property
     def SourceFilename(self) -> str:

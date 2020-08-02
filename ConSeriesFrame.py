@@ -1,11 +1,11 @@
 from __future__ import annotations
-from typing import Optional, List, Tuple
+from typing import Optional
 
 import os
 import wx
 import wx.grid
 import sys
-from bs4 import BeautifulSoup, NavigableString
+from bs4 import BeautifulSoup
 from urllib.request import urlopen
 import json
 from datetime import date
@@ -17,7 +17,7 @@ from DataGrid import DataGrid
 from ConInstanceFrame import ConInstanceDialogClass
 from Settings import Settings
 
-from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, UnformatLinks, RemoveAllHTMLTags
+from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, UnformatLinks, RemoveAllHTMLTags, RemoveAccents
 from HelpersPackage import FindIndexOfStringInList
 from WxHelpers import ModalDialogManager, ProgressMessage
 from Log import Log
@@ -97,8 +97,8 @@ class ConSeriesFrame(GenConSeriesFrame):
     def FromJson(self, val: str) -> ConSeriesFrame:                    # MainConSeriesFrame
         d=json.loads(val)
         if d["ver"] >= 3:
-            self.Seriesname=d["_textConSeries"]
-            self.TextFancyURL=d["_textFancyURL"]
+            self.Seriesname=RemoveAccents(d["_textConSeries"])
+            self.TextFancyURL=RemoveAccents(d["_textFancyURL"])
             self.TextComments=d["_textComments"]
             self._grid.Datasource=ConSeries().FromJson(d["_datasource"])
         return self
@@ -223,7 +223,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             if row.URL is None or row.URL == "":
                 newtable+='      <td>'+row.Name+'</td>\n'
             else:
-                newtable+='      <td>'+FormatLink(row.URL+"/index.html", row.Name)+'</td>\n'
+                newtable+='      <td>'+FormatLink(RemoveAccents(row.URL)+"/index.html", row.Name)+'</td>\n'
             if hasdates:
                 newtable+='      <td>'+str(row.Dates) if not None else ""+'</td>\n'
             if haslocations:

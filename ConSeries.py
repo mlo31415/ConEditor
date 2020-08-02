@@ -3,7 +3,7 @@ from typing import Optional, List, Union, Tuple
 import json
 
 from DataGrid import GridDataSource
-
+from HelpersPackage import RemoveAccents
 from FanzineIssueSpecPackage import FanzineDateRange
 
 
@@ -32,7 +32,7 @@ class Con:
 
     def FromJson(self, val: str) -> Con:
         d=json.loads(val)
-        self._name=d["_name"]
+        self._name=RemoveAccents(d["_name"])
         self._locale=d["_locale"]
         self._gohs=d["_gohs"]
         self._dates=FanzineDateRange().Match(d["_dates"])
@@ -48,7 +48,7 @@ class Con:
         return self._name
     @Name.setter
     def Name(self, val: str):
-        self._name=val
+        self._name=RemoveAccents(val)
 
     @property
     def GoHs(self) -> str:
@@ -146,10 +146,7 @@ class ConSeries(GridDataSource):
 
     def FromJson(self, val: str) -> ConSeries:
         d=json.loads(val)
-        # self._colheaders=d["_colheaders"]
-        # self._coldatatypes=d["_coldatatypes"]
-        # self._colminwidths=d["_colminwidths"]
-        self._name=d["_name"]
+        self._name=RemoveAccents(d["_name"])    # Clean out old accented entries
         self._stuff=d["_stuff"]
         self._series=[]
         i=0
