@@ -166,11 +166,11 @@ class DataGrid():
     # --------------------------------------------------------
     @property
     # Get the number of columns
-    def Numcols(self) -> int:
+    def NumCols(self) -> int:
         return self._grid.NumberCols
-    @Numcols.setter
+    @NumCols.setter
     # Get or set the number of columns
-    def Numcols(self, nCols: int) -> None:
+    def NumCols(self, nCols: int) -> None:
         if self._grid.NumberCols == nCols:
             return
         if self._grid.NumberCols > nCols:
@@ -219,7 +219,7 @@ class DataGrid():
         # All row numbers >= irow are incremented by nrows
         for i, (row, col) in enumerate(self._datasource.AllowCellEdits):
             if row >= irow:
-                self._datasource.AllowCellEdits[i]=(row+nrows, col)
+                self.AllowCellEdits[i]=(row+nrows, col)
 
 
     # --------------------------------------------------------
@@ -228,8 +228,8 @@ class DataGrid():
 
     # --------------------------------------------------------
     def SetColHeaders(self, headers: List[str]) -> None:        # Grid
-        self.Numcols=len(headers)
-        if len(headers) == self.Numcols:
+        self.NumCols=len(headers)
+        if len(headers) == self.NumCols:
             # Add the column headers
             iCol=0
             for colhead in headers:
@@ -360,7 +360,7 @@ class DataGrid():
         # Fill in the cells
         for irow in range(self._datasource.NumRows):
             if self._datasource.Rows[irow].IsText:
-                self._grid.SetCellSize(irow, 0, 1, self.Numcols)   # Make text rows all one cell
+                self._grid.SetCellSize(irow, 0, 1, self.NumCols)   # Make text rows all one cell
 
             elif self._datasource.Rows[irow].IsLink:    # If a grid allows IsLink to be set, its Datasource must have a column labelled "Display Name"
                 # Locate the "Display Name" column
@@ -368,7 +368,7 @@ class DataGrid():
                     assert False  # This should never happen
                 colnum=self.Datasource.ColHeaders.index("Display Name")
                 self._grid.SetCellSize(irow, 0, 1, colnum)  # Merge all the cells up to the display name column
-                self._grid.SetCellSize(irow, colnum, 1, self.Numcols-colnum)  # Merge the rest the cells into a second column
+                self._grid.SetCellSize(irow, colnum, 1, self.NumCols-colnum)  # Merge the rest the cells into a second column
 
             else:
                 self._grid.SetCellSize(irow, 0, 1, 1)  # Set as normal unspanned cell
@@ -574,7 +574,7 @@ class DataGrid():
                 if top > 0: # Can't move up if the first row selected is row 0
                     # Extend the selection to be the whole row(s)
                     left=0
-                    right=self.Numcols-1
+                    right=self.NumCols-1
                     # And move 'em up 1
                     self.MoveRows(top, bottom-top+1, top-1)
                     # And re-establish the selection
@@ -592,7 +592,7 @@ class DataGrid():
                 self.ExpandDataSourceToInclude(bottom+1, right)
                 if bottom < self._grid.NumberRows:
                     # Extend the selection to be the whole row(s)
-                    right=self.Numcols-1
+                    right=self.NumCols-1
                     # And move 'em down 1
                     self.MoveRows(top, bottom-top+1, top+1)
                     # And re-establish the selection
