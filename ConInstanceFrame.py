@@ -245,19 +245,19 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 if len((row.SourceFilename+row.SiteFilename+row.DisplayTitle+row.Notes).strip()) == 0:
                     error=True
                     Log("Malformed text row: #"+str(i)+"  "+ str(row))
-                    for j in range(self._grid.Numcols):
+                    for j in range(self._grid.NumCols):
                         self._grid.SetCellBackgroundColor(i, j, Color.Pink)
             elif row.IsLink:
                 if len(row.URL.strip()) == 0  or len(row.DisplayTitle.Strip()) == 0:
                     error=True
                     Log("Malformed link row: #"+str(i)+"  "+ str(row))
-                    for j in range(self._grid.Numcols):
+                    for j in range(self._grid.NumCols):
                         self._grid.SetCellBackgroundColor(i, j, Color.Pink)
             else:
                 if len(row.SourceFilename.strip()) == 0 or len(row.SiteFilename.strip()) == 0 or len(row.DisplayTitle.strip()) == 0:
                     error=True
                     Log("Malformed file row: #"+str(i)+"  "+ str(row))
-                    for j in range(self._grid.Numcols):
+                    for j in range(self._grid.NumCols):
                         self._grid.SetCellBackgroundColor(i, j, Color.Pink)
         if error:
             self._grid.Grid.ForceRefresh()
@@ -427,6 +427,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.Title="Editing "+self._coninstancename
 
         ProgressMessage(self).Show(self._FTPbasedir+"/"+self._coninstancename+"/index.html downloaded", close=True, delay=0.5)
+        self._grid.MakeTextLinesEditable()
         self.MarkAsSaved()
         self.RefreshWindow()
 
@@ -469,21 +470,25 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     # ------------------
     def OnPopupInsertText(self, event):
         irow=self._grid.rightClickedRow
+        if irow >= self._grid.Datasource.NumRows:
+            self._grid.ExpandDataSourceToInclude(irow, 0)   # Insert empty rows into the datasource if necessary to keep things in sync
         self._grid.InsertEmptyRows(irow, 1)
         self._grid.Datasource.Rows[irow].IsText=True    #TODO: Add similar code for IsLink
-        self._grid._grid.SetCellSize(irow, 0, 1, self._grid.Numcols)
-        for icol in range(self._grid.Numcols):
-            self._grid.Datasource.AllowCellEdits.append((irow, icol))
+        self._grid._grid.SetCellSize(irow, 0, 1, self._grid.NumCols)
+        for icol in range(self._grid.NumCols):
+            self._grid.AllowCellEdit(irow, icol)
         self.RefreshWindow()
         event.Skip()
 
     # ------------------
     def OnPopupInsertLink(self, event):
         irow=self._grid.rightClickedRow
+        if irow >= self._grid.Datasource.NumRows:
+            self._grid.ExpandDataSourceToInclude(irow, 0)   # Insert empty rows into the datasource if necessary to keep things in sync
         self._grid.InsertEmptyRows(irow, 1)
         self._grid.Datasource.Rows[irow].IsLink=True
-        for icol in range(self._grid.Numcols):
-            self._grid.Datasource.AllowCellEdits.append((irow, icol))
+        for icol in range(self._grid.NumCols):
+            self._grid.AllowCellEdit(irow, icol)
         self.RefreshWindow()
         event.Skip()
 
@@ -491,7 +496,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     def OnPopupAllowEditCell(self, event):
         irow=self._grid.rightClickedRow
         icol=self._grid.rightClickedColumn
-        self._grid.Datasource.AllowCellEdits.append((irow, icol))  # Append a (row, col) tuple. This only lives for the life of this instance.
+        self._grid.AllowCellEdit(irow, icol)  # Append a (row, col) tuple. This only lives for the life of this instance.
         self.RefreshWindow()
 
     # ------------------

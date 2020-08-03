@@ -171,6 +171,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         if self.TextFancyURL is None or len(self.TextFancyURL) == 0:
             self.TextFancyURL="fancyclopedia.org/"+WikiPagenameToWikiUrlname(seriesname)
 
+        self._grid.MakeTextLinesEditable()
         self.RefreshWindow()
         ProgressMessage(self).Show(self.Seriesname+" Loaded", close=True, delay=0.5)
         return True
@@ -407,7 +408,7 @@ class ConSeriesFrame(GenConSeriesFrame):
     def OnPopupAllowEditCell(self, event):
         irow=self.rightClickedRow
         icol=self.rightClickedColumn
-        self._grid.Datasource.AllowCellEdits.append((irow, icol))   # Append a (row, col) tuple. This only lives for the life of this instance.
+        self._grid.AllowCellEdit(irow, icol)   # Append a (row, col) tuple. This only lives for the life of this instance.
         self.RefreshWindow()
 
     # ------------------

@@ -154,8 +154,6 @@ class ConSeries(GridDataSource):
             self._series.append(Con().FromJson(d[str(i)]))
             i+=1
 
-        self.MakeTextLinesEditable()
-
         return self
 
     # Inherited from GridDataSource

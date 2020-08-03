@@ -106,15 +106,6 @@ class GridDataSource():
     def SpecialTextColor(self, val: Optional[Color]) -> None:
         return
 
-    # Make text lines to be merged and editable
-    def MakeTextLinesEditable(self) -> None:
-        for irow, row in enumerate(self.Rows):
-            if row.IsText or row.IsLink:
-                for icol in range(self.NumCols):
-                    if self.ColEditable[icol] == "maybe":
-                        self.AllowCellEdits.append((irow, icol))
-
-
     def Signature(self) -> int:
         sum=0
         for row in self.Rows:
@@ -137,6 +128,22 @@ class DataGrid():
         return hash(self._grid)+self._datasource.Signature()
 
 
+    # --------------------------------------------------------
+    def AllowCellEdit(self, irow: int, icol: int) -> None:
+        self._datasource.AllowCellEdits.append((irow, icol))
+        if irow >= self.NumRows:
+            self._grid.AppendRows(irow-self.NumRows+1)
+
+    # Make text lines to be merged and editable
+    def MakeTextLinesEditable(self) -> None:
+        for irow, row in enumerate(self._datasource.Rows):
+            if row.IsText or row.IsLink:
+                for icol in range(self.NumCols):
+                    if self._datasource.ColEditable[icol] == "maybe":
+                        self.AllowCellEdit(irow, icol)
+
+
+    # --------------------------------------------------------
     # Set a grid cell value
     # Note that this does not change the underlying source data
     def SetCellValue(self, iRow: int, iCol: int, val) -> None:        # Grid
@@ -424,10 +431,15 @@ class DataGrid():
         for i, r in enumerate(tpermuter):
             permuter[r]=i
 
+        Log("\npermuter: "+str(permuter))
+        Log("old editable rows: "+str(sorted(list(set([x[0] for x in self._datasource.AllowCellEdits])))))
         # Now use the permuter to update the row numbers of the cells which are allowed to be edited
         for i, (row, col) in enumerate(self._datasource.AllowCellEdits):
-            self._datasource.AllowCellEdits[i]=(permuter[row], col)
-
+            try:
+                self._datasource.AllowCellEdits[i]=(permuter[row], col)
+            except:
+                pass
+        Log("new editable rows: "+str(sorted(list(set([x[0] for x in self._datasource.AllowCellEdits])))))
 
     # ------------------
     def CopyCells(self, top: int, left: int, bottom: int, right: int) -> None:        # Grid

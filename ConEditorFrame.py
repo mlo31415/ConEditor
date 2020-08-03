@@ -105,7 +105,6 @@ class ConList(GridDataSource):
         for i, s in enumerate(self._conlist):
             d[i]=s.ToJson()
 
-        self.MakeTextLinesEditable()
         return json.dumps(d)
 
     def FromJson(self, val: str) -> ConList:
@@ -244,6 +243,7 @@ class ConEditorFrame(GenConEditorFrame):
             wx.MessageBox("JSONDecodeError when loading convention information from conpubs' index.html")
             return
 
+        self._grid.MakeTextLinesEditable()
         self.MarkAsSaved()
         self.RefreshWindow()
 

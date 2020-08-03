@@ -215,7 +215,6 @@ class ConInstancePage(GridDataSource):
             for c in cfld:
                 self._conFileList.append(ConFile().FromJson(c))
 
-        self.MakeTextLinesEditable()
         return self
 
 
