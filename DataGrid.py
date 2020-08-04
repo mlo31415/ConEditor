@@ -226,7 +226,7 @@ class DataGrid():
         # All row numbers >= irow are incremented by nrows
         for i, (row, col) in enumerate(self._datasource.AllowCellEdits):
             if row >= irow:
-                self.AllowCellEdits[i]=(row+nrows, col)
+                self.Datasource.AllowCellEdits[i]=(row+nrows, col)
 
 
     # --------------------------------------------------------
