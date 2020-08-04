@@ -281,7 +281,7 @@ class ConEditorFrame(GenConEditorFrame):
         # Store the json for the page into the template
         file=SubstituteHTML(file, "fanac-json", self.ToJson())
 
-        file=SubstituteHTML(file, "fanac-date", date.today().strftime("%A %B %d, %Y"))
+        file=SubstituteHTML(file, "fanac-date", date.today().strftime("%A %B %d, %Y")+" EST")
 
         Log("Uploading /index.html")
         if not FTP().PutFileAsString("/", "index.html", file):

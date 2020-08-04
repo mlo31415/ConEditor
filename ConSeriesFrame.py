@@ -238,7 +238,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         file=SubstituteHTML(file, "fanac-table", newtable)
         file=SubstituteHTML(file, "fanac-json", self.ToJson())
 
-        file=SubstituteHTML(file, "fanac-date", date.today().strftime("%A %B %d, %Y"))
+        file=SubstituteHTML(file, "fanac-date", date.today().strftime("%A %B %d, %Y")+" EST")
 
         # Now try to FTP the data up to fanac.org
         if self.Seriesname is None or len(self.Seriesname) == 0:

@@ -296,7 +296,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.FillInMissingPDFPageCounts()
 
         file=SubstituteHTML(file, "fanac-json", self.ToJson())
-        file=SubstituteHTML(file, "fanac-date", date.today().strftime("%A %B %d, %Y"))
+        file=SubstituteHTML(file, "fanac-date", date.today().strftime("%A %B %d, %Y")+" EST")
 
         def FormatSizes(row) -> str:
             info=""
