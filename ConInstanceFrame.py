@@ -248,7 +248,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     for j in range(self._grid.NumCols):
                         self._grid.SetCellBackgroundColor(i, j, Color.Pink)
             elif row.IsLink:
-                if len(row.URL.strip()) == 0  or len(row.DisplayTitle.Strip()) == 0:
+                if len(row.URL.strip()) == 0  or len(row.DisplayTitle.strip()) == 0:
                     error=True
                     Log("Malformed link row: #"+str(i)+"  "+ str(row))
                     for j in range(self._grid.NumCols):
