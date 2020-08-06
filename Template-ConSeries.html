@@ -19,16 +19,18 @@
 
 <div class="row border-0"> <!--This row contains the entire page-->
 <div class="col-md-9"> <!--Left main column: everything but logo/button col -->
-<div class="row"> <!--Top row with small logo and ConSeries name-->
-<div class="col-md-4"> <!--col for small logo-->
-    <a href="http://www.fanac.org"><img src="../logo-rect.png" alt="HTML tutorial" style="width:150px;height:52px;"></a>
+<div class="row" style="padding-left: -5px"> <!--Top row with small logo and ConSeries name-->
+<div class="col-md-4" style="padding-top: 7px;"> <!--col for small logo-->
+    <a href="http://www.fanac.org"><img src="../logo-rect.png" alt="fanac.org" style="width:150px;height:52px;"></a>
 </div>
+
 <div class="col-md-8"> <!--balance of space for con series name, etc -->
-  <div class="row" style="line-height: 1; font-size: xx-large" >
+  <div class="row" style="line-height: 1; font-size: xx-large; padding-bottom: 2px; font-weight: bold" >
     <fanac-instance>Con series name</fanac-instance>
   </div>
   <div class="row">
-    Up to&nbsp;<a href="../"> All Conventions</a>
+      <button onclick="window.location.href='http://fancyclopedia.org/Conventions';">Fancyclopedia 3</button>&nbsp;&nbsp;
+      <button onclick="window.location.href='http:../';">All Conventions</button>
   </div>
 </div>
 </div>  <!--close top row with small logo and ConSeries name-->
@@ -62,16 +64,21 @@
 </div>
 
     <div class=col-md-3> <!--Right col with logo and buttons-->
-    <ul>
-        <img src="../Logo.gif" alt="fanac.org" width="185" height="150">
-        <H4>fanac.org</h4>
-        <li><a href="http://fanac.org/" class="btn btn-info" role="button">Home</a><br><br>
-        <li><a href="http://fanac.org/fanzines/" class="btn btn-info" role="button">Fanzines</a><br><br>
-        <li><a href="http://fanac.org/convention.html" class="btn btn-info" role="button">Conventions</a><br><br>
-        <li><a href="http://www.fanac.org/Fannish_Reference_Works/" class="btn btn-info" role="button">References</a><br><br>
-        <li><a href="https://www.youtube.com/c/fanacfanhistory" class="btn btn-info" role="button">FANAC on YouTube</a><br><br>
-        <li><a href="http://www.fanac.org/FANAC_Inc/" class="btn btn-info" role="button">About</a>
-    </ul>
+        <ul class="list-unstyled" id="considecolophon">
+
+            <img src="../Logo.gif" alt="fanac.org" width="185" height="150">
+
+            <H4>fanac.org</h4>
+
+            <li><button onclick="window.location.href='http://fanac.org/';">Home</button>
+            <li><button onclick="window.location.href='http://fanac.org/fanzines/';">Fanzines</button>
+            <li><button onclick="window.location.href='http://fanac.org/conpubs';">Conventions</button>
+            <li><button onclick="window.location.href='http://fanac.org/Fannish_Reference_Works/';">References</button>
+            <li><button onclick="window.location.href='https://www.youtube.com/c/fanacfanhistory';">FANAC&nbsp;on&nbsp;YouTube</button>
+            <li><button onclick="window.location.href='http://fanac.org/FANAC_Inc/';">About</button>
+
+        </ul>
+
     </div>
 
 </div>

@@ -279,18 +279,15 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name is tagged with <fanac-instance>, the random text with "fanac-headertext"
-        link=FormatLink("http://fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.ConInstanceName), self.ConInstanceName)
+        fancylink=FormatLink("http://fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.ConInstanceName), self.ConInstanceName)
         file=SubstituteHTML(file, "title", self.ConInstanceName)
-        file=SubstituteHTML(file, "fanac-instance", link)
-        file=SubstituteHTML(file, "fanac-headerlink", link)
-        file=SubstituteHTML(file, "fanac-fancylink", link)
+        file=SubstituteHTML(file, "fanac-instance", fancylink)
         file=SubstituteHTML(file, "fanac-stuff", self.ConInstanceTopText)
-        file=SubstituteHTML(file, "fanac-linkupwards", FormatLink("..", "All "+self._seriesname+"s"))
 
-        # Are there photos?
-        if self.ConInstancePhotoURL is not None and len(self.ConInstancePhotoURL) > 0:
-            link=FormatLink(PrependHTTP(self.ConInstancePhotoURL), self.ConInstanceName+" "+"Convention Photos")
-            file=SubstituteHTML(file, "fanac-photolink", "See the "+link+" page on fanac.org.")
+        # Fill in the top buttons
+        s="<button onclick=\"window.location.href='http://fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.ConInstanceName)+"'\"> Fancyclopedia 3 </button>&nbsp;&nbsp;"+ \
+        "<button onclick=\"window.location.href='..'\">All "+self._seriesname+"s</button>"
+        file=SubstituteHTML(file, "fanac-topbuttons", s)
 
         # If there are missing page counts for pdfs, try to gett hem. (This can eventually be eliminated as there will be no pre-V7 files on the server.)
         self.FillInMissingPDFPageCounts()
