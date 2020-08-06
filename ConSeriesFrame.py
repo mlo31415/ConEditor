@@ -196,7 +196,6 @@ class ConSeriesFrame(GenConSeriesFrame):
         file=SubstituteHTML(file, "title", self.Seriesname)
         file=SubstituteHTML(file, "fanac-instance", link)
         file=SubstituteHTML(file, "fanac-headertext", self.TextComments)
-        file=SubstituteHTML(file, "fanac-fancylink", link)
 
         showempty=self.m_radioBoxShowEmpty.GetSelection() == 0  # Radio button: Show Empty cons?
         hasdates=len([d.Dates for d in self._grid.Datasource.Rows if d.Dates is not None and not d.Dates.IsEmpty()]) > 0
