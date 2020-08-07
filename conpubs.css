@@ -3,7 +3,11 @@
     line-height: 1.05;
     border-style: hidden;
     vertical-align: top;
-    font-size: smaller
+    font-size: smaller;
+}
+
+#conseriestable tr:nth-child(even) {
+  background-color: #f4f4f4;
 }
 
 #conpagetable table, #conpagetable th, #conpagetable td, #conpagetable li, #conpagetable ul{
