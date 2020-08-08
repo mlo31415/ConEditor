@@ -200,6 +200,8 @@ class ConSeriesFrame(GenConSeriesFrame):
         # Determine if we're missing 100% of the data for the Dates, Location, or GoH columns so we can drop them from the listing
 
 
+        ProgressMessage(self).Show("Uploading /"+self.Seriesname+"/index.html")
+
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name is tagged with <fanac-instance>, the random text with "fanac-headertext"
         link=FormatLink("http://fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.Seriesname), self.Seriesname)
@@ -256,6 +258,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         if not FTP().PutFileAsString("/"+self.Seriesname, "index.html", file, create=True):
             wx.MessageBox("Upload failed")
 
+        ProgressMessage(self).Show("Upload succeeded: /"+self.Seriesname+"/index.html", close=True, delay=0.5)
         self.MarkAsSaved()      # It was just saved, so unless it's updated again, the dialog can exit without uploading
         self._uploaded=True     # Something's been uploaded
         self.RefreshWindow()
