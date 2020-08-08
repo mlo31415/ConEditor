@@ -468,7 +468,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         if irow > self._grid.Datasource.NumRows:
             self._grid.ExpandDataSourceToInclude(irow, 0)   # If we're inserting past the end of the datasource, insert empty rows as necessary to fill in between
         self._grid.InsertEmptyRows(irow, 1)     # Insert the new empty row
-        self._grid.Datasource.Rows[irow].IsText=True    #TODO: Add similar code for IsLink
+        self._grid.Datasource.Rows[irow].IsText=True
         self._grid._grid.SetCellSize(irow, 0, 1, self._grid.NumCols)
         for icol in range(self._grid.NumCols):
             self._grid.AllowCellEdit(irow, icol)
@@ -478,7 +478,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     # ------------------
     def OnPopupInsertLink(self, event):
         irow=self._grid.rightClickedRow
-        if irow >= self._grid.Datasource.NumRows:
+        if irow > self._grid.Datasource.NumRows:
             self._grid.ExpandDataSourceToInclude(irow, 0)   # Insert empty rows into the datasource if necessary to keep things in sync
         self._grid.InsertEmptyRows(irow, 1)
         self._grid.Datasource.Rows[irow].IsLink=True
