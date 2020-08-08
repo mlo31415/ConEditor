@@ -386,7 +386,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 if not delta[1].IsText and not delta[1].IsLink:
                     ProgressMessage(self).Show("Deleting "+delta[1].SiteFilename)
                     Log("delta-DELETE: "+delta[1].SiteFilename)
-                    FTP().DeleteFile(delta[1].SiteFilename)
+                    if len(delta[1].SiteFilename.strip()) > 0:
+                        FTP().DeleteFile(delta[1].SiteFilename)
             else:
                 Log("delta-UNRECOGNIZED: "+str(delta))
 
