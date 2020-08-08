@@ -72,7 +72,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     # ----------------------------------------------
     # Used to determine if anything has been updated
     def Signature(self) -> int:
-        stuff=self.ConInstanceName.strip()+self.ConInstanceTopText.strip()+self.ConInstanceFancyURL.strip()+self.ConInstancePhotoURL.strip()
+        stuff=self.ConInstanceName.strip()+self.ConInstanceTopText.strip()+self.ConInstanceFancyURL.strip()
         return hash(stuff)+self._grid.Signature()
 
     def MarkAsSaved(self):
@@ -88,11 +88,10 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     # ----------------------------------------------
     # Serialize and deserialize
     def ToJson(self) -> str:
-        d={"ver": 2,
+        d={"ver": 3,
            "ConInstanceName": self.ConInstanceName,
            "ConInstanceStuff": self.ConInstanceTopText,
            "ConInstanceFancyURL": self.ConInstanceFancyURL,
-           "ConInstancePhotoURL": self.ConInstancePhotoURL,
            "_datasource": self._grid.Datasource.ToJson()}
         return json.dumps(d)
 
@@ -103,7 +102,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.ConInstanceFancyURL=d["ConInstanceFancyURL"]
         self.ConInstanceFancyURL=RemoveHTTP(self.ConInstanceFancyURL)
         self._grid.Datasource=ConInstancePage().FromJson(d["_datasource"])
-        self.ConInstancePhotoURL=d["ConInstancePhotoURL"]
         return self
 
 
@@ -133,16 +131,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     def ConInstanceName(self, val: str) -> None:
         if val != self.tConInstanceName.GetValue():
             self.tConInstanceName.SetValue(val)
-
-    # ----------------------------------------------
-    @property
-    def ConInstancePhotoURL(self) -> str:
-        return self.m_textPhotosURL.GetValue()
-
-    @ConInstancePhotoURL.setter
-    def ConInstancePhotoURL(self, val: str) -> None:
-        if val != self.m_textPhotosURL.GetValue():
-            self.m_textPhotosURL.SetValue(val)
 
     # ----------------------------------------------
     @property
@@ -563,7 +551,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             event.Veto()
         return
 
-
     # ------------------
     def OnTextConInstanceName(self, event):
         self.RefreshWindow()
@@ -575,10 +562,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
     # ------------------
     def OnTextConInstanceFancyURL(self, event):
-        self.RefreshWindow()
-
-    # ------------------
-    def OnTextPhotosURL(self, event):
         self.RefreshWindow()
 
     # ------------------

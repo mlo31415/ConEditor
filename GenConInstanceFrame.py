@@ -65,14 +65,6 @@ class GenConInstanceFrame ( wx.Dialog ):
 		self.tConInstanceFancyURL = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 300,-1 ), 0 )
 		fgSizer4.Add( self.tConInstanceFancyURL, 0, wx.ALL|wx.EXPAND, 5 )
 
-		self.m_staticText14 = wx.StaticText( self, wx.ID_ANY, u"URL of photos page", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText14.Wrap( -1 )
-
-		fgSizer4.Add( self.m_staticText14, 0, wx.ALL, 5 )
-
-		self.m_textPhotosURL = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 300,-1 ), 0 )
-		fgSizer4.Add( self.m_textPhotosURL, 0, wx.ALL, 5 )
-
 		self.m_staticText2 = wx.StaticText( self, wx.ID_ANY, u"Top text:", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText2.Wrap( -1 )
 
@@ -177,7 +169,6 @@ class GenConInstanceFrame ( wx.Dialog ):
 		self.tConInstanceName.Bind( wx.EVT_KEY_UP, self.OnTextConInstanceNameKeyUp )
 		self.tConInstanceName.Bind( wx.EVT_TEXT, self.OnTextConInstanceName )
 		self.tConInstanceFancyURL.Bind( wx.EVT_TEXT, self.OnTextConInstanceFancyURL )
-		self.m_textPhotosURL.Bind( wx.EVT_TEXT, self.OnTextPhotosURL )
 		self.topText.Bind( wx.EVT_TEXT, self.OnTopTextComments )
 		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_CHANGED, self.OnGridCellChanged )
 		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_LEFT_DCLICK, self.OnGridCellDoubleClick )
@@ -218,9 +209,6 @@ class GenConInstanceFrame ( wx.Dialog ):
 		event.Skip()
 
 	def OnTextConInstanceFancyURL( self, event ):
-		event.Skip()
-
-	def OnTextPhotosURL( self, event ):
 		event.Skip()
 
 	def OnTopTextComments( self, event ):
