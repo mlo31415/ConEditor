@@ -327,11 +327,12 @@ class ConEditorFrame(GenConEditorFrame):
         self.clickedRow=irow
         self._grid.OnGridCellRightClick(event, self.m_menuPopupConEditor)  # Set enabled state of default items; set all others to False
 
-        self.m_menuItemInsert.Enabled=True
+        self.m_popupItemInsert.Enabled=True
         if self._grid.Datasource.NumRows > irow:
-            self.m_menuItemDelete.Enabled=True
+            self.m_popupItemDelete.Enabled=True
         if irow < self._grid.Datasource.NumRows:
-            self.m_menuItemEdit.Enabled=True
+            self.m_popupItemEdit.Enabled=True
+        self.m_popupItemInsert.Enabled=True
         self.PopupMenu(self.m_menuPopupConEditor, pos=self.gRowGrid.Position+event.Position)
 
     # ------------------
