@@ -222,6 +222,15 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     # ----------------------------------------------
     def OnUploadConInstancePage(self) -> None:
 
+        # Delete any trailing blank rows.  (Blank rows anywhere are as error, but we only silently drop trailing blank rows.)
+        # Find the last non-blank row.
+        last=None
+        for i, row in enumerate(self._grid.Datasource.Rows):
+            if len((row.SourceFilename+row.SiteFilename+row.DisplayTitle+row.Notes).strip()) > 0:
+                last=i
+        if last is not None and last < self._grid.Datasource.NumRows-1:
+            del self._grid.Datasource.Rows[last+1:]
+
         # Check to see if the data is valid
         error=False
         for i, row in enumerate(self._grid.Datasource.Rows):
