@@ -401,6 +401,7 @@ class ConSeriesFrame(GenConSeriesFrame):
     #------------------
     def OnPopupCreateNewConPage(self, event):                    # MainConSeriesFrame
         irow=self.rightClickedRow
+        self._grid.InsertEmptyRows(irow, 1)
         self.EditConInstancePage("", irow)
         self.RefreshWindow()
 
@@ -528,9 +529,8 @@ class ConSeriesFrame(GenConSeriesFrame):
         self.rightClickedRow=irow
         self._grid.OnGridCellRightClick(event, self.m_menuPopup)  # Set enabled state of default items; set all others to False
         if icol == 0:      # All of the popup options work on the 1st column only
-            if irow >= self._grid.Datasource.NumRows:
-                self.m_popupCreateNewConPage.Enabled=True
-            else:
+            self.m_popupCreateNewConPage.Enabled=True
+            if irow < self._grid.Datasource.NumRows:
                 self.m_popupDeleteConPage.Enabled=True
                 self.m_popupEditConPage.Enabled=True
         if self._grid.Datasource.ColEditable[icol] == "maybe":
