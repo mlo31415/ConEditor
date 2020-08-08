@@ -187,6 +187,16 @@ class ConSeriesFrame(GenConSeriesFrame):
         except:
             wx.MessageBox("Can't read 'Template-ConSeries.html'")
 
+        # Delete any trailing blank rows.  (Blank rows anywhere are as error, but we only silently drop trailing blank rows.)
+        # Find the last non-blank row.
+        last=None
+        for i, row in enumerate(self._grid.Datasource.Rows):
+            if len((row.GoHs+row.Locale+row.Name+row.URL).strip()) > 0 or not row.Dates.IsEmpty:
+                last=i
+        # Delete the row or rows following it
+        if last is not None and last < self._grid.Datasource.NumRows-1:
+            del self._grid.Datasource.Rows[last+1:]
+
         # Determine if we're missing 100% of the data for the Dates, Location, or GoH columns so we can drop them from the listing
 
 
