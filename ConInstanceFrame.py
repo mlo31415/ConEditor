@@ -228,6 +228,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         for i, row in enumerate(self._grid.Datasource.Rows):
             if len((row.SourceFilename+row.SiteFilename+row.DisplayTitle+row.Notes).strip()) > 0:
                 last=i
+        # Delete the row or rows following it
         if last is not None and last < self._grid.Datasource.NumRows-1:
             del self._grid.Datasource.Rows[last+1:]
 
