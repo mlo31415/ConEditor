@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Optional, List, Union, Tuple
+from typing import Optional, List, Union
 
 import os
 import sys
@@ -86,7 +86,7 @@ class ConList(GridDataSource):
     _colheaders: List[str]=["Convention Series"]
     _coldatatypes: List[str]=["url"]
     _colminwidths: List[int]=[30]
-    _coleditable: List[int]=["no"]
+    _coleditable: List[str]=["no"]
     _element=Convention
 
     def __init__(self):
