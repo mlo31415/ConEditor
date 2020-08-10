@@ -203,7 +203,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
     # ----------------------------------------------
     def OnUploadConInstance(self, event):
-        self.OnUploadConInstancePage
+        self.OnUploadConInstancePage()
 
     # ----------------------------------------------
     def OnClose(self, event):
@@ -237,9 +237,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                             self._grid.Datasource.Rows[i]=row
 
 
-
     # ----------------------------------------------
-    @property
     def OnUploadConInstancePage(self) -> None:
 
         # Delete any trailing blank rows.  (Blank rows anywhere are as error, but we only silently drop trailing blank rows.)
@@ -402,7 +400,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 FTP().PutFile(delta.Con.SourcePathname, delta.Con.SiteFilename)
             elif delta.Verb == "rename":
                 ProgressMessage(self).Show("Renaming "+delta.Oldname+ " to "+delta.Con.SiteFilename)
-                Log("delta-RENAME: "+delta.Con.Oldname+" to "+delta.Con.SiteFilename)
+                Log("delta-RENAME: "+delta.Oldname+" to "+delta.Con.SiteFilename)
                 FTP().Rename(delta.Oldname, delta.Con.SiteFilename)
             elif delta.Verb == "delete":
                 if not delta.Con.IsText and not delta.Con.IsLink:
