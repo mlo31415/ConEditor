@@ -59,6 +59,10 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         if val is not None:
             self.radioBoxFileListFormat.SetSelection(int(val))
 
+        val=Settings().Get("ConInstanceFramePage:Show Extensions")
+        if val is not None:
+            self.radioBoxShowExtensions.SetSelection(int(val))
+
         self._grid.Datasource.SpecialTextColor=None
 
         self.DownloadConInstancePage()
@@ -324,6 +328,14 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 info+=")</small>"
             return info
 
+        showExtensions=self.radioBoxShowExtensions.GetSelection() != 0
+        def MaybeSuppressPDFExtension(fn: str, suppress: bool) -> str:
+            if suppress:
+                parts=os.path.splitext(row.DisplayTitle)
+                if parts[1].lower() == ".pdf":
+                    fn=parts[0]
+            return fn
+
         if self.radioBoxFileListFormat.GetSelection() == 0: # Are we to output a table?
             # Now construct the table which we'll then substitute.
             newtable='<table class="table"  id="conpagetable">\n'
@@ -344,7 +356,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     newtable+='      <td colspan="3">'+FormatLink(row.URL, row.DisplayTitle)+'</td>\n'
                 else:
                     # The document title/link column
-                    newtable+='      <td>'+FormatLink(row.SiteFilename, row.DisplayTitle)+'</td>\n'
+                    s=MaybeSuppressPDFExtension(row.DisplayTitle, showExtensions)
+                    newtable+='      <td>'+FormatLink(row.SiteFilename, s)+'</td>\n'
 
                     # This is the size & page count column
                     newtable+='      <td>'+FormatSizes(row)+'</td>\n'
@@ -368,7 +381,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 elif row.IsLink:
                     newtable+='    <li id="conpagetable">'+FormatLink(row.URL, row.DisplayTitle)+"</li>\n"
                 else:
-                    newtable+='    <li id="conpagetable">'+FormatLink(row.SiteFilename, row.DisplayTitle)
+                    s=MaybeSuppressPDFExtension(row.DisplayTitle, showExtensions)
+                    newtable+='    <li id="conpagetable">'+FormatLink(row.SiteFilename, s)
 
                     val=FormatSizes(row)
                     if len(val) > 0:
@@ -614,6 +628,10 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     # ------------------
     def OnRadioFileListFormat(self, event):
         Settings().Put("ConInstanceFramePage:File list format", str(self.radioBoxFileListFormat.GetSelection()))
+
+    # ------------------
+    def OnRadioShowExtensions(self, event):
+        Settings().Put("ConInstanceFramePage:Show Extensions", str(self.radioBoxShowExtensions.GetSelection()))
 
     #------------------
     def RefreshWindow(self) -> None:
