@@ -5,6 +5,7 @@ from HelpersPackage import Int, RemoveAccents
 
 from DataGrid import GridDataSource, Color
 import json
+import os
 
 # An individual file to be listed under a convention
 class ConFile:
@@ -89,11 +90,21 @@ class ConFile:
         self._notes=val
 
     @property
-    def LocalPathname(self) -> str:
+    def SourcePathname(self) -> str:
         return self._localpathname
-    @LocalPathname.setter
-    def LocalPathname(self, val: str) -> None:
+    @SourcePathname.setter
+    def SourcePathname(self, val: str) -> None:
         self._localpathname=val
+        self._localfilename=os.path.basename(val)
+
+
+    @property
+    def SourceFilename(self) -> str:
+        return self._localfilename
+    @SourceFilename.setter
+    def SourceFilename(self, val: str) -> None:
+        self._localfilename=val
+        self._localpathname="invalidated"
 
     @property
     def SiteFilename(self) -> str:
@@ -102,12 +113,6 @@ class ConFile:
     def SiteFilename(self, val: str) -> None:
         self._sitefilename=RemoveAccents(val)
 
-    @property
-    def SourceFilename(self) -> str:
-        return self._localfilename
-    @SourceFilename.setter
-    def SourceFilename(self, val: str) -> None:
-        self._localfilename=val
 
     @property
     def Size(self) -> int:
@@ -162,7 +167,7 @@ class ConFile:
     def SetVal(self, nameOrCol: Union[str, int], val: Union[str, int]) -> None:
         # (Could use return eval("self."+name))
         if nameOrCol == "Source File Name" or nameOrCol == 0:
-            self.SourceFilename=val#
+            self.SourceFilename=val
             return
         if nameOrCol == "Site Name" or nameOrCol == 1:
             self.SiteFilename=val

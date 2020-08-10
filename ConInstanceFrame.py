@@ -146,10 +146,20 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     def OnAddFilesButton(self, event):
         self.AddFiles()
 
-    def AddFiles(self) -> bool:
+    # ------------------
+    # Replace an existing file without changing anything else
+    # The user must have clicked on column 0 in a row which contains files
+    def OnPopupUpdateFile(self, event):
+        self.AddFiles(replacerow=self._grid.rightClickedRow)
+
+    # ------------------
+    def AddFiles(self, replacerow: Optional[int]=None) -> bool:
 
         # Call the File Open dialog to get an con series HTML file
-        dlg=wx.FileDialog (None, "Select files to upload", ".", "", "*.*", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE | wx.FD_CHANGE_DIR)
+        if replacerow is None:
+            dlg=wx.FileDialog (None, "Select files to upload", ".", "", "*.*", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE | wx.FD_CHANGE_DIR)
+        else:
+            dlg=wx.FileDialog (None, "Select a replacement file to upload", ".", "", "*.*", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_CHANGE_DIR)
 
         # Do we have a last directory?
         dir=Settings().Get("Last FileDialog directory")
@@ -166,16 +176,25 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             return True #TODO: Is this the correct return?
 
         Settings().Put("Last FileDialog directory", dlg.GetDirectory())
-        for fn in dlg.GetFilenames():
-            conf=ConFile()
-            conf.DisplayTitle=fn
-            conf.SiteFilename=fn
-            conf.SourceFilename=fn
-            conf.LocalPathname=os.path.join(os.path.join(dlg.GetDirectory()), fn)
-            conf.Size=os.path.getsize(conf.LocalPathname)
-            conf.Pages=GetPdfPageCount(conf.LocalPathname)
-            self.conInstanceDeltaTracker.Add(conf)
-            self._grid.Datasource.Rows.append(conf)
+
+        if replacerow is None:
+            for fn in dlg.GetFilenames():
+                conf=ConFile()
+                conf.DisplayTitle=fn
+                conf.SiteFilename=fn
+                conf.SourceFilename=fn
+                conf.SourcePathname=os.path.join(os.path.join(dlg.GetDirectory()), fn)
+                conf.Size=os.path.getsize(conf.SourcePathname)
+                conf.Pages=GetPdfPageCount(conf.SourcePathname)
+                self.conInstanceDeltaTracker.Add(conf)
+                self._grid.Datasource.Rows.append(conf)
+        else:
+            if len(dlg.GetFilenames()) > 0:
+                conf=self._grid.Datasource.Rows[replacerow]
+                fn=dlg.GetFilenames()[0]
+                newfilename=os.path.join(os.path.join(dlg.GetDirectory()), fn)
+                self.conInstanceDeltaTracker.Replace(conf, conf.SourcePathname)
+                self._grid.Datasource.Rows[replacerow].SourcePathname=newfilename
 
         dlg.Destroy()
         self.RefreshWindow()
@@ -184,7 +203,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
     # ----------------------------------------------
     def OnUploadConInstance(self, event):
-        self.OnUploadConInstancePage()
+        self.OnUploadConInstancePage
 
     # ----------------------------------------------
     def OnClose(self, event):
@@ -212,14 +231,15 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         for i, row in enumerate(self._grid.Datasource.Rows):
             if not row.IsText and not row.IsLink:
                 if row.Pages is None or  row.Pages == 0:
-                    if ExtensionMatches(row.LocalPathname, ".pdf"):
-                        if os.path.exists(row.LocalPathname):
-                            row.Pages=GetPdfPageCount(row.LocalPathname)
+                    if ExtensionMatches(row.SourcePathname, ".pdf"):
+                        if os.path.exists(row.SourcePathname):
+                            row.Pages=GetPdfPageCount(row.SourcePathname)
                             self._grid.Datasource.Rows[i]=row
 
 
 
     # ----------------------------------------------
+    @property
     def OnUploadConInstancePage(self) -> None:
 
         # Delete any trailing blank rows.  (Blank rows anywhere are as error, but we only silently drop trailing blank rows.)
@@ -376,18 +396,28 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         wd="/"+self._seriesname+"/"+self._coninstancename
         FTP().CWD(wd)
         for delta in self.conInstanceDeltaTracker.Deltas:
-            if delta[0] == "add":
-                ProgressMessage(self).Show("Adding "+delta[1].LocalPathname+" as "+delta[1].SiteFilename)
-                FTP().PutFile(delta[1].LocalPathname, delta[1].SiteFilename)
-            elif delta[0] == "rename":
-                ProgressMessage(self).Show("Renaming "+delta[2]+ " to "+delta[1].SiteFilename)
-                FTP().Rename(delta[2], delta[1].SiteFilename)
-            elif delta[0] == "delete":
-                if not delta[1].IsText and not delta[1].IsLink:
-                    ProgressMessage(self).Show("Deleting "+delta[1].SiteFilename)
-                    Log("delta-DELETE: "+delta[1].SiteFilename)
-                    if len(delta[1].SiteFilename.strip()) > 0:
-                        FTP().DeleteFile(delta[1].SiteFilename)
+            if delta.Verb == "add":
+                ProgressMessage(self).Show("Adding "+delta.Con.SourcePathname+" as "+delta.Con.SiteFilename)
+                Log("delta-ADD: "+delta.Con.SourcePathname+" as "+delta.Con.SiteFilename)
+                FTP().PutFile(delta.Con.SourcePathname, delta.Con.SiteFilename)
+            elif delta.Verb == "rename":
+                ProgressMessage(self).Show("Renaming "+delta.Oldname+ " to "+delta.Con.SiteFilename)
+                Log("delta-RENAME: "+delta.Con.Oldname+" to "+delta.Con.SiteFilename)
+                FTP().Rename(delta.Oldname, delta.Con.SiteFilename)
+            elif delta.Verb == "delete":
+                if not delta.Con.IsText and not delta.Con.IsLink:
+                    ProgressMessage(self).Show("Deleting "+delta.Con.SiteFilename)
+                    Log("delta-DELETE: "+delta.Con.SiteFilename)
+                    if len(delta.Con.SiteFilename.strip()) > 0:
+                        FTP().DeleteFile(delta.Con.SiteFilename)
+            elif delta.Verb == "replace":
+                ProgressMessage(self).Show("Replacing "+delta.Oldname+" with new/updated file")
+                Log("delta-REPLACE: "+delta.Con.SourcePathname+" <-- "+delta.Oldname)
+                Log("   delta-DELETE: "+delta.Con.SiteFilename)
+                if len(delta.Con.SiteFilename.strip()) > 0:
+                    FTP().DeleteFile(delta.Con.SiteFilename)
+                Log("   delta-ADD: "+delta.Con.SourcePathname+" as "+delta.Con.SiteFilename)
+                FTP().PutFile(delta.Con.SourcePathname, delta.Con.SiteFilename)
             else:
                 Log("delta-UNRECOGNIZED: "+str(delta))
 
@@ -444,6 +474,10 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         if self._grid.Datasource.ColEditable[self.clickedColumn] == "maybe":
             self.m_popupAllowEditCell.Enabled=True
+
+        if self.clickedColumn == 0 and self.clickedRow < self._grid.NumRows:
+            if self.clickedRow < self._grid.Datasource.NumRows and not self._grid.Datasource.Rows[self.clickedRow].IsText and not self._grid.Datasource.Rows[self.clickedRow].IsLink:
+                self.m_popupUpdateFile.Enabled=True
 
         self.PopupMenu(self.m_menuPopup, pos=self.gRowGrid.Position+event.Position)
 

@@ -1,57 +1,97 @@
 from __future__ import annotations
-from typing import List, Union, Optional, Tuple
+from typing import List
 
 from ConInstance import ConFile
 
-# This class tracks changes to the list of files for a particular Con Instance
+# These classes track changes to the list of files for a particular Con Instance
 # All it cares about is the files and their names
 # Once the user is done editing the ConInstance page and does an upload, this class will provide the instructions
 #   for the upload so that all the accumulated edits get up there.
+
+class Delta:
+    def __init__(self, verb: str, confile: ConFile, oldname: str):
+        self._verb: str=verb
+        self._con: ConFile=confile
+        self._oldname: str=oldname
+    
+    @property
+    def Verb(self):
+        return self._verb
+
+    @property
+    def Con(self):
+        return self._con
+    @Con.setter
+    def Con(self, val: ConFile):
+        self._con=val
+    
+    @property
+    def Oldname(self):
+        return self._oldname
 
 # Changes (the tuple providing info needed to defined them) are (in the order in which they must be executed):
 #       Delete a file which exists on the website ("delete", con, "")
 #       Rename an existing website file ("rename", con, oldname)
 #       Add a new file ("add", con, "")
-class ConInstanceDeltaTracker():
+#       Replace an existing file ("replace", con, oldname)
+class ConInstanceDeltaTracker:
     def __init__(self):
-        self._deltas: List[Tuple[str, ConFile, str]]=[]
+        self._deltas: List[Delta]=[]
 
     def Add(self, con: ConFile) -> None:
-        self._deltas.append(("add", con, ""))
+        self._deltas.append(Delta("add", con, ""))
 
     def Delete(self, con: ConFile) -> None:
         # If the item being deleted was just added, simply remove the add from the deltas list
         for i, item in enumerate(self._deltas):
-            if item[0] == "add":
-                if item[1].DisplayTitle == con.DisplayTitle:
+            if item.Verb == "add":
+                if item.Con.DisplayTitle == con.DisplayTitle:
                     del self._deltas[i]
                     return
         # OK, the item is not queued to be added so it must already be on the website: add a delete action to the deltas list
-        self._deltas.append(("delete", con, ""))
+        self._deltas.append(Delta("delete", con, ""))
 
+    # Change the site's display name for a file
     def Rename(self, con: ConFile, oldname: str) -> None:
-        # First check to see if this is a rename of a rename.  If it is, merge them.
+        # First check to see if this is a rename of a rename.  If it is, merge them by updating the existing rename.
         for i, item in enumerate(self._deltas):
-            if item[0] == "rename":
-                if item[2] == con.DisplayTitle:
-                    self._deltas[i]=("rename", con, oldname)
+            if item.Verb == "rename":
+                if item.Oldname == con.DisplayTitle:
+                    self._deltas[i]=Delta("rename", con, oldname)
+                    return
+            # Now check to see if this is a rename of a newly-added file.  If so, we just modify the add Delta
+            elif item.Verb == "add":
+                if item.Con.DisplayTitle == con.DisplayTitle:
+                    item.Con=con
                     return
 
-        # Now check to see if this is a rename of a newly-added file
+        # If it doesn't match anything in the delta list, then it must be a rename of an existing file.
+        self._deltas.append(Delta("rename", con, oldname))
+
+    # We want to replace one file with another
+    def Replace(self, con: ConFile, oldname: str):
+        # Check to see if the replacement is in a row yet to be uploaded or a row which has been renamed.
         for i, item in enumerate(self._deltas):
-            if item[0] == "add":
-                if item[1].DisplayTitle == con.DisplayTitle:
-                    newcon=con
-                    newcon.DisplayTitle=oldname
-                    self._deltas[i]=("add", newcon, "")     # In that case, change the sitename in the 'add' entry to be the new name and skip the rename step
+            if item.Verb == "rename":
+                if item.Con.SourcePathname == con.SourcePathname:
+                    self._deltas[i]=Delta("rename", con, oldname)
                     return
-        # It's just a rename of an existing file.
-        self._deltas.append(("rename", con, oldname))
+            # Now check to see if this is a rename of a newly-added file
+            elif item.Verb == "add":
+                if item.Con.SourcePathname == con.SourcePathname:
+                    # Just update the local pathname in the add entry
+                    self._deltas[i].Con.SourcePathname=con.SourcePathname
+                    return
+
+        # If it doesn't match anything in the delta list, then it must be a new local file to replace an old one in an extsting entry
+        # We need to delete the old file and then upload the new.
+        self._deltas.append(Delta("replace", con, oldname))
+
 
     @property
     def Num(self) -> int:
         return len(self._deltas)
 
     @property
-    def Deltas(self) -> List[Tuple[str, ConFile, str]]:
+    def Deltas(self) -> List[Delta]:
         return self._deltas
