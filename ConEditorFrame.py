@@ -415,7 +415,13 @@ class ConEditorFrame(GenConEditorFrame):
                           "its directory or files from fanac.org. You must use FTP to do that.", 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
         if ret == wx.OK:
             del self._grid.Datasource.Rows[self.clickedRow]
-            self._grid.Datasource.AllowCellEdits=[x for x in self._grid.Datasource.AllowCellEdits if x[0] != self.clickedRow]
+            # We also need to drop entries in AllowCellEdits which refer to this row and adjust the indexes of ones referring to all later rows
+            for index, (irow, icol) in enumerate(self._grid.Datasource.AllowCellEdits):
+                if irow == self.clickedRow:
+                    self._grid.Datasource.AllowCellEdits[irow]=(-1, -1) # We tag them rather than deleting them so we don't mess up the enumerate loop
+                if irow > self.clickedRow:
+                    self._grid.Datasource.AllowCellEdits[irow]=(irow-1, icol)
+            self._grid.Datasource.AllowCellEdits=[x for x in self._grid.Datasource.AllowCellEdits if x[0] != -1]    # Get rid of the tagged entries
         self.RefreshWindow()
         event.Skip()
 
