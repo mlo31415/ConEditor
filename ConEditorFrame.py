@@ -304,10 +304,12 @@ class ConEditorFrame(GenConEditorFrame):
 
     #------------------
     def OnButtonSortClick(self, event):            # ConEditorFrame
-        # Worldcon sorts ahead of everything else; empty lines after everything else
+        # Worldcon sorts ahead of everything else; Then "Early Conventions"; Then all other conventions; Finally empty lines after everything else
         def sorter(c: Convention) -> str:
             n=c.Name.upper()        # Convert to all UC so that sort is case-insensitive
             if n == "WORLDCON":
+                return " "
+            if n == "EARLY CONVENTIONS":
                 return " "
             if len(n.strip()) == 0:
                 return "ZZZZZZZZZ"      # This should sort last
