@@ -425,6 +425,12 @@ class ConSeriesFrame(GenConSeriesFrame):
         self.RefreshWindow()
 
     # ------------------
+    def OnPopupUnlink(self, event):
+        self._grid.Datasource.Rows[self._grid.rightClickedRow].URL=""
+        self.RefreshWindow()
+
+
+    # ------------------
     def OnGridEditorShown(self, event):
         irow=event.GetRow()
         icol=event.GetCol()
@@ -527,14 +533,21 @@ class ConSeriesFrame(GenConSeriesFrame):
         icol=event.GetCol()
         self.rightClickedColumn=icol
         self.rightClickedRow=irow
+
         self._grid.OnGridCellRightClick(event, self.m_menuPopup)  # Set enabled state of default items; set all others to False
+
         if icol == 0:      # All of the popup options work on the 1st column only
             self.m_popupCreateNewConPage.Enabled=True
             if irow < self._grid.Datasource.NumRows:
                 self.m_popupDeleteConPage.Enabled=True
                 self.m_popupEditConPage.Enabled=True
+
         if self._grid.Datasource.ColEditable[icol] == "maybe":
             self.m_popupAllowEditCell.Enabled=True
+
+        if len(self._grid.Datasource.Rows[irow].URL) > 0 and icol == 0:
+            self.m_popupUnlink.Enabled=True
+
         self.PopupMenu(self.m_menuPopup)
 
     # ------------------

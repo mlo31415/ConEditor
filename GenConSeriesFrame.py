@@ -182,6 +182,9 @@ class GenConSeriesFrame ( wx.Dialog ):
 		self.m_popupAllowEditCell = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Allow Cell Edit", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_menuPopup.Append( self.m_popupAllowEditCell )
 
+		self.m_popupUnlink = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Unlink", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_menuPopup.Append( self.m_popupUnlink )
+
 		self.Bind( wx.EVT_RIGHT_DOWN, self.GenConSeriesFrameOnContextMenu )
 
 
@@ -209,6 +212,7 @@ class GenConSeriesFrame ( wx.Dialog ):
 		self.Bind( wx.EVT_MENU, self.OnPopupDeleteConPage, id = self.m_popupDeleteConPage.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupEditConPage, id = self.m_popupEditConPage.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupAllowEditCell, id = self.m_popupAllowEditCell.GetId() )
+		self.Bind( wx.EVT_MENU, self.OnPopupUnlink, id = self.m_popupUnlink.GetId() )
 
 	def __del__( self ):
 		pass
@@ -276,10 +280,11 @@ class GenConSeriesFrame ( wx.Dialog ):
 	def OnPopupAllowEditCell( self, event ):
 		event.Skip()
 
+	def OnPopupUnlink( self, event ):
+		event.Skip()
+
 	def gRowGridOnContextMenu( self, event ):
 		self.gRowGrid.PopupMenu( self.m_menu1, event.GetPosition() )
 
 	def GenConSeriesFrameOnContextMenu( self, event ):
 		self.PopupMenu( self.m_menuPopup, event.GetPosition() )
-
-
