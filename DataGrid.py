@@ -17,6 +17,7 @@ class Color:
      Blue=wx.Colour(100, 100, 255)
      LightGray=wx.Colour(242, 242, 242)
      White=wx.Colour(255, 255, 255)
+     Black=wx.Colour(0, 0, 0)
 
 # An abstract class which defines the structure of a data source for the Grid class
 class GridDataSource():
@@ -281,6 +282,8 @@ class DataGrid():
 
         # First turn off any special formatting
         self._grid.SetCellFont(irow, icol, self._grid.GetCellFont(irow, icol).GetBaseFont())
+        self.SetCellBackgroundColor(irow, icol, Color.White)
+        self._grid.SetCellTextColour(irow, icol, Color.Black)
 
         # If the row is a text row and if there's a special text color, color it thus
         if irow < self._datasource.NumRows and self._datasource.Rows[irow].IsText and self._datasource.SpecialTextColor is not None:
@@ -318,13 +321,18 @@ class DataGrid():
                 if val is not None and val != "" and FanzineDate().Match(val).IsEmpty():
                     self.SetCellBackgroundColor(irow, icol, Color.Pink)
 
-        # Special handling for URLs: we add an underline
+        # Special handling for URLs: we add an underline and paint the text blue
         if self._datasource.ColDataTypes[icol] == "url":
+            font=self._grid.GetCellFont(irow, icol)
             if val is not None and val != "" and len(self._datasource.Rows[irow].URL) > 0:
                 self._grid.SetCellTextColour(irow, icol, Color.Blue)
-                font=self._grid.GetCellFont(irow, icol)
                 font.MakeUnderlined()
                 self._grid.SetCellFont(irow, icol, font)
+            else:
+                #self._grid.SetCellTextColour(irow, icol, Color.Blue)
+                font.SetUnderlined(False)
+                self._grid.SetCellFont(irow, icol, font)
+
 
     # --------------------------------------------------------
     def ColorCellsByValue(self):        # Grid
