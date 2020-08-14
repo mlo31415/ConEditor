@@ -575,8 +575,9 @@ class DataGrid():
 
 
     #-------------------
-    def OnGridCellDoubleClick(self):        # Grid
-        pass
+    def OnGridCellDoubleClick(self, event):        # Grid
+        self.clickedColumn=event.GetCol()
+        self.clickedRow=event.GetRow()
 
     #-------------------
     def OnGridLabelRightClick(self, event):        # Grid

@@ -335,10 +335,10 @@ class ConEditorFrame(GenConEditorFrame):
 
     # ------------------
     def OnGridCellDoubleClick(self, event):            # ConEditorFrame
+        self._grid.OnGridCellDoubleClick(event)
         if event.GetRow() > self._grid.Datasource.NumRows:
             return      # For now, we do nothing when you double-click in an empty cell
-        self._grid.clickedColumn=event.GetCol()
-        self._grid.clickedRow=event.GetRow()
+
         self.EditConSeries()
 
     # ------------------

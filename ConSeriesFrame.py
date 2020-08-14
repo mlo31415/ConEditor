@@ -534,8 +534,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
     # ------------------
     def OnGridCellDoubleClick(self, event):                    # MainConSeriesFrame
-        self._grid.clickedColumn=event.GetCol()
-        self._grid.clickedRow=event.GetRow()
+        self._grid.OnGridCellDoubleClick(event)
         if self._grid.clickedColumn == 0:
             name=self._grid.Get(self._grid.clickedRow, 0)
             self.EditConInstancePage(name, self._grid.clickedRow)
