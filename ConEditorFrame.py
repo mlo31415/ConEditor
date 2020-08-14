@@ -358,10 +358,6 @@ class ConEditorFrame(GenConEditorFrame):
 
         self.RefreshWindow()
 
-    # ------------------
-    def OnGridLabelRightClick(self, event):  # Grid
-        self._grid.OnGridLabelRightClick(event)
-
     #-------------------
     def OnKeyDown(self, event):            # ConEditorFrame
         self._grid.OnKeyDown(event)

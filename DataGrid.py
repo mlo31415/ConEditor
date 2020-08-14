@@ -580,11 +580,6 @@ class DataGrid():
         self.clickedRow=event.GetRow()
 
     #-------------------
-    def OnGridLabelRightClick(self, event):        # Grid
-        # This might be a good place to pop up a dialog to change a column header
-        pass
-
-    #-------------------
     # Locate the selection, real or implied
     # There are three cases, in descending order of preference:
     #   There is a selection block defined

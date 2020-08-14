@@ -514,8 +514,8 @@ class ConSeriesFrame(GenConSeriesFrame):
 
     #------------------
     def OnGridCellRightClick(self, event):                    # MainConSeriesFrame
-
         self._grid.OnGridCellRightClick(event, self.m_menuPopup)  # Set enabled state of default items; set all others to False
+
         icol=self._grid.clickedColumn
         irow=self._grid.clickedRow
 
