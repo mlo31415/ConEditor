@@ -154,7 +154,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     # Replace an existing file without changing anything else
     # The user must have clicked on column 0 in a row which contains files
     def OnPopupUpdateFile(self, event):
-        self.AddFiles(replacerow=self._grid.rightClickedRow)
+        self.AddFiles(replacerow=self._grid.clickedRow)
 
     # ------------------
     def AddFiles(self, replacerow: Optional[int]=None) -> bool:
@@ -474,21 +474,18 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     def OnGridCellRightClick(self, event):
         self._grid.OnGridCellRightClick(event, self.m_menuPopup)
 
-        self.clickedColumn=event.GetCol()
-        self.clickedRow=event.GetRow()
-
         self.m_popupAddFiles.Enabled=True
         self.m_popupInsertText.Enabled=True
         self.m_popupInsertLink.Enabled=True
 
         if self._grid.Datasource.NumRows > event.GetRow():
-            self.m_popupDeleteFile.Enabled=True
+            self.m_popupDeleteRow.Enabled=True
 
-        if self._grid.Datasource.ColEditable[self.clickedColumn] == "maybe":
+        if self._grid.Datasource.ColEditable[self._grid.clickedColumn] == "maybe":
             self.m_popupAllowEditCell.Enabled=True
 
-        if self.clickedColumn == 0 and self.clickedRow < self._grid.NumRows:
-            if self.clickedRow < self._grid.Datasource.NumRows and not self._grid.Datasource.Rows[self.clickedRow].IsText and not self._grid.Datasource.Rows[self.clickedRow].IsLink:
+        if self._grid.clickedColumn == 0 and self._grid.clickedRow < self._grid.NumRows:
+            if self._grid.clickedRow < self._grid.Datasource.NumRows and not self._grid.Datasource.Rows[self._grid.clickedRow].IsText and not self._grid.Datasource.Rows[self._grid.clickedRow].IsLink:
                 self.m_popupUpdateFile.Enabled=True
 
         self.PopupMenu(self.m_menuPopup, pos=self.gRowGrid.Position+event.Position)
@@ -511,7 +508,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
     # ------------------
     def OnPopupInsertText(self, event):
-        irow=self._grid.rightClickedRow
+        irow=self._grid.clickedRow
         if irow > self._grid.Datasource.NumRows:
             self._grid.ExpandDataSourceToInclude(irow, 0)   # If we're inserting past the end of the datasource, insert empty rows as necessary to fill in between
         self._grid.InsertEmptyRows(irow, 1)     # Insert the new empty row
@@ -524,7 +521,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
     # ------------------
     def OnPopupInsertLink(self, event):
-        irow=self._grid.rightClickedRow
+        irow=self._grid.clickedRow
         if irow > self._grid.Datasource.NumRows:
             self._grid.ExpandDataSourceToInclude(irow, 0)   # Insert empty rows into the datasource if necessary to keep things in sync
         self._grid.InsertEmptyRows(irow, 1)
@@ -536,9 +533,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
     # ------------------
     def OnPopupAllowEditCell(self, event):
-        irow=self._grid.rightClickedRow
-        icol=self._grid.rightClickedColumn
-        self._grid.AllowCellEdit(irow, icol)  # Append a (row, col) tuple. This only lives for the life of this instance.
+        # Append a (row, col) tuple. This only lives for the life of this instance.
+        self._grid.AllowCellEdit(self._grid.clickedRow, self._grid.clickedColumn)
         self.RefreshWindow()
 
     # ------------------
@@ -546,7 +542,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.AddFiles()
 
     # ------------------
-    def OnPopupDeleteFile(self, event):
+    def OnPopupDeleteRow(self, event):
         if self._grid.HasSelection():
             top, left, bottom, right=self._grid.LocateSelection()
             nrows=self._grid.Datasource.NumRows
@@ -555,16 +551,15 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             if bottom >= nrows:
                 bottom=nrows-1
         else:
-            if self._grid.rightClickedRow >= self._grid.Datasource.NumRows:
+            if self._grid.clickedRow >= self._grid.Datasource.NumRows:
                 return
-            top=bottom=self._grid.rightClickedRow
+            top=bottom=self._grid.clickedRow
 
         self._grid.Grid.ClearSelection()
 
         for row in self._grid.Datasource.Rows[top:bottom+1]:
             self.conInstanceDeltaTracker.Delete(row)
-        del self._grid.Datasource.Rows[top:bottom+1]
-        self._grid.Datasource.AllowCellEdits=[x for x in self._grid.Datasource.AllowCellEdits if x[0] >= top or x[0] < bottom+1]
+        self._grid.DeleteRows(top, bottom-top+1)
         self.RefreshWindow()
 
 
@@ -596,17 +591,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
     # ------------------
     def OnGridEditorShown(self, event):
-        irow=event.GetRow()
-        icol=event.GetCol()
-        if self._grid.Datasource.ColEditable[icol] == "no":
-            event.Veto()
-            return
-        if self._grid.Datasource.ColEditable[icol] == "maybe":
-            for it in self._grid.Datasource.AllowCellEdits:
-                if (irow, icol) == it:
-                    return
-            event.Veto()
-        return
+        self._grid.OnGridEditorShown(event)
 
     # ------------------
     def OnTextConInstanceName(self, event):

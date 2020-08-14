@@ -31,8 +31,6 @@ class ConSeriesFrame(GenConSeriesFrame):
         GenConSeriesFrame.__init__(self, None)
 
         self.userSelection=None     #TODO: Still needed?
-        self.cntlDown: bool=False
-        self.rightClickedColumn: Optional[int]=None
 
         self._basedirectoryFTP: str=basedirFTP
 
@@ -400,14 +398,14 @@ class ConSeriesFrame(GenConSeriesFrame):
 
     #------------------
     def OnPopupCreateNewConPage(self, event):                    # MainConSeriesFrame
-        irow=self.rightClickedRow
+        irow=self._grid.clickedRow
         self._grid.InsertEmptyRows(irow, 1)
         self.EditConInstancePage("", irow)
         self.RefreshWindow()
 
     #------------------
     def OnPopupEditConPage(self, event):                    # MainConSeriesFrame
-        irow=self.rightClickedRow
+        irow=self._grid.clickedRow
         # If the RMB is a click on a convention instance name, we edit that name
         if "Name" in self._grid.Datasource.ColHeaders:
             col=self._grid.Datasource.ColHeaders.index("Name")
@@ -419,30 +417,19 @@ class ConSeriesFrame(GenConSeriesFrame):
 
     #------------------
     def OnPopupAllowEditCell(self, event):
-        irow=self.rightClickedRow
-        icol=self.rightClickedColumn
-        self._grid.AllowCellEdit(irow, icol)   # Append a (row, col) tuple. This only lives for the life of this instance.
+        # Append a (row, col) tuple. This only lives for the life of this instance.
+        self._grid.AllowCellEdit(self._grid.clickedRow, self._grid.clickedColumn)
         self.RefreshWindow()
 
     # ------------------
     def OnPopupUnlink(self, event):
-        self._grid.Datasource.Rows[self._grid.rightClickedRow].URL=""
+        self._grid.Datasource.Rows[self._grid.clickedRow].URL=""
         self.RefreshWindow()
 
 
     # ------------------
     def OnGridEditorShown(self, event):
-        irow=event.GetRow()
-        icol=event.GetCol()
-        if self._grid.Datasource.ColEditable[icol] == "no":
-            event.Veto()
-            return
-        if self._grid.Datasource.ColEditable[icol] == "maybe":
-            for it in self._grid.Datasource.AllowCellEdits:
-                if (irow, icol) == it:
-                    return
-            event.Veto()
-        return
+        self._grid.OnGridEditorShown(event)
 
 
     #------------------
@@ -500,15 +487,13 @@ class ConSeriesFrame(GenConSeriesFrame):
 
     #------------------
     def OnPopupDeleteConPage(self, event):                    # MainConSeriesFrame
-        irow=self.rightClickedRow
+        irow=self._grid.clickedRow
         if irow >= 0 and irow < self._grid.Datasource.NumRows:
-            row=self._grid.Datasource.Rows[irow]
             ret=wx.MessageBox("This will delete "+self._grid.Datasource.Rows[irow].Name+" from the list of conventions on this page, but will not delete "+
                               "its directory or files from fanac.org. You must use FTP to do that.", 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
             if ret == wx.OK:
-                del self._grid.Datasource.Rows[irow]
-                self._grid.Datasource.AllowCellEdits=[x for x in self._grid.Datasource.AllowCellEdits if x[0] != irow]
-            self.RefreshWindow()
+                self._grid.DeleteRows(irow, 1)
+                self.RefreshWindow()
 
     #------------------
     def OnTextFancyURL(self, event):                    # MainConSeriesFrame
@@ -529,34 +514,31 @@ class ConSeriesFrame(GenConSeriesFrame):
 
     #------------------
     def OnGridCellRightClick(self, event):                    # MainConSeriesFrame
-        irow=event.GetRow()
-        icol=event.GetCol()
-        self.rightClickedColumn=icol
-        self.rightClickedRow=irow
 
         self._grid.OnGridCellRightClick(event, self.m_menuPopup)  # Set enabled state of default items; set all others to False
+        icol=self._grid.clickedColumn
+        irow=self._grid.clickedRow
 
         if icol == 0:      # All of the popup options work on the 1st column only
             self.m_popupCreateNewConPage.Enabled=True
             if irow < self._grid.Datasource.NumRows:
                 self.m_popupDeleteConPage.Enabled=True
                 self.m_popupEditConPage.Enabled=True
+                if len(self._grid.Datasource.Rows[irow].URL) > 0:   # Only if there's a link in the cell
+                    self.m_popupUnlink.Enabled=True
 
-        if self._grid.Datasource.ColEditable[icol] == "maybe":
+        if icol < len(self._grid.Datasource.ColEditable) and self._grid.Datasource.ColEditable[icol] == "maybe":
             self.m_popupAllowEditCell.Enabled=True
-
-        if len(self._grid.Datasource.Rows[irow].URL) > 0 and icol == 0:
-            self.m_popupUnlink.Enabled=True
 
         self.PopupMenu(self.m_menuPopup)
 
     # ------------------
     def OnGridCellDoubleClick(self, event):                    # MainConSeriesFrame
-        self.rightClickedColumn=event.GetCol()
-        self.rightClickedRow=event.GetRow()
-        if self.rightClickedColumn == 0:
-            name=self._grid.Get(self.rightClickedRow, 0)
-            self.EditConInstancePage(name, self.rightClickedRow)
+        self._grid.clickedColumn=event.GetCol()
+        self._grid.clickedRow=event.GetRow()
+        if self._grid.clickedColumn == 0:
+            name=self._grid.Get(self._grid.clickedRow, 0)
+            self.EditConInstancePage(name, self._grid.clickedRow)
             self.RefreshWindow()
 
     #-------------------

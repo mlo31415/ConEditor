@@ -167,9 +167,6 @@ class ConEditorFrame(GenConEditorFrame):
 
         # Class instance variables associated with RMB actions, etc.
         self.userSelection=None
-        self.cntlDown: bool=False
-        self.clickedColumn: Optional[int]=None
-        self.clickedRow: Optional[int]=None
 
         self._baseDirFTP: str=""
 
@@ -323,56 +320,41 @@ class ConEditorFrame(GenConEditorFrame):
 
     #------------------
     def OnGridCellRightClick(self, event):            # ConEditorFrame
-        irow=event.GetRow()
-        icol=event.GetCol()
-        self.clickedColumn=icol
-        self.clickedRow=irow
         self._grid.OnGridCellRightClick(event, self.m_menuPopupConEditor)  # Set enabled state of default items; set all others to False
 
         self.m_popupItemInsert.Enabled=True
-        if self._grid.Datasource.NumRows > irow:
+        if self._grid.clickedRow < self._grid.Datasource.NumRows:
             self.m_popupItemDelete.Enabled=True
-        if irow < self._grid.Datasource.NumRows:
             self.m_popupItemEdit.Enabled=True
         self.m_popupItemInsert.Enabled=True
         self.PopupMenu(self.m_menuPopupConEditor, pos=self.gRowGrid.Position+event.Position)
 
     # ------------------
     def OnGridEditorShown(self, event):
-        irow=event.GetRow()
-        icol=event.GetCol()
-        if self._grid.Datasource.ColEditable[icol] == "no":
-            event.Veto()
-            return
-        if self._grid.Datasource.ColEditable[icol] == "maybe":
-            for it in self._grid.Datasource.AllowCellEdits:
-                if (irow, icol) == it:
-                    return
-        event.Veto()    # Prohibit editing this cell
-        return
+        self._grid.OnGridEditorShown(event)
 
     # ------------------
     def OnGridCellDoubleClick(self, event):            # ConEditorFrame
         if event.GetRow() > self._grid.Datasource.NumRows:
             return      # For now, we do nothing when you double-click in an empty cell
-        self.clickedColumn=event.GetCol()
-        self.clickedRow=event.GetRow()
+        self._grid.clickedColumn=event.GetCol()
+        self._grid.clickedRow=event.GetRow()
         self.EditConSeries()
 
     # ------------------
     def EditConSeries(self):
-        if self.clickedRow >= self._grid.Datasource.NumRows:
-            self._grid.Datasource.Rows.insert(self.clickedRow, Convention())
+        if self._grid.clickedRow >= self._grid.Datasource.NumRows:
+            self._grid.Datasource.Rows.insert(self._grid.clickedRow, Convention())
             self.RefreshWindow()
-        conseriesname=self._grid.Datasource.GetData(self.clickedRow, 0)
+        conseriesname=self._grid.Datasource.GetData(self._grid.clickedRow, 0)
         with ModalDialogManager(ConSeriesFrame, self._baseDirFTP, conseriesname) as dlg:
             if len(dlg.Seriesname.strip()) == 0:  # If the user didn't supply a con series name, we exit and don't show the dialog
                 return
 
             if dlg.ShowModal() == wx.OK:
                 conseriesname=dlg.tConSeries.GetValue()
-                self._grid.Datasource.Rows[self.clickedRow].URL="./"+conseriesname+"/index.html"
-                self._grid.Datasource.Rows[self.clickedRow].Name=conseriesname
+                self._grid.Datasource.Rows[self._grid.clickedRow].URL="./"+conseriesname+"/index.html"
+                self._grid.Datasource.Rows[self._grid.clickedRow].Name=conseriesname
 
         self.RefreshWindow()
 
@@ -401,28 +383,19 @@ class ConEditorFrame(GenConEditorFrame):
         self._grid.OnGridCellChanged(event)
         self.RefreshWindow()
 
-
     #------------------
     def OnPopupInsertCon(self, event):            # ConEditorFrame
-        self._grid.Datasource.Rows.insert(self.clickedRow, Convention())
+        self._grid.Datasource.Rows.insert(self._grid.clickedRow, Convention())
         self.EditConSeries()    # clickedRow is set by the RMB clicked event that must have preceeded this.
-        name=self._grid.Datasource.Rows[self.clickedRow].Name
         self.RefreshWindow()
 
     # ------------------
     def OnPopupDeleteCon(self, event):            # ConEditorFrame
-        ret=wx.MessageBox("This will delete "+self._grid.Datasource.Rows[self.clickedRow].Name+" from the list of convention series, but will not delete "+
+        ret=wx.MessageBox("This will delete "+self._grid.Datasource.Rows[self._grid.clickedRow].Name+" from the list of convention series, but will not delete "+
                           "its directory or files from fanac.org. You must use FTP to do that.", 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
         if ret == wx.OK:
-            del self._grid.Datasource.Rows[self.clickedRow]
-            # We also need to drop entries in AllowCellEdits which refer to this row and adjust the indexes of ones referring to all later rows
-            for index, (irow, icol) in enumerate(self._grid.Datasource.AllowCellEdits):
-                if irow == self.clickedRow:
-                    self._grid.Datasource.AllowCellEdits[irow]=(-1, -1) # We tag them rather than deleting them so we don't mess up the enumerate loop
-                if irow > self.clickedRow:
-                    self._grid.Datasource.AllowCellEdits[irow]=(irow-1, icol)
-            self._grid.Datasource.AllowCellEdits=[x for x in self._grid.Datasource.AllowCellEdits if x[0] != -1]    # Get rid of the tagged entries
-        self.RefreshWindow()
+            self._grid.DeleteRows(self._grid.clickedRow, 1)
+            self.RefreshWindow()
         event.Skip()
 
     # ------------------

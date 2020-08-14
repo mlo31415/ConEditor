@@ -122,7 +122,9 @@ class DataGrid():
 
         self._datasource: GridDataSource=GridDataSource()
         self.clipboard=None         # The grid's clipboard
-        self.cntlDown=False         # There's no cntl-key currently down
+        self.cntlDown: bool=False         # There's no cntl-key currently down
+        self.clickedColumn: Optional[int]=None
+        self.clickedRow: Optional[int]=None
 
 
     def Signature(self) -> int:
@@ -228,6 +230,26 @@ class DataGrid():
         for i, (row, col) in enumerate(self._datasource.AllowCellEdits):
             if row >= irow:
                 self.Datasource.AllowCellEdits[i]=(row+nrows, col)
+
+    # --------------------------------------------------------
+    def DeleteRows(self, irow: int, numrows: int=1):        # Grid
+
+        if irow >= self.Datasource.NumRows:
+            return
+        numrows=min(numrows, self.Datasource.NumRows-irow)  # If the request goes beyond the end of the data, ignore the extras
+
+        del self.Datasource.Rows[irow:irow+numrows]
+
+        # We also need to drop entries in AllowCellEdits which refer to this row and adjust the indexes of ones referring to all later rows
+        for index, (i, j) in enumerate(self.Datasource.AllowCellEdits):
+            if i >= irow:
+                if i < irow+numrows:
+                    # Mark it for deletion
+                    self.Datasource.AllowCellEdits[index]=(-1, -1)  # We tag them rather than deleting them so we don't mess up the enumerate loop
+                else:
+                    # Update it to the new row indexing scheme
+                    self.Datasource.AllowCellEdits[index]=(i-numrows, j)
+        self.Datasource.AllowCellEdits=[x for x in self.Datasource.AllowCellEdits if x[0] != -1]  # Get rid of the tagged entries
 
 
     # --------------------------------------------------------
@@ -510,22 +532,36 @@ class DataGrid():
         self._datasource.SetDataVal(row, col, newVal)
         #Log("set datasource("+str(row)+", "+str(col)+")="+newVal)
         self.ColorCellByValue(row, col)
-        self.AutoSizeColumns()
         self.RefreshGridFromData()
+        self.AutoSizeColumns()
         self.EvtHandlerEnabled=True
+
+
+    # ------------------
+    def OnGridEditorShown(self, event):
+        irow=event.GetRow()
+        icol=event.GetCol()
+        if self.Datasource.ColEditable[icol] == "no":
+            event.Veto()
+            return
+        if self.Datasource.ColEditable[icol] == "maybe":
+            for it in self.Datasource.AllowCellEdits:
+                if (irow, icol) == it:
+                    return
+            event.Veto()
 
 
     #------------------
     def OnGridCellRightClick(self, event, m_menuPopup):        # Grid
-        self.rightClickedColumn=event.GetCol()
-        self.rightClickedRow=event.GetRow()
+        self.clickedColumn=event.GetCol()
+        self.clickedRow=event.GetRow()
 
         # Set everything to disabled.
         for mi in m_menuPopup.GetMenuItems():
             mi.Enable(False)
 
         # Everything remains disabled when we're outside the defined columns
-        if self.rightClickedColumn > len(self._datasource.ColHeaders)+1:
+        if self.clickedColumn > len(self._datasource.ColHeaders)+1:
             return
 
         # We enable the Copy item if have a selection
