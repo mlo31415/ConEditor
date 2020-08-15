@@ -477,7 +477,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.m_popupInsertText.Enabled=True
         self.m_popupInsertLink.Enabled=True
 
-        if self._grid.Datasource.NumRows > event.GetRow():
+        if event.GetRow() < self._grid.Datasource.NumRows:
             self.m_popupDeleteRow.Enabled=True
 
         if self._grid.Datasource.ColEditable[self._grid.clickedColumn] == "maybe":
