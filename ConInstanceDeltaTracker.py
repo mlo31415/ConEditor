@@ -34,6 +34,7 @@ class Delta:
 #       Rename an existing website file ("rename", con, oldname)
 #       Add a new file ("add", con, "")
 #       Replace an existing file ("replace", con, oldname)
+# When two deltas affect the same file, they are usually merged.  (E.g., Add followed by Delete cancels out; Add followed by Rename updates the Add with the new name.)
 class ConInstanceDeltaTracker:
     def __init__(self):
         self._deltas: List[Delta]=[]
@@ -51,7 +52,7 @@ class ConInstanceDeltaTracker:
         # OK, the item is not queued to be added so it must already be on the website: add a delete action to the deltas list
         self._deltas.append(Delta("delete", con, ""))
 
-    # Change the site's display name for a file
+    # Change the name of a file on the website site
     def Rename(self, con: ConFile, oldname: str) -> None:
         # First check to see if this is a rename of a rename.  If it is, merge them by updating the existing rename.
         for i, item in enumerate(self._deltas):
@@ -83,7 +84,7 @@ class ConInstanceDeltaTracker:
                     self._deltas[i].Con.SourcePathname=con.SourcePathname
                     return
 
-        # If it doesn't match anything in the delta list, then it must be a new local file to replace an old one in an extsting entry
+        # If it doesn't match anything in the delta list, then it must be a new local file to replace an old one in an existing entry
         # We need to delete the old file and then upload the new.
         self._deltas.append(Delta("replace", con, oldname))
 
