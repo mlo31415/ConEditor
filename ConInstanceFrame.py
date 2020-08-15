@@ -6,7 +6,6 @@ import os
 import sys
 import json
 from datetime import date
-import time
 from PyPDF4 import PdfFileReader
 
 from GenConInstanceFrame import GenConInstanceFrame
@@ -564,6 +563,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
 
     # ------------------
+    # The grid's contents have changed.  Update the Datasource and record a Delta if needed
     def OnGridCellChanged(self, event):
         row=event.GetRow()
         col=event.GetCol()
