@@ -35,6 +35,21 @@ class ConFile:
             s+="URL="+self.URL
         return s
 
+    # Make a deep copy of a ConFile
+    def Copy(self) -> ConFile:
+        cf=ConFile()
+        cf._displayTitle=self._displayTitle
+        cf._notes=self._notes
+        cf._localfilename=self._localfilename
+        cf._localpathname=self._localpathname
+        cf._sitefilename=self._sitefilename
+        cf._size=self._size
+        cf._isText=self._isTex
+        cf._isLink=self._isLink
+        cf._URL=self._URL
+        cf._pages=self._pages
+        return cf
+
     def Signature(self) -> int:
         tot=hash(self._displayTitle.strip()+self._notes.strip()+self._localfilename.strip()+self._localpathname.strip()+self._sitefilename.strip()+self._URL.strip())
         return tot+self._size+hash(self._isText)+(self._pages if self._pages is not None else 0)
