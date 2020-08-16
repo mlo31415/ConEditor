@@ -287,7 +287,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             if not retry:
                 dlg=wx.TextEntryDialog(None, "Load failed. Enter a different name and press OK to retry.", "Try a different name?", value=name)
                 if dlg.ShowModal() == wx.CANCEL or len(dlg.GetValue().strip()) == 0:
-                    return
+                    return False
                 response=dlg.GetValue()
                 return self.FetchConSeriesFromFancy(response)
             self._fancydownloadfailed=True
