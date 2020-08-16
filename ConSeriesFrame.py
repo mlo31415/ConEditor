@@ -273,7 +273,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
     #--------------------------------------------
     # Given the name of the ConSeries, go to fancy 3 and fetch the con series information and fill in a con seres from it.
-    def FetchConSeriesFromFancy(self, name) -> bool:                    # MainConSeriesFrame
+    def FetchConSeriesFromFancy(self, name, retry: bool=False) -> bool:                    # MainConSeriesFrame
         if name is None or name == "":
             return False
 
@@ -282,9 +282,15 @@ class ConSeriesFrame(GenConSeriesFrame):
         try:
             response=urlopen(pageurl)
         except:
-            Log("FetchConSeriesFromFancy: Got exception when trying to open "+pageurl)
-            self._fancydownloadfailed=True
             del wait  # End the wait cursor
+            Log("FetchConSeriesFromFancy: Got exception when trying to open "+pageurl)
+            if not retry:
+                dlg=wx.TextEntryDialog(None, "Load failed. Enter a different name and press OK to retry.", "Try a different name?", value=name)
+                if dlg.ShowModal() == wx.CANCEL or len(dlg.GetValue().strip()) == 0:
+                    return
+                response=dlg.GetValue()
+                return self.FetchConSeriesFromFancy(response)
+            self._fancydownloadfailed=True
             return False
 
         html=response.read()
