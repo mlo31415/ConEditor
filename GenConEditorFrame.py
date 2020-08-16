@@ -108,6 +108,9 @@ class GenConEditorFrame ( wx.Frame ):
 		self.m_popupItemEdit = wx.MenuItem( self.m_menuPopupConEditor, wx.ID_ANY, u"Edit Convention Series", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_menuPopupConEditor.Append( self.m_popupItemEdit )
 
+		self.m_popupRename = wx.MenuItem( self.m_menuPopupConEditor, wx.ID_ANY, u"Rename Convention Series", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_menuPopupConEditor.Append( self.m_popupRename )
+
 		self.Bind( wx.EVT_RIGHT_DOWN, self.GenConEditorFrameOnContextMenu )
 
 
@@ -131,6 +134,7 @@ class GenConEditorFrame ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.OnPopupInsertCon, id = self.m_popupItemInsert.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupDeleteCon, id = self.m_popupItemDelete.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupEditCon, id = self.m_popupItemEdit.GetId() )
+		self.Bind( wx.EVT_MENU, self.OnPopupRename, id = self.m_popupRename.GetId() )
 
 	def __del__( self ):
 		pass
@@ -186,6 +190,9 @@ class GenConEditorFrame ( wx.Frame ):
 		event.Skip()
 
 	def OnPopupEditCon( self, event ):
+		event.Skip()
+
+	def OnPopupRename( self, event ):
 		event.Skip()
 
 	def GenConEditorFrameOnContextMenu( self, event ):

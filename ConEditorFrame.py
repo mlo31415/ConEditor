@@ -247,7 +247,9 @@ class ConEditorFrame(GenConEditorFrame):
 
     #------------------
     def OnButtonUploadClick(self, event):            # ConEditorFrame
+        self.Upload()
 
+    def Upload(self):
         # First read in the template
         file=None
         try:
@@ -326,6 +328,7 @@ class ConEditorFrame(GenConEditorFrame):
         if self._grid.clickedRow < self._grid.Datasource.NumRows:
             self.m_popupItemDelete.Enabled=True
             self.m_popupItemEdit.Enabled=True
+            self.m_popupRename.Enabled=True
         self.m_popupItemInsert.Enabled=True
         self.PopupMenu(self.m_menuPopupConEditor, pos=self.gRowGrid.Position+event.Position)
 
@@ -398,6 +401,25 @@ class ConEditorFrame(GenConEditorFrame):
     def OnPopupEditCon(self, event):            # ConEditorFrame
         self.EditConSeries()    # clickedRow is set by the RMB clicked event that must have preceeded this.
         event.Skip()
+
+    # ------------------
+    def OnPopupRename(self, event):            # ConEditorFrame
+        oldname=self._grid.Datasource.GetData(self._grid.clickedRow, 0)
+        dlg=wx.TextEntryDialog(None, "Enter the new name of the Convention Series.", "Edit Convention Series name", value=oldname)
+        if dlg.ShowModal() == wx.CANCEL or len(dlg.GetValue().strip()) == 0:
+            return
+        newname=dlg.GetValue()
+        if newname != oldname:
+            # Make sure newname isn't already on the list
+            for row in self._grid.Datasource.Rows:
+                if newname == row.Name:
+                    wx.MessageBox("That is a duplicate convention name.", "Duplicate Con Name")
+                    return
+            self._grid.Datasource.SetDataVal(self._grid.clickedRow, 0, newname)
+            self.RefreshWindow()
+            FTP().SetDirectory("/")
+            FTP().Rename(oldname, newname)
+            self.Upload()
 
     # ------------------
     def OnTopTextUpdated(self, event):
