@@ -167,11 +167,12 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         # Do we have a last directory?
         dir=Settings().Get("Last FileDialog directory")
         if dir is not None:
-            if not os.path.exists(dir) or not os.path.isdir(dir):
-                Log("AddFiles: SetDirectory("+dir+") failed because the directory does not exist")
-                dlg.Destroy()
-                return  False
-            dlg.SetDirectory(dir)
+            dir=os.path.normpath(dir)
+            while len(dir) > 0:
+                if os.path.exists(dir) and os.path.isdir(dir):
+                    dlg.SetDirectory(dir)
+                    break
+                dir, _=os.path.split(dir)
 
         if dlg.ShowModal() == wx.ID_CANCEL:
             Settings().Put("Last FileDialog directory", dlg.GetDirectory())
