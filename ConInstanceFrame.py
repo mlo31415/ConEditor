@@ -156,7 +156,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.AddFiles(replacerow=self._grid.clickedRow)
 
     # ------------------
-    def AddFiles(self, replacerow: Optional[int]=None) -> bool:
+    def AddFiles(self, replacerow: Optional[int]=None) -> None:
 
         # Call the File Open dialog to get an con series HTML file
         if replacerow is None:
@@ -177,7 +177,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         if dlg.ShowModal() == wx.ID_CANCEL:
             Settings().Put("Last FileDialog directory", dlg.GetDirectory())
             dlg.Destroy()
-            return True #TODO: Is this the correct return?
+            return
 
         Settings().Put("Last FileDialog directory", dlg.GetDirectory())
 
@@ -202,7 +202,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         dlg.Destroy()
         self.RefreshWindow()
-        return True
+        return
 
 
     # ----------------------------------------------
