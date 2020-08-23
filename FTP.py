@@ -4,6 +4,7 @@ from typing import Optional, Dict
 import ftplib
 import json
 import os
+import tempfile
 
 from Log import Log, LogFlush
 
@@ -145,12 +146,13 @@ class FTP:
         return msg.startswith("250 ")
 
     # ---------------------------------------------
+    # Note that this does not delete recursively.
     def DeleteDir(self, dirname: str) -> bool:
         Log("**delete directory: '"+dirname+"'")
         if len(dirname.strip()) == 0:
             Log("FTP.DeleteDir: dirname not supplied.")
             LogFlush()
-            assert False
+            assert False        # This should never happen.
         if dirname == "/":
             Log("FTP.DeleteDir: Attempt to delete root -- forbidden")
             assert False
@@ -159,7 +161,6 @@ class FTP:
             Log("FTP.DeleteDir: '"+dirname+"' does not exist.")
             return True
 
-#TODO: Do not recursively delete, but do note to user when subdirectories exists
         try:
             msg=self.g_ftp.rmd(dirname)
         except Exception as e:
@@ -250,16 +251,13 @@ class FTP:
             Log("FTP not initialized")
             return False
 
-        if not os.path.exists("temp") or not os.path.isdir("temp"):     # If necessary, create the temp directory
-            os.mkdir("temp")
-        localfname="temp/"+fname
+        with tempfile.TemporaryFile() as f:
 
-        # Save the string as a local file
-        with open(localfname, "w+") as f:
-            f.write(s)
+            # Save the string as a local temporary file, then rewind so it can be read
+            f.write(bytes(s, 'utf-8'))
+            f.seek(0)
 
-        Log("STOR "+fname+"  from "+localfname)
-        with open(localfname, "rb") as f:
+            Log("STOR "+fname+"  from "+f.name)
             try:
                 Log(self.g_ftp.storbinary("STOR "+fname, f))
             except Exception as e:
@@ -267,8 +265,7 @@ class FTP:
                 if not self.Reconnect():
                     return False
                 Log(self.g_ftp.storbinary("STOR "+fname, f))
-        return True
-
+            return True
 
     #-------------------------------
     def PutFileAsString(self, directory: str, fname: str, s: str, create: bool=False) -> bool:
