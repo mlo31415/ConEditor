@@ -305,30 +305,33 @@ class FTP:
             Log("FTP not initialized")
             return None
 
-        if not os.path.exists("temp") or not os.path.isdir("temp"):
-            os.mkdir("temp")
-
-        localfname="temp/"+fname
-        Log("RETR "+fname+"  to "+localfname)
+        fd=tempfile.TemporaryDirectory()
+        Log("RETR "+fname+"  to "+fd.name)
         if not self.Exists(fname):
             Log(fname+" does not exist.")
+            fd.cleanup()
             return None
-        with open(localfname, "wb+") as f:
-            try:
-                msg=self.g_ftp.retrbinary("RETR "+fname, f.write)
-            except Exception as e:
-                Log("FTP connection failure. Exception="+str(e))
-                if not self.Reconnect():
-                    return None
-                msg=self.g_ftp.retrbinary("RETR "+fname, f.write)
-            Log(msg)
-            if not msg.startswith("226-File successfully transferred"):
-                Log("GetAsString failed")
+        # Download the file into the temporary file
+        tempfname=os.path.join(fd.name, "tempfile")
+        f=open(tempfname, "wb+")
+        try:
+            msg=self.g_ftp.retrbinary("RETR "+fname, f.write)
+        except Exception as e:
+            Log("FTP connection failure. Exception="+str(e))
+            if not self.Reconnect():
+                fd.cleanup()
                 return None
+            msg=self.g_ftp.retrbinary("RETR "+fname, f.write)
+        Log(msg)
+        if not msg.startswith("226-File successfully transferred"):
+            Log("GetAsString failed")
+            fd.cleanup()
+            return None
 
-        with open(localfname, "r") as f:
+        with open(tempfname, "r") as f:
             out=f.readlines()
         out="/n".join(out)
+        fd.cleanup()
         return out
 
 
