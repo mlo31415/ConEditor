@@ -59,8 +59,8 @@ class GenConInstanceFrame ( wx.Dialog ):
 
 		fgSizer4.Add( self.m_staticText1, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT, 5 )
 
-		self.tConInstanceName = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 200,-1 ), 0 )
-		fgSizer4.Add( self.tConInstanceName, 0, wx.ALL|wx.EXPAND, 5 )
+		self.tConInstanceName = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 300,-1 ), 0 )
+		fgSizer4.Add( self.tConInstanceName, 0, wx.ALL, 5 )
 
 		self.m_staticText11 = wx.StaticText( self, wx.ID_ANY, u"Fancy URL:", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText11.Wrap( -1 )
@@ -79,6 +79,14 @@ class GenConInstanceFrame ( wx.Dialog ):
 		self.topText.SetMinSize( wx.Size( -1,80 ) )
 
 		fgSizer4.Add( self.topText, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.EXPAND, 5 )
+
+		self.m_staticText21 = wx.StaticText( self, wx.ID_ANY, u"Credits:", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText21.Wrap( -1 )
+
+		fgSizer4.Add( self.m_staticText21, 0, wx.ALL, 5 )
+
+		self.tCredits = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 600,-1 ), 0 )
+		fgSizer4.Add( self.tCredits, 0, wx.ALL, 5 )
 
 
 		bSizerMainBox.Add( fgSizer4, 0, wx.EXPAND, 5 )
@@ -179,6 +187,7 @@ class GenConInstanceFrame ( wx.Dialog ):
 		self.tConInstanceName.Bind( wx.EVT_TEXT, self.OnTextConInstanceName )
 		self.tConInstanceFancyURL.Bind( wx.EVT_TEXT, self.OnTextConInstanceFancyURL )
 		self.topText.Bind( wx.EVT_TEXT, self.OnTopTextComments )
+		self.tCredits.Bind( wx.EVT_TEXT, self.OnTextConInstanceCredits )
 		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_CHANGED, self.OnGridCellChanged )
 		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_LEFT_DCLICK, self.OnGridCellDoubleClick )
 		self.gRowGrid.Bind( wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnGridCellRightClick )
@@ -225,6 +234,9 @@ class GenConInstanceFrame ( wx.Dialog ):
 		event.Skip()
 
 	def OnTopTextComments( self, event ):
+		event.Skip()
+
+	def OnTextConInstanceCredits( self, event ):
 		event.Skip()
 
 	def OnGridCellChanged( self, event ):
@@ -274,5 +286,3 @@ class GenConInstanceFrame ( wx.Dialog ):
 
 	def GenConInstanceFrameOnContextMenu( self, event ):
 		self.PopupMenu( self.m_menuPopup, event.GetPosition() )
-
-

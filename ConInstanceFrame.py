@@ -46,6 +46,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self._FTPbasedir=basedirFTP
         self._seriesname=seriesname
         self._coninstancename=coninstancename
+        self._credits=""
 
         self._signature=0
 
@@ -75,7 +76,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     # ----------------------------------------------
     # Used to determine if anything has been updated
     def Signature(self) -> int:
-        stuff=self.ConInstanceName.strip()+self.ConInstanceTopText.strip()+self.ConInstanceFancyURL.strip()
+        stuff=self.ConInstanceName.strip()+self.ConInstanceTopText.strip()+self.ConInstanceFancyURL.strip()+self.Credits.strip()
         return hash(stuff)+self._grid.Signature()
 
     def MarkAsSaved(self):
@@ -91,10 +92,11 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     # ----------------------------------------------
     # Serialize and deserialize
     def ToJson(self) -> str:
-        d={"ver": 3,
+        d={"ver": 4,
            "ConInstanceName": self.ConInstanceName,
            "ConInstanceStuff": self.ConInstanceTopText,
            "ConInstanceFancyURL": self.ConInstanceFancyURL,
+           "Credits": self.Credits,
            "_datasource": self._grid.Datasource.ToJson()}
         return json.dumps(d)
 
@@ -103,6 +105,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.ConInstanceName=d["ConInstanceName"]
         self.ConInstanceTopText=d["ConInstanceStuff"]
         self.ConInstanceFancyURL=d["ConInstanceFancyURL"]
+        if d["ver"] > 3:
+            self.Credits=d["Credits"]
         self.ConInstanceFancyURL=RemoveHTTP(self.ConInstanceFancyURL)
         self._grid.Datasource=ConInstancePage().FromJson(d["_datasource"])
         return self
@@ -134,6 +138,16 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     def ConInstanceName(self, val: str) -> None:
         if val != self.tConInstanceName.GetValue():
             self.tConInstanceName.SetValue(val)
+
+    # ----------------------------------------------
+    @property
+    def Credits(self) -> str:
+        return self.tCredits.GetValue()
+
+    @Credits.setter
+    def Credits(self, val: str) -> None:
+        if val != self.tCredits.GetValue():
+            self.tCredits.SetValue(val)
 
     # ----------------------------------------------
     @property
@@ -314,6 +328,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         file=SubstituteHTML(file, "fanac-json", self.ToJson())
         file=SubstituteHTML(file, "fanac-date", date.today().strftime("%A %B %d, %Y")+" EST")
+        file=SubstituteHTML(file, "fanac-credits", 'Credits: '+self.Credits+"<br>")    #<p id="randomtext"><small>   +'</small></p>'
 
         def FormatSizes(row) -> str:
             info=""
