@@ -6,7 +6,7 @@ import sys
 import wx
 import wx.grid
 import json
-from datetime import date
+from datetime import datetime
 
 from GenConEditorFrame import GenConEditorFrame
 from DataGrid import DataGrid, GridDataSource
@@ -280,7 +280,7 @@ class ConEditorFrame(GenConEditorFrame):
         # Store the json for the page into the template
         file=SubstituteHTML(file, "fanac-json", self.ToJson())
 
-        file=SubstituteHTML(file, "fanac-date", date.today().strftime("%A %B %d, %Y")+" EST")
+        file=SubstituteHTML(file, "fanac-date", datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST")
 
         Log("Uploading /index.html")
         if not FTP().PutFileAsString("/", "index.html", file):

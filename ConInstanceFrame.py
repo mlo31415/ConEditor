@@ -5,7 +5,7 @@ import wx
 import os
 import sys
 import json
-from datetime import date
+from datetime import datetime
 from PyPDF4 import PdfFileReader
 
 from GenConInstanceFrame import GenConInstanceFrame
@@ -327,7 +327,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.FillInMissingPDFPageCounts()
 
         file=SubstituteHTML(file, "fanac-json", self.ToJson())
-        file=SubstituteHTML(file, "fanac-date", date.today().strftime("%A %B %d, %Y")+" EST")
+        file=SubstituteHTML(file, "fanac-date", datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST")
         file=SubstituteHTML(file, "fanac-credits", 'Credits: '+self.Credits+"<br>")    #<p id="randomtext"><small>   +'</small></p>'
 
         def FormatSizes(row) -> str:

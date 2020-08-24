@@ -8,7 +8,7 @@ import sys
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
 import json
-from datetime import date
+from datetime import datetime
 
 from GenConSeriesFrame import GenConSeriesFrame
 from FTP import FTP
@@ -247,7 +247,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         file=SubstituteHTML(file, "fanac-table", newtable)
         file=SubstituteHTML(file, "fanac-json", self.ToJson())
 
-        file=SubstituteHTML(file, "fanac-date", date.today().strftime("%A %B %d, %Y")+" EST")
+        file=SubstituteHTML(file, "fanac-date", datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST")
 
         # Now try to FTP the data up to fanac.org
         if self.Seriesname is None or len(self.Seriesname) == 0:
