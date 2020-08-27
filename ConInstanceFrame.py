@@ -328,7 +328,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         file=SubstituteHTML(file, "fanac-json", self.ToJson())
         file=SubstituteHTML(file, "fanac-date", datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST")
-        file=SubstituteHTML(file, "fanac-credits", 'Credits: '+self.Credits+"<br>")    #<p id="randomtext"><small>   +'</small></p>'
+        if len(self.Credits.strip()) > 0:
+            file=SubstituteHTML(file, "fanac-credits", 'Credits: '+self.Credits.strip()+"<br>")    #<p id="randomtext"><small>   +'</small></p>'
 
         def FormatSizes(row) -> str:
             info=""
