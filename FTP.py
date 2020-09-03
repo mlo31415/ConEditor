@@ -49,7 +49,7 @@ class FTP:
     # If the input is an absolute path, just use if (removing any trailing filename)
     # If it's a relative move, compute the new wd path
     def UpdateCurpath(self, newdir: str) -> None:
-        Log("UpdateCurpath from "+FTP.g_curdirpath+"  with cwd("+newdir+")")
+        Log("UpdateCurpath from "+FTP.g_curdirpath+"  with cwd('"+newdir+"')")
         if newdir[0] == "/":    # Absolute directory move
             FTP.g_curdirpath=newdir
         elif newdir == "..":    # Relative move up one directory
@@ -192,16 +192,18 @@ class FTP:
 
     # ---------------------------------------------
     def Exists(self, filedir: str) -> bool:
-        Log("Does '"+filedir+"' exist?")
+        Log("Does '"+filedir+"' exist?", noNewLine=True)
         if filedir == "/":
+            Log("  --> Yes, it always exists")
             return True     # "/" always exists
         try:
             if filedir in self.g_ftp.nlst():
-                Log("'"+filedir+"' exists")
+                Log("  --> yes")
                 return True
-            Log("'"+filedir+"' does not exist")
+            Log("'  --> no, it does not exist")
             return False
         except:
+            Log("'  --> FTP failure: retrying")
             if not self.Reconnect():
                 return False
             return self.Exists(str)
