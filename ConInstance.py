@@ -33,6 +33,15 @@ class ConFile:
             s+="Notes="+self.Notes+"; "
         if len(self.URL) > 0:
             s+="URL="+self.URL+"; "
+        if self.Size > 0:
+            s+="Size="+str(self.Size)+"; "
+        if self.Pages is not None and self.Pages > 0:
+            s+="Pages="+str(self.Pages)+"; "
+        if self.IsText:
+            s+="IsText; "
+        if self.IsLink:
+            s+="IsLink; "
+
         return s
 
     # Make a deep copy of a ConFile
