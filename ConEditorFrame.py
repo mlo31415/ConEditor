@@ -451,6 +451,7 @@ LogOpen("Log -- ConEditor.txt", "Log (Errors) -- ConEditor.txt")
 f=FTP()
 if not f.OpenConnection("FTP Credentials.json"):
     Log("Main: OpenConnection('FTP Credentials.json' failed")
+    wx.MessageBox("Can't Connect to FTP Server", "Unable to open connection to FTP server fanac.org")
     exit(0)
 
 # Load the global settings dictionary
