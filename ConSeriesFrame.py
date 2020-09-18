@@ -11,7 +11,7 @@ import json
 from datetime import datetime
 
 from GenConSeriesFrame import GenConSeriesFrame
-from FTP import FTP
+from FTP import FTP, UpdateLog
 from ConSeries import ConSeries, Con
 from DataGrid import DataGrid
 from ConInstanceFrame import ConInstanceDialogClass
@@ -255,6 +255,8 @@ class ConSeriesFrame(GenConSeriesFrame):
             return
         if not FTP().PutFileAsString("/"+self.Seriesname, "index.html", file, create=True):
             wx.MessageBox("Upload failed")
+
+        UpdateLog().LogText("Uploaded ConSeries: "+self.Seriesname)
 
         ProgressMessage(self).Show("Upload succeeded: /"+self.Seriesname+"/index.html", close=True, delay=0.5)
         self.MarkAsSaved()      # It was just saved, so unless it's updated again, the dialog can exit without uploading

@@ -383,7 +383,7 @@ class UpdateLog():
         pass
 
     def Log(self, series: str, con: str = "", deltas: List[Delta] = None):
-        lines=UpdateLog.g_ID+" => "+series+":"+con+" at "+datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST\n"
+        lines="Uploaded ConInstance: "+series+":"+con+"   "+"["+UpdateLog.g_ID+"  "+datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST]\n"
         if deltas is not None and len(deltas) > 0:
             for delta in deltas:
                 lines+=str(delta)+"\n"
@@ -391,4 +391,4 @@ class UpdateLog():
         pass
 
     def LogText(self, txt: str):
-        FTP().AppendString("/updatelog.txt", txt+"  "+UpdateLog.g_ID+"  "+datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST\n")
+        FTP().AppendString("/updatelog.txt", txt+"   ["+UpdateLog.g_ID+"  "+datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST]\n")

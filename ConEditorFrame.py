@@ -287,6 +287,9 @@ class ConEditorFrame(GenConEditorFrame):
             Log("Upload of /index.html failed")
             wx.MessageBox("Upload of /index.html failed")
 
+
+        UpdateLog().LogText("Uploaded Main convention list")
+
         self.MarkAsSaved()
         self.RefreshWindow()
 
