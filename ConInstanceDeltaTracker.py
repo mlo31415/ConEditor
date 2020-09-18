@@ -13,6 +13,7 @@ class Delta:
         self._verb: str=verb
         self._con: ConFile=confile
         self._oldname: str=oldname
+
     def __str__(self) -> str:
         return ">"+self._verb+": "+str(self._con)+" oldname="+self._oldname
 
