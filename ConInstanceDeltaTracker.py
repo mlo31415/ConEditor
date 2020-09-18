@@ -15,7 +15,10 @@ class Delta:
         self._oldname: str=oldname
 
     def __str__(self) -> str:
-        return ">"+self._verb+": "+str(self._con)+" oldname="+self._oldname
+        s=self.Verb+": "+str(self.Con)
+        if self.Oldname is not None and len(self.Oldname) > 0:
+            s+=" oldname="+self.Oldname
+        return s
 
     
     @property
@@ -43,12 +46,12 @@ class ConInstanceDeltaTracker:
     def __init__(self):
         self._deltas: List[Delta]=[]
 
-    def __str__(self) -> List[str]:
+    def __str__(self) -> str:
         if self._deltas is None or len(self._deltas) == 0:
             return []
-        s: List[str]=[]
+        s=""
         for d in self._deltas:
-            s.append(str(d))
+            s+=">>"+str(d)+"\n"
         return s
 
     def Add(self, con: ConFile) -> None:

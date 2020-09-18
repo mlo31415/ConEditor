@@ -8,7 +8,7 @@ import tempfile
 from datetime import datetime
 
 from Log import Log, LogFlush
-from ConInstanceDeltaTracker import Delta
+from ConInstanceDeltaTracker import ConInstanceDeltaTracker
 
 
 class FTP:
@@ -382,11 +382,10 @@ class UpdateLog():
         UpdateLog.g_ID=id
         pass
 
-    def Log(self, series: str, con: str = "", deltas: List[Delta] = None):
+    def Log(self, series: str, con: str = "", deltas: Optional[ConInstanceDeltaTracker] = None):
         lines="Uploaded ConInstance: "+series+":"+con+"   "+"["+UpdateLog.g_ID+"  "+datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST]\n"
-        if deltas is not None and len(deltas) > 0:
-            for delta in deltas:
-                lines+=str(delta)+"\n"
+        if deltas is not None and deltas.Num > 0:
+            lines+=str(deltas)+"\n"
         FTP().AppendString("/updatelog.txt", lines)
         pass
 
