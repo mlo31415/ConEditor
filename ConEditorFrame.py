@@ -15,7 +15,7 @@ from FTP import FTP, UpdateLog
 from Settings import Settings
 
 
-from HelpersPackage import SubstituteHTML, FindBracketedText, FormatLink
+from HelpersPackage import SubstituteHTML, FindBracketedText, FormatLink, Int, MessageBox
 from WxHelpers import ModalDialogManager
 from Log import LogOpen, Log
 
@@ -449,10 +449,31 @@ class ConEditorFrame(GenConEditorFrame):
 LogOpen("Log -- ConEditor.txt", "Log (Errors) -- ConEditor.txt")
 
 f=FTP()
+
 if not f.OpenConnection("FTP Credentials.json"):
     Log("Main: OpenConnection('FTP Credentials.json' failed")
-    wx.MessageBox("Can't Connect to FTP Server", "Unable to open connection to FTP server fanac.org")
+    MessageBox("Unable to open connection to FTP server fanac.org", ignoredebugger=True)
     exit(0)
+
+# Attempt to download the version from the website and confirm that this executable is capable
+# if not FTP().Reconnect():  # Not exactly a reconnect, but close enough...
+#     Log("Main: OpenConnection('version') failed")
+#     MessageBox("Unable to open connection to FTP server fanac.org")
+#     exit(0)
+
+v=FTP().GetAsString("version")
+if v is None or len(v) == 0:
+    Log("Main: GetAsString('version' failed")
+    MessageBox("Unable to get version from FTP server fanac.org", ignoredebugger=True)
+    exit(0)
+
+vi=Int(v)
+if vi > 1:
+    Log("Main: Obsolete ConEditor version!  fanac.org/conpubs is version "+str(vi)+" while this app is version 1")
+    MessageBox("Obsolete ConEditor version!  fanac.org/conpubs is version "+str(vi)+" while this app is version 1", ignoredebugger=True)
+    exit(0)
+Log("Website version="+str(vi))
+
 
 # Load the global settings dictionary
 Settings().Load("ConEditor settings.json")
