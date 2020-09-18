@@ -456,7 +456,8 @@ Settings().Load("ConEditor settings.json")
 with open("FTP Credentials.json") as f:
     UpdateLog().Init(json.loads(f.read())["ID"])
 
-UpdateLog().LogText("ConEditor starting.")
+UpdateLog().LogText("-----------------------------------------------------------------------\nConEditor starting.")
+
 
 app=wx.App(False)
 frame=ConEditorFrame(None)

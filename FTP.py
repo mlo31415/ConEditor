@@ -391,4 +391,4 @@ class UpdateLog():
         pass
 
     def LogText(self, txt: str):
-        FTP().AppendString("/updatelog.txt", txt+"\n")
+        FTP().AppendString("/updatelog.txt", txt+"  "+UpdateLog.g_ID+"  "+datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST\n")
