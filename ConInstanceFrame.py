@@ -12,7 +12,7 @@ from GenConInstanceFrame import GenConInstanceFrame
 from DataGrid import DataGrid, Color
 from ConInstance import ConInstancePage, ConFile
 from ConInstanceDeltaTracker import ConInstanceDeltaTracker
-from FTP import FTP
+from FTP import FTP, UpdateLog
 from Settings import Settings
 from Log import Log
 
@@ -448,6 +448,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 FTP().PutFile(delta.Con.SourcePathname, delta.Con.SiteFilename)
             else:
                 Log("delta-UNRECOGNIZED: "+str(delta))
+
+        UpdateLog().Log(self._seriesname, self._coninstancename, self.conInstanceDeltaTracker.Deltas)
 
         self.conInstanceDeltaTracker=ConInstanceDeltaTracker()  # The upload is complete. Start tracking changes afresh
 

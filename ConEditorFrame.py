@@ -11,7 +11,7 @@ from datetime import datetime
 from GenConEditorFrame import GenConEditorFrame
 from DataGrid import DataGrid, GridDataSource
 from ConSeriesFrame import ConSeriesFrame
-from FTP import FTP
+from FTP import FTP, UpdateLog
 from Settings import Settings
 
 
@@ -452,6 +452,11 @@ if not f.OpenConnection("FTP Credentials.json"):
 
 # Load the global settings dictionary
 Settings().Load("ConEditor settings.json")
+
+with open("FTP Credentials.json") as f:
+    UpdateLog().Init(json.loads(f.read())["ID"])
+
+UpdateLog().LogText("ConEditor starting.")
 
 app=wx.App(False)
 frame=ConEditorFrame(None)

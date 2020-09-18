@@ -24,15 +24,15 @@ class ConFile:
     def __str__(self):
         s=""
         if len(self.SourceFilename) > 0:
-            s+="Source="+self.SourceFilename
+            s+="Source="+self.SourceFilename+"; "
         if len(self.SiteFilename) > 0:
-            s+="Sitename="+self.SiteFilename
+            s+="Sitename="+self.SiteFilename+"; "
         if len(self.DisplayTitle) > 0:
-            s+="Display="+self.DisplayTitle
+            s+="Display="+self.DisplayTitle+"; "
         if len(self.DisplayTitle) > 0:
-            s+="Notes="+self.Notes
+            s+="Notes="+self.Notes+"; "
         if len(self.URL) > 0:
-            s+="URL="+self.URL
+            s+="URL="+self.URL+"; "
         return s
 
     # Make a deep copy of a ConFile

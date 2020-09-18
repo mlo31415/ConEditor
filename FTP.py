@@ -1,16 +1,18 @@
 from __future__ import annotations
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 
 import ftplib
 import json
 import os
 import tempfile
+from datetime import datetime
 
 from Log import Log, LogFlush
+from ConInstanceDeltaTracker import Delta
 
 
 class FTP:
-    g_ftp: FTP=None      # A single FTP link for all instances of the class
+    g_ftp: ftplib.FTP=None      # A single FTP link for all instances of the class
     g_curdirpath: str="/"
     g_credentials: Dict={}      # Saves the credentials for reconnection if the server times out
 
@@ -247,7 +249,7 @@ class FTP:
 
 
     #-------------------------------
-    # Copy the local file fname to fanac.org in the current directory and with the same name
+    # Copy the string to fanac.org in the current directory as fname
     def PutString(self, fname: str, s: str) -> bool:
         if self.g_ftp is None:
             Log("FTP not initialized")
@@ -268,6 +270,31 @@ class FTP:
                     return False
                 Log(self.g_ftp.storbinary("STOR "+fname, f))
             return True
+
+
+    #-------------------------------
+    # Append the string to file fname on fanac.org in the current directory
+    def AppendString(self, fname: str, s: str) -> bool:
+        if self.g_ftp is None:
+            Log("FTP not initialized")
+            return False
+
+        with tempfile.TemporaryFile() as f:
+
+            # Save the string as a local temporary file, then rewind so it can be read
+            f.write(bytes(s, 'utf-8'))
+            f.seek(0)
+
+            Log("STOR "+fname+"  from "+f.name)
+            try:
+                Log(self.g_ftp.storbinary("APPE "+fname, f))
+            except Exception as e:
+                Log("FTP connection failure. Exception="+str(e))
+                if not self.Reconnect():
+                    return False
+                Log(self.g_ftp.storbinary("APPE "+fname, f))
+            return True
+
 
     #-------------------------------
     def PutFileAsString(self, directory: str, fname: str, s: str, create: bool=False) -> bool:
@@ -346,3 +373,22 @@ class FTP:
         if s is None:
             Log("Could not load "+directory+"/"+fname)
         return s
+
+
+class UpdateLog():
+    g_ID: Optional[str]=None
+
+    def Init(self, id: str):
+        UpdateLog.g_ID=id
+        pass
+
+    def Log(self, series: str, con: str = "", deltas: List[Delta] = None):
+        lines=UpdateLog.g_ID+" => "+series+":"+con+" at "+datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST\n"
+        if deltas is not None and len(deltas) > 0:
+            for delta in deltas:
+                lines+=str(delta)+"\n"
+        FTP().AppendString("/updatelog.txt", lines)
+        pass
+
+    def LogText(self, txt: str):
+        FTP().AppendString("/updatelog.txt", txt+"\n")
