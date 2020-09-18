@@ -461,10 +461,7 @@ UpdateLog().LogText("-----------------------------------------------------------
 
 app=wx.App(False)
 frame=ConEditorFrame(None)
-# frame.ShowModal()
-# frame.SetFocus()
-# frame.Raise()
-#
+
 app.MainLoop()
 pass
 
