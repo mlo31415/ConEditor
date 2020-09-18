@@ -29,7 +29,7 @@ class ConFile:
             s+="Sitename="+self.SiteFilename+"; "
         if len(self.DisplayTitle) > 0:
             s+="Display="+self.DisplayTitle+"; "
-        if len(self.DisplayTitle) > 0:
+        if len(self.Notes) > 0:
             s+="Notes="+self.Notes+"; "
         if len(self.URL) > 0:
             s+="URL="+self.URL+"; "
