@@ -253,7 +253,7 @@ class ConEditorFrame(GenConEditorFrame):
         # First read in the template
         file=None
         try:
-            with open(os.path.join(os.path.split( sys.argv[0])[0], "Template-ConMain.html")) as f:
+            with open(os.path.join(sys.path[0], "Template-ConMain.html")) as f:
                 file=f.read()
         except:
             wx.MessageBox("Can't read 'Template-ConMain.html'")

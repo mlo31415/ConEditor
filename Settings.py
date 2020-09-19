@@ -20,7 +20,7 @@ class Settings():
         self.Save()
 
     def Save(self) -> None:
-        pathname=os.path.join(os.path.split(sys.argv[0])[0], "ConEditor settings.json")
+        pathname=os.path.join(sys.path[0], "ConEditor settings.json")
         with open(pathname, "w+") as file:
             file.write(json.dumps(Settings.g_settings))
 

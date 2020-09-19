@@ -302,7 +302,10 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         # Read in the template
         file=None
         try:
-            with open(os.path.join(os.path.split( sys.argv[0])[0], "Template-ConPage.html")) as f:
+            Log("sys.path[0]=  "+sys.path[0])
+            Log("sys.argv[0]=  "+sys.argv[0])
+            Log("os.path.join(sys.path[0], 'Template-ConPage.html')=  "+os.path.join(sys.path[0], "Template-ConPage.html"))
+            with open(os.path.join(sys.path[0], "Template-ConPage.html")) as f:
                 file=f.read()
         except:
             wx.MessageBox("Can't read 'Template-ConPage.html'")
