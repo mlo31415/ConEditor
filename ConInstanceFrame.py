@@ -609,6 +609,10 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 self.conInstanceDeltaTracker.Rename(self._grid.Datasource.Rows[row], originalfname)
         else:
             self._grid.OnGridCellChanged(event)
+            if self._grid.Datasource.Rows[row].IsLink and col == 0:
+                if not self._grid.Datasource.Rows[row].URL.lower().startswith("http"):
+                    self._grid.Datasource.SetDataVal(row, col,  "http://"+self._grid.Datasource.Rows[row].URL)
+
             self.RefreshWindow()
 
     # ------------------
