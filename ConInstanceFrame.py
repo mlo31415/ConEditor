@@ -5,6 +5,7 @@ import wx
 import os
 import sys
 import json
+import re
 from datetime import datetime
 from PyPDF4 import PdfFileReader
 
@@ -161,17 +162,16 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
     # ----------------------------------------------
     def OnAddFilesButton(self, event):
-        self.AddFiles()
+        self.AddFiles(self._seriesname)
 
     # ------------------
     # Replace an existing file without changing anything else
     # The user must have clicked on column 0 in a row which contains files
     def OnPopupUpdateFile(self, event):
-        self.AddFiles(replacerow=self._grid.clickedRow)
+        self.AddFiles(self._seriesname, replacerow=self._grid.clickedRow)
 
     # ------------------
-    def AddFiles(self, replacerow: Optional[int]=None) -> None:
-
+    def AddFiles(self, seriesname: str, replacerow: Optional[int] = None) -> None:
         # Call the File Open dialog to get an con series HTML file
         if replacerow is None:
             dlg=wx.FileDialog (None, "Select files to upload", ".", "", "*.*", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE | wx.FD_CHANGE_DIR)
@@ -198,7 +198,14 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         if replacerow is None:
             for fn in dlg.GetFilenames():
                 conf=ConFile()
-                conf.DisplayTitle=fn
+                # We need to try to make the fn into a somewhat more useful display title.
+                # Commonly, file names are prefixed by <conname> <con number/con year>, so we'll remove that if we find it.
+                dname=fn
+                pat=seriesname+"\\s*([0-9]+|[IVXL]+)\\s*(.+)"
+                m=re.match(pat, dname)
+                if m is not None and len(m.groups()) == 2:
+                    dname=m.groups()[1]
+                conf.DisplayTitle=dname
                 conf.SiteFilename=fn
                 conf.SourceFilename=fn
                 conf.SourcePathname=os.path.join(os.path.join(dlg.GetDirectory()), fn)
@@ -560,7 +567,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
     # ------------------
     def OnPopupAddFiles(self, event):
-        self.AddFiles()
+        self.AddFiles(self._seriesname)
 
     # ------------------
     def OnPopupDeleteRow(self, event):
