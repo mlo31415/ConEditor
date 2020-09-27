@@ -345,9 +345,12 @@ class ConSeriesFrame(GenConSeriesFrame):
         if ndate is None:
             ndate=FindIndexOfStringInList(headers, "Date")
         nloc=FindIndexOfStringInList(headers, "Location")
+
         ngoh=FindIndexOfStringInList(headers, "GoHs")
         if ngoh is None:
             ngoh=FindIndexOfStringInList(headers, "GoH")
+        if ngoh is None:
+            ngoh=FindIndexOfStringInList(headers, "Guests of Honor")
         if ngoh is None:
             ngoh=FindIndexOfStringInList(headers, "Guests")
 
