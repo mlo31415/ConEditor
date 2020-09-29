@@ -192,12 +192,9 @@ class ConEditorFrame(GenConEditorFrame):
         return self._grid.Signature()+hash(self.m_textCtrlTopText.GetValue().strip())
 
     def MarkAsSaved(self):
-        Log("ConEditorFrame.MarkAsSaved -- "+str(self.Signature()))
         self._signature=self.Signature()
 
     def NeedsSaving(self):
-        if self._signature != self.Signature():
-            Log("ConEditorFrame.NeedsSaving -- "+str(self._signature)+" != "+str(self.Signature()))
         return self._signature != self.Signature()
 
     # ------------------
