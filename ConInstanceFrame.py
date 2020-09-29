@@ -641,6 +641,10 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.RefreshWindow()
 
     # ------------------
+    def OnTextConInstanceCredits(self, event):
+        self.RefreshWindow()
+
+    # ------------------
     def OnRadioFileListFormat(self, event):
         Settings().Put("ConInstanceFramePage:File list format", str(self.radioBoxFileListFormat.GetSelection()))
 
