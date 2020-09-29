@@ -74,12 +74,9 @@ class ConSeriesFrame(GenConSeriesFrame):
         return hash(stuff)+self._grid.Signature()
 
     def MarkAsSaved(self):
-        Log("MainConSeriesFrame.MarkAsSaved -- "+str(self.Signature()))
         self._signature=self.Signature()
 
     def NeedsSaving(self):
-        if self._signature != self.Signature():
-            Log("MainConSeriesFrame.NeedsSaving -- "+str(self._signature)+" != "+str(self.Signature()))
         return self._signature != self.Signature()
 
 

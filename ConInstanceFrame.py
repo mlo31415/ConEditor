@@ -81,12 +81,9 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         return hash(stuff)+self._grid.Signature()
 
     def MarkAsSaved(self):
-        Log("ConInstancePage.MarkAsSaved -- "+str(self.Signature()))
         self._signature=self.Signature()
 
     def NeedsSaving(self):
-        if self._signature != self.Signature():
-            Log("ConInstancePage.NeedsSaving -- "+str(self._signature)+" != "+str(self.Signature()))
         return self._signature != self.Signature()
 
 
