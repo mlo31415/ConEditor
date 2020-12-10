@@ -53,7 +53,7 @@ class ConFile:
         cf._localpathname=self._localpathname
         cf._sitefilename=self._sitefilename
         cf._size=self._size
-        cf._isText=self._isTex
+        cf._isText=self._isText
         cf._isLink=self._isLink
         cf._URL=self._URL
         cf._pages=self._pages
