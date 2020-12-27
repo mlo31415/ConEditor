@@ -453,11 +453,6 @@ if not f.OpenConnection("FTP Credentials.json"):
     exit(0)
 
 # Attempt to download the version from the website and confirm that this executable is capable
-# if not FTP().Reconnect():  # Not exactly a reconnect, but close enough...
-#     Log("Main: OpenConnection('version') failed")
-#     MessageBox("Unable to open connection to FTP server fanac.org")
-#     exit(0)
-
 v=FTP().GetAsString("version")
 if v is None or len(v) == 0:
     Log("Main: GetAsString('version' failed")
