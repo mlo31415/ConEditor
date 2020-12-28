@@ -199,7 +199,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name is tagged with <fanac-instance>, the random text with "fanac-headertext"
-        link=FormatLink("http://fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.Seriesname), self.Seriesname)
+        link=FormatLink("https://fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.Seriesname), self.Seriesname)
         file=SubstituteHTML(file, "title", self.Seriesname)
         file=SubstituteHTML(file, "fanac-instance", link)
         file=SubstituteHTML(file, "fanac-headertext", self.TextComments)
@@ -277,7 +277,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             return False
 
         wait=wx.BusyCursor()    # The busy cursor will show until wait is destroyed
-        pageurl="http://fancyclopedia.org/"+WikiPagenameToWikiUrlname(name)
+        pageurl="https://fancyclopedia.org/"+WikiPagenameToWikiUrlname(name)
         try:
             response=urlopen(pageurl)
         except:

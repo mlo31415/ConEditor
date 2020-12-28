@@ -17,7 +17,7 @@ from FTP import FTP, UpdateLog
 from Settings import Settings
 from Log import Log
 
-from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, PrependHTTP, RemoveHTTP, ExtensionMatches
+from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, RemoveHTTP, ExtensionMatches
 from WxHelpers import ProgressMessage
 
 
@@ -320,13 +320,13 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name is tagged with <fanac-instance>, the random text with "fanac-headertext"
-        fancylink=FormatLink("http://fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.ConInstanceName), self.ConInstanceName)
+        fancylink=FormatLink("https://fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.ConInstanceName), self.ConInstanceName)
         file=SubstituteHTML(file, "title", self.ConInstanceName)
         file=SubstituteHTML(file, "fanac-instance", fancylink)
         file=SubstituteHTML(file, "fanac-stuff", self.ConInstanceTopText)
 
         # Fill in the top buttons
-        s="<button onclick=\"window.location.href='http://fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.ConInstanceName)+"'\"> Fancyclopedia 3 </button>&nbsp;&nbsp;"+ \
+        s="<button onclick=\"window.location.href='https://fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.ConInstanceName)+"'\"> Fancyclopedia 3 </button>&nbsp;&nbsp;"+ \
         "<button onclick=\"window.location.href='..'\">All "+self._seriesname+"s</button>"
         file=SubstituteHTML(file, "fanac-topbuttons", s)
 
@@ -615,7 +615,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             self._grid.OnGridCellChanged(event)
             if self._grid.Datasource.Rows[row].IsLink and col == 0:
                 if not self._grid.Datasource.Rows[row].URL.lower().startswith("http"):
-                    self._grid.Datasource.SetDataVal(row, col,  "http://"+self._grid.Datasource.Rows[row].URL)
+                    self._grid.Datasource.SetDataVal(row, col,  "https://"+self._grid.Datasource.Rows[row].URL)
 
             self.RefreshWindow()
 
