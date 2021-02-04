@@ -12,7 +12,7 @@ from datetime import datetime
 
 from GenConSeriesFrame import GenConSeriesFrame
 from FTP import FTP
-from ConInstanceDeltaTracker import ConInstanceDeltaTracker, UpdateLog
+from ConInstanceDeltaTracker import UpdateLog
 from ConSeries import ConSeries, Con
 from DataGrid import DataGrid
 from ConInstanceFrame import ConInstanceDialogClass

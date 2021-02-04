@@ -11,7 +11,7 @@ from datetime import datetime
 from GenConEditorFrame import GenConEditorFrame
 from DataGrid import DataGrid, GridDataSource
 from ConSeriesFrame import ConSeriesFrame
-from ConInstanceDeltaTracker import ConInstanceDeltaTracker, UpdateLog
+from ConInstanceDeltaTracker import UpdateLog
 from FTP import FTP
 from Settings import Settings
 
