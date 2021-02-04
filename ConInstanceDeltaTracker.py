@@ -1,7 +1,10 @@
 from __future__ import annotations
-from typing import List
+from typing import List, Optional
+
+from datetime import datetime
 
 from ConInstance import ConFile
+from FTP import FTP
 
 # These classes track changes to the list of files for a particular Con Instance
 # All it cares about is the files and their names
@@ -111,3 +114,22 @@ class ConInstanceDeltaTracker:
     @property
     def Deltas(self) -> List[Delta]:
         return self._deltas
+
+
+
+class UpdateLog():
+    g_ID: Optional[str]=None
+
+    def Init(self, id: str):
+        UpdateLog.g_ID=id
+        pass
+
+    def Log(self, series: str, con: str = "", deltas: Optional[ConInstanceDeltaTracker] = None):
+        lines="Uploaded ConInstance: "+series+":"+con+"   "+"["+UpdateLog.g_ID+"  "+datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST]\n"
+        if deltas is not None and deltas.Num > 0:
+            lines+=str(deltas)+"\n"
+        FTP().AppendString("/updatelog.txt", lines)
+        pass
+
+    def LogText(self, txt: str):
+        FTP().AppendString("/updatelog.txt", txt+"   ["+UpdateLog.g_ID+"  "+datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST]\n")

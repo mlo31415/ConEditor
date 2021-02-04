@@ -12,8 +12,8 @@ from PyPDF4 import PdfFileReader
 from GenConInstanceFrame import GenConInstanceFrame
 from DataGrid import DataGrid, Color
 from ConInstance import ConInstancePage, ConFile
-from ConInstanceDeltaTracker import ConInstanceDeltaTracker
-from FTP import FTP, UpdateLog
+from ConInstanceDeltaTracker import ConInstanceDeltaTracker, UpdateLog
+from FTP import FTP
 from Settings import Settings
 from Log import Log
 

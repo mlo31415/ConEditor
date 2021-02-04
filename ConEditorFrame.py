@@ -11,7 +11,8 @@ from datetime import datetime
 from GenConEditorFrame import GenConEditorFrame
 from DataGrid import DataGrid, GridDataSource
 from ConSeriesFrame import ConSeriesFrame
-from FTP import FTP, UpdateLog
+from ConInstanceDeltaTracker import ConInstanceDeltaTracker, UpdateLog
+from FTP import FTP
 from Settings import Settings
 
 
@@ -155,7 +156,6 @@ class ConList(GridDataSource):
     # -----------------------------
     def SetDataVal(self, irow: int, icol: int, val: Union[int, str]) -> None:
         self._conlist[irow].SetVal(icol, val)
-
 
 
 ###############################################################################
