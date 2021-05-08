@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from typing import Optional, List, Union
 
 import os
@@ -16,9 +17,9 @@ from FTP import FTP
 from Settings import Settings
 
 
-from HelpersPackage import SubstituteHTML, FindBracketedText, FormatLink, Int, MessageBox
+from HelpersPackage import SubstituteHTML, FindBracketedText, FormatLink, Int, MessageBox, PyiResourcePath
 from WxHelpers import ModalDialogManager
-from Log import LogOpen, Log
+from Log import LogOpen, Log, LogFlush
 
 
 class Convention:
@@ -158,6 +159,7 @@ class ConList(GridDataSource):
         self._conlist[irow].SetVal(icol, val)
 
 
+
 ###############################################################################
 ###############################################################################
 
@@ -250,7 +252,7 @@ class ConEditorFrame(GenConEditorFrame):
         # First read in the template
         file=None
         try:
-            with open(os.path.join(sys.path[0], "Template-ConMain.html")) as f:
+            with open(PyiResourcePath("Template-ConMain.html")) as f:
                 file=f.read()
         except:
             wx.MessageBox("Can't read 'Template-ConMain.html'")
@@ -441,6 +443,9 @@ class ConEditorFrame(GenConEditorFrame):
 
         self.Destroy()
 
+        LogFlush()
+        sys.exit(1)
+
 
 # Start the GUI and run the event loop
 LogOpen("Log -- ConEditor.txt", "Log (Errors) -- ConEditor.txt")
@@ -459,13 +464,14 @@ if v is None or len(v) == 0:
     MessageBox("Unable to get version from FTP server fanac.org", ignoredebugger=True)
     exit(0)
 
+Log("CWD="+os.getcwd())
+
 vi=Int(v)
 if vi > 1:
     Log("Main: Obsolete ConEditor version!  fanac.org/conpubs is version "+str(vi)+" while this app is version 1")
     MessageBox("Obsolete ConEditor version!  fanac.org/conpubs is version "+str(vi)+" while this app is version 1", ignoredebugger=True)
     exit(0)
 Log("Website version="+str(vi))
-
 
 # Load the global settings dictionary
 Settings().Load("ConEditor settings.json")
@@ -474,12 +480,13 @@ with open("FTP Credentials.json") as f:
     UpdateLog().Init(json.loads(f.read())["ID"])
 
 UpdateLog().LogText("-----------------------------------------------------------------------\nConEditor starting.")
-
+LogFlush()
 
 app=wx.App(False)
 frame=ConEditorFrame(None)
 
 app.MainLoop()
+Log("Exit mainloop")
 pass
 
 

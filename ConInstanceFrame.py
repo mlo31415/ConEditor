@@ -17,7 +17,7 @@ from FTP import FTP
 from Settings import Settings
 from Log import Log
 
-from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, RemoveHTTP, ExtensionMatches
+from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, RemoveHTTP, ExtensionMatches, PyiResourcePath
 from WxHelpers import ProgressMessage
 
 
@@ -309,7 +309,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             Log("sys.path[0]=  "+sys.path[0])
             Log("sys.argv[0]=  "+sys.argv[0])
             Log("os.path.join(sys.path[0], 'Template-ConPage.html')=  "+os.path.join(sys.path[0], "Template-ConPage.html"))
-            with open(os.path.join(sys.path[0], "Template-ConPage.html")) as f:
+            with open(PyiResourcePath("Template-ConPage.html")) as f:
                 file=f.read()
         except:
             wx.MessageBox("Can't read 'Template-ConPage.html'")

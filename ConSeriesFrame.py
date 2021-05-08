@@ -19,7 +19,7 @@ from ConInstanceFrame import ConInstanceDialogClass
 from Settings import Settings
 
 from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, UnformatLinks, RemoveAllHTMLTags, RemoveAccents
-from HelpersPackage import FindIndexOfStringInList
+from HelpersPackage import FindIndexOfStringInList, PyiResourcePath
 from WxHelpers import ModalDialogManager, ProgressMessage
 from Log import Log
 from FanzineIssueSpecPackage import FanzineDateRange
@@ -178,7 +178,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         # First read in the template
         try:
-            with open(os.path.join(sys.path[0], "Template-ConSeries.html")) as f:
+            with open(PyiResourcePath("Template-ConSeries.html")) as f:
                 file=f.read()
         except:
             wx.MessageBox("Can't read 'Template-ConSeries.html'")
