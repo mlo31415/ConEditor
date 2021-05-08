@@ -467,9 +467,9 @@ if v is None or len(v) == 0:
 Log("CWD="+os.getcwd())
 
 vi=Int(v)
-if vi > 1:
-    Log("Main: Obsolete ConEditor version!  fanac.org/conpubs is version "+str(vi)+" while this app is version 1")
-    MessageBox("Obsolete ConEditor version!  fanac.org/conpubs is version "+str(vi)+" while this app is version 1", ignoredebugger=True)
+if vi > 2:
+    Log("Main: Obsolete ConEditor version!  fanac.org/conpubs is version "+str(vi)+" while this app is version 2")
+    MessageBox("Obsolete ConEditor version!  fanac.org/conpubs is version "+str(vi)+" while this app is version 2", ignoredebugger=True)
     exit(0)
 Log("Website version="+str(vi))
 
