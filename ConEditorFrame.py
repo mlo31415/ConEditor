@@ -450,14 +450,19 @@ class ConEditorFrame(GenConEditorFrame):
 # Start the GUI and run the event loop
 LogOpen("Log -- ConEditor.txt", "Log (Errors) -- ConEditor.txt")
 
+if not os.path.exists("FTP Credentials.json"):
+    MessageBox("Unable to find file 'FTP Credentials.json' file.", ignoredebugger=True)
+    exit(0)
+
 f=FTP()
 
 if not f.OpenConnection("FTP Credentials.json"):
-    Log("Main: OpenConnection('FTP Credentials.json' failed")
     MessageBox("Unable to open connection to FTP server fanac.org", ignoredebugger=True)
+    Log("Main: OpenConnection('FTP Credentials.json' failed")
     exit(0)
 
 # Attempt to download the version from the website and confirm that this executable is capable
+conEditorVersion=2
 v=FTP().GetAsString("version")
 if v is None or len(v) == 0:
     Log("Main: GetAsString('version' failed")
@@ -467,9 +472,9 @@ if v is None or len(v) == 0:
 Log("CWD="+os.getcwd())
 
 vi=Int(v)
-if vi > 2:
-    Log("Main: Obsolete ConEditor version!  fanac.org/conpubs is version "+str(vi)+" while this app is version 2")
-    MessageBox("Obsolete ConEditor version!  fanac.org/conpubs is version "+str(vi)+" while this app is version 2", ignoredebugger=True)
+if vi > conEditorVersion:
+    Log("Main: Obsolete ConEditor version!  fanac.org/conpubs is version "+str(vi)+" while this app is version "+str(conEditorVersion))
+    MessageBox("Obsolete ConEditor version!  fanac.org/conpubs is version "+str(vi)+" while this app is version "+str(conEditorVersion), ignoredebugger=True)
     exit(0)
 Log("Website version="+str(vi))
 
