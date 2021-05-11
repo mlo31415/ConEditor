@@ -57,12 +57,15 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self._uploaded=False    # Has this instance been uploaded? (This is needed to generate the return value from the dialog.)
 
         val=Settings().Get("ConInstanceFramePage:File list format")
-        if val is not None:
-            self.radioBoxFileListFormat.SetSelection(int(val))
+        if val is None:
+            val=1    # Default value
+        self.radioBoxFileListFormat.SetSelection(int(val))
+
 
         val=Settings().Get("ConInstanceFramePage:Show Extensions")
-        if val is not None:
-            self.radioBoxShowExtensions.SetSelection(int(val))
+        if val is None:
+            val=1   # Default value
+        self.radioBoxShowExtensions.SetSelection(int(val))
 
         self._grid.Datasource.SpecialTextColor=None
 
