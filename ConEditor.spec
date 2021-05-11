@@ -16,12 +16,6 @@ a = Analysis(['ConEditorFrame.py'],
              cipher=block_cipher,
              noarchive=False)
 
-#a.datas=[('Template-ConMain.html', ".")]
-#a.datas=[('Template-ConMain.html', 'Template-ConMain.html', 'DATA'), 
-#('Template-ConPage.html', 'Template-ConPage.html', 'DATA'), 
-#('Template-ConSeries.html', 'Template-ConSeries.html', 'DATA'), 
-#('index.html', 'index.html', 'DATA')]
-
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
 exe = EXE(pyz,
