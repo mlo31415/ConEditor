@@ -3,15 +3,14 @@ from typing import Optional, Dict
 
 import os
 import json
-import sys
 
 class Settings():
     g_settings:Dict[str, ]={}
     g_settingsFilename: str=""
 
     def Load(self, fname: str) -> None:
+        Settings.g_settingsFilename=os.path.join(os.getcwd(), fname)
         if os.path.exists(fname):
-            Settings.g_settingsFilename=fname
             with open(fname, "r") as file:
                 lines=file.read()
                 if len(lines) > 0:
