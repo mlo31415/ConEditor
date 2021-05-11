@@ -21,7 +21,7 @@ class Settings():
         self.Save()
 
     def Save(self) -> None:
-        if len(Settings.g_settingsFilename)> 0 and os.path.exists(Settings.g_settingsFilename):
+        if len(Settings.g_settingsFilename)> 0:
             with open(Settings.g_settingsFilename, "w+") as file:
                 file.write(json.dumps(Settings.g_settings))
 
