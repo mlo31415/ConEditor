@@ -534,14 +534,31 @@ class ConSeriesFrame(GenConSeriesFrame):
             # Move it
             # Get list of cons in selected con series
             csf=ConSeriesFrame(self._basedirectoryFTP, selected, conserieslist, show=False)
-            i=0
-                # Find location for this one to go to -- alphabetic order
-                # Copy con instance to the new location
-                # Add to new ConSeries
+            newconlist=[x.Name for x in csf._grid.Datasource.Rows]
+
+            # Find location for this one to go to -- assume the new series list is in alphabetic order
+            # Note that this does not check for duplicate con instance names.  That needs to be sorted out by hand.
+            loc=len(newconlist)
+            if selected < newconlist[0]:
+                loc=0
+            else:
+                for i in range(1, len(newconlist)):
+                    if selected > newconlist[i]:
+                        loc=i
+                        break
+
+            # Insert an empty row there
+            csf._grid.InsertEmptyRows(loc, 1)
+
+            # Copy con series data to the new row.  (Note that this is only the entry in the con series table.)
+            csf._grid.Datasource.Rows[loc]=self._grid.Datasource.Rows[irow]
+
+                # Copy the con instance directory from the old con series directory to the new con series directory
                 # Save new con series
-                # Remove from old con series
+                # Remove the con instance data from the old con series
                 # Save old con series
                 # Delete old con instance info from site
+            i=0
 
 
     #------------------
