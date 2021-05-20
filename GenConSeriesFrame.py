@@ -44,7 +44,7 @@ class GenConSeriesFrame ( wx.Dialog ):
 
 		m_radioBoxShowEmptyChoices = [ u"Yes", u"No" ]
 		self.m_radioBoxShowEmpty = wx.RadioBox( self.m_panel2, wx.ID_ANY, u"Show empty cons?", wx.DefaultPosition, wx.DefaultSize, m_radioBoxShowEmptyChoices, 1, wx.RA_SPECIFY_ROWS )
-		self.m_radioBoxShowEmpty.SetSelection( 1 )
+		self.m_radioBoxShowEmpty.SetSelection( 0 )
 		fgSizer8.Add( self.m_radioBoxShowEmpty, 0, wx.ALL, 5 )
 
 
@@ -185,6 +185,9 @@ class GenConSeriesFrame ( wx.Dialog ):
 		self.m_popupUnlink = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Unlink", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_menuPopup.Append( self.m_popupUnlink )
 
+		self.m_popupChangeConSeries = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Change Convention Series", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_menuPopup.Append( self.m_popupChangeConSeries )
+
 		self.Bind( wx.EVT_RIGHT_DOWN, self.GenConSeriesFrameOnContextMenu )
 
 
@@ -213,6 +216,7 @@ class GenConSeriesFrame ( wx.Dialog ):
 		self.Bind( wx.EVT_MENU, self.OnPopupEditConPage, id = self.m_popupEditConPage.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupAllowEditCell, id = self.m_popupAllowEditCell.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupUnlink, id = self.m_popupUnlink.GetId() )
+		self.Bind( wx.EVT_MENU, self.OnPopupChangeConSeries, id = self.m_popupChangeConSeries.GetId() )
 
 	def __del__( self ):
 		pass
@@ -283,8 +287,13 @@ class GenConSeriesFrame ( wx.Dialog ):
 	def OnPopupUnlink( self, event ):
 		event.Skip()
 
+	def OnPopupChangeConSeries( self, event ):
+		event.Skip()
+
 	def gRowGridOnContextMenu( self, event ):
 		self.gRowGrid.PopupMenu( self.m_menu1, event.GetPosition() )
 
 	def GenConSeriesFrameOnContextMenu( self, event ):
 		self.PopupMenu( self.m_menuPopup, event.GetPosition() )
+
+

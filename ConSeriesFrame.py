@@ -511,6 +511,16 @@ class ConSeriesFrame(GenConSeriesFrame):
                 self._grid.DeleteRows(irow, 1)
                 self.RefreshWindow()
 
+
+    #------------------
+    def OnPopupChangeConSeries(self, event):                    # MainConSeriesFrame
+        irow=self._grid.clickedRow
+        if irow >= 0 and irow < self._grid.Datasource.NumRows:
+            ret=wx.MessageBox("This will move "+self._grid.Datasource.Rows[irow].Name+" from the list of conventions on this page to another page ", 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
+            if ret == wx.OK:
+                self.RefreshWindow()
+
+
     #------------------
     def OnTextFancyURL(self, event):                    # MainConSeriesFrame
         self.RefreshWindow()
@@ -545,6 +555,9 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         if icol < len(self._grid.Datasource.ColEditable) and self._grid.Datasource.ColEditable[icol] == "maybe":
             self.m_popupAllowEditCell.Enabled=True
+
+        if irow < self._grid.Datasource.NumRows:
+            self.m_popupChangeConSeries.Enabled=True    #Enable only for rows that exist
 
         self.PopupMenu(self.m_menuPopup)
 
