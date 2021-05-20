@@ -352,7 +352,9 @@ class ConEditorFrame(GenConEditorFrame):
             self._grid.Datasource.Rows.insert(self._grid.clickedRow, Convention())
             self.RefreshWindow()
         conseriesname=self._grid.Datasource.GetData(self._grid.clickedRow, 0)
-        with ModalDialogManager(ConSeriesFrame, self._baseDirFTP, conseriesname) as dlg:
+        # Create list of con series required by the con series editor
+        conserieslist=[row.Name for row in self._grid.Datasource.Rows]
+        with ModalDialogManager(ConSeriesFrame, self._baseDirFTP, conseriesname, conserieslist) as dlg:
             if len(dlg.Seriesname.strip()) == 0:  # If the user didn't supply a con series name, we exit and don't show the dialog
                 return
 

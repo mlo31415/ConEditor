@@ -28,15 +28,14 @@ from FanzineIssueSpecPackage import FanzineDateRange
 
 #####################################################################################
 class ConSeriesFrame(GenConSeriesFrame):
-    def __init__(self, basedirFTP, conseriesname):
+    def __init__(self, basedirFTP, conseriesname, conserieslist):
         GenConSeriesFrame.__init__(self, None)
-
-        self.userSelection=None     #TODO: Still needed?
 
         self._basedirectoryFTP: str=basedirFTP
 
         self._fancydownloadfailed: bool=False       # If a download from Fancyclopedia was attempted, did it fail? (This will be used to generate the return code)
         self._signature: int=0
+        self._conserieslist=conserieslist
 
         # Set up the grid
         self._grid: DataGrid=DataGrid(self.gRowGrid)
@@ -516,9 +515,31 @@ class ConSeriesFrame(GenConSeriesFrame):
     def OnPopupChangeConSeries(self, event):                    # MainConSeriesFrame
         irow=self._grid.clickedRow
         if irow >= 0 and irow < self._grid.Datasource.NumRows:
-            ret=wx.MessageBox("This will move "+self._grid.Datasource.Rows[irow].Name+" from the list of conventions on this page to another page ", 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
-            if ret == wx.OK:
-                self.RefreshWindow()
+            # Create a popup list dialog to select target con series.  Remove self to prevent user error
+            # Do not allow selection of same series
+            conserieslist=[x for x in self._conserieslist if x != self.Seriesname]
+            selected=""
+            with wx.SingleChoiceDialog(None, "Pick a convention series to move it to", "Move a Convention", conserieslist) as dialog:
+                if wx.ID_OK == dialog.ShowModal():
+                    selected=dialog.GetStringSelection()
+
+            if selected == "":
+                return
+
+            # Ask for confirmation
+            ret=wx.MessageBox("Move convention '"+self.Seriesname+"' to new convention series '"+selected+"'?", 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
+            if ret != wx.OK:
+                return
+
+            # Move it
+                # Get list of cons in selected con series
+                # Find location for this one to go to -- alphabetic order
+                # Copy con instance to the new location
+                # Add to new ConSeries
+                # Save new con series
+                # Remove from old con series
+                # Save old con series
+                # Delete old con instance info from site
 
 
     #------------------
