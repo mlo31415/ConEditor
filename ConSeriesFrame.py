@@ -527,7 +527,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                 return
 
             # Ask for confirmation
-            ret=wx.MessageBox("Move convention '"+self.Seriesname+"' to new convention series '"+selected+"'?", 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
+            ret=wx.MessageBox("Move convention instance '"+self._grid.Datasource.Rows[irow].Name+"' to new convention series '"+selected+"'?", 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
             if ret != wx.OK:
                 return
 
