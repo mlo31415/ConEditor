@@ -28,7 +28,7 @@ from FanzineIssueSpecPackage import FanzineDateRange
 
 #####################################################################################
 class ConSeriesFrame(GenConSeriesFrame):
-    def __init__(self, basedirFTP, conseriesname, conserieslist):
+    def __init__(self, basedirFTP, conseriesname, conserieslist, show=True):
         GenConSeriesFrame.__init__(self, None)
 
         self._basedirectoryFTP: str=basedirFTP
@@ -64,7 +64,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         self.MarkAsSaved()
         self.RefreshWindow()
-        self.Show(True)
+        self.Show(show)
 
 
     # ----------------------------------------------
@@ -532,7 +532,9 @@ class ConSeriesFrame(GenConSeriesFrame):
                 return
 
             # Move it
-                # Get list of cons in selected con series
+            # Get list of cons in selected con series
+            csf=ConSeriesFrame(self._basedirectoryFTP, selected, conserieslist, show=False)
+            i=0
                 # Find location for this one to go to -- alphabetic order
                 # Copy con instance to the new location
                 # Add to new ConSeries
