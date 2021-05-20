@@ -539,7 +539,9 @@ class ConSeriesFrame(GenConSeriesFrame):
             # Find location for this one to go to -- assume the new series list is in alphabetic order
             # Note that this does not check for duplicate con instance names.  That needs to be sorted out by hand.
             loc=len(newconlist)
-            if selected < newconlist[0]:
+            if len(newconlist) == 0:
+                loc=0
+            elif selected < newconlist[0]:
                 loc=0
             else:
                 for i in range(1, len(newconlist)):
