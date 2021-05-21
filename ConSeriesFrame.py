@@ -538,7 +538,16 @@ class ConSeriesFrame(GenConSeriesFrame):
             csf=ConSeriesFrame(self._basedirectoryFTP, newSeriesName, conserieslist, show=False)
             newconlist=[x.Name for x in csf._grid.Datasource.Rows]
 
-            # Find location for this one to go to -- assume the new series list is in alphabetic order
+            # The target con instance director must not exist.
+            newDirPath="/"+newSeriesName+"/"+instanceName
+            if len(self._basedirectoryFTP) > 0:
+                newDirPath=self._basedirectoryFTP+"/"+newDirPath
+            if FTP().PathExists(newDirPath):
+                Log("OnPopupChangeConSeries: newDirPath '"+newDirPath+"' already exists", isError=True)
+                wx.MessageBox("OnPopupChangeConSeries: newDirPath '"+newDirPath+"' already exists", 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
+                return
+
+            # Find location in the new con series list for this one to go to -- assume the list is in alphabetic order
             # Note that this does not check for duplicate con instance names.  That needs to be sorted out by hand.
             loc=len(newconlist)
             if len(newconlist) == 0:
@@ -559,12 +568,8 @@ class ConSeriesFrame(GenConSeriesFrame):
 
             # Copy the con instance directory from the old con series directory to the new con series directory
 
-            # If the new con instance directory does not exist, create it.
-            newDirPath="/"+newSeriesName+"/"+instanceName
-            if len(self._basedirectoryFTP) > 0:
-                newDirPath=self._basedirectoryFTP+"/"+newDirPath
-            if not FTP().PathExists(newDirPath):
-                FTP().MKD(newDirPath)
+            # Create the new con instance directory.
+            FTP().MKD(newDirPath)
 
             # Copy the contents of the old con instance directory to the new one
             oldDirPath="/"+self.Seriesname+"/"+instanceName
@@ -575,6 +580,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             for file in fileList:
                 if file != "." and file != "..":
                     FTP().CopyFile(oldDirPath, newDirPath, file)
+
                 # Save the new con series
                 # Remove the con instance data from the old con series by deleting the row
                 # Save the old con series
