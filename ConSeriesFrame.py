@@ -558,11 +558,12 @@ class ConSeriesFrame(GenConSeriesFrame):
             csf._grid.Datasource.Rows[loc]=self._grid.Datasource.Rows[irow]
 
             # Copy the con instance directory from the old con series directory to the new con series directory
+
             # If the new con instance directory does not exist, create it.
             newDirPath="/"+newSeriesName+"/"+instanceName
             if len(self._basedirectoryFTP) > 0:
                 newDirPath=self._basedirectoryFTP+"/"+newDirPath
-            if not FTP().Exists(newDirPath):
+            if not FTP().PathExists(newDirPath):
                 FTP().MKD(newDirPath)
 
             # Copy the contents of the old con instance directory to the new one
@@ -570,7 +571,10 @@ class ConSeriesFrame(GenConSeriesFrame):
             if len(self._basedirectoryFTP) > 0:
                 oldDirPath=self._basedirectoryFTP+"/"+oldDirPath
             # Make a list of the files in the old con instance directory
-            lst=FTP().Nlst(oldDirPath)
+            fileList=FTP().Nlst(oldDirPath)
+            for file in fileList:
+                if file != "." and file != "..":
+                    FTP().CopyFile(oldDirPath, newDirPath, file)
                 # Save the new con series
                 # Remove the con instance data from the old con series by deleting the row
                 # Save the old con series
