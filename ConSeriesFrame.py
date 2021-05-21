@@ -518,12 +518,12 @@ class ConSeriesFrame(GenConSeriesFrame):
             # Create a popup list dialog to select target con series.  Remove self to prevent user error
             # Do not allow selection of same series
             conserieslist=[x for x in self._conserieslist if x != self.Seriesname]
-            selected=""
+            newSeriesName=""
             with wx.SingleChoiceDialog(None, "Pick a convention series to move it to", "Move a Convention", conserieslist) as dialog:
                 if wx.ID_OK == dialog.ShowModal():
-                    selected=dialog.GetStringSelection()
+                    newSeriesName=dialog.GetStringSelection()
 
-            if selected == "":
+            if newSeriesName == "":
                 return
 
             # Ask for confirmation
@@ -533,7 +533,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
             # Move it
             # Get list of cons in selected con series
-            csf=ConSeriesFrame(self._basedirectoryFTP, selected, conserieslist, show=False)
+            csf=ConSeriesFrame(self._basedirectoryFTP, newSeriesName, conserieslist, show=False)
             newconlist=[x.Name for x in csf._grid.Datasource.Rows]
 
             # Find location for this one to go to -- assume the new series list is in alphabetic order
@@ -541,11 +541,11 @@ class ConSeriesFrame(GenConSeriesFrame):
             loc=len(newconlist)
             if len(newconlist) == 0:
                 loc=0
-            elif selected < newconlist[0]:
+            elif newSeriesName < newconlist[0]:
                 loc=0
             else:
                 for i in range(1, len(newconlist)):
-                    if selected > newconlist[i]:
+                    if newSeriesName > newconlist[i]:
                         loc=i
                         break
 
