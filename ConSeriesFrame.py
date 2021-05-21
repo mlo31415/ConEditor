@@ -554,14 +554,27 @@ class ConSeriesFrame(GenConSeriesFrame):
             # Insert an empty row there
             csf._grid.InsertEmptyRows(loc, 1)
 
-            # Copy con series data to the new row.  (Note that this is only the entry in the con series table.)
+            # Copy con series data to the new row.  (Note that this is just copying the entry in the con series table, not the data it points to.)
             csf._grid.Datasource.Rows[loc]=self._grid.Datasource.Rows[irow]
 
-                # Copy the con instance directory from the old con series directory to the new con series directory
-                # Save new con series
-                # Remove the con instance data from the old con series
-                # Save old con series
-                # Delete old con instance info from site
+            # Copy the con instance directory from the old con series directory to the new con series directory
+            # If the new con instance directory does not exist, create it.
+            newDirPath="/"+newSeriesName+"/"+instanceName
+            if len(self._basedirectoryFTP) > 0:
+                newDirPath=self._basedirectoryFTP+"/"+newDirPath
+            if not FTP().Exists(newDirPath):
+                FTP().MKD(newDirPath)
+
+            # Copy the contents of the old con instance directory to the new one
+            oldDirPath="/"+self.Seriesname+"/"+instanceName
+            if len(self._basedirectoryFTP) > 0:
+                oldDirPath=self._basedirectoryFTP+"/"+oldDirPath
+            # Make a list of the files in the old con instance directory
+            lst=FTP().Nlst(oldDirPath)
+                # Save the new con series
+                # Remove the con instance data from the old con series by deleting the row
+                # Save the old con series
+                # Delete the old con instance info from site
             i=0
 
 
