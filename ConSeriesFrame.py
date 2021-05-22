@@ -514,81 +514,85 @@ class ConSeriesFrame(GenConSeriesFrame):
     #------------------
     def OnPopupChangeConSeries(self, event):                    # MainConSeriesFrame
         irow=self._grid.clickedRow
-        if irow >= 0 and irow < self._grid.Datasource.NumRows:
-            # Create a popup list dialog to select target con series.  Remove self to prevent user error
-            # Do not allow selection of same series
-            conserieslist=[x for x in self._conserieslist if x != self.Seriesname]
-            newSeriesName=""
-            with wx.SingleChoiceDialog(None, "Pick a convention series to move it to", "Move a Convention", conserieslist) as dialog:
-                if wx.ID_OK == dialog.ShowModal():
-                    newSeriesName=dialog.GetStringSelection()
+        if irow < 0 or irow >= self._grid.Datasource.NumRows:
+            Log("OnPopupChangeConSeries: bad irow="+str(irow))
+            return
 
-            if newSeriesName == "":
-                return
+        # Create a popup list dialog to select target con series.  Remove self to prevent user error
+        # Do not allow selection of same series
+        conserieslist=[x for x in self._conserieslist if x != self.Seriesname]
+        newSeriesName=""
+        with wx.SingleChoiceDialog(None, "Pick a convention series to move it to", "Move a Convention", conserieslist) as dialog:
+            if wx.ID_OK == dialog.ShowModal():
+                newSeriesName=dialog.GetStringSelection()
 
-            instanceName=self._grid.Datasource.Rows[irow].Name
+        if newSeriesName == "":
+            return
 
-            # Ask for confirmation
-            ret=wx.MessageBox("Move convention instance '"+instanceName+"' to new convention series '"+newSeriesName+"'?", 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
-            if ret != wx.OK:
-                return
+        instanceName=self._grid.Datasource.Rows[irow].Name
 
-            # Move it
-            # Get list of cons in selected con series
-            csf=ConSeriesFrame(self._basedirectoryFTP, newSeriesName, conserieslist, show=False)
-            newconlist=[x.Name for x in csf._grid.Datasource.Rows]
+        # Ask for confirmation
+        ret=wx.MessageBox("Move convention instance '"+instanceName+"' to new convention series '"+newSeriesName+"'?", 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
+        if ret != wx.OK:
+            return
 
-            # The target con instance director must not exist.
-            newDirPath="/"+newSeriesName+"/"+instanceName
-            if len(self._basedirectoryFTP) > 0:
-                newDirPath=self._basedirectoryFTP+"/"+newDirPath
-            if FTP().PathExists(newDirPath):
-                Log("OnPopupChangeConSeries: newDirPath '"+newDirPath+"' already exists", isError=True)
-                wx.MessageBox("OnPopupChangeConSeries: newDirPath '"+newDirPath+"' already exists", 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
-                return
+        # Move it
+        # Get list of cons in selected con series
+        csf=ConSeriesFrame(self._basedirectoryFTP, newSeriesName, conserieslist, show=False)
+        newconlist=[x.Name for x in csf._grid.Datasource.Rows]
 
-            # Find location in the new con series list for this one to go to -- assume the list is in alphabetic order
-            # Note that this does not check for duplicate con instance names.  That needs to be sorted out by hand.
-            loc=len(newconlist)
-            if len(newconlist) == 0:
-                loc=0
-            elif newSeriesName < newconlist[0]:
-                loc=0
-            else:
-                for i in range(1, len(newconlist)):
-                    if newSeriesName > newconlist[i]:
-                        loc=i
-                        break
+        # The target con instance director must not exist.
+        newDirPath="/"+newSeriesName+"/"+instanceName
+        if len(self._basedirectoryFTP) > 0:
+            newDirPath=self._basedirectoryFTP+"/"+newDirPath
+        if FTP().PathExists(newDirPath):
+            Log("OnPopupChangeConSeries: newDirPath '"+newDirPath+"' already exists", isError=True)
+            wx.MessageBox("OnPopupChangeConSeries: newDirPath '"+newDirPath+"' already exists", 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
+            return
 
-            # Insert an empty row there
-            csf._grid.InsertEmptyRows(loc, 1)
+        # Find location in the new con series list for this one to go to -- assume the list is in alphabetic order
+        # Note that this does not check for duplicate con instance names.  That needs to be sorted out by hand.
+        loc=len(newconlist)
+        if len(newconlist) == 0:
+            loc=0
+        elif newSeriesName < newconlist[0]:
+            loc=0
+        else:
+            for i in range(1, len(newconlist)):
+                if newSeriesName > newconlist[i]:
+                    loc=i
+                    break
 
-            # Copy con series data to the new row.  (Note that this is just copying the entry in the con series table, not the data it points to.)
-            csf._grid.Datasource.Rows[loc]=self._grid.Datasource.Rows[irow]
+        # Insert an empty row there
+        csf._grid.InsertEmptyRows(loc, 1)
 
-            # Copy the con instance directory from the old con series directory to the new con series directory
-            # Create the new con instance directory.
-            FTP().MKD(newDirPath)
+        # Copy con series data to the new row.  (Note that this is just copying the entry in the con series table, not the data it points to.)
+        csf._grid.Datasource.Rows[loc]=self._grid.Datasource.Rows[irow]
 
-            # Copy the contents of the old con instance directory to the new one
-            oldDirPath="/"+self.Seriesname+"/"+instanceName
-            if len(self._basedirectoryFTP) > 0:
-                oldDirPath=self._basedirectoryFTP+"/"+oldDirPath
-            # Make a list of the files in the old con instance directory
-            fileList=FTP().Nlst(oldDirPath)
-            for file in fileList:
-                if file != "." and file != "..":
-                    if not FTP().CopyFile(oldDirPath, newDirPath, file):
-                        msg="OnPopupChangeConSeries: Failure copying "+file+" from "+oldDirPath+" to " +newDirPath+"\nThis will require hand cleanup"
-                        Log(msg, isError=True)
-                        wx.MessageBox(msg, 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
-                        return
+        # Copy the con instance directory from the old con series directory to the new con series directory
+        # Create the new con instance directory.
+        FTP().MKD(newDirPath)
 
-                # Save the new con series
-                # Remove the con instance data from the old con series by deleting the row
-                # Save the old con series
-                # Delete the old con instance info from site
-            i=0
+        # Copy the contents of the old con instance directory to the new one
+        oldDirPath="/"+self.Seriesname+"/"+instanceName
+        if len(self._basedirectoryFTP) > 0:
+            oldDirPath=self._basedirectoryFTP+"/"+oldDirPath
+        # Make a list of the files in the old con instance directory
+        fileList=FTP().Nlst(oldDirPath)
+        for file in fileList:
+            if file != "." and file != "..":
+                if not FTP().CopyFile(oldDirPath, newDirPath, file):
+                    msg="OnPopupChangeConSeries: Failure copying "+file+" from "+oldDirPath+" to " +newDirPath+"\nThis will require hand cleanup"
+                    Log(msg, isError=True)
+                    wx.MessageBox(msg, 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
+                    return
+
+        # Save the new con series
+        self.UploadConSeries()
+            # Remove the con instance data from the old con series by deleting the row
+            # Save the old con series
+            # Delete the old con instance info from site
+        i=0
 
 
     #------------------
