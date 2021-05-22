@@ -567,7 +567,6 @@ class ConSeriesFrame(GenConSeriesFrame):
             csf._grid.Datasource.Rows[loc]=self._grid.Datasource.Rows[irow]
 
             # Copy the con instance directory from the old con series directory to the new con series directory
-
             # Create the new con instance directory.
             FTP().MKD(newDirPath)
 
@@ -579,7 +578,11 @@ class ConSeriesFrame(GenConSeriesFrame):
             fileList=FTP().Nlst(oldDirPath)
             for file in fileList:
                 if file != "." and file != "..":
-                    FTP().CopyFile(oldDirPath, newDirPath, file)
+                    if not FTP().CopyFile(oldDirPath, newDirPath, file):
+                        msg="OnPopupChangeConSeries: Failure copying "+file+" from "+oldDirPath+" to " +newDirPath+"\nThis will require hand cleanup"
+                        Log(msg, isError=True)
+                        wx.MessageBox(msg, 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
+                        return
 
                 # Save the new con series
                 # Remove the con instance data from the old con series by deleting the row
