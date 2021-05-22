@@ -563,10 +563,9 @@ class ConSeriesFrame(GenConSeriesFrame):
                     loc=i
                     break
 
-        # Insert an empty row there
+        # Insert an empty row there and then copy the old con series data to the new row.
+        # (Note that this is just copying the entry in the con series table, not the data it points to.)
         csf._grid.InsertEmptyRows(loc, 1)
-
-        # Copy con series data to the new row.  (Note that this is just copying the entry in the con series table, not the data it points to.)
         csf._grid.Datasource.Rows[loc]=self._grid.Datasource.Rows[irow]
 
         # Copy the con instance directory from the old con series directory to the new con series directory
