@@ -173,7 +173,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
 
     #-------------------
-    def UploadConSeries(self) -> None:                   # MainConSeriesFrame
+    def UploadConSeries(self) -> bool:                   # MainConSeriesFrame
 
         # First read in the template
         try:
@@ -181,6 +181,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                 file=f.read()
         except:
             wx.MessageBox("Can't read 'Template-ConSeries.html'")
+            return False
 
         # Delete any trailing blank rows.  (Blank rows anywhere are as error, but we only silently drop trailing blank rows.)
         # Find the last non-blank row.
@@ -193,7 +194,6 @@ class ConSeriesFrame(GenConSeriesFrame):
             del self._grid.Datasource.Rows[last+1:]
 
         # Determine if we're missing 100% of the data for the Dates, Location, or GoH columns so we can drop them from the listing
-
 
         ProgressMessage(self).Show("Uploading /"+self.Seriesname+"/index.html")
 
@@ -249,9 +249,10 @@ class ConSeriesFrame(GenConSeriesFrame):
         # Now try to FTP the data up to fanac.org
         if self.Seriesname is None or len(self.Seriesname) == 0:
             Log("UploadConSeries: No series name provided")
-            return
+            return False
         if not FTP().PutFileAsString("/"+self.Seriesname, "index.html", file, create=True):
             wx.MessageBox("Upload failed")
+            return False
 
         UpdateLog().LogText("Uploaded ConSeries: "+self.Seriesname)
 
@@ -259,6 +260,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         self.MarkAsSaved()      # It was just saved, so unless it's updated again, the dialog can exit without uploading
         self._uploaded=True     # Something's been uploaded
         self.RefreshWindow()
+        return True
 
     #------------------
     # Save a con series object to disk.
@@ -576,7 +578,6 @@ class ConSeriesFrame(GenConSeriesFrame):
         oldDirPath="/"+self.Seriesname+"/"+instanceName
         if len(self._basedirectoryFTP) > 0:
             oldDirPath=self._basedirectoryFTP+"/"+oldDirPath
-        # Make a list of the files in the old con instance directory
         fileList=FTP().Nlst(oldDirPath)
         for file in fileList:
             if file != "." and file != "..":
@@ -586,10 +587,15 @@ class ConSeriesFrame(GenConSeriesFrame):
                     wx.MessageBox(msg, 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
                     return
 
-        # Save the new con series
-        self.UploadConSeries()
+        # Save the old and new con series. Don't upload the modified old series if uploading the new one failed
+        if csf.UploadConSeries():
+            # Remove the old link and upload
+            self._grid.DeleteRows(irow)
+            self.UploadConSeries()
+        else:
+            return
+
             # Remove the con instance data from the old con series by deleting the row
-            # Save the old con series
             # Delete the old con instance info from site
         i=0
 
