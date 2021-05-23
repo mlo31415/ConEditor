@@ -39,16 +39,23 @@ class ProgressMessage:
     def Show(self, s: Optional[str], close: bool=False, delay: float=0) -> None:  # ConInstanceFramePage
         if ProgressMessage._progressMessageDlg is None:
             ProgressMessage._progressMessageDlg=wx.ProgressDialog("progress", s, maximum=100, parent=None, style=wx.PD_APP_MODAL|wx.PD_AUTO_HIDE)
-        Log(s)
+        Log("ProgressMessage.Show('"+s+"')")
         ProgressMessage._progressMessageDlg.Pulse(s)
 
         if close:
             self.Close(delay)
 
+    def UpdateMessage(self, s: str):
+        if ProgressMessage._progressMessageDlg is None:
+            Log("ProgressMessage.UpdateMessage() called without an existing ProgressDialog")
+            return
+        Log("ProgressMessage.Update('"+s+"')")
+        ProgressMessage._progressMessageDlg.Update(0, s)
+
 
     def Close(self, delay: float=0) -> None:
         if ProgressMessage._progressMessageDlg is None:
-            Log("ProgressMessage cancellation called with no ProgressDialog created")
+            Log("ProgressMessage.Close() called without an existing ProgressDialo")
             return
 
         if delay > 0:
