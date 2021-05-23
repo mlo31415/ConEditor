@@ -572,6 +572,9 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         # Copy the con instance directory from the old con series directory to the new con series directory
         # Create the new con instance directory.
+        ProgressMessage(self).Show("Creating "+newDirPath+" and copying contents to it.")
+
+        # Make a list of the files in the old con instance directory
         FTP().MKD(newDirPath)
 
         # Copy the contents of the old con instance directory to the new one
@@ -581,11 +584,13 @@ class ConSeriesFrame(GenConSeriesFrame):
         fileList=FTP().Nlst(oldDirPath)
         for file in fileList:
             if file != "." and file != "..":
+                ProgressMessage.UpdateMessage("Copying "+file)
                 if not FTP().CopyFile(oldDirPath, newDirPath, file):
                     msg="OnPopupChangeConSeries: Failure copying "+file+" from "+oldDirPath+" to " +newDirPath+"\nThis will require hand cleanup"
                     Log(msg, isError=True)
                     wx.MessageBox(msg, 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
                     return
+        ProgressMessage(self).Close()
 
         # Save the old and new con series. Don't upload the modified old series if uploading the new one failed
         if csf.UploadConSeries():
