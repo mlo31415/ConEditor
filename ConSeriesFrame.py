@@ -584,7 +584,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         fileList=FTP().Nlst(oldDirPath)
         for file in fileList:
             if file != "." and file != "..":
-                ProgressMessage.UpdateMessage("Copying "+file)
+                ProgressMessage(self).UpdateMessage("Copying "+file)
                 if not FTP().CopyFile(oldDirPath, newDirPath, file):
                     msg="OnPopupChangeConSeries: Failure copying "+file+" from "+oldDirPath+" to " +newDirPath+"\nThis will require hand cleanup"
                     Log(msg, isError=True)
