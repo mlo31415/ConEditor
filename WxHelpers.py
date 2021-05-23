@@ -51,6 +51,7 @@ class ProgressMessage:
             return
         Log("ProgressMessage.Update('"+s+"')")
         ProgressMessage._progressMessageDlg.Update(0, s)
+        ProgressMessage._progressMessageDlg.Pulse(s)
 
 
     def Close(self, delay: float=0) -> None:

@@ -552,7 +552,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             wx.MessageBox("OnPopupChangeConSeries: newDirPath '"+newDirPath+"' already exists", 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
             return
 
-        # Find location in the new con series list for this one to go to -- assume the list is in alphabetic order
+        # Find a location in the new con series list for this one to go to -- assume the list is in alphabetic order
         # Note that this does not check for duplicate con instance names.  That needs to be sorted out by hand.
         loc=len(newconlist)
         if len(newconlist) == 0:
