@@ -543,7 +543,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         csf=ConSeriesFrame(self._basedirectoryFTP, newSeriesName, conserieslist, show=False)
         newconlist=[x.Name for x in csf._grid.Datasource.Rows]
 
-        # The target con instance director must not exist.
+        # The target con instance directory must not exist.
         newDirPath="/"+newSeriesName+"/"+instanceName
         if len(self._basedirectoryFTP) > 0:
             newDirPath=self._basedirectoryFTP+"/"+newDirPath
