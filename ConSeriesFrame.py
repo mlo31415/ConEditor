@@ -583,13 +583,12 @@ class ConSeriesFrame(GenConSeriesFrame):
             oldDirPath=self._basedirectoryFTP+"/"+oldDirPath
         fileList=FTP().Nlst(oldDirPath)
         for file in fileList:
-            if file != "." and file != "..":
-                ProgressMessage(self).UpdateMessage("Copying "+file)
-                if not FTP().CopyFile(oldDirPath, newDirPath, file):
-                    msg="OnPopupChangeConSeries: Failure copying "+file+" from "+oldDirPath+" to " +newDirPath+"\nThis will require hand cleanup"
-                    Log(msg, isError=True)
-                    wx.MessageBox(msg, 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
-                    return
+            ProgressMessage(self).UpdateMessage("Copying "+file)
+            if not FTP().CopyFile(oldDirPath, newDirPath, file):
+                msg="OnPopupChangeConSeries: Failure copying "+file+" from "+oldDirPath+" to " +newDirPath+"\nThis will require hand cleanup"
+                Log(msg, isError=True)
+                wx.MessageBox(msg, 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
+                return
         ProgressMessage(self).Close()
 
         # Save the old and new con series. Don't upload the modified old series if uploading the new one failed
@@ -600,7 +599,6 @@ class ConSeriesFrame(GenConSeriesFrame):
         else:
             return
 
-            # Remove the con instance data from the old con series by deleting the row
             # Delete the old con instance info from site
         i=0
 
