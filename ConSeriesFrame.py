@@ -570,6 +570,9 @@ class ConSeriesFrame(GenConSeriesFrame):
         csf._grid.InsertEmptyRows(loc, 1)
         csf._grid.Datasource.Rows[loc]=self._grid.Datasource.Rows[irow]
 
+        oldDirPath = "/" + self.Seriesname + "/" + instanceName
+        UpdateLog().LogText("Moving '"+instanceName+"' from '"+oldDirPath+"' to '"+newDirPath+"'")
+
         # Copy the con instance directory from the old con series directory to the new con series directory
         # Create the new con instance directory.
         ProgressMessage(self).Show("Creating "+newDirPath+" and copying contents to it.")
@@ -578,7 +581,6 @@ class ConSeriesFrame(GenConSeriesFrame):
         FTP().MKD(newDirPath)
 
         # Copy the contents of the old con instance directory to the new one
-        oldDirPath="/"+self.Seriesname+"/"+instanceName
         if len(self._basedirectoryFTP) > 0:
             oldDirPath=self._basedirectoryFTP+"/"+oldDirPath
         fileList=FTP().Nlst(oldDirPath)
