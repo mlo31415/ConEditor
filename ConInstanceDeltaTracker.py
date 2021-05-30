@@ -1,6 +1,7 @@
 from __future__ import annotations
-from typing import List, Optional
 
+from dataclasses import dataclass
+from typing import List, Optional
 from datetime import datetime
 
 from ConInstance import ConFile
@@ -11,11 +12,11 @@ from FTP import FTP
 # Once the user is done editing the ConInstance page and does an upload, this class will provide the instructions
 #   for the upload so that all the accumulated edits get up there.
 
+@dataclass
 class Delta:
-    def __init__(self, verb: str, confile: ConFile, oldname: str):
-        self._verb: str=verb
-        self._con: ConFile=confile
-        self._oldname: str=oldname
+    Verb: str=""
+    Con: ConFile=""
+    Oldname: str=""
 
     def __str__(self) -> str:
         s=self.Verb+": "+str(self.Con)
@@ -23,21 +24,6 @@ class Delta:
             s+=" oldname="+self.Oldname
         return s
 
-    
-    @property
-    def Verb(self):
-        return self._verb
-
-    @property
-    def Con(self):
-        return self._con
-    @Con.setter
-    def Con(self, val: ConFile):
-        self._con=val
-    
-    @property
-    def Oldname(self):
-        return self._oldname
 
 # Changes (the tuple providing info needed to defined them) are (in the order in which they must be executed):
 #       Delete a file which exists on the website ("delete", con, "")
@@ -47,7 +33,7 @@ class Delta:
 # When two deltas affect the same file, they are usually merged.  (E.g., Add followed by Delete cancels out; Add followed by Rename updates the Add with the new name.)
 class ConInstanceDeltaTracker:
     def __init__(self):
-        self._deltas: List[Delta]=[]
+        self._deltas: List[Delta]=list()
 
     def __str__(self) -> str:
         if self._deltas is None or len(self._deltas) == 0:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import List, Union, Tuple, Optional
+from dataclasses import dataclass
 
 import wx
 import wx.grid
@@ -8,6 +9,7 @@ from HelpersPackage import IsInt
 from FanzineIssueSpecPackage import FanzineDateRange, FanzineDate
 from Log import Log
 
+@dataclass(frozen=True)
 class Color:
      # Define some RGB color constants
      LabelGray=wx.Colour(230, 230, 230)
