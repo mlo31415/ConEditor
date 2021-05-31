@@ -102,8 +102,7 @@ class ConInstanceDeltaTracker:
         return self._deltas
 
 
-
-class UpdateLog():
+class UpdateLog:
     g_ID: Optional[str]=None
 
     def Init(self, id: str):
