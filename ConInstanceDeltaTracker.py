@@ -37,7 +37,7 @@ class ConInstanceDeltaTracker:
 
     def __str__(self) -> str:
         if self._deltas is None or len(self._deltas) == 0:
-            return []
+            return ""
         s=""
         for d in self._deltas:
             s+=">>"+str(d)+"\n"
