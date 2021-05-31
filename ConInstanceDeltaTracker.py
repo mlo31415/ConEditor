@@ -14,8 +14,8 @@ from FTP import FTP
 
 @dataclass
 class Delta:
-    Verb: str=""
-    Con: ConFile=""
+    Verb: str
+    Con: ConFile
     Oldname: str=""
 
     def __str__(self) -> str:
