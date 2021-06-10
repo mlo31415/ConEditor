@@ -58,13 +58,13 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         val=Settings().Get("ConInstanceFramePage:File list format")
         if val is None:
-            val=1    # Default value
+            val=1    # Default value is display as list
         self.radioBoxFileListFormat.SetSelection(int(val))
 
 
         val=Settings().Get("ConInstanceFramePage:Show Extensions")
         if val is None:
-            val=1   # Default value
+            val=1   # Default value is do not show extensions
         self.radioBoxShowExtensions.SetSelection(int(val))
 
         self._grid.Datasource.SpecialTextColor=None

@@ -52,8 +52,9 @@ class ConSeriesFrame(GenConSeriesFrame):
         self.Seriesname=conseriesname
 
         val=Settings().Get("ConSeriesFramePage:Show empty")
-        if val is not None:
-            self.m_radioBoxShowEmpty.SetSelection(int(val))
+        if val is None:
+            val=0       # Default is to show empty slots
+        self.m_radioBoxShowEmpty.SetSelection(int(val))
 
         # Download the convention series from the FTP server
         self.DownloadConSeries(conseriesname)
