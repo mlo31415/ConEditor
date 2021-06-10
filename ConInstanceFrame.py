@@ -358,8 +358,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         def MaybeSuppressPDFExtension(fn: str, suppress: bool) -> str:
             if suppress:
                 parts=os.path.splitext(row.DisplayTitle)
-                if parts[1].lower() == ".pdf":
-                    fn=parts[0]
+                if parts[1].lower() in [".pdf", ".jpg", ".png", ".doc", ".docx"]:
+                    fn = parts[0]
             return fn
 
         if self.radioBoxFileListFormat.GetSelection() == 0: # Are we to output a table?
