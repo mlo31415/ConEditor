@@ -486,7 +486,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             return  # Just return with the ConInstance page empty
 
         # Get the JSON
-        j=FindBracketedText(file, "fanac-json")[0]
+        j=FindBracketedText(file, "fanac-json", stripHtml=False)[0]
         if j is not None and j != "":
             self.FromJson(j)
 

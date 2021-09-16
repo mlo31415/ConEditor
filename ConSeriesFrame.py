@@ -145,7 +145,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         if file is not None:
 
             # Get the JSON from the file
-            j=FindBracketedText(file, "fanac-json")[0]
+            j=FindBracketedText(file, "fanac-json", stripHtml=False)[0]
             if j is None or j == "":
                 Log("DownloadConSeries: Can't load convention information from "+pathname)
                 wx.MessageBox("Can't load convention information from "+pathname)

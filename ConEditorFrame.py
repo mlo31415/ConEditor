@@ -228,7 +228,7 @@ class ConEditorFrame(GenConEditorFrame):
             return
 
         # Get the JSON
-        j=FindBracketedText(file, "fanac-json")[0]
+        j=FindBracketedText(file, "fanac-json", stripHtml=False)[0]
         if j is None or j == "":
             wx.MessageBox("Can't load convention information from conpubs' index.html")
             return
