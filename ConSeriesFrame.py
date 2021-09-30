@@ -18,7 +18,7 @@ from DataGrid import DataGrid
 from ConInstanceFrame import ConInstanceDialogClass
 from Settings import Settings
 
-from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, UnformatLinks, RemoveAllHTMLTags, RemoveAccents
+from HelpersPackage import SubstituteHTML, FormatLink, FindWikiBracketedText, WikiPagenameToWikiUrlname, UnformatLinks, RemoveAllHTMLTags, RemoveAccents
 from HelpersPackage import FindIndexOfStringInList, PyiResourcePath
 from WxHelpers import ModalDialogManager, ProgressMessage
 from Log import Log
@@ -145,7 +145,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         if file is not None:
 
             # Get the JSON from the file
-            j=FindBracketedText(file, "fanac-json", stripHtml=False)[0]
+            j=FindWikiBracketedText(file, "fanac-json", stripHtml=False)[0]
             if j is None or j == "":
                 Log("DownloadConSeries: Can't load convention information from "+pathname)
                 wx.MessageBox("Can't load convention information from "+pathname)
