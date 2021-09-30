@@ -17,7 +17,7 @@ from FTP import FTP
 from Settings import Settings
 
 
-from HelpersPackage import SubstituteHTML, FindBracketedText, FormatLink, Int, MessageBox, PyiResourcePath
+from HelpersPackage import SubstituteHTML, FindWikiBracketedText, FormatLink, Int, MessageBox, PyiResourcePath
 from WxHelpers import ModalDialogManager
 from Log import LogOpen, Log, LogFlush
 
@@ -228,7 +228,7 @@ class ConEditorFrame(GenConEditorFrame):
             return
 
         # Get the JSON
-        j=FindBracketedText(file, "fanac-json", stripHtml=False)[0]
+        j=FindWikiBracketedText(file, "fanac-json", stripHtml=False)[0]
         if j is None or j == "":
             wx.MessageBox("Can't load convention information from conpubs' index.html")
             return
