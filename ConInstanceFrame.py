@@ -17,7 +17,7 @@ from FTP import FTP
 from Settings import Settings
 from Log import Log
 
-from HelpersPackage import SubstituteHTML, FormatLink, FindWikiBracketedText, WikiPagenameToWikiUrlname, RemoveHTTP, ExtensionMatches, PyiResourcePath
+from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, RemoveHTTP, ExtensionMatches, PyiResourcePath
 from WxHelpers import ProgressMessage
 
 
@@ -486,7 +486,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             return  # Just return with the ConInstance page empty
 
         # Get the JSON
-        j=FindWikiBracketedText(file, "fanac-json", stripHtml=False)[0]
+        j=FindBracketedText(file, "fanac-json", stripHtml=False)[0]
         if j is not None and j != "":
             self.FromJson(j)
 
