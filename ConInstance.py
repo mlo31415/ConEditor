@@ -180,36 +180,37 @@ class ConFile:
     # Get or set a value by name or column number in the grid
     def GetVal(self, name: Union[str, int]) -> Union[str, int]:
         # (Could use return eval("self."+name))
-        if name == "Source File Name" or name == 0:
+        if name == 0:
             return self.SourceFilename
-        if name == "Site Name" or name == 1:
+        if name == 1:
             return self.SiteFilename
-        if name == "Display Name" or name == 2:
+        if name == 2:
             return self.DisplayTitle
-        if name == "Pages" or name == 3:
+        if name == 3:
             return self.Pages
-        if name == "Notes" or name == 4:
+        if name == 4:
             return self.Notes
         return "Val can't interpret '"+str(name)+"'"
 
     def SetVal(self, nameOrCol: Union[str, int], val: Union[str, int]) -> None:
         # (Could use return eval("self."+name))
-        if nameOrCol == "Source File Name" or nameOrCol == 0:
+        if nameOrCol == 0:
             self.SourceFilename=val
             return
-        if nameOrCol == "Site Name" or nameOrCol == 1:
+        if nameOrCol == 1:
             self.SiteFilename=val
             return
-        if nameOrCol == "Display Name" or nameOrCol == 2:
+        if nameOrCol == 2:
             self.DisplayTitle=val
             return
-        if nameOrCol == "Pages" or nameOrCol == 3:
+        if nameOrCol == 3:
             self.Pages=val
             return
-        if nameOrCol == "Notes" or nameOrCol == 4:
+        if nameOrCol == 4:
             self.Notes=val
             return
         print("SetVal can't interpret '"+str(nameOrCol)+"'")
+
 
 
 #####################################################################################################
@@ -292,8 +293,7 @@ class ConInstancePage(GridDataSource):
         return len(self._conFileList)
 
     def GetData(self, iRow: int, iCol: int) -> str:
-        r=self.Rows[iRow]
-        return r.GetVal(self.ColHeaders[iCol])
+        return self.Rows[iRow].GetVal(iCol)
 
     @property
     def SpecialTextColor(self) -> Optional[Color]:
