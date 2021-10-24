@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Optional, List, Union, Tuple
+from typing import Optional, Union
 import json
 
 from WxDataGrid import GridDataSource
@@ -119,16 +119,16 @@ class Con:
 ####################################################################################
 class ConSeries(GridDataSource):
     # Fixed information shared by all instances
-    _colheaders: List[str]=["Name", "Dates", "Locale", "GoHs"]
-    _coldatatypes: List[str]=["url", "date range", "str", "str"]
-    _colminwidths: List[int]=[30, 30, 30, 30]
+    _colheaders: list[str]=["Name", "Dates", "Locale", "GoHs"]
+    _coldatatypes: list[str]=["url", "date range", "str", "str"]
+    _colminwidths: list[int]=[30, 30, 30, 30]
     _coleditable=["maybe", "yes", "yes", "yes"]
     _element=Con
 
     def __init__(self):
         GridDataSource.__init__(self)
         self._name: str=""
-        self._series: List[Con]=[]
+        self._series: list[Con]=[]
         self._stuff: str=""
 
     # Serialize and deserialize
@@ -158,19 +158,19 @@ class ConSeries(GridDataSource):
 
     # Inherited from GridDataSource
     @property
-    def ColHeaders(self) -> List[str]:
+    def ColHeaders(self) -> list[str]:
         return ConSeries._colheaders
 
     @property
-    def ColDataTypes(self) -> List[str]:
+    def ColDataTypes(self) -> list[str]:
         return ConSeries._coldatatypes
 
     @property
-    def ColMinWidths(self) -> List[int]:
+    def ColMinWidths(self) -> list[int]:
         return ConSeries._colminwidths
 
     @property
-    def ColEditable(self) -> List[str]:
+    def ColEditable(self) -> list[str]:
         return ConSeries._coleditable
 
 
@@ -186,11 +186,11 @@ class ConSeries(GridDataSource):
         return r.GetVal(iCol)
 
     @property
-    def Rows(self) -> List:
+    def Rows(self) -> list:
         return self._series
 
     @Rows.setter
-    def Rows(self, rows: List) -> None:
+    def Rows(self, rows: list) -> None:
         self._series=rows
 
     def SetDataVal(self, irow: int, icol: int, val: Union[int, str, FanzineDateRange]) -> None:

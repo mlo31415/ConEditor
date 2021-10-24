@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional, List, Union
+from typing import Union
 
 import os
 import sys
@@ -85,15 +85,15 @@ class Convention:
 
 
 class ConList(GridDataSource):
-    _colheaders: List[str]=["Convention Series"]
-    _coldatatypes: List[str]=["url"]
-    _colminwidths: List[int]=[30]
-    _coleditable: List[str]=["no"]
+    _colheaders: list[str]=["Convention Series"]
+    _coldatatypes: list[str]=["url"]
+    _colminwidths: list[int]=[30]
+    _coleditable: list[str]=["no"]
     _element=Convention
 
     def __init__(self):
         GridDataSource.__init__(self)
-        self._conlist: List[Convention]=[]
+        self._conlist: list[Convention]=[]
         self._toptext: str=""
 
     #-----------------------------
@@ -120,19 +120,19 @@ class ConList(GridDataSource):
 
     # -----------------------------
     @property
-    def ColMinWidths(self) -> List[int]:
+    def ColMinWidths(self) -> list[int]:
         return ConList._colminwidths
 
     @property
-    def ColHeaders(self) -> List[str]:
+    def ColHeaders(self) -> list[str]:
         return ConList._colheaders
 
     @property
-    def ColEditable(self) -> List[str]:
+    def ColEditable(self) -> list[str]:
         return ConList._coleditable
 
     @property
-    def ColDataTypes(self) -> List[str]:
+    def ColDataTypes(self) -> list[str]:
         return ConList._coldatatypes
 
     @property
@@ -147,11 +147,11 @@ class ConList(GridDataSource):
         return r.GetVal(iCol)
 
     @property
-    def Rows(self) -> List:
+    def Rows(self) -> list:
         return self._conlist
 
     @Rows.setter
-    def Rows(self, rows: List) -> None:
+    def Rows(self, rows: list) -> None:
         self._conlist=rows
 
     # -----------------------------

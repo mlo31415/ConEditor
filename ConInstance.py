@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List, Union, Optional
+from typing import Union, Optional
 
 from HelpersPackage import Int, RemoveAccents
 
@@ -8,6 +8,7 @@ import json
 import os
 
 # An individual file to be listed under a convention
+# This is a single row
 class ConFile:
     def __init__(self):
         self._displayTitle: str=""      # The name as shown to the world on the website
@@ -171,7 +172,7 @@ class ConFile:
 
     @property
     def URL(self) -> str:
-        return self.SourceFilename
+        return self.URL
     @URL.setter
     def URL(self, val: str) -> None:
         self._URL=val
@@ -224,7 +225,7 @@ class ConInstancePage(GridDataSource):
 
     def __init__(self):
         GridDataSource.__init__(self)
-        self._conFileList: List[ConFile]=[]
+        self._conFileList: list[ConFile]=[]
         self._name: str=""
         self._specialTextColor: Optional[Color, bool]=True
 
@@ -252,27 +253,27 @@ class ConInstancePage(GridDataSource):
 
     # Inherited from GridDataSource
     @property
-    def ColHeaders(self) -> List[str]:
+    def ColHeaders(self) -> list[str]:
         return self._colheaders
 
     @property
-    def ColDataTypes(self) -> List[str]:
+    def ColDataTypes(self) -> list[str]:
         return self._coldatatypes
 
     @property
-    def ColMinWidths(self) -> List[int]:
+    def ColMinWidths(self) -> list[int]:
         return self._colminwidths
 
     @property
-    def ColEditable(self) -> List[str]:
+    def ColEditable(self) -> list[str]:
         return self._coleditable
 
     @property
-    def Rows(self) -> List:
+    def Rows(self) -> list:
         return self._conFileList
 
     @Rows.setter
-    def Rows(self, rows: List) -> None:
+    def Rows(self, rows: list) -> None:
         self._conFileList=rows
 
     def SetDataVal(self, irow: int, icol: int, val: Union[int, str]) -> None:

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Optional
 from datetime import datetime
 
 from ConInstance import ConFile
@@ -33,7 +33,7 @@ class Delta:
 # When two deltas affect the same file, they are usually merged.  (E.g., Add followed by Delete cancels out; Add followed by Rename updates the Add with the new name.)
 class ConInstanceDeltaTracker:
     def __init__(self):
-        self._deltas: List[Delta]=list()
+        self._deltas: list[Delta]=list()
 
     def __str__(self) -> str:
         if self._deltas is None or len(self._deltas) == 0:
@@ -98,7 +98,7 @@ class ConInstanceDeltaTracker:
         return len(self._deltas)
 
     @property
-    def Deltas(self) -> List[Delta]:
+    def Deltas(self) -> list[Delta]:
         return self._deltas
 
 
