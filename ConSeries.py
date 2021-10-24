@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Optional, List, Union, Tuple
 import json
 
-from DataGrid import GridDataSource
+from WxDataGrid import GridDataSource
 from HelpersPackage import RemoveAccents
 from FanzineIssueSpecPackage import FanzineDateRange
 

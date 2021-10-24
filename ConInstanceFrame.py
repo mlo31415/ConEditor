@@ -10,7 +10,7 @@ from datetime import datetime
 from PyPDF4 import PdfFileReader
 
 from GenConInstanceFrame import GenConInstanceFrame
-from DataGrid import DataGrid, Color
+from WxDataGrid import DataGrid, Color
 from ConInstance import ConInstancePage, ConFile
 from ConInstanceDeltaTracker import ConInstanceDeltaTracker, UpdateLog
 from FTP import FTP

@@ -3,7 +3,7 @@ from typing import List, Union, Optional
 
 from HelpersPackage import Int, RemoveAccents
 
-from DataGrid import GridDataSource, Color
+from WxDataGrid import GridDataSource, Color
 import json
 import os
 

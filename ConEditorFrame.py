@@ -10,7 +10,7 @@ import json
 from datetime import datetime
 
 from GenConEditorFrame import GenConEditorFrame
-from DataGrid import DataGrid, GridDataSource
+from WxDataGrid import DataGrid, GridDataSource
 from ConSeriesFrame import ConSeriesFrame
 from ConInstanceDeltaTracker import UpdateLog
 from FTP import FTP
