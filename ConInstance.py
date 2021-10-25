@@ -172,7 +172,7 @@ class ConFile(GridDataElement):
 
     @property
     def URL(self) -> str:
-        return self.URL
+        return self._URL
     @URL.setter
     def URL(self, val: str) -> None:
         self._URL=val
