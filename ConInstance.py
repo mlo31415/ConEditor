@@ -3,13 +3,13 @@ from typing import Union, Optional
 
 from HelpersPackage import Int, RemoveAccents
 
-from WxDataGrid import GridDataSource, Color
+from WxDataGrid import GridDataSource, Color, GridDataElement
 import json
 import os
 
 # An individual file to be listed under a convention
 # This is a single row
-class ConFile:
+class ConFile(GridDataElement):
     def __init__(self):
         self._displayTitle: str=""      # The name as shown to the world on the website
         self._notes: str=""             # The free-format description
