@@ -123,12 +123,12 @@ class ConSeries(GridDataSource):
     _coldatatypes: list[str]=["url", "date range", "str", "str"]
     _colminwidths: list[int]=[30, 30, 30, 30]
     _coleditable=["maybe", "yes", "yes", "yes"]
-    _element=Con
 
     def __init__(self):
         GridDataSource.__init__(self)
-        self._name: str=""
+        self._element=Con
         self._series: list[Con]=[]
+        self._name: str=""
         self._stuff: str=""
 
     # Serialize and deserialize

@@ -222,10 +222,10 @@ class ConInstancePage(GridDataSource):
     _colminwidths=[100, 75, 75, 50, 150]
     _coldatatypes=["str", "str", "str", "int", "str"]
     _coleditable=["maybe", "yes", "yes", "maybe", "yes"]        # Choices are: yes, no, maybe
-    _element=ConFile
 
     def __init__(self):
         GridDataSource.__init__(self)
+        self._element=ConFile
         self._conFileList: list[ConFile]=[]
         self._name: str=""
         self._specialTextColor: Optional[Color, bool]=True

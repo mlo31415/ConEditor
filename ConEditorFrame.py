@@ -89,10 +89,10 @@ class ConList(GridDataSource):
     _coldatatypes: list[str]=["url"]
     _colminwidths: list[int]=[30]
     _coleditable: list[str]=["no"]
-    _element=Convention
 
     def __init__(self):
         GridDataSource.__init__(self)
+        self._element=Convention
         self._conlist: list[Convention]=[]
         self._toptext: str=""
 
