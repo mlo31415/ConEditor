@@ -441,6 +441,9 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             elif delta.Verb == "rename":
                 ProgressMessage(self).Show("Renaming "+delta.Oldname+ " to "+delta.Con.SiteFilename)
                 Log("delta-RENAME: "+delta.Oldname+" to "+delta.Con.SiteFilename)
+                if len(delta.Oldname.strip()) == 0:
+                    Log("***Renaming an blank name can't be right! Ignored",isError=True)
+                    continue
                 FTP().Rename(delta.Oldname, delta.Con.SiteFilename)
             elif delta.Verb == "delete":
                 if not delta.Con.IsText and not delta.Con.IsLink:
