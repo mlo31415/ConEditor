@@ -10,7 +10,7 @@ import json
 from datetime import datetime
 
 from GenConEditorFrame import GenConEditorFrame
-from WxDataGrid import DataGrid, GridDataSource, GridDataElement
+from WxDataGrid import DataGrid, GridDataSource, GridDataElement, ColDefinition
 from ConSeriesFrame import ConSeriesFrame
 from ConInstanceDeltaTracker import UpdateLog
 from FTP import FTP
@@ -85,10 +85,7 @@ class Convention(GridDataElement):
 
 
 class ConList(GridDataSource):
-    _colheaders: list[str]=["Convention Series"]
-    _coldatatypes: list[str]=["url"]
-    _colminwidths: list[int]=[30]
-    _coleditable: list[str]=["no"]
+    _colDefs: list[ColDefinition]=[ColDefinition("Convention Series", Type="url", IsEditable="no")]
 
     def __init__(self):
         GridDataSource.__init__(self)
@@ -118,22 +115,11 @@ class ConList(GridDataSource):
             i+=1
         return self
 
-    # -----------------------------
-    @property
-    def ColMinWidths(self) -> list[int]:
-        return ConList._colminwidths
 
     @property
-    def ColHeaders(self) -> list[str]:
-        return ConList._colheaders
+    def ColDefs(self) -> list[ColDefinition]:
+        return self._colDefs
 
-    @property
-    def ColEditable(self) -> list[str]:
-        return ConList._coleditable
-
-    @property
-    def ColDataTypes(self) -> list[str]:
-        return ConList._coldatatypes
 
     @property
     def NumRows(self) -> int:
@@ -141,10 +127,8 @@ class ConList(GridDataSource):
 
     def GetData(self, iRow: int, iCol: int) -> str:
         if iRow == -1:  # Handle logical coordinate of column headers
-            return self._colheaders[iCol]
-
-        r=self.Rows[iRow]
-        return r.GetVal(iCol)
+            return self.ColDefs[iCol].Name
+        return self.Rows[iRow].GetVal(iCol)
 
     @property
     def Rows(self) -> list:

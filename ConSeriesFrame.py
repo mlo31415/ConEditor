@@ -14,7 +14,7 @@ from GenConSeriesFrame import GenConSeriesFrame
 from FTP import FTP
 from ConInstanceDeltaTracker import UpdateLog
 from ConSeries import ConSeries, Con
-from WxDataGrid import DataGrid
+from WxDataGrid import DataGrid, ColDefinition
 from ConInstanceFrame import ConInstanceDialogClass
 from Settings import Settings
 

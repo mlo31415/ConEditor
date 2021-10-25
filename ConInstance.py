@@ -3,7 +3,7 @@ from typing import Union, Optional
 
 from HelpersPackage import Int, RemoveAccents
 
-from WxDataGrid import GridDataSource, Color, GridDataElement
+from WxDataGrid import GridDataSource, Color, GridDataElement, ColDefinition
 import json
 import os
 
@@ -217,11 +217,13 @@ class ConFile(GridDataElement):
 #####################################################################################################
 
 class ConInstancePage(GridDataSource):
-    # an array of tuples: column header, min col width, col type
-    _colheaders=["Source File Name", "Site Name", "Display Name", "Pages", "Notes"]     # "Display Name" is special: change carefully
-    _colminwidths=[100, 75, 75, 50, 150]
-    _coldatatypes=["str", "str", "str", "int", "str"]
-    _coleditable=["maybe", "yes", "yes", "maybe", "yes"]        # Choices are: yes, no, maybe
+    _colDefs: list[ColDefinition]=[
+        ColDefinition("Source File Name", Width=100, IsEditable="maybe"),
+        ColDefinition("Site Name", Width=75),
+        ColDefinition("Display Name", Width=75),
+        ColDefinition("Pages", Type="int", IsEditable="maybe"),
+        ColDefinition("Notes", Width=150)
+    ]
 
     def __init__(self):
         GridDataSource.__init__(self)
@@ -251,24 +253,6 @@ class ConInstancePage(GridDataSource):
 
         return self
 
-
-    # Inherited from GridDataSource
-    @property
-    def ColHeaders(self) -> list[str]:
-        return self._colheaders
-
-    @property
-    def ColDataTypes(self) -> list[str]:
-        return self._coldatatypes
-
-    @property
-    def ColMinWidths(self) -> list[int]:
-        return self._colminwidths
-
-    @property
-    def ColEditable(self) -> list[str]:
-        return self._coleditable
-
     @property
     def Rows(self) -> list:
         return self._conFileList
@@ -279,6 +263,10 @@ class ConInstancePage(GridDataSource):
 
     def SetDataVal(self, irow: int, icol: int, val: Union[int, str]) -> None:
         self._conFileList[irow].SetVal(icol, val)
+
+    @property
+    def ColDefs(self) -> list[ColDefinition]:
+        return self._colDefs
 
     @property
     def Name(self) -> str:

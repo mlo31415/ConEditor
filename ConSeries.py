@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Optional, Union
 import json
 
-from WxDataGrid import GridDataSource, GridDataElement
+from WxDataGrid import GridDataSource, GridDataElement, ColDefinition
 from HelpersPackage import RemoveAccents
 from FanzineIssueSpecPackage import FanzineDateRange
 
@@ -119,10 +119,12 @@ class Con(GridDataElement):
 ####################################################################################
 class ConSeries(GridDataSource):
     # Fixed information shared by all instances
-    _colheaders: list[str]=["Name", "Dates", "Locale", "GoHs"]
-    _coldatatypes: list[str]=["url", "date range", "str", "str"]
-    _colminwidths: list[int]=[30, 30, 30, 30]
-    _coleditable=["maybe", "yes", "yes", "yes"]
+    _colDefs: list[ColDefinition]=[
+        ColDefinition("Name", Type="url", Width=30, IsEditable="maybe"),
+        ColDefinition("Dates", Type="date range", Width=30),
+        ColDefinition("Locale", Width=30),
+        ColDefinition("GoHs", Width=30),
+    ]
 
     def __init__(self):
         GridDataSource.__init__(self)
@@ -134,10 +136,10 @@ class ConSeries(GridDataSource):
     # Serialize and deserialize
     def ToJson(self) -> str:
         d={"ver": 3,
-           "_colheaders": self._colheaders,
-           "_coldatatypes": self._coldatatypes,
-           "_colminwidths": self._colminwidths,
-           "_coleditable": self._coleditable,
+           "_colheaders": [x.Name for x in self.ColDefs],
+           "_coldatatypes": [x.Type for x in self.ColDefs],
+           "_colminwidths": [x.Width for x in self.ColDefs],
+           "_coleditable": [x.IsEditable for x in self.ColDefs],
            "_name": self._name,
            "_stuff": self._stuff}
         for i, s in enumerate(self._series):
@@ -156,24 +158,6 @@ class ConSeries(GridDataSource):
 
         return self
 
-    # Inherited from GridDataSource
-    @property
-    def ColHeaders(self) -> list[str]:
-        return ConSeries._colheaders
-
-    @property
-    def ColDataTypes(self) -> list[str]:
-        return ConSeries._coldatatypes
-
-    @property
-    def ColMinWidths(self) -> list[int]:
-        return ConSeries._colminwidths
-
-    @property
-    def ColEditable(self) -> list[str]:
-        return ConSeries._coleditable
-
-
     @property
     def NumRows(self) -> int:
         return len(self._series)
@@ -181,9 +165,7 @@ class ConSeries(GridDataSource):
     def GetData(self, iRow: int, iCol: int) -> str:
         if iRow == -1:  # Handle logical coordinate of column headers
             return self.ColHeaders[iCol]
-
-        r=self.Rows[iRow]
-        return r.GetVal(iCol)
+        return self.Rows[iRow].GetVal(iCol)
 
     @property
     def Rows(self) -> list:
@@ -199,6 +181,10 @@ class ConSeries(GridDataSource):
             if val.IsEmpty():
                 return
         self._series[irow].SetVal(icol, val)
+
+    @property
+    def ColDefs(self) -> list[ColDefinition]:
+        return self._colDefs
 
     #------------
     @property
