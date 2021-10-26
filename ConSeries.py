@@ -135,11 +135,11 @@ class ConSeries(GridDataSource):
 
     # Serialize and deserialize
     def ToJson(self) -> str:
-        d={"ver": 3,
-           "_colheaders": [x.Name for x in self.ColDefs],
-           "_coldatatypes": [x.Type for x in self.ColDefs],
-           "_colminwidths": [x.Width for x in self.ColDefs],
-           "_coleditable": [x.IsEditable for x in self.ColDefs],
+        d={"ver": 4,
+           # "_colheaders": [x.Name for x in self.ColDefs],
+           # "_coldatatypes": [x.Type for x in self.ColDefs],
+           # "_colminwidths": [x.Width for x in self.ColDefs],
+           # "_coleditable": [x.IsEditable for x in self.ColDefs],
            "_name": self._name,
            "_stuff": self._stuff}
         for i, s in enumerate(self._series):
