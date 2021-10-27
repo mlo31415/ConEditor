@@ -638,7 +638,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                 if len(self._grid.Datasource.Rows[irow].URL) > 0:   # Only if there's a link in the cell
                     self.m_popupUnlink.Enabled=True
 
-        if icol < len(self._grid.Datasource.ColEditable) and self._grid.Datasource.ColEditable[icol] == "maybe":
+        if icol < len(self._grid.Datasource.ColDefs) and self._grid.Datasource.ColDefs[icol].IsEditable == "maybe":
             self.m_popupAllowEditCell.Enabled=True
 
         if irow < self._grid.Datasource.NumRows and self._grid.Datasource.Rows[irow].URL is not None and self._grid.Datasource.Rows[irow].URL != "":

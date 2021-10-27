@@ -512,7 +512,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         if event.GetRow() < self._grid.Datasource.NumRows:
             self.m_popupDeleteRow.Enabled=True
 
-        if self._grid.Datasource.ColEditable[self._grid.clickedColumn] == "maybe":
+        if self._grid.Datasource.ColDefs[self._grid.clickedColumn].IsEditable == "maybe":
             self.m_popupAllowEditCell.Enabled=True
 
         if self._grid.clickedColumn == 0 and self._grid.clickedRow < self._grid.NumRows:
