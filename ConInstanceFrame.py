@@ -503,7 +503,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
     # ------------------
     def OnGridCellRightClick(self, event):
-        self._grid.OnGridCellRightClick(event, self.m_menuPopup)
+        self._grid.OnGridCellRightClick(event, self.m_GridPopup)
 
         self.m_popupAddFiles.Enabled=True
         self.m_popupInsertText.Enabled=True
@@ -519,7 +519,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             if self._grid.clickedRow < self._grid.Datasource.NumRows and not self._grid.Datasource.Rows[self._grid.clickedRow].IsText and not self._grid.Datasource.Rows[self._grid.clickedRow].IsLink:
                 self.m_popupUpdateFile.Enabled=True
 
-        self.PopupMenu(self.m_menuPopup, pos=self.gRowGrid.Position+event.Position)
+        self.PopupMenu(self.m_GridPopup, pos=self.gRowGrid.Position+event.Position)
 
     # -------------------
     def OnKeyDown(self, event):

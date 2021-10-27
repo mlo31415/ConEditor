@@ -625,7 +625,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
     #------------------
     def OnGridCellRightClick(self, event):                    # MainConSeriesFrame
-        self._grid.OnGridCellRightClick(event, self.m_menuPopup)  # Set enabled state of default items; set all others to False
+        self._grid.OnGridCellRightClick(event, self.m_GridPopup)  # Set enabled state of default items; set all others to False
 
         icol=self._grid.clickedColumn
         irow=self._grid.clickedRow
@@ -644,7 +644,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         if irow < self._grid.Datasource.NumRows and self._grid.Datasource.Rows[irow].URL is not None and self._grid.Datasource.Rows[irow].URL != "":
             self.m_popupChangeConSeries.Enabled=True    # Enable only for rows that exist and point to a con instance
 
-        self.PopupMenu(self.m_menuPopup)
+        self.PopupMenu(self.m_GridPopup)
 
     # ------------------
     def OnGridCellDoubleClick(self, event):                    # MainConSeriesFrame

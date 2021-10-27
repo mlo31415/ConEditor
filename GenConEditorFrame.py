@@ -92,24 +92,24 @@ class GenConEditorFrame ( wx.Frame ):
 
 		self.SetSizer( bSizer8 )
 		self.Layout()
-		self.m_menuPopupConEditor = wx.Menu()
-		self.m_popupItemCopy = wx.MenuItem( self.m_menuPopupConEditor, wx.ID_ANY, u"Copy", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menuPopupConEditor.Append( self.m_popupItemCopy )
+		self.m_GridPopup = wx.Menu()
+		self.m_popupItemCopy = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Copy", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_GridPopup.Append( self.m_popupItemCopy )
 
-		self.m_popupItemPaste = wx.MenuItem( self.m_menuPopupConEditor, wx.ID_ANY, u"Paste", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menuPopupConEditor.Append( self.m_popupItemPaste )
+		self.m_popupItemPaste = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Paste", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_GridPopup.Append( self.m_popupItemPaste )
 
-		self.m_popupItemInsert = wx.MenuItem( self.m_menuPopupConEditor, wx.ID_ANY, u"Insert Convention Series", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menuPopupConEditor.Append( self.m_popupItemInsert )
+		self.m_popupItemInsert = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Insert Convention Series", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_GridPopup.Append( self.m_popupItemInsert )
 
-		self.m_popupItemDelete = wx.MenuItem( self.m_menuPopupConEditor, wx.ID_ANY, u"Delete Convention Series", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menuPopupConEditor.Append( self.m_popupItemDelete )
+		self.m_popupItemDelete = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Delete Convention Series", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_GridPopup.Append( self.m_popupItemDelete )
 
-		self.m_popupItemEdit = wx.MenuItem( self.m_menuPopupConEditor, wx.ID_ANY, u"Edit Convention Series", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menuPopupConEditor.Append( self.m_popupItemEdit )
+		self.m_popupItemEdit = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Edit Convention Series", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_GridPopup.Append( self.m_popupItemEdit )
 
-		self.m_popupRename = wx.MenuItem( self.m_menuPopupConEditor, wx.ID_ANY, u"Rename Convention Series", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menuPopupConEditor.Append( self.m_popupRename )
+		self.m_popupRename = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Rename Convention Series", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_GridPopup.Append( self.m_popupRename )
 
 		self.Bind( wx.EVT_RIGHT_DOWN, self.GenConEditorFrameOnContextMenu )
 
@@ -196,6 +196,6 @@ class GenConEditorFrame ( wx.Frame ):
 		event.Skip()
 
 	def GenConEditorFrameOnContextMenu( self, event ):
-		self.PopupMenu( self.m_menuPopupConEditor, event.GetPosition() )
+		self.PopupMenu( self.m_GridPopup, event.GetPosition() )
 
 

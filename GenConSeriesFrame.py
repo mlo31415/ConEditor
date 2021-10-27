@@ -91,7 +91,7 @@ class GenConSeriesFrame ( wx.Dialog ):
 
 		fgSizerComments = wx.FlexGridSizer( 1, 2, 0, 0 )
 		fgSizerComments.AddGrowableCol( 1 )
-		fgSizerComments.AddGrowableRow( 0 )			# wxFormBuilder has a bug which sets this to 1
+		fgSizerComments.AddGrowableRow( 0 )	        # wxFormBuilder has a bug which sets this to 1
 		fgSizerComments.SetFlexibleDirection( wx.BOTH )
 		fgSizerComments.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
@@ -163,30 +163,30 @@ class GenConSeriesFrame ( wx.Dialog ):
 
 		self.SetSizer( bSizerMainBox )
 		self.Layout()
-		self.m_menuPopup = wx.Menu()
-		self.m_popupCopy = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Copy", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menuPopup.Append( self.m_popupCopy )
+		self.m_GridPopup = wx.Menu()
+		self.m_popupCopy = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Copy", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_GridPopup.Append( self.m_popupCopy )
 
-		self.m_popupPaste = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Paste", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menuPopup.Append( self.m_popupPaste )
+		self.m_popupPaste = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Paste", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_GridPopup.Append( self.m_popupPaste )
 
-		self.m_popupCreateNewConPage = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Create New Convention Page", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menuPopup.Append( self.m_popupCreateNewConPage )
+		self.m_popupCreateNewConPage = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Create New Convention Page", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_GridPopup.Append( self.m_popupCreateNewConPage )
 
-		self.m_popupDeleteConPage = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Delete Convention Page", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menuPopup.Append( self.m_popupDeleteConPage )
+		self.m_popupDeleteConPage = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Delete Convention Page", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_GridPopup.Append( self.m_popupDeleteConPage )
 
-		self.m_popupEditConPage = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Edit Convention Page", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menuPopup.Append( self.m_popupEditConPage )
+		self.m_popupEditConPage = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Edit Convention Page", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_GridPopup.Append( self.m_popupEditConPage )
 
-		self.m_popupAllowEditCell = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Allow Cell Edit", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menuPopup.Append( self.m_popupAllowEditCell )
+		self.m_popupAllowEditCell = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Allow Cell Edit", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_GridPopup.Append( self.m_popupAllowEditCell )
 
-		self.m_popupUnlink = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Unlink", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menuPopup.Append( self.m_popupUnlink )
+		self.m_popupUnlink = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Unlink", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_GridPopup.Append( self.m_popupUnlink )
 
-		self.m_popupChangeConSeries = wx.MenuItem( self.m_menuPopup, wx.ID_ANY, u"Change Convention Series", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menuPopup.Append( self.m_popupChangeConSeries )
+		self.m_popupChangeConSeries = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Change Convention Series", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_GridPopup.Append( self.m_popupChangeConSeries )
 
 		self.Bind( wx.EVT_RIGHT_DOWN, self.GenConSeriesFrameOnContextMenu )
 
@@ -294,6 +294,6 @@ class GenConSeriesFrame ( wx.Dialog ):
 		self.gRowGrid.PopupMenu( self.m_menu1, event.GetPosition() )
 
 	def GenConSeriesFrameOnContextMenu( self, event ):
-		self.PopupMenu( self.m_menuPopup, event.GetPosition() )
+		self.PopupMenu( self.m_GridPopup, event.GetPosition() )
 
 
