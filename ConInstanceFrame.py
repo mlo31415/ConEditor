@@ -660,7 +660,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
     #------------------
     def RefreshWindow(self) -> None:
-        self._grid.RefreshGridFromData()
+        self._grid.RefreshGridFromDatasource()
         s=self.Title
         if s.endswith(" *"):
             s=s[:-2]
