@@ -118,16 +118,15 @@ class Con(GridDataElement):
 
 ####################################################################################
 class ConSeries(GridDataSource):
-    # Fixed information shared by all instances
-    _colDefs: list[ColDefinition]=[
-        ColDefinition("Name", Type="url", Width=30, IsEditable="maybe"),
-        ColDefinition("Dates", Type="date range", Width=30),
-        ColDefinition("Locale", Width=30),
-        ColDefinition("GoHs", Width=30),
-    ]
 
     def __init__(self):
         GridDataSource.__init__(self)
+        self._colDefs: list[ColDefinition]=[
+            ColDefinition("Name", Type="url", Width=30, IsEditable="maybe"),
+            ColDefinition("Dates", Type="date range", Width=30),
+            ColDefinition("Locale", Width=30),
+            ColDefinition("GoHs", Width=30),
+        ]
         self._element=Con
         self._series: list[Con]=[]
         self._name: str=""

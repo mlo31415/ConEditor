@@ -85,17 +85,20 @@ class Convention(GridDataElement):
 
 
 class ConList(GridDataSource):
-    _colDefs: list[ColDefinition]=[ColDefinition("Convention Series", Type="url", IsEditable="no")]
 
     def __init__(self):
         GridDataSource.__init__(self)
+        self._colDefs: list[ColDefinition]=[ColDefinition("Convention Series", Type="url", IsEditable="no")]
         self._element=Convention
         self._conlist: list[Convention]=[]
         self._toptext: str=""
 
     #-----------------------------
     def Signature(self) -> int:
-        return hash(self._toptext.strip())+GridDataSource().Signature()
+        sig=0
+        for row in self.Rows:
+            sig+=row.__hash__()
+        return hash(self._toptext.strip())+sig
 
     # -----------------------------
     # Serialize and deserialize
@@ -170,7 +173,6 @@ class ConEditorFrame(GenConEditorFrame):
         self.Load()
         self.MarkAsSaved()
         self.Show()
-
 
     # ----------------------------------------------
     # Used to determine if anything has been updated

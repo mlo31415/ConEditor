@@ -217,16 +217,16 @@ class ConFile(GridDataElement):
 #####################################################################################################
 
 class ConInstancePage(GridDataSource):
-    _colDefs: list[ColDefinition]=[
-        ColDefinition("Source File Name", Width=100, IsEditable="maybe"),
-        ColDefinition("Site Name", Width=75),
-        ColDefinition("Display Name", Width=75),
-        ColDefinition("Pages", Type="int", IsEditable="maybe"),
-        ColDefinition("Notes", Width=150)
-    ]
 
     def __init__(self):
         GridDataSource.__init__(self)
+        self._colDefs: list[ColDefinition]=[
+            ColDefinition("Source File Name", Width=100, IsEditable="maybe"),
+            ColDefinition("Site Name", Width=75),
+            ColDefinition("Display Name", Width=75),
+            ColDefinition("Pages", Type="int", IsEditable="maybe"),
+            ColDefinition("Notes", Width=150)
+        ]
         self._element=ConFile
         self._conFileList: list[ConFile]=[]
         self._name: str=""
