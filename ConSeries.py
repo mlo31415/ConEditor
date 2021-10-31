@@ -2,13 +2,13 @@ from __future__ import annotations
 from typing import Optional, Union
 import json
 
-from WxDataGrid import GridDataSource, GridDataElement, ColDefinition
+from WxDataGrid import GridDataSource, GridDataRowClass, ColDefinition
 from HelpersPackage import RemoveAccents
 from FanzineIssueSpecPackage import FanzineDateRange
 
 
 ####################################################################################
-class Con(GridDataElement):
+class Con(GridDataRowClass):
     def __init__(self):
         self._name: str=""                  # Name including number designation
         self._locale: str=""                # Name of locale where the con was held

@@ -10,7 +10,7 @@ import json
 from datetime import datetime
 
 from GenConEditorFrame import GenConEditorFrame
-from WxDataGrid import DataGrid, GridDataSource, GridDataElement, ColDefinition
+from WxDataGrid import DataGrid, GridDataSource, GridDataRowClass, ColDefinition
 from ConSeriesFrame import ConSeriesFrame
 from ConInstanceDeltaTracker import UpdateLog
 from FTP import FTP
@@ -22,7 +22,7 @@ from WxHelpers import ModalDialogManager
 from Log import LogOpen, Log, LogFlush
 
 
-class Convention(GridDataElement):
+class Convention(GridDataRowClass):
     def __init__(self):
         self._name: str=""      # The name of the convention series
         self._URL: str=""       # The location of the convention series html page relative to the main cons page; empty if no series page exists yet
@@ -89,7 +89,7 @@ class ConList(GridDataSource):
     def __init__(self):
         GridDataSource.__init__(self)
         self._colDefs: list[ColDefinition]=[ColDefinition("Convention Series", Type="url", IsEditable="no")]
-        self._element=Convention
+        self._gridDataRowClass=Convention
         self._conlist: list[Convention]=[]
         self._toptext: str=""
 
