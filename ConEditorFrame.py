@@ -280,7 +280,7 @@ class ConEditorFrame(GenConEditorFrame):
 
     #------------------
     def RefreshWindow(self) -> None:
-        self._grid.RefreshGridFromDatasource()
+        self._grid.RefreshWxGridFromDatasource()
         s=self.Title
         if s.endswith(" *"):
             s=s[:-2]
