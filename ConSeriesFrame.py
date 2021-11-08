@@ -35,10 +35,10 @@ class ConSeriesFrame(GenConSeriesFrame):
         self._conserieslist=conserieslist
 
         # Set up the grid
-        self._grid: DataGrid=DataGrid(self.gRowGrid)
-        self._grid.Datasource=ConSeries()
+        self._datagrid: DataGrid=DataGrid(self.gRowGrid)
+        self._datagrid.Datasource=ConSeries()
 
-        self._grid.HideRowLabels()
+        self._datagrid.HideRowLabels()
 
         if len(conseriesname) == 0:
             dlg=wx.TextEntryDialog(None, "Please enter the name of the Convention Series you wish to create.", "Enter Convention Series name")
@@ -69,7 +69,7 @@ class ConSeriesFrame(GenConSeriesFrame):
     # Used to determine if anything has been updated
     def Signature(self) -> int:
         stuff=self.Seriesname.strip()+self.TextFancyURL.strip()+self.TextComments.strip()+self._basedirectoryFTP.strip()
-        return hash(stuff)+self._grid.Signature()
+        return hash(stuff)+self._datagrid.Signature()
 
     def MarkAsSaved(self):
         self._signature=self.Signature()
@@ -84,7 +84,7 @@ class ConSeriesFrame(GenConSeriesFrame):
            "_textConSeries": self.Seriesname,
            "_textFancyURL": self.TextFancyURL,
            "_textComments": self.TextComments,
-           "_datasource": self._grid.Datasource.ToJson()}
+           "_datasource": self._datagrid.Datasource.ToJson()}
         return json.dumps(d)
 
     def FromJson(self, val: str) -> ConSeriesFrame:                    # MainConSeriesFrame
@@ -93,7 +93,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             self.Seriesname=RemoveAccents(d["_textConSeries"])
             self.TextFancyURL=RemoveAccents(d["_textFancyURL"])
             self.TextComments=d["_textComments"]
-            self._grid.Datasource=ConSeries().FromJson(d["_datasource"])
+            self._datagrid.Datasource=ConSeries().FromJson(d["_datasource"])
         return self
 
     @property
@@ -123,7 +123,7 @@ class ConSeriesFrame(GenConSeriesFrame):
     def DownloadConSeries(self, seriesname) -> bool:                    # MainConSeriesFrame
 
         # Clear out any old information
-        self._grid.Datasource=ConSeries()
+        self._datagrid.Datasource=ConSeries()
 
         if seriesname is None or len(seriesname) == 0:
             # Nothing to load. Just return.
@@ -164,7 +164,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         if self.TextFancyURL is None or len(self.TextFancyURL) == 0:
             self.TextFancyURL="fancyclopedia.org/"+WikiPagenameToWikiUrlname(seriesname)
 
-        self._grid.MakeTextLinesEditable()
+        self._datagrid.MakeTextLinesEditable()
         self.RefreshWindow()
         ProgressMessage(self).Show(self.Seriesname+" Loaded", close=True, delay=0.5)
         return True
@@ -184,12 +184,12 @@ class ConSeriesFrame(GenConSeriesFrame):
         # Delete any trailing blank rows.  (Blank rows anywhere are as error, but we only silently drop trailing blank rows.)
         # Find the last non-blank row.
         last=None
-        for i, row in enumerate(self._grid.Datasource.Rows):
+        for i, row in enumerate(self._datagrid.Datasource.Rows):
             if len((row.GoHs+row.Locale+row.Name+row.URL).strip()) > 0 or not row.Dates.IsEmpty:
                 last=i
         # Delete the row or rows following it
-        if last is not None and last < self._grid.Datasource.NumRows-1:
-            del self._grid.Datasource.Rows[last+1:]
+        if last is not None and last < self._datagrid.Datasource.NumRows-1:
+            del self._datagrid.Datasource.Rows[last+1:]
 
         # Determine if we're missing 100% of the data for the Dates, Location, or GoH columns so we can drop them from the listing
 
@@ -203,9 +203,9 @@ class ConSeriesFrame(GenConSeriesFrame):
         file=SubstituteHTML(file, "fanac-headertext", self.TextComments)
 
         showempty=self.m_radioBoxShowEmpty.GetSelection() == 0  # Radio button: Show Empty cons?
-        hasdates=len([d.Dates for d in self._grid.Datasource.Rows if d.Dates is not None and not d.Dates.IsEmpty()]) > 0
-        haslocations=len([d.Locale for d in self._grid.Datasource.Rows if d.Locale is not None and len(d.Locale) > 0]) > 0
-        hasgohs=len([d.GoHs for d in self._grid.Datasource.Rows if d.GoHs is not None and len(d.GoHs) > 0]) > 0
+        hasdates=len([d.Dates for d in self._datagrid.Datasource.Rows if d.Dates is not None and not d.Dates.IsEmpty()]) > 0
+        haslocations=len([d.Locale for d in self._datagrid.Datasource.Rows if d.Locale is not None and len(d.Locale) > 0]) > 0
+        hasgohs=len([d.GoHs for d in self._datagrid.Datasource.Rows if d.GoHs is not None and len(d.GoHs) > 0]) > 0
 
         # Now construct the table which we'll then substitute.
         newtable='<table class="table" id="conseriestable">\n'
@@ -221,7 +221,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         newtable+='    </tr>\n'
         newtable+='  </thead>\n'
         newtable+='  <tbody>\n'
-        for row in self._grid.Datasource.Rows:
+        for row in self._datagrid.Datasource.Rows:
             if (row.URL is None or row.URL == "") and not showempty:    # Skip empty cons?
                 continue
             newtable+="    <tr>\n"
@@ -371,7 +371,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             if ngoh is not None:
                 con.GoHs=row[ngoh]
 
-            self._grid.Datasource.Rows.append(con)
+            self._datagrid.Datasource.Rows.append(con)
         self.Seriesname=name
         self._fancydownloadfailed=False
         self.RefreshWindow()
@@ -387,8 +387,8 @@ class ConSeriesFrame(GenConSeriesFrame):
         self.Seriesname=seriesname
 
         ProgressMessage(self).Show("Loading "+self.Seriesname+" from Fancyclopedia 3")
-        self._grid.Datasource=ConSeries()
-        self._grid.Datasource.Name=self.Seriesname
+        self._datagrid.Datasource=ConSeries()
+        self._datagrid.Datasource.Name=self.Seriesname
 
         ret=self.FetchConSeriesFromFancy(self.Seriesname)
         if not ret:
@@ -400,7 +400,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
     #------------------
     def RefreshWindow(self) -> None:
-        self._grid.RefreshWxGridFromDatasource()
+        self._datagrid.RefreshWxGridFromDatasource()
         s=self.Title
         if s.endswith(" *"):
             s=s[:-2]
@@ -408,43 +408,43 @@ class ConSeriesFrame(GenConSeriesFrame):
             s=s+" *"
         self.Title=s
         self.bUploadConSeries.Enabled=len(self.Seriesname) > 0
-        self.bLoadSeriesFromFancy .Enabled=self._grid.Datasource.NumRows == 0  # If any con instances have been created, don't offer a download from Fancy
+        self.bLoadSeriesFromFancy .Enabled=self._datagrid.Datasource.NumRows == 0  # If any con instances have been created, don't offer a download from Fancy
 
 
     #------------------
     def OnPopupCreateNewConPage(self, event):                    # MainConSeriesFrame
-        irow=self._grid.clickedRow
-        self._grid.InsertEmptyRows(irow, 1)
+        irow=self._datagrid.clickedRow
+        self._datagrid.InsertEmptyRows(irow, 1)
         self.EditConInstancePage("", irow)
         self.RefreshWindow()
 
     #------------------
     def OnPopupEditConPage(self, event):                    # MainConSeriesFrame
-        irow=self._grid.clickedRow
+        irow=self._datagrid.clickedRow
         # If the RMB is a click on a convention instance name, we edit that name
-        if "Name" in self._grid.Datasource.ColHeaders:
-            col=self._grid.Datasource.ColHeaders.index("Name")
-            name=self._grid.Datasource.GetData(irow, col)
+        if "Name" in self._datagrid.Datasource.ColHeaders:
+            col=self._datagrid.Datasource.ColHeaders.index("Name")
+            name=self._datagrid.Datasource[irow][col]
             self.EditConInstancePage(name, irow)
-            self._grid.Grid.SelectBlock(irow, col, irow, col)
+            self._datagrid.Grid.SelectBlock(irow, col, irow, col)
             self.RefreshWindow()
 
 
     #------------------
     def OnPopupAllowEditCell(self, event):
         # Append a (row, col) tuple. This only lives for the life of this instance.
-        self._grid.AllowCellEdit(self._grid.clickedRow, self._grid.clickedColumn)
+        self._datagrid.AllowCellEdit(self._datagrid.clickedRow, self._datagrid.clickedColumn)
         self.RefreshWindow()
 
     # ------------------
     def OnPopupUnlink(self, event):
-        self._grid.Datasource.Rows[self._grid.clickedRow].URL=""
+        self._datagrid.Datasource.Rows[self._datagrid.clickedRow].URL=""
         self.RefreshWindow()
 
 
     # ------------------
     def OnGridEditorShown(self, event):
-        self._grid.OnGridEditorShown(event)
+        self._datagrid.OnGridEditorShown(event)
 
 
     #------------------
@@ -455,8 +455,8 @@ class ConSeriesFrame(GenConSeriesFrame):
                 return
             instancename=dlg.GetValue()
 
-        if irow >= self._grid.NumRows:
-            self._grid.ExpandDataSourceToInclude(irow, 0)   # Add rows if needed
+        if irow >= self._datagrid.NumRows:
+            self._datagrid.ExpandDataSourceToInclude(irow, 0)   # Add rows if needed
 
 
         with ModalDialogManager(ConInstanceDialogClass, self._basedirectoryFTP+"/"+self.Seriesname, self.Seriesname, instancename) as dlg:
@@ -464,8 +464,8 @@ class ConSeriesFrame(GenConSeriesFrame):
 
 
             # Construct a description of the convention from the information in the con series entry, if any.
-            if irow < self._grid.Datasource.NumRows and len(dlg.ConInstanceTopText.strip()) == 0:
-                row=self._grid.Datasource.Rows[irow]
+            if irow < self._datagrid.Datasource.NumRows and len(dlg.ConInstanceTopText.strip()) == 0:
+                row=self._datagrid.Datasource.Rows[irow]
                 dates=None
                 if row.Dates is not None and not row.Dates.IsEmpty():
                     dates=str(row.Dates)
@@ -493,28 +493,28 @@ class ConSeriesFrame(GenConSeriesFrame):
             dlg.MarkAsSaved()
             dlg.RefreshWindow()
             if dlg.ShowModal() == wx.ID_OK:
-                if self._grid.Datasource.NumRows <= irow:
-                    for i in range(irow-self._grid.Datasource.NumRows+1):
-                        self._grid.Datasource.Rows.append(Con())
-                self._grid.Datasource.Rows[irow].Name=dlg.ConInstanceName
-                self._grid.Datasource.Rows[irow].URL=dlg.ConInstanceName
+                if self._datagrid.Datasource.NumRows <= irow:
+                    for i in range(irow-self._datagrid.Datasource.NumRows+1):
+                        self._datagrid.Datasource.Rows.append(Con())
+                self._datagrid.Datasource.Rows[irow].Name=dlg.ConInstanceName
+                self._datagrid.Datasource.Rows[irow].URL=dlg.ConInstanceName
                 self.RefreshWindow()
 
     #------------------
     def OnPopupDeleteConPage(self, event):                    # MainConSeriesFrame
-        irow=self._grid.clickedRow
-        if irow >= 0 and irow < self._grid.Datasource.NumRows:
-            ret=wx.MessageBox("This will delete "+self._grid.Datasource.Rows[irow].Name+" from the list of conventions on this page, but will not delete "+
+        irow=self._datagrid.clickedRow
+        if irow >= 0 and irow < self._datagrid.Datasource.NumRows:
+            ret=wx.MessageBox("This will delete "+self._datagrid.Datasource.Rows[irow].Name+" from the list of conventions on this page, but will not delete "+
                               "its directory or files from fanac.org. You must use FTP to do that.", 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
             if ret == wx.OK:
-                self._grid.DeleteRows(irow, 1)
+                self._datagrid.DeleteRows(irow, 1)
                 self.RefreshWindow()
 
 
     #------------------
     def OnPopupChangeConSeries(self, event):                    # MainConSeriesFrame
-        irow=self._grid.clickedRow
-        if irow < 0 or irow >= self._grid.Datasource.NumRows:
+        irow=self._datagrid.clickedRow
+        if irow < 0 or irow >= self._datagrid.Datasource.NumRows:
             Log("OnPopupChangeConSeries: bad irow="+str(irow))
             return
 
@@ -529,7 +529,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         if newSeriesName == "":
             return
 
-        instanceName=self._grid.Datasource.Rows[irow].Name
+        instanceName=self._datagrid.Datasource.Rows[irow].Name
 
         # Ask for confirmation
         ret=wx.MessageBox("Move convention instance '"+instanceName+"' to new convention series '"+newSeriesName+"'?", 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
@@ -539,7 +539,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         # Move it
         # Get list of cons in selected con series
         csf=ConSeriesFrame(self._basedirectoryFTP, newSeriesName, conserieslist, show=False)
-        newconlist=[x.Name for x in csf._grid.Datasource.Rows]
+        newconlist=[x.Name for x in csf._datagrid.Datasource.Rows]
 
         # The target con instance directory must not exist.
         newDirPath="/"+newSeriesName+"/"+instanceName
@@ -565,8 +565,8 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         # Insert an empty row there and then copy the old con series data to the new row.
         # (Note that this is just copying the entry in the con series table, not the data it points to.)
-        csf._grid.InsertEmptyRows(loc, 1)
-        csf._grid.Datasource.Rows[loc]=self._grid.Datasource.Rows[irow]
+        csf._datagrid.InsertEmptyRows(loc, 1)
+        csf._datagrid.Datasource.Rows[loc]=self._datagrid.Datasource.Rows[irow]
 
         oldDirPath = "/" + self.Seriesname + "/" + instanceName
         UpdateLog().LogText("Moving '"+instanceName+"' from '"+oldDirPath+"' to '"+newDirPath+"'")
@@ -594,7 +594,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         # Save the old and new con series. Don't upload the modified old series if uploading the new one failed
         if csf.UploadConSeries():
             # Remove the old link and upload
-            self._grid.DeleteRows(irow)
+            self._datagrid.DeleteRows(irow)
             self.UploadConSeries()
         else:
             return
@@ -622,53 +622,53 @@ class ConSeriesFrame(GenConSeriesFrame):
 
     #------------------
     def OnGridCellRightClick(self, event):                    # MainConSeriesFrame
-        self._grid.OnGridCellRightClick(event, self.m_GridPopup)  # Set enabled state of default items; set all others to False
+        self._datagrid.OnGridCellRightClick(event, self.m_GridPopup)  # Set enabled state of default items; set all others to False
 
-        icol=self._grid.clickedColumn
-        irow=self._grid.clickedRow
+        icol=self._datagrid.clickedColumn
+        irow=self._datagrid.clickedRow
 
         if icol == 0:      # All of the popup options work on the 1st column only
             self.m_popupCreateNewConPage.Enabled=True
-            if irow < self._grid.Datasource.NumRows:
+            if irow < self._datagrid.Datasource.NumRows:
                 self.m_popupDeleteConPage.Enabled=True
                 self.m_popupEditConPage.Enabled=True
-                if len(self._grid.Datasource.Rows[irow].URL) > 0:   # Only if there's a link in the cell
+                if len(self._datagrid.Datasource.Rows[irow].URL) > 0:   # Only if there's a link in the cell
                     self.m_popupUnlink.Enabled=True
 
-        if icol < len(self._grid.Datasource.ColDefs) and self._grid.Datasource.ColDefs[icol].IsEditable == "maybe":
+        if icol < len(self._datagrid.Datasource.ColDefs) and self._datagrid.Datasource.ColDefs[icol].IsEditable == "maybe":
             self.m_popupAllowEditCell.Enabled=True
 
-        if irow < self._grid.Datasource.NumRows and self._grid.Datasource.Rows[irow].URL is not None and self._grid.Datasource.Rows[irow].URL != "":
+        if irow < self._datagrid.Datasource.NumRows and self._datagrid.Datasource.Rows[irow].URL is not None and self._datagrid.Datasource.Rows[irow].URL != "":
             self.m_popupChangeConSeries.Enabled=True    # Enable only for rows that exist and point to a con instance
 
         self.PopupMenu(self.m_GridPopup)
 
     # ------------------
     def OnGridCellDoubleClick(self, event):                    # MainConSeriesFrame
-        self._grid.OnGridCellDoubleClick(event)
-        if self._grid.clickedColumn == 0:
-            name=self._grid.Get(self._grid.clickedRow, 0)
-            self.EditConInstancePage(name, self._grid.clickedRow)
+        self._datagrid.OnGridCellDoubleClick(event)
+        if self._datagrid.clickedColumn == 0:
+            name=self._datagrid.Datasource[self._datagrid.clickedRow][0]
+            self.EditConInstancePage(name, self._datagrid.clickedRow)
             self.RefreshWindow()
 
     #-------------------
     def OnKeyDown(self, event):                    # MainConSeriesFrame
-        self._grid.OnKeyDown(event)
+        self._datagrid.OnKeyDown(event)
 
     #-------------------
     def OnKeyUp(self, event):                    # MainConSeriesFrame
-        self._grid.OnKeyUp(event)
+        self._datagrid.OnKeyUp(event)
 
     #------------------
     def OnPopupCopy(self, event):                    # MainConSeriesFrame
-        self._grid.OnPopupCopy(event)
+        self._datagrid.OnPopupCopy(event)
 
     #------------------
     def OnPopupPaste(self, event):                    # MainConSeriesFrame
-        self._grid.OnPopupPaste(event)
+        self._datagrid.OnPopupPaste(event)
 
     def OnGridCellChanged(self, event):               # MainConSeriesFrame
-        self._grid.OnGridCellChanged(event)
+        self._datagrid.OnGridCellChanged(event)
         self.RefreshWindow()
 
     # ------------------
