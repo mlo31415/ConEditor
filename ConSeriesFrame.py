@@ -1,10 +1,7 @@
 from __future__ import annotations
-from typing import Optional
 
-import os
 import wx
 import wx.grid
-import sys
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
 import json
@@ -14,7 +11,7 @@ from GenConSeriesFrame import GenConSeriesFrame
 from FTP import FTP
 from ConInstanceDeltaTracker import UpdateLog
 from ConSeries import ConSeries, Con
-from WxDataGrid import DataGrid, ColDefinition
+from WxDataGrid import DataGrid
 from ConInstanceFrame import ConInstanceDialogClass
 from Settings import Settings
 
