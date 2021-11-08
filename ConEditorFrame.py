@@ -46,18 +46,21 @@ class Convention(GridDataRowClass):
         return self
 
     # Get or set a value by name or column number
-    def GetVal(self, name: Union[str, int]) -> Union[str, int]:
+    #def GetVal(self, name: Union[str, int]) -> Union[str, int]:
+    def __getitem__(self, index: Union[str, int, slice]) -> Union[str, int]:
         # (Could use return eval("self."+name))
-        if name == "Convention" or name == 0:
+        if index == "Convention" or index == 0:
             return self._name
-        return "Convention.Val can't interpret '"+str(name)+"'"
+        return "Convention.Val can't interpret '"+str(index)+"'"
 
-    def SetVal(self, nameOrCol: Union[str, int], val: Union[str, int]) -> None:
+    #def SetVal(self, nameOrCol: Union[str, int], val: Union[str, int]) -> None:
+    def __setitem__(self, nameOrCol: Union[str, int, slice], value: ColDefinition) -> None:
         # (Could use return eval("self."+name))
         if nameOrCol == "Convention" or nameOrCol == 0:
-            self._name=val
+            self._name=value
             return
         print("Convention.SetVal can't interpret '"+str(nameOrCol)+"'")
+        raise KeyError
 
     @property
     def Name(self) -> str:
@@ -128,10 +131,13 @@ class ConList(GridDataSource):
     def NumRows(self) -> int:
         return len(self._conlist)
 
-    def GetData(self, iRow: int, iCol: int) -> str:
-        if iRow == -1:  # Handle logical coordinate of column headers
-            return self.ColDefs[iCol].Name
-        return self.Rows[iRow].GetVal(iCol)
+    def __getitem__(self, index: int) -> Convention:
+        assert index != -1
+        return self.Rows[index]
+
+    def __setitem__(self, index: int, val: Convention) -> None:
+        assert index != -1
+        self.Rows[index]=val
 
     @property
     def Rows(self) -> list:
@@ -140,11 +146,6 @@ class ConList(GridDataSource):
     @Rows.setter
     def Rows(self, rows: list) -> None:
         self._conlist=rows
-
-    # -----------------------------
-    def SetDataVal(self, irow: int, icol: int, val: Union[int, str]) -> None:
-        self._conlist[irow].SetVal(icol, val)
-
 
 
 ###############################################################################
@@ -199,7 +200,6 @@ class ConEditorFrame(GenConEditorFrame):
         self._grid.Datasource=ConList().FromJson(d["_datasource"])
 
         return self
-
 
     # ------------------
     def Load(self):            # ConEditorFrame
@@ -337,7 +337,7 @@ class ConEditorFrame(GenConEditorFrame):
         if self._grid.clickedRow >= self._grid.Datasource.NumRows:
             self._grid.Datasource.Rows.insert(self._grid.clickedRow, Convention())
             self.RefreshWindow()
-        conseriesname=self._grid.Datasource.GetData(self._grid.clickedRow, 0)
+        conseriesname=self._grid.Datasource[self._grid.clickedRow][0]
         # Create list of con series required by the con series editor
         conserieslist=[row.Name for row in self._grid.Datasource.Rows]
         with ModalDialogManager(ConSeriesFrame, self._baseDirFTP, conseriesname, conserieslist) as dlg:
@@ -394,7 +394,7 @@ class ConEditorFrame(GenConEditorFrame):
 
     # ------------------
     def OnPopupRename(self, event):            # ConEditorFrame
-        oldname=self._grid.Datasource.GetData(self._grid.clickedRow, 0)
+        oldname=self._grid.Datasource[self._grid.clickedRow][0]
         dlg=wx.TextEntryDialog(None, "Enter the new name of the Convention Series.", "Edit Convention Series name", value=oldname)
         if dlg.ShowModal() == wx.CANCEL or len(dlg.GetValue().strip()) == 0:
             return
@@ -405,7 +405,7 @@ class ConEditorFrame(GenConEditorFrame):
                 if newname == row.Name:
                     wx.MessageBox("That is a duplicate convention name.", "Duplicate Con Name")
                     return
-            self._grid.Datasource.SetDataVal(self._grid.clickedRow, 0, newname)
+            self._grid.Datasource[self._grid.clickedRow][0]=newname
             self.RefreshWindow()
             FTP().SetDirectory("/")
             FTP().Rename(oldname, newname)
