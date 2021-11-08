@@ -161,17 +161,16 @@ class ConSeries(GridDataSource):
 
         return self
 
-    @property
-    def NumRows(self) -> int:
-        return len(self._series)
-
-
     def __getitem__(self, index) -> Con:
         assert index != -1
         return self._series[index]
 
     def __setitem__(self, index: int, val: Con):
         self._series[index]=val
+
+    @property
+    def NumRows(self) -> int:
+        return len(self._series)
 
     @property
     def Rows(self) -> list:
