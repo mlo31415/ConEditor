@@ -134,17 +134,11 @@ class ConSeries(GridDataSource):
         self._element=Con
         self._series: list[Con]=[]  # This supplies the Rows property that GridDataSource needs
         self._name: str=""
-        self._stuff: str=""
 
     # Serialize and deserialize
     def ToJson(self) -> str:
-        d={"ver": 4,
-           # "_colheaders": [x.Name for x in self.ColDefs],
-           # "_coldatatypes": [x.Type for x in self.ColDefs],
-           # "_colminwidths": [x.Width for x in self.ColDefs],
-           # "_coleditable": [x.IsEditable for x in self.ColDefs],
-           "_name": self._name,
-           "_stuff": self._stuff}
+        d={"ver": 5,
+           "_name": self._name}
         for i, s in enumerate(self._series):
             d[i]=s.ToJson()
         return json.dumps(d)
@@ -152,7 +146,6 @@ class ConSeries(GridDataSource):
     def FromJson(self, val: str) -> ConSeries:
         d=json.loads(val)
         self._name=RemoveAccents(d["_name"])    # Clean out old accented entries
-        self._stuff=d["_stuff"]
         self._series=[]
         i=0
         while str(i) in d.keys():       # This is because json merges 1 and "1" as the same. (It appears to be a bug.)
@@ -193,12 +186,3 @@ class ConSeries(GridDataSource):
     @Name.setter
     def Name(self, val: str) -> None:
         self._name=val
-
-    #------------
-    @property
-    def Stuff(self) -> str:
-        return self._stuff
-
-    @Stuff.setter
-    def Stuff(self, val: str) -> None:
-        self._stuff=val
