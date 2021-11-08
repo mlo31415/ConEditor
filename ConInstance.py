@@ -178,7 +178,8 @@ class ConFile(GridDataRowClass):
         self._URL=val
 
     # Get or set a value by name or column number in the grid
-    def GetVal(self, name: Union[str, int]) -> Union[str, int]:
+    #def GetVal(self, name: Union[str, int]) -> Union[str, int]:
+    def __getitem__(self, name: Union[int, slice]) -> Union[str, int]:
         # (Could use return eval("self."+name))
         if name == 0:
             return self.SourceFilename
@@ -192,24 +193,26 @@ class ConFile(GridDataRowClass):
             return self.Notes
         return "Val can't interpret '"+str(name)+"'"
 
-    def SetVal(self, nameOrCol: Union[str, int], val: Union[str, int]) -> None:
+    #def SetVal(self, nameOrCol: Union[str, int], val: Union[str, int]) -> None:
+    def __setitem__(self, index: Union[int, slice], value: ColDefinition) -> None:
         # (Could use return eval("self."+name))
-        if nameOrCol == 0:
-            self.SourceFilename=val
+        if index == 0:
+            self.SourceFilename=value
             return
-        if nameOrCol == 1:
-            self.SiteFilename=val
+        if index == 1:
+            self.SiteFilename=value
             return
-        if nameOrCol == 2:
-            self.DisplayTitle=val
+        if index == 2:
+            self.DisplayTitle=value
             return
-        if nameOrCol == 3:
-            self.Pages=val
+        if index == 3:
+            self.Pages=value
             return
-        if nameOrCol == 4:
-            self.Notes=val
+        if index == 4:
+            self.Notes=value
             return
-        print("SetVal can't interpret '"+str(nameOrCol)+"'")
+        print("SetVal can't interpret '"+str(index)+"'")
+        raise KeyError
 
 
 
@@ -261,9 +264,6 @@ class ConInstancePage(GridDataSource):
     def Rows(self, rows: list) -> None:
         self._conFileList=rows
 
-    def SetDataVal(self, irow: int, icol: int, val: Union[int, str]) -> None:
-        self._conFileList[irow].SetVal(icol, val)
-
     @property
     def ColDefs(self) -> list[ColDefinition]:
         return self._colDefs
@@ -280,8 +280,11 @@ class ConInstancePage(GridDataSource):
     def NumRows(self) -> int:
         return len(self._conFileList)
 
-    def GetData(self, iRow: int, iCol: int) -> str:
-        return self.Rows[iRow].GetVal(iCol)
+    def __getitem__(self, index) -> ConFile:
+        return self._conFileList[index]
+
+    def __setitem__(self, index, value: ConFile) -> None:
+        self._conFileList[index]=value
 
     @property
     def SpecialTextColor(self) -> Optional[Color]:

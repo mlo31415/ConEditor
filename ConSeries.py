@@ -86,33 +86,35 @@ class Con(GridDataRowClass):
         return False
 
     # Get or set a value by name or column number
-    def GetVal(self, name: Union[str, int]) -> Union[str, int, FanzineDateRange]:
+    #def GetVal(self, name: Union[str, int]) -> Union[str, int, FanzineDateRange]:
+    def __getitem__(self, index: Union[str, int, slice]) -> Union[str, int, FanzineDateRange]:
         # (Could use return eval("self."+name))
-        if name == "Name" or name == 0:
+        if index == "Name" or index == 0:
             return self.Name
-        if name == "Dates" or name == 1:
+        if index == "Dates" or index == 1:
             return self.Dates
-        if name == "Locale" or name == 2:
+        if index == "Locale" or index == 2:
             return self.Locale
-        if name == "GoHs" or name == 3:
+        if index == "GoHs" or index == 3:
             return self.GoHs
-        return "Val can't interpret '"+str(name)+"'"
+        return "Val can't interpret '"+str(index)+"'"
 
-    def SetVal(self, nameOrCol: Union[str, int], val: Union[str, int, FanzineDateRange]) -> None:
+    #def SetVal(self, nameOrCol: Union[str, int], val: Union[str, int, FanzineDateRange]) -> None:
+    def __setitem__(self, index: Union[str, int, slice], value: Union[str, int, FanzineDateRange]) -> None:
         # (Could use return eval("self."+name))
-        if nameOrCol == "Name" or nameOrCol == 0:
-            self.Name=val
+        if index == "Name" or index == 0:
+            self.Name=value
             return
-        if nameOrCol == "Dates" or nameOrCol == 1:
-            self.Dates=val
+        if index == "Dates" or index == 1:
+            self.Dates=value
             return
-        if nameOrCol == "Locale" or nameOrCol == 2:
-            self.Locale=val
+        if index == "Locale" or index == 2:
+            self.Locale=value
             return
-        if nameOrCol == "GoHs" or nameOrCol == 3:
-            self.GoHs=val
+        if index == "GoHs" or index == 3:
+            self.GoHs=value
             return
-        print("SetVal can't interpret '"+str(nameOrCol)+"'")
+        print("SetVal can't interpret '"+str(index)+"'")
 
 
 
@@ -161,10 +163,13 @@ class ConSeries(GridDataSource):
     def NumRows(self) -> int:
         return len(self._series)
 
-    def GetData(self, iRow: int, iCol: int) -> str:
-        if iRow == -1:  # Handle logical coordinate of column headers
-            return self.ColHeaders[iCol]
-        return self.Rows[iRow].GetVal(iCol)
+
+    def __getitem__(self, index) -> Con:
+        assert index != -1
+        return self._series[index]
+
+    def __setitem__(self, index: int, val: Con):
+        self._series[index]=val
 
     @property
     def Rows(self) -> list:
@@ -174,12 +179,6 @@ class ConSeries(GridDataSource):
     def Rows(self, rows: list) -> None:
         self._series=rows
 
-    def SetDataVal(self, irow: int, icol: int, val: Union[int, str, FanzineDateRange]) -> None:
-        if self._coldatatypes[icol] == "date range":
-            val=FanzineDateRange().Match(val)
-            if val.IsEmpty():
-                return
-        self._series[irow].SetVal(icol, val)
 
     @property
     def ColDefs(self) -> list[ColDefinition]:
