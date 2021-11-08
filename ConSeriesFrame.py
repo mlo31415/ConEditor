@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import wx
+import wx, wx._core
 import wx.grid
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
