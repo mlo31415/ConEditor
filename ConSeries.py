@@ -132,7 +132,7 @@ class ConSeries(GridDataSource):
             ColDefinition("GoHs", Width=30),
         ]
         self._element=Con
-        self._series: list[Con]=[]  # This supplied the Rows property that GridDataSource needs
+        self._series: list[Con]=[]  # This supplies the Rows property that GridDataSource needs
         self._name: str=""
         self._stuff: str=""
 

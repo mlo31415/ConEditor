@@ -231,7 +231,7 @@ class ConInstancePage(GridDataSource):
             ColDefinition("Notes", Width=150)
         ]
         self._element=ConFile
-        self._conFileList: list[ConFile]=[]
+        self._conFileList: list[ConFile]=[]  # This supplies the Rows property that GridDataSource needs
         self._name: str=""
         self._specialTextColor: Optional[Color, bool]=True
 
