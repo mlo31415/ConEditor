@@ -91,7 +91,7 @@ class ConList(GridDataSource):
 
     def __init__(self):
         GridDataSource.__init__(self)
-        self._colDefs: list[ColDefinition]=[ColDefinition("Convention Series", Type="url", IsEditable="no")]
+        self._colDefs: list[ColDefinition]=[ColDefinition("Convention Series", Type="url", IsEditable="no")]    # THere's only one column!
         self._gridDataRowClass=Convention
         self._conlist: list[Convention]=[]
         self._toptext: str=""
