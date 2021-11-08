@@ -173,11 +173,11 @@ class ConSeries(GridDataSource):
         return len(self._series)
 
     @property
-    def Rows(self) -> list:
+    def Rows(self) -> list[Con]:
         return self._series
 
     @Rows.setter
-    def Rows(self, rows: list) -> None:
+    def Rows(self, rows: list[Con]) -> None:
         self._series=rows
 
 
