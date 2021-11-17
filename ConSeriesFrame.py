@@ -414,9 +414,10 @@ class ConSeriesFrame(GenConSeriesFrame):
     #------------------
     def OnPopupCreateNewConPage(self, event):     # ConSeriesFrame(GenConSeriesFrame)
         irow=self._datagrid.clickedRow
-        self._datagrid.InsertEmptyRows(irow, 1)
+        self._datagrid.Datasource.InsertEmptyRows(irow, 1)
+        self._datagrid.RefreshWxGridFromDatasource()
         self.EditConInstancePage("", irow)
-        self.RefreshWindow()
+        #self.RefreshWindow()
 
     #------------------
     def OnPopupEditConPage(self, event):     # ConSeriesFrame(GenConSeriesFrame)
