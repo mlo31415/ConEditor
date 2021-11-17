@@ -56,7 +56,7 @@ class GenConSeriesFrame ( wx.Dialog ):
 		self.bLoadSeriesFromFancy = wx.Button( self, wx.ID_ANY, u"Load New ConSeries from Fancy 3", wx.DefaultPosition, wx.DefaultSize, 0 )
 		fgSizer6.Add( self.bLoadSeriesFromFancy, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
-		self.m_Cancel = wx.Button( self, wx.ID_CANCEL, u"Exit", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_Cancel = wx.Button( self, wx.ID_OK, u"Exit", wx.DefaultPosition, wx.DefaultSize, 0 )
 		fgSizer6.Add( self.m_Cancel, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
 
