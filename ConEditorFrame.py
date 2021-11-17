@@ -293,9 +293,7 @@ class ConEditorFrame(GenConEditorFrame):
     #------------------
     def RefreshWindow(self) -> None:
         self._grid.RefreshWxGridFromDatasource()
-        s=self.Title
-        if s.endswith(" *"):
-            s=s[:-2]
+        s=self.Title.removesuffix(" *")     # Remove existing Needs Saving marker, if any
         if self.NeedsSaving():
             s=s+" *"
         self.Title=s
