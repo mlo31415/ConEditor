@@ -291,3 +291,9 @@ class ConInstancePage(GridDataSource):
     def SpecialTextColor(self, val: Optional[Color]) -> None:
         self._specialTextColor=val
 
+    def InsertEmptyRows(self, index: int, num: int=1) -> None:        # ConInstancePage(GridDataSource)
+        if num <= 0:
+            return
+        if index > len(self.Rows):
+            index=len(self.Rows)
+        self.Rows=self.Rows[:index]+[ConFile() for i in range(num)]+self.Rows[index:]
