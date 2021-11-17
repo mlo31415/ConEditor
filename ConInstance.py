@@ -179,19 +179,19 @@ class ConFile(GridDataRowClass):
 
     # Get or set a value by name or column number in the grid
     #def GetVal(self, name: Union[str, int]) -> Union[str, int]:
-    def __getitem__(self, name: Union[int, slice]) -> Union[str, int]:
+    def __getitem__(self, index: Union[int, slice]) -> Union[str, int]:      # ConFile(GridDataRowClass)
         # (Could use return eval("self."+name))
-        if name == 0:
+        if index == 0:
             return self.SourceFilename
-        if name == 1:
+        if index == 1:
             return self.SiteFilename
-        if name == 2:
+        if index == 2:
             return self.DisplayTitle
-        if name == 3:
+        if index == 3:
             return self.Pages
-        if name == 4:
+        if index == 4:
             return self.Notes
-        return "Val can't interpret '"+str(name)+"'"
+        return "Val can't interpret '"+str(index)+"'"
 
     #def SetVal(self, nameOrCol: Union[str, int], val: Union[str, int]) -> None:
     def __setitem__(self, index: Union[int, slice], value: ColDefinition) -> None:      # ConFile(GridDataRowClass)
