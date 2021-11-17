@@ -16,12 +16,12 @@ class Con(GridDataRowClass):
         self._gohs: str=""                  # A list of the con's GoHs
         self._URL: str=""                   # The URL of the individual con page, if any
 
-    def Signature(self) -> int:
+    def Signature(self) -> int:        # Con(GridDataRowClass)
         sum=hash(self._name.strip()+self._locale.strip()+self._gohs.strip()+self._URL.strip())
         return sum+hash(self._dates)
 
     # Serialize and deserialize
-    def ToJson(self) -> str:
+    def ToJson(self) -> str:        # Con(GridDataRowClass)
         d={"ver": 3,
            "_name": self._name,
            "_locale": self._locale,
@@ -30,7 +30,7 @@ class Con(GridDataRowClass):
            "_gohs": self._gohs}
         return json.dumps(d)
 
-    def FromJson(self, val: str) -> Con:
+    def FromJson(self, val: str) -> Con:        # Con(GridDataRowClass)
         d=json.loads(val)
         self._name=RemoveAccents(d["_name"])
         self._locale=d["_locale"]
@@ -44,42 +44,42 @@ class Con(GridDataRowClass):
 
 
     @property
-    def Name(self) -> str:
+    def Name(self) -> str:        # Con(GridDataRowClass)
         return self._name
     @Name.setter
     def Name(self, val: str):
         self._name=RemoveAccents(val)
 
     @property
-    def GoHs(self) -> str:
+    def GoHs(self) -> str:        # Con(GridDataRowClass)
         return self._gohs
     @GoHs.setter
     def GoHs(self, val: str):
         self._gohs=val
 
     @property
-    def Locale(self) -> str:
+    def Locale(self) -> str:        # Con(GridDataRowClass)
         return self._locale
     @Locale.setter
     def Locale(self, val: str):
         self._locale=val
 
     @property
-    def Dates(self) -> Optional[FanzineDateRange]:
+    def Dates(self) -> Optional[FanzineDateRange]:        # Con(GridDataRowClass)
         return self._dates
     @Dates.setter
     def Dates(self, val: FanzineDateRange):
         self._dates=val
 
     @property
-    def URL(self) -> str:
+    def URL(self) -> str:        # Con(GridDataRowClass)
         return self._URL
     @URL.setter
     def URL(self, val: str) -> None:
         self._URL=val
 
     @property
-    def IsText(self) -> bool:
+    def IsText(self) -> bool:        # Con(GridDataRowClass)
         return False
     @property
     def IsLink(self) -> bool:
@@ -87,7 +87,7 @@ class Con(GridDataRowClass):
 
     # Get or set a value by name or column number
     #def GetVal(self, name: Union[str, int]) -> Union[str, int, FanzineDateRange]:
-    def __getitem__(self, index: Union[str, int, slice]) -> Union[str, int, FanzineDateRange]:
+    def __getitem__(self, index: Union[str, int, slice]) -> Union[str, int, FanzineDateRange]:        # Con(GridDataRowClass)
         # (Could use return eval("self."+name))
         if index == "Name" or index == 0:
             return self.Name
@@ -100,7 +100,7 @@ class Con(GridDataRowClass):
         return "Val can't interpret '"+str(index)+"'"
 
     #def SetVal(self, nameOrCol: Union[str, int], val: Union[str, int, FanzineDateRange]) -> None:
-    def __setitem__(self, index: Union[str, int, slice], value: Union[str, int, FanzineDateRange]) -> None:
+    def __setitem__(self, index: Union[str, int, slice], value: Union[str, int, FanzineDateRange]) -> None:        # Con(GridDataRowClass)
         # (Could use return eval("self."+name))
         if index == "Name" or index == 0:
             self.Name=value
@@ -115,7 +115,6 @@ class Con(GridDataRowClass):
             self.GoHs=value
             return
         print("SetVal can't interpret '"+str(index)+"'")
-
 
 
 
@@ -136,14 +135,14 @@ class ConSeries(GridDataSource):
         self._name: str=""
 
     # Serialize and deserialize
-    def ToJson(self) -> str:
+    def ToJson(self) -> str:        #  ConSeries(GridDataSource)
         d={"ver": 5,
            "_name": self._name}
         for i, s in enumerate(self._series):
             d[i]=s.ToJson()
         return json.dumps(d)
 
-    def FromJson(self, val: str) -> ConSeries:
+    def FromJson(self, val: str) -> ConSeries:        #  ConSeries(GridDataSource)
         d=json.loads(val)
         self._name=RemoveAccents(d["_name"])    # Clean out old accented entries
         self._series=[]
@@ -154,38 +153,36 @@ class ConSeries(GridDataSource):
 
         return self
 
-    def __getitem__(self, index) -> Con:
+    def __getitem__(self, index) -> Con:        #  ConSeries(GridDataSource)
         assert index != -1
         return self._series[index]
 
-    def __setitem__(self, index: int, val: Con):
+    def __setitem__(self, index: int, val: Con):        #  ConSeries(GridDataSource)
         self._series[index]=val
 
     def Signature(self) -> int:        #  ConSeries(GridDataSource)
         return hash(self._name)+sum([hash(x)*(i+1) for i, x in enumerate(self.Rows)])
 
     @property
-    def NumRows(self) -> int:
+    def NumRows(self) -> int:        #  ConSeries(GridDataSource)
         return len(self._series)
 
     @property
-    def Rows(self) -> list[Con]:
+    def Rows(self) -> list[Con]:        #  ConSeries(GridDataSource)
         return self._series
-
     @Rows.setter
     def Rows(self, rows: list[Con]) -> None:
         self._series=rows
 
 
     @property
-    def ColDefs(self) -> list[ColDefinition]:
+    def ColDefs(self) -> list[ColDefinition]:        #  ConSeries(GridDataSource)
         return self._colDefs
 
     #------------
     @property
-    def Name(self) -> str:
+    def Name(self) -> str:        #  ConSeries(GridDataSource)
         return self._name
-
     @Name.setter
     def Name(self, val: str) -> None:
         self._name=val
