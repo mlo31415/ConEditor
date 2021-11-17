@@ -402,7 +402,7 @@ class ConSeriesFrame(GenConSeriesFrame):
     def RefreshWindow(self) -> None:
         self._datagrid.RefreshWxGridFromDatasource()
 
-        s=self.Title.removesuffix(" *")
+        s=self.Title.removesuffix(" *") # Remove any existing Needs Saving marker
         if self.NeedsSaving():
             s=s+" *"
         self.Title=s
