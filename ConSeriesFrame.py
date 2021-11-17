@@ -453,10 +453,6 @@ class ConSeriesFrame(GenConSeriesFrame):
                 return
             instancename=dlg.GetValue()
 
-        if irow >= self._datagrid.NumRows:
-            self._datagrid.ExpandDataSourceToInclude(irow, 0)   # Add rows if needed
-
-
         with ModalDialogManager(ConInstanceDialogClass, self._basedirectoryFTP+"/"+self.Seriesname, self.Seriesname, instancename) as dlg:
             dlg.ConInstanceName=instancename
 
