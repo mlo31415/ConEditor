@@ -485,13 +485,13 @@ class ConSeriesFrame(GenConSeriesFrame):
 
             dlg.MarkAsSaved()
             dlg.RefreshWindow()
-            if dlg.ShowModal() == wx.ID_OK:
-                if self._datagrid.Datasource.NumRows <= irow:
-                    for i in range(irow-self._datagrid.Datasource.NumRows+1):
-                        self._datagrid.Datasource.Rows.append(Con())
-                self._datagrid.Datasource.Rows[irow].Name=dlg.ConInstanceName
-                self._datagrid.Datasource.Rows[irow].URL=dlg.ConInstanceName
-                self.RefreshWindow()
+            dlg.ShowModal() # We don't care about the return value because you can't cancel out of this dialog; all you can do is change nothing
+            if self._datagrid.Datasource.NumRows <= irow:
+                for i in range(irow-self._datagrid.Datasource.NumRows+1):
+                    self._datagrid.Datasource.Rows.append(Con())
+            self._datagrid.Datasource.Rows[irow].Name=dlg.ConInstanceName
+            self._datagrid.Datasource.Rows[irow].URL=dlg.ConInstanceName
+            self.RefreshWindow()
 
     #------------------
     def OnPopupDeleteConPage(self, event):     # ConSeriesFrame(GenConSeriesFrame)
