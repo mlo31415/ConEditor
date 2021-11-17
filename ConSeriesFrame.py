@@ -69,7 +69,7 @@ class ConSeriesFrame(GenConSeriesFrame):
     # Used to determine if anything has been updated
     def Signature(self) -> int:     # ConSeriesFrame(GenConSeriesFrame)
         stuff=self.Seriesname.strip()+self.TextFancyURL.strip()+self.TextComments.strip()+self._basedirectoryFTP.strip()
-        return hash(stuff)+self._datagrid.Signature()
+        return hash(stuff)+self._datagrid.Datasource.Signature()
 
     def MarkAsSaved(self):     # ConSeriesFrame(GenConSeriesFrame)
         self._signature=self.Signature()
