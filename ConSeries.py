@@ -161,6 +161,9 @@ class ConSeries(GridDataSource):
     def __setitem__(self, index: int, val: Con):
         self._series[index]=val
 
+    def Signature(self) -> int:        #  ConSeries(GridDataSource)
+        return hash(self._name)+sum([hash(x)*(i+1) for i, x in enumerate(self.Rows)])
+
     @property
     def NumRows(self) -> int:
         return len(self._series)

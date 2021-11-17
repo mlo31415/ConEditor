@@ -98,10 +98,8 @@ class ConList(GridDataSource):
 
     #-----------------------------
     def Signature(self) -> int:
-        sig=0
-        for row in self.Rows:
-            sig+=row.__hash__()
-        return hash(self._toptext.strip())+sig
+        # The game here is to multiply the hash for a row by its position so rearrangement of the rows counts as a change
+        return hash(self._toptext.strip())+sum([hash(x)*(i+1) for i, x in enumerate(self.Rows)])
 
     # -----------------------------
     # Serialize and deserialize
