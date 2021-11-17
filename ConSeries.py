@@ -186,3 +186,11 @@ class ConSeries(GridDataSource):
     @Name.setter
     def Name(self, val: str) -> None:
         self._name=val
+
+
+    def InsertEmptyRows(self, index: int, num: int=1) -> None:        #  ConSeries(GridDataSource)
+        if num <= 0:
+            return
+        if index > len(self.Rows):
+            index=len(self.Rows)
+        self.Rows=self.Rows[:index]+[Con() for i in range(num)]+self.Rows[index:]
