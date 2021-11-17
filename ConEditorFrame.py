@@ -234,6 +234,14 @@ class ConEditorFrame(GenConEditorFrame):
         self.RefreshWindow()
 
 
+    @property
+    def Title(self) -> str:
+        return self.GetTitle()
+    @Title.setter
+    def Title(self, val) -> None:
+        self.SetTitle(val)
+
+
     #------------------
     def OnButtonUploadClick(self, event):            # ConEditorFrame
         self.Upload()
