@@ -203,7 +203,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         file=SubstituteHTML(file, "fanac-headertext", self.TextComments)
 
         showempty=self.m_radioBoxShowEmpty.GetSelection() == 0  # Radio button: Show Empty cons?
-        hasdates=len([d.Dates for d in self._datagrid.Datasource.Rows if d.Dates is not None and not d.Dates.IsEmpty()]) > 0
+        hasdates=len([d.Dates for d in self._datagrid.Datasource.Rows if d.Dates is not None and isinstance(d.Dates, FanzineDateRange) and not d.Dates.IsEmpty()]) > 0
         haslocations=len([d.Locale for d in self._datagrid.Datasource.Rows if d.Locale is not None and len(d.Locale) > 0]) > 0
         hasgohs=len([d.GoHs for d in self._datagrid.Datasource.Rows if d.GoHs is not None and len(d.GoHs) > 0]) > 0
 
