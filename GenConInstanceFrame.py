@@ -44,7 +44,7 @@ class GenConInstanceFrame ( wx.Dialog ):
 		self.bAddFiles = wx.Button( self, wx.ID_ANY, u"Add Files", wx.DefaultPosition, wx.DefaultSize, 0 )
 		fgSizer5.Add( self.bAddFiles, 0, wx.ALL, 5 )
 
-		self.m_Cancel = wx.Button( self, wx.ID_CANCEL, u"Exit", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_Cancel = wx.Button( self, wx.ID_OK, u"Exit", wx.DefaultPosition, wx.DefaultSize, 0 )
 		fgSizer5.Add( self.m_Cancel, 0, wx.ALL, 5 )
 
 
@@ -286,3 +286,5 @@ class GenConInstanceFrame ( wx.Dialog ):
 
 	def GenConInstanceFrameOnContextMenu( self, event ):
 		self.PopupMenu( self.m_GridPopup, event.GetPosition() )
+
+

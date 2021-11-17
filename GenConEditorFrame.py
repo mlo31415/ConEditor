@@ -34,7 +34,7 @@ class GenConEditorFrame ( wx.Frame ):
 		self.m_buttonSort = wx.Button( self, wx.ID_ANY, u"Sort", wx.DefaultPosition, wx.DefaultSize, 0 )
 		fgSizer7.Add( self.m_buttonSort, 0, wx.ALL, 5 )
 
-		self.m_buttonExit = wx.Button( self, wx.ID_CANCEL, u"Exit", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_buttonExit = wx.Button( self, wx.ID_OK, u"Exit", wx.DefaultPosition, wx.DefaultSize, 0 )
 		fgSizer7.Add( self.m_buttonExit, 0, wx.ALL, 5 )
 
 		self.m_buttonSettings = wx.Button( self, wx.ID_ANY, u"Settings", wx.DefaultPosition, wx.DefaultSize, 0 )
