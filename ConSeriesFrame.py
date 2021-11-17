@@ -591,8 +591,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         else:
             return
 
-            # Delete the old con instance info from site
-        i=0
+            #TODO: Delete the old con instance info from site
 
 
     #------------------
