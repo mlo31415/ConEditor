@@ -48,7 +48,7 @@
             <property name="size">700,682</property>
             <property name="style">wxCLOSE_BOX|wxDEFAULT_DIALOG_STYLE|wxMAXIMIZE_BOX|wxMINIMIZE_BOX</property>
             <property name="subclass">; ; forward_declare</property>
-            <property name="title">Edit Conventon Series</property>
+            <property name="title">Edit Convention Series</property>
             <property name="tooltip"></property>
             <property name="window_extra_style"></property>
             <property name="window_name"></property>
