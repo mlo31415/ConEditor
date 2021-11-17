@@ -401,9 +401,8 @@ class ConSeriesFrame(GenConSeriesFrame):
     #------------------
     def RefreshWindow(self) -> None:
         self._datagrid.RefreshWxGridFromDatasource()
-        s=self.Title
-        if s.endswith(" *"):
-            s=s[:-2]
+
+        s=self.Title.removesuffix(" *")
         if self.NeedsSaving():
             s=s+" *"
         self.Title=s
