@@ -124,7 +124,6 @@ class ConList(GridDataSource):
     def ColDefs(self) -> list[ColDefinition]:
         return self._colDefs
 
-
     @property
     def NumRows(self) -> int:
         return len(self._conlist)
@@ -140,10 +139,17 @@ class ConList(GridDataSource):
     @property
     def Rows(self) -> list:
         return self._conlist
-
     @Rows.setter
     def Rows(self, rows: list) -> None:
         self._conlist=rows
+
+
+    def InsertEmptyRows(self, index: int, num: int=1) -> None:
+        if num <= 0:
+            return
+        if index > len(self.Rows):
+            index=len(self.Rows)
+        self.Rows=self.Rows[:index]+[Convention() for i in range(num)]+self.Rows[index:]
 
 
 ###############################################################################
