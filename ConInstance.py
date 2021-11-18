@@ -156,18 +156,18 @@ class ConFile(GridDataRowClass):
         self._pages=val
 
     @property
-    def IsText(self) -> bool:      # ConFile(GridDataRowClass)
+    def IsTextRow(self) -> bool:      # ConFile(GridDataRowClass)
         return self._isText
-    @IsText.setter
-    def IsText(self, val: bool) -> None:
+    @IsTextRow.setter
+    def IsTextRow(self, val: bool) -> None:
         self._isText=val
 
 
     @property
-    def IsLink(self) -> bool:      # ConFile(GridDataRowClass)
+    def IsLinkRow(self) -> bool:      # ConFile(GridDataRowClass)
         return self._isLink
-    @IsLink.setter
-    def IsLink(self, val: bool) -> None:
+    @IsLinkRow.setter
+    def IsLinkRow(self, val: bool) -> None:
         self._isLink=val
 
     @property
