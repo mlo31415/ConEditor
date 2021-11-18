@@ -76,16 +76,6 @@ class Convention(GridDataRowClass):
     def URL(self, val: str) -> None:
         self._URL=val
 
-    # These two properties supplies a default value so that other uses of the grid don't need to implement it.
-    @property
-    # Is this line a text line. (Used -- so far -- only in a Con Instance.)
-    def IsText(self) -> bool:
-        return False
-    @property
-    # Is this line a link line. (Used -- so far -- only in a Con Instance.)
-    def IsLink(self) -> bool:
-        return False
-
 
 class ConList(GridDataSource):
 

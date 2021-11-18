@@ -38,10 +38,10 @@ class ConFile(GridDataRowClass):
             s+="Size="+str(self.Size)+"; "
         if self.Pages is not None and self.Pages > 0:
             s+="Pages="+str(self.Pages)+"; "
-        if self.IsText:
-            s+="IsText; "
-        if self.IsLink:
-            s+="IsLink; "
+        if self.IsTextRow:
+            s+="IsTextRow; "
+        if self.IsLinkRow:
+            s+="IsLinkRow; "
 
         return s
 

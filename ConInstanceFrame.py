@@ -252,7 +252,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     # If it is, check the page count and add it to the table.
     def FillInMissingPDFPageCounts(self):
         for i, row in enumerate(self._grid.Datasource.Rows):
-            if not row.IsText and not row.IsLink:
+            if not row.IsTextRow and not row.IsLinkRow:
                 if row.Pages is None or row.Pages == 0:
                     if ExtensionMatches(row.SourcePathname, ".pdf"):
                         if os.path.exists(row.SourcePathname):
@@ -280,13 +280,13 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             #   If a text row, that some text exists
             #   If an external link row, that text and a properly formed URL exists (but does not check to see target exists)
             #   For a file, that there is an entry in the "Source File Name", "Site Name", and "Display Name" columns
-            if row.IsText:
+            if row.IsTextRow:
                 if len((row.SourceFilename+row.SiteFilename+row.DisplayTitle+row.Notes).strip()) == 0:
                     error=True
                     Log(f"Malformed text row: #{i}  {row}")
                     for j in range(self._grid.NumCols):
                         self._grid.SetCellBackgroundColor(i, j, Color.Pink)
-            elif row.IsLink:
+            elif row.IsLinkRow:
                 if len(row.URL.strip()) == 0  or len(row.DisplayTitle.strip()) == 0:
                     error=True
                     Log(f"Malformed link row: #{i}  {row}")
@@ -374,9 +374,9 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             for i, row in enumerate(self._grid.Datasource.Rows):
                 newtable+="    <tr>\n"
                 # Display title column
-                if row.IsText:
+                if row.IsTextRow:
                     newtable+='      <td colspan="3">'+row.SourceFilename+" "+row.SiteFilename+" "+row.DisplayTitle+" "+row.Notes+'</td>\n'
-                elif row.IsLink:
+                elif row.IsLinkRow:
                     newtable+='      <td colspan="3">'+FormatLink(row.URL, row.DisplayTitle)+'</td>\n'
                 else:   # Ordinary row
                     # The document title/link column
@@ -399,10 +399,10 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             # Construct a list which we'll then substitute.
             newtable='<ul  id="conpagetable">\n'
             for row in self._grid.Datasource.Rows:
-                if row.IsText:
+                if row.IsTextRow:
                     text=row.SourceFilename+" "+row.SiteFilename+" "+row.DisplayTitle+" "+row.Notes
                     newtable+='    </ul><b>'+text.strip()+'</b><ul id="conpagetable">\n'
-                elif row.IsLink:
+                elif row.IsLinkRow:
                     newtable+='    <li id="conpagetable">'+FormatLink(row.URL, row.DisplayTitle)+"</li>\n"
                 else:
                     s=MaybeSuppressPDFExtension(row.DisplayTitle, showExtensions)
@@ -444,7 +444,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     continue
                 FTP().Rename(delta.Oldname, delta.Con.SiteFilename)
             elif delta.Verb == "delete":
-                if not delta.Con.IsText and not delta.Con.IsLink:
+                if not delta.Con.IsTextRow and not delta.Con.IsLinkRow:
                     ProgressMessage(self).Show("Deleting "+delta.Con.SiteFilename)
                     Log("delta-DELETE: "+delta.Con.SiteFilename)
                     if len(delta.Con.SiteFilename.strip()) > 0:
@@ -514,8 +514,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         if self._grid.clickedColumn == 0 and self._grid.clickedRow < self._grid.NumRows:
             if self._grid.clickedRow < self._grid.Datasource.NumRows and \
-                    not self._grid.Datasource.Rows[self._grid.clickedRow].IsText and \
-                    not self._grid.Datasource.Rows[self._grid.clickedRow].IsLink:
+                    not self._grid.Datasource.Rows[self._grid.clickedRow].IsTextRow and \
+                    not self._grid.Datasource.Rows[self._grid.clickedRow].IsLinkRow:
                 self.m_popupUpdateFile.Enabled=True
 
         self.PopupMenu(self.m_GridPopup, pos=self.gRowGrid.Position+event.Position)
@@ -542,7 +542,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         if irow > self._grid.Datasource.NumRows:
             self._grid.ExpandDataSourceToInclude(irow, 0)   # If we're inserting past the end of the datasource, insert empty rows as necessary to fill in between
         self._grid.InsertEmptyRows(irow, 1)     # Insert the new empty row
-        self._grid.Datasource.Rows[irow].IsText=True
+        self._grid.Datasource.Rows[irow].IsTextRow=True
         self._grid._grid.SetCellSize(irow, 0, 1, self._grid.NumCols)
         for icol in range(self._grid.NumCols):
             self._grid.AllowCellEdit(irow, icol)
@@ -555,7 +555,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         if irow > self._grid.Datasource.NumRows:
             self._grid.ExpandDataSourceToInclude(irow, 0)   # Insert empty rows into the datasource if necessary to keep things in sync
         self._grid.InsertEmptyRows(irow, 1)
-        self._grid.Datasource.Rows[irow].IsLink=True
+        self._grid.Datasource.Rows[irow].IsLinkRow=True
         for icol in range(self._grid.NumCols):
             self._grid.AllowCellEdit(irow, icol)
         self.RefreshWindow()
@@ -618,7 +618,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 self.conInstanceDeltaTracker.Rename(self._grid.Datasource.Rows[row], originalfname)
         else:
             self._grid.OnGridCellChanged(event)
-            if self._grid.Datasource.Rows[row].IsLink and col == 0:
+            if self._grid.Datasource.Rows[row].IsLinkRow and col == 0:
                 if not self._grid.Datasource.Rows[row].URL.lower().startswith("http"):
                     self._grid.Datasource[row][col]="https://"+self._grid.Datasource.Rows[row].URL
 

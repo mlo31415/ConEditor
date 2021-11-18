@@ -79,10 +79,13 @@ class Con(GridDataRowClass):
         self._URL=val
 
     @property
-    def IsText(self) -> bool:        # Con(GridDataRowClass)
+    def IsTextRow(self) -> bool:        # Con(GridDataRowClass)
         return False
+    @IsTextRow.setter
+    def IsTextRow(self, val: bool) -> None:
+        self._isText=val
     @property
-    def IsLink(self) -> bool:
+    def IsLinkRow(self) -> bool:
         return False
 
     # Get or set a value by name or column number
