@@ -89,7 +89,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     def NeedsSaving(self):
         return self._signature != self.Signature()
 
-
     # ----------------------------------------------
     # Serialize and deserialize
     def ToJson(self) -> str:
@@ -111,7 +110,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.ConInstanceFancyURL=RemoveHTTP(self.ConInstanceFancyURL)
         self._grid.Datasource=ConInstancePage().FromJson(d["_datasource"])
         return self
-
 
     # ----------------------------------------------
     @property
@@ -255,7 +253,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     def FillInMissingPDFPageCounts(self):
         for i, row in enumerate(self._grid.Datasource.Rows):
             if not row.IsText and not row.IsLink:
-                if row.Pages is None or  row.Pages == 0:
+                if row.Pages is None or row.Pages == 0:
                     if ExtensionMatches(row.SourcePathname, ".pdf"):
                         if os.path.exists(row.SourcePathname):
                             row.Pages=GetPdfPageCount(row.SourcePathname)
@@ -285,19 +283,19 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             if row.IsText:
                 if len((row.SourceFilename+row.SiteFilename+row.DisplayTitle+row.Notes).strip()) == 0:
                     error=True
-                    Log("Malformed text row: #"+str(i)+"  "+ str(row))
+                    Log(f"Malformed text row: #{i}  {row}")
                     for j in range(self._grid.NumCols):
                         self._grid.SetCellBackgroundColor(i, j, Color.Pink)
             elif row.IsLink:
                 if len(row.URL.strip()) == 0  or len(row.DisplayTitle.strip()) == 0:
                     error=True
-                    Log("Malformed link row: #"+str(i)+"  "+ str(row))
+                    Log(f"Malformed link row: #{i}  {row}")
                     for j in range(self._grid.NumCols):
                         self._grid.SetCellBackgroundColor(i, j, Color.Pink)
             else:
                 if len(row.SourceFilename.strip()) == 0 or len(row.SiteFilename.strip()) == 0 or len(row.DisplayTitle.strip()) == 0:
                     error=True
-                    Log("Malformed file row: #"+str(i)+"  "+ str(row))
+                    Log(f"Malformed file row: #{i}  {row}")
                     for j in range(self._grid.NumCols):
                         self._grid.SetCellBackgroundColor(i, j, Color.Pink)
         if error:
@@ -380,7 +378,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     newtable+='      <td colspan="3">'+row.SourceFilename+" "+row.SiteFilename+" "+row.DisplayTitle+" "+row.Notes+'</td>\n'
                 elif row.IsLink:
                     newtable+='      <td colspan="3">'+FormatLink(row.URL, row.DisplayTitle)+'</td>\n'
-                else:
+                else:   # Ordinary row
                     # The document title/link column
                     s=MaybeSuppressPDFExtension(row.DisplayTitle, showExtensions)
                     newtable+='      <td>'+FormatLink(row.SiteFilename, s)+'</td>\n'
@@ -475,7 +473,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     #------------------
     # Download a ConInstance
     def DownloadConInstancePage(self) -> None:
-
         # Clear out any old information
         self._grid.Datasource=ConInstancePage()
 
@@ -516,7 +513,9 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             self.m_popupAllowEditCell.Enabled=True
 
         if self._grid.clickedColumn == 0 and self._grid.clickedRow < self._grid.NumRows:
-            if self._grid.clickedRow < self._grid.Datasource.NumRows and not self._grid.Datasource.Rows[self._grid.clickedRow].IsText and not self._grid.Datasource.Rows[self._grid.clickedRow].IsLink:
+            if self._grid.clickedRow < self._grid.Datasource.NumRows and \
+                    not self._grid.Datasource.Rows[self._grid.clickedRow].IsText and \
+                    not self._grid.Datasource.Rows[self._grid.clickedRow].IsLink:
                 self.m_popupUpdateFile.Enabled=True
 
         self.PopupMenu(self.m_GridPopup, pos=self.gRowGrid.Position+event.Position)
