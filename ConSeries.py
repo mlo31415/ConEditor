@@ -78,16 +78,6 @@ class Con(GridDataRowClass):
     def URL(self, val: str) -> None:
         self._URL=val
 
-    @property
-    def IsTextRow(self) -> bool:        # Con(GridDataRowClass)
-        return False
-    @IsTextRow.setter
-    def IsTextRow(self, val: bool) -> None:
-        assert False
-    @property
-    def IsLinkRow(self) -> bool:
-        return False
-
     # Get or set a value by name or column number
     #def GetVal(self, name: Union[str, int]) -> Union[str, int, FanzineDateRange]:
     def __getitem__(self, index: Union[str, int, slice]) -> Union[str, int, FanzineDateRange]:        # Con(GridDataRowClass)
