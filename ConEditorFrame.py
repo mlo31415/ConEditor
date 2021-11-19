@@ -157,7 +157,8 @@ class ConEditorFrame(GenConEditorFrame):
         self._signature=0
 
         self._grid: DataGrid=DataGrid(self.gRowGrid)
-        self._grid.Datasource=ConList()
+        self.Datasource=ConList()
+
         self._grid.HideRowLabels()
 
         # Position the window on the screen it was on before
@@ -168,6 +169,15 @@ class ConEditorFrame(GenConEditorFrame):
         self.Load()
         self.MarkAsSaved()
         self.Show()
+
+
+    @property
+    def Datasource(self) -> ConList:
+        return self._Datasource
+    @Datasource.setter
+    def Datasource(self, val: ConList):
+        self._Datasource: ConList=val
+        self._grid.Datasource=val
 
     # ----------------------------------------------
     # Used to determine if anything has been updated
@@ -184,21 +194,21 @@ class ConEditorFrame(GenConEditorFrame):
     # Serialize and deserialize
     def ToJson(self) -> str:            # ConEditorFrame
         d={"ver": 1,
-           "_datasource": self._grid.Datasource.ToJson()
+           "_datasource": self.Datasource.ToJson()
            }
 
         return json.dumps(d)
 
     def FromJson(self, val: str) -> ConEditorFrame:            # ConEditorFrame
         d=json.loads(val)
-        self._grid.Datasource=ConList().FromJson(d["_datasource"])
+        self.Datasource=ConList().FromJson(d["_datasource"])
 
         return self
 
     # ------------------
     def Load(self):            # ConEditorFrame
         # Clear out any old information
-        self._grid.Datasource=ConList()
+        self.Datasource=ConList()
 
         Log("Loading root/index.html")
         file=FTP().GetFileAsString("", "index.html")
@@ -256,7 +266,7 @@ class ConEditorFrame(GenConEditorFrame):
         newtable+='    </tr>\n'
         newtable+='  </thead>\n'
         newtable+='  <tbody>\n'
-        for row in self._grid.Datasource.Rows:
+        for row in self.Datasource.Rows:
             newtable+="    <tr>\n"
             newtable+='      <td>'+FormatLink(row.URL, row.Name)+'</td>\n'
             newtable+="    </tr>\n"
@@ -301,7 +311,7 @@ class ConEditorFrame(GenConEditorFrame):
             if len(n.strip()) == 0:
                 return "ZZZZZZZZZ"      # This should sort last
             return n
-        self._grid.Datasource.Rows=sorted(self._grid.Datasource.Rows, key=sorter)
+        self.Datasource.Rows=sorted(self.Datasource.Rows, key=sorter)
         self.RefreshWindow()
 
     #------------------
@@ -313,7 +323,7 @@ class ConEditorFrame(GenConEditorFrame):
         self._grid.OnGridCellRightClick(event, self.m_GridPopup)  # Set enabled state of default items; set all others to False
 
         self.m_popupItemInsert.Enabled=True
-        if self._grid.clickedRow < self._grid.Datasource.NumRows:
+        if self._grid.clickedRow < self.Datasource.NumRows:
             self.m_popupItemDelete.Enabled=True
             self.m_popupItemEdit.Enabled=True
             self.m_popupRename.Enabled=True
@@ -327,27 +337,27 @@ class ConEditorFrame(GenConEditorFrame):
     # ------------------
     def OnGridCellDoubleClick(self, event):            # ConEditorFrame
         self._grid.OnGridCellDoubleClick(event)
-        if event.GetRow() > self._grid.Datasource.NumRows:
+        if event.GetRow() > self.Datasource.NumRows:
             return      # For now, we do nothing when you double-click in an empty cell
 
         self.EditConSeries()
 
     # ------------------
     def EditConSeries(self):
-        if self._grid.clickedRow >= self._grid.Datasource.NumRows:
-            self._grid.Datasource.Rows.insert(self._grid.clickedRow, Convention())
+        if self._grid.clickedRow >= self.Datasource.NumRows:
+            self.Datasource.Rows.insert(self._grid.clickedRow, Convention())
             self.RefreshWindow()
-        conseriesname=self._grid.Datasource[self._grid.clickedRow][0]
+        conseriesname=self.Datasource[self._grid.clickedRow][0]
         # Create list of con series required by the con series editor
-        conserieslist=[row.Name for row in self._grid.Datasource.Rows]
+        conserieslist=[row.Name for row in self.Datasource.Rows]
         with ModalDialogManager(ConSeriesFrame, self._baseDirFTP, conseriesname, conserieslist) as dlg:
             if len(dlg.Seriesname.strip()) == 0:  # If the user didn't supply a con series name, we exit and don't show the dialog
                 return
 
             if dlg.ShowModal() == wx.OK:
                 conseriesname=dlg.tConSeries.GetValue()
-                self._grid.Datasource.Rows[self._grid.clickedRow].URL="./"+conseriesname+"/index.html"
-                self._grid.Datasource.Rows[self._grid.clickedRow].Name=conseriesname
+                self.Datasource.Rows[self._grid.clickedRow].URL="./"+conseriesname+"/index.html"
+                self.Datasource.Rows[self._grid.clickedRow].Name=conseriesname
 
         self.RefreshWindow()
 
@@ -374,14 +384,13 @@ class ConEditorFrame(GenConEditorFrame):
 
     #------------------
     def OnPopupInsertCon(self, event):            # ConEditorFrame
-        self._grid.Datasource.Rows.insert(self._grid.clickedRow, Convention())
+        self.Datasource.Rows.insert(self._grid.clickedRow, Convention())
         self.EditConSeries()    # clickedRow is set by the RMB clicked event that must have preceeded this.
         self.RefreshWindow()
 
     # ------------------
     def OnPopupDeleteCon(self, event):            # ConEditorFrame
-        ret=wx.MessageBox("This will delete "+self._grid.Datasource.Rows[self._grid.clickedRow].Name+" from the list of convention series, but will not delete "+
-                          "its directory or files from fanac.org. You must use FTP to do that.", 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
+        ret=wx.MessageBox(f"This will delete {self.Datasource.Rows[self._grid.clickedRow].Name} from the list of convention series, but will not delete its directory or files from fanac.org. You must use FTP to do that.", 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
         if ret == wx.OK:
             self._grid.DeleteRows(self._grid.clickedRow, 1)
             self.RefreshWindow()
@@ -394,18 +403,18 @@ class ConEditorFrame(GenConEditorFrame):
 
     # ------------------
     def OnPopupRename(self, event):            # ConEditorFrame
-        oldname=self._grid.Datasource[self._grid.clickedRow][0]
+        oldname=self.Datasource[self._grid.clickedRow][0]
         dlg=wx.TextEntryDialog(None, "Enter the new name of the Convention Series.", "Edit Convention Series name", value=oldname)
         if dlg.ShowModal() == wx.CANCEL or len(dlg.GetValue().strip()) == 0:
             return
         newname=dlg.GetValue()
         if newname != oldname:
             # Make sure newname isn't already on the list
-            for row in self._grid.Datasource.Rows:
+            for row in self.Datasource.Rows:
                 if newname == row.Name:
                     wx.MessageBox("That is a duplicate convention name.", "Duplicate Con Name")
                     return
-            self._grid.Datasource[self._grid.clickedRow][0]=newname
+            self.Datasource[self._grid.clickedRow][0]=newname
             self.RefreshWindow()
             FTP().SetDirectory("/")
             FTP().Rename(oldname, newname)
@@ -413,7 +422,7 @@ class ConEditorFrame(GenConEditorFrame):
 
     # ------------------
     def OnTopTextUpdated(self, event):
-        self._grid.Datasource.toptext=self.m_textCtrlTopText.GetValue()
+        self.Datasource.toptext=self.m_textCtrlTopText.GetValue()
         self.RefreshWindow()
 
     # ------------------

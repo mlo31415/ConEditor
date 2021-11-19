@@ -40,7 +40,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     def __init__(self, basedirFTP, seriesname, coninstancename):
         GenConInstanceFrame.__init__(self, None)
         self._grid: DataGrid=DataGrid(self.gRowGrid)
-        self._grid.Datasource=ConInstancePage()
+        self.Datasource=ConInstancePage()
 
         self._grid.HideRowLabels()
 
@@ -67,7 +67,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             val=1   # Default value is do not show extensions
         self.radioBoxShowExtensions.SetSelection(int(val))
 
-        self._grid.Datasource.SpecialTextColor=None
+        self.Datasource.SpecialTextColor=None
 
         self.DownloadConInstancePage()
 
@@ -75,6 +75,15 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         self.MarkAsSaved()
         self.RefreshWindow()
+
+
+    @property
+    def Datasource(self) -> ConInstancePage:
+        return self._Datasource
+    @Datasource.setter
+    def Datasource(self, val: ConInstancePage):
+        self._Datasource=val
+        self._grid.Datasource=val
 
 
     # ----------------------------------------------
@@ -97,7 +106,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
            "ConInstanceStuff": self.ConInstanceTopText,
            "ConInstanceFancyURL": self.ConInstanceFancyURL,
            "Credits": self.Credits,
-           "_datasource": self._grid.Datasource.ToJson()}
+           "_datasource": self.Datasource.ToJson()}
         return json.dumps(d)
 
     def FromJson(self, val: str) -> GenConInstanceFrame:
@@ -108,7 +117,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         if d["ver"] > 3:
             self.Credits=d["Credits"]
         self.ConInstanceFancyURL=RemoveHTTP(self.ConInstanceFancyURL)
-        self._grid.Datasource=ConInstancePage().FromJson(d["_datasource"])
+        self.Datasource=ConInstancePage().FromJson(d["_datasource"])
         return self
 
     # ----------------------------------------------
@@ -210,14 +219,14 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 conf.Size=os.path.getsize(conf.SourcePathname)
                 conf.Pages=GetPdfPageCount(conf.SourcePathname)
                 self.conInstanceDeltaTracker.Add(conf)
-                self._grid.Datasource.Rows.append(conf)
+                self.Datasource.Rows.append(conf)
         else:
             if len(dlg.GetFilenames()) > 0:
-                conf=self._grid.Datasource.Rows[replacerow]
+                conf=self.Datasource.Rows[replacerow]
                 fn=dlg.GetFilenames()[0]
                 newfilename=os.path.join(os.path.join(dlg.GetDirectory()), fn)
                 self.conInstanceDeltaTracker.Replace(conf, conf.SourcePathname)
-                self._grid.Datasource.Rows[replacerow].SourcePathname=newfilename
+                self.Datasource.Rows[replacerow].SourcePathname=newfilename
 
         dlg.Destroy()
         self.RefreshWindow()
@@ -251,13 +260,13 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     # If it is, see if the file is locally available.
     # If it is, check the page count and add it to the table.
     def FillInMissingPDFPageCounts(self):
-        for i, row in enumerate(self._grid.Datasource.Rows):
+        for i, row in enumerate(self.Datasource.Rows):
             if not row.IsTextRow and not row.IsLinkRow:
                 if row.Pages is None or row.Pages == 0:
                     if ExtensionMatches(row.SourcePathname, ".pdf"):
                         if os.path.exists(row.SourcePathname):
                             row.Pages=GetPdfPageCount(row.SourcePathname)
-                            self._grid.Datasource.Rows[i]=row
+                            self.Datasource.Rows[i]=row
 
 
     # ----------------------------------------------
@@ -266,16 +275,16 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         # Delete any trailing blank rows.  (Blank rows anywhere are as error, but we only silently drop trailing blank rows.)
         # Find the last non-blank row.
         last=None
-        for i, row in enumerate(self._grid.Datasource.Rows):
+        for i, row in enumerate(self.Datasource.Rows):
             if len((row.SourceFilename+row.SiteFilename+row.DisplayTitle+row.Notes).strip()) > 0:
                 last=i
         # Delete the row or rows following it
-        if last is not None and last < self._grid.Datasource.NumRows-1:
-            del self._grid.Datasource.Rows[last+1:]
+        if last is not None and last < self.Datasource.NumRows-1:
+            del self.Datasource.Rows[last+1:]
 
         # Check to see if the data is valid
         error=False
-        for i, row in enumerate(self._grid.Datasource.Rows):
+        for i, row in enumerate(self.Datasource.Rows):
             # Valid data requires
             #   If a text row, that some text exists
             #   If an external link row, that text and a properly formed URL exists (but does not check to see target exists)
@@ -371,7 +380,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             newtable+='    </tr>\n'
             newtable+='  </thead>\n'
             newtable+='  <tbody>\n'
-            for i, row in enumerate(self._grid.Datasource.Rows):
+            for i, row in enumerate(self.Datasource.Rows):
                 newtable+="    <tr>\n"
                 # Display title column
                 if row.IsTextRow:
@@ -398,7 +407,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         else:   # Output a list
             # Construct a list which we'll then substitute.
             newtable='<ul  id="conpagetable">\n'
-            for row in self._grid.Datasource.Rows:
+            for row in self.Datasource.Rows:
                 if row.IsTextRow:
                     text=row.SourceFilename+" "+row.SiteFilename+" "+row.DisplayTitle+" "+row.Notes
                     newtable+='    </ul><b>'+text.strip()+'</b><ul id="conpagetable">\n'
@@ -474,7 +483,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     # Download a ConInstance
     def DownloadConInstancePage(self) -> None:
         # Clear out any old information
-        self._grid.Datasource=ConInstancePage()
+        self.Datasource=ConInstancePage()
 
         # Read the existing CIP
         ProgressMessage(self).Show("Downloading "+self._FTPbasedir+"/"+self._coninstancename+"/index.html")
@@ -506,16 +515,16 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.m_popupInsertText.Enabled=True
         self.m_popupInsertLink.Enabled=True
 
-        if event.GetRow() < self._grid.Datasource.NumRows:
+        if event.GetRow() < self.Datasource.NumRows:
             self.m_popupDeleteRow.Enabled=True
 
-        if self._grid.Datasource.ColDefs[self._grid.clickedColumn].IsEditable == "maybe":
+        if self.Datasource.ColDefs[self._grid.clickedColumn].IsEditable == "maybe":
             self.m_popupAllowEditCell.Enabled=True
 
         if self._grid.clickedColumn == 0 and self._grid.clickedRow < self._grid.NumRows:
-            if self._grid.clickedRow < self._grid.Datasource.NumRows and \
-                    not self._grid.Datasource.Rows[self._grid.clickedRow].IsTextRow and \
-                    not self._grid.Datasource.Rows[self._grid.clickedRow].IsLinkRow:
+            if self._grid.clickedRow < self.Datasource.NumRows and \
+                    not self.Datasource.Rows[self._grid.clickedRow].IsTextRow and \
+                    not self.Datasource.Rows[self._grid.clickedRow].IsLinkRow:
                 self.m_popupUpdateFile.Enabled=True
 
         self.PopupMenu(self.m_GridPopup, pos=self.gRowGrid.Position+event.Position)
@@ -539,10 +548,10 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     # ------------------
     def OnPopupInsertText(self, event):
         irow=self._grid.clickedRow
-        if irow > self._grid.Datasource.NumRows:
+        if irow > self.Datasource.NumRows:
             self._grid.ExpandDataSourceToInclude(irow, 0)   # If we're inserting past the end of the datasource, insert empty rows as necessary to fill in between
         self._grid.InsertEmptyRows(irow, 1)     # Insert the new empty row
-        self._grid.Datasource.Rows[irow].IsTextRow=True
+        self.Datasource.Rows[irow].IsTextRow=True
         self._grid._grid.SetCellSize(irow, 0, 1, self._grid.NumCols)
         for icol in range(self._grid.NumCols):
             self._grid.AllowCellEdit(irow, icol)
@@ -552,10 +561,10 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     # ------------------
     def OnPopupInsertLink(self, event):
         irow=self._grid.clickedRow
-        if irow > self._grid.Datasource.NumRows:
+        if irow > self.Datasource.NumRows:
             self._grid.ExpandDataSourceToInclude(irow, 0)   # Insert empty rows into the datasource if necessary to keep things in sync
         self._grid.InsertEmptyRows(irow, 1)
-        self._grid.Datasource.Rows[irow].IsLinkRow=True
+        self.Datasource.Rows[irow].IsLinkRow=True
         for icol in range(self._grid.NumCols):
             self._grid.AllowCellEdit(irow, icol)
         self.RefreshWindow()
@@ -575,19 +584,19 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     def OnPopupDeleteRow(self, event):
         if self._grid.HasSelection():
             top, left, bottom, right=self._grid.LocateSelection()
-            nrows=self._grid.Datasource.NumRows
+            nrows=self.Datasource.NumRows
             if top >= nrows:
                 top=nrows-1
             if bottom >= nrows:
                 bottom=nrows-1
         else:
-            if self._grid.clickedRow >= self._grid.Datasource.NumRows:
+            if self._grid.clickedRow >= self.Datasource.NumRows:
                 return
             top=bottom=self._grid.clickedRow
 
         self._grid.Grid.ClearSelection()
 
-        for row in self._grid.Datasource.Rows[top:bottom+1]:
+        for row in self.Datasource.Rows[top:bottom+1]:
             self.conInstanceDeltaTracker.Delete(row)
         self._grid.DeleteRows(top, bottom-top+1)
         self.RefreshWindow()
@@ -598,29 +607,29 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     def OnGridCellChanged(self, event):
         row=event.GetRow()
         col=event.GetCol()
-        if row >= self._grid.Datasource.NumRows:    # Ignore (and thus reject) data entry beyond the last Datasource row.  (Rows must be added using AddFiles or new Text Line, etc)
+        if row >= self.Datasource.NumRows:    # Ignore (and thus reject) data entry beyond the last Datasource row.  (Rows must be added using AddFiles or new Text Line, etc)
             event.Veto()
             return
 
-        if self._grid.Datasource.ColHeaders[col] == "Site Name":    # Editing the filename on the Conpubs site
-            originalfname=self._grid.Datasource[row][col]
+        if self.Datasource.ColHeaders[col] == "Site Name":    # Editing the filename on the Conpubs site
+            originalfname=self.Datasource[row][col]
             _, oext=os.path.splitext(originalfname)
             self._grid.OnGridCellChanged(event)
-            newfname=self._grid.Datasource[row][col]
+            newfname=self.Datasource[row][col]
             # If we don't allow extensions to be edited (the default), restore the old extension before proceeding.
             if not self.m_checkBoxAllowEditExtentions.IsChecked():
                 newname, _=os.path.splitext(newfname)
                 newfname=newname+oext
-                self._grid.Datasource.SetDataVal(row, col, newfname)
+                self.Datasource[row][col]=newfname
                 self.RefreshWindow()
 
             if originalfname != newfname:
-                self.conInstanceDeltaTracker.Rename(self._grid.Datasource.Rows[row], originalfname)
+                self.conInstanceDeltaTracker.Rename(self.Datasource.Rows[row], originalfname)
         else:
             self._grid.OnGridCellChanged(event)
-            if self._grid.Datasource.Rows[row].IsLinkRow and col == 0:
-                if not self._grid.Datasource.Rows[row].URL.lower().startswith("http"):
-                    self._grid.Datasource[row][col]="https://"+self._grid.Datasource.Rows[row].URL
+            if self.Datasource.Rows[row].IsLinkRow and col == 0:
+                if not self.Datasource.Rows[row].URL.lower().startswith("http"):
+                    self.Datasource[row][col]="https://"+self.Datasource.Rows[row].URL
 
             self.RefreshWindow()
 
