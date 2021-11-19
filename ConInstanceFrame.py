@@ -186,14 +186,14 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             dlg=wx.FileDialog (None, "Select a replacement file to upload", ".", "", "*.*", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_CHANGE_DIR)
 
         # Do we have a last directory?
-        dir=Settings().Get("Last FileDialog directory")
-        if dir is not None:
-            dir=os.path.normpath(dir)
-            while len(dir) > 0:
-                if os.path.exists(dir) and os.path.isdir(dir):
-                    dlg.SetDirectory(dir)
+        directory=Settings().Get("Last FileDialog directory")
+        if directory is not None:
+            directory=os.path.normpath(directory)
+            while directory:
+                if os.path.exists(directory) and os.path.isdir(directory):
+                    dlg.SetDirectory(directory)
                     break
-                dir, _=os.path.split(dir)
+                directory, _=os.path.split(directory)
 
         if dlg.ShowModal() == wx.ID_CANCEL:
             Settings().Put("Last FileDialog directory", dlg.GetDirectory())
