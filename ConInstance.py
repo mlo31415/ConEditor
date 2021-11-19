@@ -19,7 +19,10 @@ class ConFile(GridDataRowClass):
         self._size: int=0               # The file's size in bytes
         self._isText: bool=False        # Is this a piece of text rather than a convention?
         self._isLink: bool=False        # Is this a link?
-        self._URL: str=""               # The URL to be used for a link. (This is ignored if _isLink == False.) It will be displayed using displayTitle as the link text.
+
+        self._URL: str=""               # The URL to be used for a link. (This is ignored if _isLink == False.)
+                                        # It will be displayed using the localfilename as the link text.
+                                        # Note that this is different than the URL method in the other frames
         self._pages: Optional[int]=None # Page count
 
     def __str__(self):      # ConFile(GridDataRowClass)
@@ -172,7 +175,11 @@ class ConFile(GridDataRowClass):
 
     @property
     def URL(self) -> str:      # ConFile(GridDataRowClass)
-        return self._URL
+        if not self.IsLinkRow:
+            return ""
+        # The URL is always stored in column 0: Source Files name
+        return self._localfilename
+
     @URL.setter
     def URL(self, val: str) -> None:
         self._URL=val
