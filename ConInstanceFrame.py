@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import Optional
 
 import wx
+from wx import _core
 import os
 import sys
 import json
