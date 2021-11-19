@@ -552,7 +552,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             self._grid.ExpandDataSourceToInclude(irow, 0)   # If we're inserting past the end of the datasource, insert empty rows as necessary to fill in between
         self._grid.InsertEmptyRows(irow, 1)     # Insert the new empty row
         self.Datasource.Rows[irow].IsTextRow=True
-        self._grid._grid.SetCellSize(irow, 0, 1, self._grid.NumCols)
+        self._grid.Grid.SetCellSize(irow, 0, 1, self._grid.NumCols)
         for icol in range(self._grid.NumCols):
             self._grid.AllowCellEdit(irow, icol)
         self.RefreshWindow()
