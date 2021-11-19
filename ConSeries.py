@@ -83,7 +83,7 @@ class Con(GridDataRowClass):
         return False
     @IsTextRow.setter
     def IsTextRow(self, val: bool) -> None:
-        self._isText=val
+        assert False
     @property
     def IsLinkRow(self) -> bool:
         return False
