@@ -37,9 +37,9 @@ def GetPdfPageCount(pathname: str):
 #####################################################################################
 class ConInstanceDialogClass(GenConInstanceFrame):
 
-
     def __init__(self, basedirFTP, seriesname, coninstancename):
         GenConInstanceFrame.__init__(self, None)
+
         self._grid: DataGrid=DataGrid(self.gRowGrid)
         self.Datasource=ConInstancePage()
 
@@ -57,16 +57,11 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         self._uploaded=False    # Has this instance been uploaded? (This is needed to generate the return value from the dialog.)
 
-        val=Settings().Get("ConInstanceFramePage:File list format")
-        if val is None:
-            val=1    # Default value is display as list
-        self.radioBoxFileListFormat.SetSelection(int(val))
+        val=Settings().Get("ConInstanceFramePage:File list format", default=1)  # Default value is display as list
+        self.radioBoxFileListFormat.SetSelection(val)
 
-
-        val=Settings().Get("ConInstanceFramePage:Show Extensions")
-        if val is None:
-            val=1   # Default value is do not show extensions
-        self.radioBoxShowExtensions.SetSelection(int(val))
+        val=Settings().Get("ConInstanceFramePage:Show Extensions", default=1)   # Default value is do not show extensions
+        self.radioBoxShowExtensions.SetSelection(val)
 
         self.Datasource.SpecialTextColor=None
 
@@ -660,11 +655,11 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
     # ------------------
     def OnRadioFileListFormat(self, event):
-        Settings().Put("ConInstanceFramePage:File list format", str(self.radioBoxFileListFormat.GetSelection()))
+        Settings().Put("ConInstanceFramePage:File list format", self.radioBoxFileListFormat.GetSelection())
 
     # ------------------
     def OnRadioShowExtensions(self, event):
-        Settings().Put("ConInstanceFramePage:Show Extensions", str(self.radioBoxShowExtensions.GetSelection()))
+        Settings().Put("ConInstanceFramePage:Show Extensions", self.radioBoxShowExtensions.GetSelection())
 
     #------------------
     def RefreshWindow(self) -> None:

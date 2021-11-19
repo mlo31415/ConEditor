@@ -163,7 +163,7 @@ class ConEditorFrame(GenConEditorFrame):
 
         # Position the window on the screen it was on before
         tlwp=Settings().Get("Top Level Window Position")
-        if tlwp is not None and len(tlwp) > 0:
+        if tlwp:
             self.SetPosition(tlwp)
 
         self.Load()
