@@ -194,7 +194,7 @@ class ConFile(GridDataRowClass):
         return "Val can't interpret '"+str(index)+"'"
 
     #def SetVal(self, nameOrCol: Union[str, int], val: Union[str, int]) -> None:
-    def __setitem__(self, index: Union[int, slice], value: ColDefinition) -> None:      # ConFile(GridDataRowClass)
+    def __setitem__(self, index: Union[int, slice], value: str) -> None:      # ConFile(GridDataRowClass)
         # (Could use return eval("self."+name))
         if index == 0:
             self.SourceFilename=value
