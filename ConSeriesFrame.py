@@ -634,7 +634,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         if icol < len(self.Datasource.ColDefs) and self.Datasource.ColDefs[icol].IsEditable == "maybe":
             self.m_popupAllowEditCell.Enabled=True
 
-        if irow < self.Datasource.NumRows and self.Datasource.Rows[irow].URL is not None and self._datagrid.Datasource.Rows[irow].URL != "":
+        if irow < self.Datasource.NumRows and self.Datasource.Rows[irow].URL is not None and self.Datasource.Rows[irow].URL != "":
             self.m_popupChangeConSeries.Enabled=True    # Enable only for rows that exist and point to a con instance
 
         self.PopupMenu(self.m_GridPopup)
