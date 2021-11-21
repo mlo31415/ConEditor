@@ -88,12 +88,6 @@ class ConList(GridDataSource):
             ])    # There's only one column!
         self._gridDataRowClass: Convention=Convention()
         self._conlist: list[Convention]=[]  # This supplies the Rows property that GridDataSource needs
-        self._toptext: str=""
-
-    #-----------------------------
-    def Signature(self) -> int:
-        # The game here is to multiply the hash for a row by its position so rearrangement of the rows counts as a change
-        return hash(self._toptext.strip())+sum([hash(x)*(i+1) for i, x in enumerate(self.Rows)])
 
     # -----------------------------
     # Serialize and deserialize
@@ -113,6 +107,11 @@ class ConList(GridDataSource):
             i+=1
         return self
 
+
+    def Signature(self) -> int:         # ConList(GridDataSource)
+        s=sum([hash(x)*(i+1) for i, x in enumerate(self._conlist)])
+        Log(f"ConList(GridDataSource).Signature: {s=}")
+        return s
 
     @property
     def ColDefs(self) -> ColDefinitionsList:         # ConList(GridDataSource)
