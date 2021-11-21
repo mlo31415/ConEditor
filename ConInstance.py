@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Union, Optional
 
-from HelpersPackage import Int, RemoveAccents
+from HelpersPackage import Int, Int0, RemoveAccents
 
 from WxDataGrid import GridDataSource, Color, GridDataRowClass, ColDefinition, ColDefinitionsList
 import json
@@ -157,12 +157,7 @@ class ConFile(GridDataRowClass):
     @Pages.setter
     def Pages(self, val: Union[int, str]) -> None:
         if type(val) is str:
-            if val.strip() == "":
-                val=0
-            else:
-                val=Int(val)
-                if val is None:
-                    val=0
+            val=Int0(val)
         self._pages=val
 
     @property
