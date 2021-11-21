@@ -5,6 +5,7 @@ import json
 from WxDataGrid import GridDataSource, GridDataRowClass, ColDefinition, ColDefinitionsList
 from HelpersPackage import RemoveAccents
 from FanzineIssueSpecPackage import FanzineDateRange
+from Log import Log
 
 
 ####################################################################################
@@ -90,7 +91,8 @@ class Con(GridDataRowClass):
             return self.Locale
         if index == "GoHs" or index == 3:
             return self.GoHs
-        return "Val can't interpret '"+str(index)+"'"
+        Log(f"Con(GridDataRowClass).__getitem__({index}) does not exist")
+        raise IndexError
 
     #def SetVal(self, nameOrCol: Union[str, int], val: Union[str, int, FanzineDateRange]) -> None:
     def __setitem__(self, index: Union[str, int, slice], value: Union[str, int, FanzineDateRange]) -> None:        # Con(GridDataRowClass)
@@ -107,7 +109,8 @@ class Con(GridDataRowClass):
         if index == "GoHs" or index == 3:
             self.GoHs=value
             return
-        print("SetVal can't interpret '"+str(index)+"'")
+        Log(f"Con(GridDataRowClass).__putitem__({index}) does not exist")
+        raise IndexError
 
 
 
@@ -154,7 +157,7 @@ class ConSeries(GridDataSource):
         self._series[index]=val
 
     def Signature(self) -> int:        #  ConSeries(GridDataSource)
-        return hash(self._name)+sum([hash(x)*(i+1) for i, x in enumerate(self.Rows)])
+        return hash(self._name)+sum([x.Signature()*(i+1) for i, x in enumerate(self.Rows)])
 
     @property
     def NumRows(self) -> int:        #  ConSeries(GridDataSource)
