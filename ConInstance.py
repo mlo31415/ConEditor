@@ -3,7 +3,7 @@ from typing import Union, Optional
 
 from HelpersPackage import Int, RemoveAccents
 
-from WxDataGrid import GridDataSource, Color, GridDataRowClass, ColDefinition
+from WxDataGrid import GridDataSource, Color, GridDataRowClass, ColDefinition, ColDefinitionsList
 import json
 import os
 
@@ -230,7 +230,7 @@ class ConInstancePage(GridDataSource):
 
     def __init__(self):
         GridDataSource.__init__(self)
-        self._colDefs: list[ColDefinition]=[
+        self._colDefs: ColDefinitionsList=ColDefinitionsList([
             ColDefinition("Source File Name", Width=100, IsEditable="maybe"),
             ColDefinition("Site Name", Width=75),
             ColDefinition("Display Name", Width=75),
@@ -271,7 +271,7 @@ class ConInstancePage(GridDataSource):
         self._conFileList=rows
 
     @property        # ConInstancePage(GridDataSource)
-    def ColDefs(self) -> list[ColDefinition]:
+    def ColDefs(self) -> ColDefinitionsList:
         return self._colDefs
 
     @property        # ConInstancePage(GridDataSource)
