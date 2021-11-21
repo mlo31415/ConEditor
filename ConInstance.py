@@ -274,6 +274,12 @@ class ConInstancePage(GridDataSource):
 
         return self
 
+
+    def Signature(self) -> int:        # ConInstancePage(GridDataSource)
+        s=self._colDefs.Signature()+hash(self._name.strip())+hash(self._specialTextColor)
+        return s+sum([x.Signature()*(i+1) for i, x in enumerate(self._conFileList)])
+
+
     @property        # ConInstancePage(GridDataSource)
     def Rows(self) -> list:
         return self._conFileList
