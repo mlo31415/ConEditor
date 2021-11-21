@@ -189,8 +189,20 @@ class ConEditorFrame(GenConEditorFrame):
     def MarkAsSaved(self):
         self._signature=self.Signature()
 
-    def NeedsSaving(self):
-        return self._signature != self.Signature()
+    def NeedsSaving(self) -> bool:        # ConEditorFrame(GenConEditorFrame)
+        s=self.Signature()
+        v=self._signature != s
+        Log(f"ConEditorFrame(GenConEditorFrame).NeedsSaving: {self._signature=}  {s=}  {v=}")
+        self.UpdateNeedsSavingFlag()
+        return v
+
+
+    def UpdateNeedsSavingFlag(self):        # ConEditorFrame(GenConEditorFrame)
+        s=self.Title.removesuffix(" *")  # Remove existing Needs Saving marker, if any
+        if self.Signature() != self._signature:
+            s=s+" *"
+        Log(f"ConEditorFrame(GenConEditorFrame).UpdateNeedsSavingFlag: {s}")
+        self.Title=s
 
     # ------------------
     # Serialize and deserialize
@@ -234,6 +246,8 @@ class ConEditorFrame(GenConEditorFrame):
         self._grid.MakeTextLinesEditable()
         self.MarkAsSaved()
         self.RefreshWindow()
+        self.MarkAsSaved()
+
 
 
     @property
@@ -295,11 +309,7 @@ class ConEditorFrame(GenConEditorFrame):
     #------------------
     def RefreshWindow(self) -> None:
         self._grid.RefreshWxGridFromDatasource()
-        s=self.Title.removesuffix(" *")     # Remove existing Needs Saving marker, if any
-        if self.NeedsSaving():
-            s=s+" *"
-        self.Title=s
-
+        self.UpdateNeedsSavingFlag()
 
     #------------------
     def OnButtonSortClick(self, event):            # ConEditorFrame(GenConEditorFrame)
@@ -366,6 +376,7 @@ class ConEditorFrame(GenConEditorFrame):
     #-------------------
     def OnKeyDown(self, event):            # ConEditorFrame(GenConEditorFrame)
         self._grid.OnKeyDown(event)
+        self.UpdateNeedsSavingFlag()
 
     #-------------------
     def OnKeyUp(self, event):            # ConEditorFrame(GenConEditorFrame)
@@ -378,6 +389,7 @@ class ConEditorFrame(GenConEditorFrame):
     #------------------
     def OnPopupPaste(self, event):            # ConEditorFrame
         self._grid.OnPopupPaste(event)
+        self.RefreshWindow()
 
     #------------------
     def OnGridCellChanged(self, event):            # ConEditorFrame (GenConEditorFrame)
