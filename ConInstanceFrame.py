@@ -248,7 +248,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     def FillInMissingPDFPageCounts(self):
         for i, row in enumerate(self.Datasource.Rows):
             if not row.IsTextRow and not row.IsLinkRow:
-                if row.Pages is None or row.Pages == 0:
+                if row.Pages == 0:
                     if ExtensionMatches(row.SourcePathname, ".pdf"):
                         if os.path.exists(row.SourcePathname):
                             row.Pages=GetPdfPageCount(row.SourcePathname)
@@ -335,11 +335,11 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         def FormatSizes(row) -> str:
             info=""
-            if row.Size > 0 or (row.Pages is not None and row.Pages > 0):
+            if row.Size > 0 or row.Pages > 0:
                 info="<small>("
                 if row.Size > 0:
                     info+="{:,.1f}".format(row.Size/(1024**2))+'&nbsp;MB'
-                if row.Pages is not None and row.Pages > 0:
+                if row.Pages > 0:
                     if row.Size > 0:
                         info+="; "
                     info+=str(row.Pages)+" pp"
