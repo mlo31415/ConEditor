@@ -541,7 +541,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         for icol in range(self._grid.NumCols):
             self._grid.AllowCellEdit(irow, icol)
         self.RefreshWindow()
-        event.Skip()
 
     # ------------------
     def OnPopupInsertLink(self, event):
@@ -553,7 +552,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         for icol in range(self._grid.NumCols):
             self._grid.AllowCellEdit(irow, icol)
         self.RefreshWindow()
-        event.Skip()
 
     # ------------------
     def OnPopupAllowEditCell(self, event):
