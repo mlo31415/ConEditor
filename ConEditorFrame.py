@@ -137,7 +137,7 @@ class ConList(GridDataSource):
         self._conlist=rows
 
 
-    def InsertEmptyRows(self, index: int, num: int=1) -> None:
+    def InsertEmptyRows(self, index: int, num: int=1) -> None:         # ConList(GridDataSource)
         if num <= 0:
             return
         if index > len(self.Rows):
@@ -308,7 +308,8 @@ class ConEditorFrame(GenConEditorFrame):
         self.RefreshWindow()
 
     #------------------
-    def RefreshWindow(self) -> None:
+    def RefreshWindow(self) -> None:        # ConEditorFrame(GenConEditorFrame)
+        Log("ConEditorFrame(GenConEditorFrame).RefreshWindow")
         self._grid.RefreshWxGridFromDatasource()
         self.UpdateNeedsSavingFlag()
 
@@ -384,11 +385,11 @@ class ConEditorFrame(GenConEditorFrame):
         self._grid.OnKeyUp(event)
 
     #------------------
-    def OnPopupCopy(self, event):            # ConEditorFrame
+    def OnPopupCopy(self, event):            # ConEditorFrame(GenConEditorFrame)
         self._grid.OnPopupCopy(event)
 
     #------------------
-    def OnPopupPaste(self, event):            # ConEditorFrame
+    def OnPopupPaste(self, event):        # ConEditorFrame(GenConEditorFrame)
         self._grid.OnPopupPaste(event)
         self.RefreshWindow()
 
