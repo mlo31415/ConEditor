@@ -79,7 +79,7 @@ class ConSeriesFrame(GenConSeriesFrame):
     def MarkAsSaved(self):     # ConSeriesFrame(GenConSeriesFrame)
         self._signature=self.Signature()
 
-    def NeedsSaving(self):     # ConSeriesFrame(GenConSeriesFrame)
+    def NeedsSaving(self) -> bool:     # ConSeriesFrame(GenConSeriesFrame)
         return self._signature != self.Signature()
 
 
