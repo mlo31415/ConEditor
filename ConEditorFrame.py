@@ -184,8 +184,10 @@ class ConEditorFrame(GenConEditorFrame):
 
     # ----------------------------------------------
     # Used to determine if anything has been updated
-    def Signature(self) -> int:
-        return self._grid.Signature()+hash(self.m_textCtrlTopText.GetValue().strip())
+    def Signature(self) -> int:        # ConEditorFrame(GenConEditorFrame)
+        s=self.Datasource.Signature()+hash(self.m_textCtrlTopText.GetValue().strip())
+        Log(f"ConEditorFrame(GenConEditorFrame).Signature: {s=}")
+        return s
 
 
     def MarkAsSaved(self):        # ConEditorFrame(GenConEditorFrame)
