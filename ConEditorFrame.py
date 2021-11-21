@@ -28,17 +28,19 @@ class Convention(GridDataRowClass):
         self._URL: str=""       # The location of the convention series html page relative to the main cons page; empty if no series page exists yet
 
 
-    def Signature(self) -> int:
-        return hash(self._name.strip()+self._URL.strip())
+    def Signature(self) -> int:     # Convention(GridDataRowClass)
+        s=hash(self._name.strip()+self._URL.strip())
+        Log(f"Convention(GridDataRowClass).Signature {s=}")
+        return s
 
     # Serialize and deserialize
-    def ToJson(self) -> str:
+    def ToJson(self) -> str:     # Convention(GridDataRowClass)
         d={"ver": 2,
            "_name": self._name,
            "_URL": self._URL}
         return json.dumps(d)
 
-    def FromJson(self, val: str) -> Convention:
+    def FromJson(self, val: str) -> Convention:     # Convention(GridDataRowClass)
         d=json.loads(val)
         self._name=d["_name"]
         self._URL=d["_URL"]
@@ -47,14 +49,14 @@ class Convention(GridDataRowClass):
 
     # Get or set a value by name or column number
     #def GetVal(self, name: Union[str, int]) -> Union[str, int]:
-    def __getitem__(self, index: Union[str, int, slice]) -> Union[str, int]:
+    def __getitem__(self, index: Union[str, int, slice]) -> Union[str, int]:     # Convention(GridDataRowClass)
         # (Could use return eval("self."+name))
         if index == "Convention" or index == 0:
             return self._name
         return "Convention.Val can't interpret '"+str(index)+"'"
 
     #def SetVal(self, nameOrCol: Union[str, int], val: Union[str, int]) -> None:
-    def __setitem__(self, nameOrCol: Union[str, int, slice], value: ColDefinition) -> None:
+    def __setitem__(self, nameOrCol: Union[str, int, slice], value: ColDefinition) -> None:     # Convention(GridDataRowClass)
         # (Could use return eval("self."+name))
         if nameOrCol == "Convention" or nameOrCol == 0:
             self._name=value
@@ -63,14 +65,14 @@ class Convention(GridDataRowClass):
         raise KeyError
 
     @property
-    def Name(self) -> str:
+    def Name(self) -> str:     # Convention(GridDataRowClass)
         return self._name
     @Name.setter
     def Name(self, val: str) -> None:
         self._name=val
 
     @property
-    def URL(self) -> str:
+    def URL(self) -> str:     # Convention(GridDataRowClass)
         return self._URL
     @URL.setter
     def URL(self, val: str) -> None:
@@ -93,14 +95,14 @@ class ConList(GridDataSource):
 
     # -----------------------------
     # Serialize and deserialize
-    def ToJson(self) -> str:
+    def ToJson(self) -> str:         # ConList(GridDataSource)
         d={"ver": 2}
         for i, s in enumerate(self._conlist):
             d[i]=s.ToJson()
 
         return json.dumps(d)
 
-    def FromJson(self, val: str) -> ConList:
+    def FromJson(self, val: str) -> ConList:         # ConList(GridDataSource)
         d=json.loads(val)
         self._conlist=[]
         i=0
@@ -111,23 +113,23 @@ class ConList(GridDataSource):
 
 
     @property
-    def ColDefs(self) -> list[ColDefinition]:
+    def ColDefs(self) -> ColDefinitionsList:         # ConList(GridDataSource)
         return self._colDefs
 
     @property
-    def NumRows(self) -> int:
+    def NumRows(self) -> int:         # ConList(GridDataSource)
         return len(self._conlist)
 
-    def __getitem__(self, index: int) -> Convention:
+    def __getitem__(self, index: int) -> Convention:         # ConList(GridDataSource)
         assert index != -1
         return self.Rows[index]
 
-    def __setitem__(self, index: int, val: Convention) -> None:
+    def __setitem__(self, index: int, val: Convention) -> None:         # ConList(GridDataSource)
         assert index != -1
         self.Rows[index]=val
 
     @property
-    def Rows(self) -> list:
+    def Rows(self) -> list:         # ConList(GridDataSource)
         return self._conlist
     @Rows.setter
     def Rows(self, rows: list) -> None:
@@ -172,7 +174,7 @@ class ConEditorFrame(GenConEditorFrame):
 
 
     @property
-    def Datasource(self) -> ConList:
+    def Datasource(self) -> ConList:        # ConEditorFrame(GenConEditorFrame)
         return self._Datasource
     @Datasource.setter
     def Datasource(self, val: ConList):
@@ -192,7 +194,7 @@ class ConEditorFrame(GenConEditorFrame):
 
     # ------------------
     # Serialize and deserialize
-    def ToJson(self) -> str:            # ConEditorFrame
+    def ToJson(self) -> str:        # ConEditorFrame(GenConEditorFrame)
         d={"ver": 1,
            "_datasource": self.Datasource.ToJson()
            }
@@ -235,7 +237,7 @@ class ConEditorFrame(GenConEditorFrame):
 
 
     @property
-    def Title(self) -> str:
+    def Title(self) -> str:        # ConEditorFrame(GenConEditorFrame)
         return self.GetTitle()
     @Title.setter
     def Title(self, val) -> None:
@@ -246,7 +248,7 @@ class ConEditorFrame(GenConEditorFrame):
     def OnButtonUploadClick(self, event):            # ConEditorFrame
         self.Upload()
 
-    def Upload(self):
+    def Upload(self):        # ConEditorFrame(GenConEditorFrame)
         # First read in the template
         file=None
         try:
@@ -300,7 +302,7 @@ class ConEditorFrame(GenConEditorFrame):
 
 
     #------------------
-    def OnButtonSortClick(self, event):            # ConEditorFrame
+    def OnButtonSortClick(self, event):            # ConEditorFrame(GenConEditorFrame)
         # Worldcon sorts ahead of everything else; Then "Early Conventions"; Then all other conventions; Finally empty lines after everything else
         def sorter(c: Convention) -> str:
             n=c.Name.upper()        # Convert to all UC so that sort is case-insensitive
@@ -331,7 +333,7 @@ class ConEditorFrame(GenConEditorFrame):
         self.PopupMenu(self.m_GridPopup, pos=self.gRowGrid.Position+event.Position)
 
     # ------------------
-    def OnGridEditorShown(self, event):
+    def OnGridEditorShown(self, event):        # ConEditorFrame(GenConEditorFrame)
         self._grid.OnGridEditorShown(event)
 
     # ------------------
@@ -343,7 +345,7 @@ class ConEditorFrame(GenConEditorFrame):
         self.EditConSeries()
 
     # ------------------
-    def EditConSeries(self):
+    def EditConSeries(self):        # ConEditorFrame(GenConEditorFrame)
         if self._grid.clickedRow >= self.Datasource.NumRows:
             self.Datasource.Rows.insert(self._grid.clickedRow, Convention())
             self.RefreshWindow()
@@ -362,11 +364,11 @@ class ConEditorFrame(GenConEditorFrame):
         self.RefreshWindow()
 
     #-------------------
-    def OnKeyDown(self, event):            # ConEditorFrame
+    def OnKeyDown(self, event):            # ConEditorFrame(GenConEditorFrame)
         self._grid.OnKeyDown(event)
 
     #-------------------
-    def OnKeyUp(self, event):            # ConEditorFrame
+    def OnKeyUp(self, event):            # ConEditorFrame(GenConEditorFrame)
         self._grid.OnKeyUp(event)
 
     #------------------
@@ -378,7 +380,7 @@ class ConEditorFrame(GenConEditorFrame):
         self._grid.OnPopupPaste(event)
 
     #------------------
-    def OnGridCellChanged(self, event):            # ConEditorFrame
+    def OnGridCellChanged(self, event):            # ConEditorFrame (GenConEditorFrame)
         self._grid.OnGridCellChanged(event)
         self.RefreshWindow()
 
@@ -421,7 +423,7 @@ class ConEditorFrame(GenConEditorFrame):
             self.Upload()
 
     # ------------------
-    def OnTopTextUpdated(self, event):
+    def OnTopTextUpdated(self, event):        # ConEditorFrame(GenConEditorFrame)
         self.Datasource.toptext=self.m_textCtrlTopText.GetValue()
         self.RefreshWindow()
 
