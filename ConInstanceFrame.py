@@ -94,6 +94,12 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     def NeedsSaving(self) -> bool:
         return self._signature != self.Signature()
 
+    def UpdateNeedsSavingFlag(self):
+        s=self.Title.removesuffix(" *")     # Remove existing Needs Saving marker, if any
+        if self.NeedsSaving():
+            s=s+" *"
+        self.Title=s
+
     # ----------------------------------------------
     # Serialize and deserialize
     def ToJson(self) -> str:
@@ -517,6 +523,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     # -------------------
     def OnKeyDown(self, event):
         self._grid.OnKeyDown(event)
+        self.UpdateNeedsSavingFlag()
 
     # -------------------
     def OnKeyUp(self, event):
@@ -529,6 +536,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     # ------------------
     def OnPopupPaste(self, event):
         self._grid.OnPopupPaste(event)
+        self.RefreshWindow()
 
     # ------------------
     def OnPopupInsertText(self, event):
@@ -653,8 +661,5 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     #------------------
     def RefreshWindow(self) -> None:
         self._grid.RefreshWxGridFromDatasource()
+        self.UpdateNeedsSavingFlag()
 
-        s=self.Title.removesuffix(" *")     # Remove existing Needs Saving marker, if any
-        if self.NeedsSaving():
-            s=s+" *"
-        self.Title=s
