@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Union, Optional
 
-from HelpersPackage import Int, Int0, RemoveAccents
+from HelpersPackage import Int0, RemoveAccents
 
 from WxDataGrid import GridDataSource, Color, GridDataRowClass, ColDefinition, ColDefinitionsList
 import json
