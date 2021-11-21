@@ -217,9 +217,10 @@ class ConFile(GridDataRowClass):
             self.DisplayTitle=value
             return
         if index == 3:
-            if value.strip() == "":
-                value=0
-            self.Pages=value
+            if isinstance(value, int):
+                self.Pages=value
+            else:
+                self.Pages=Int0(value.strip())
             return
         if index == 4:
             self.Notes=value
