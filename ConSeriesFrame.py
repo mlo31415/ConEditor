@@ -82,6 +82,11 @@ class ConSeriesFrame(GenConSeriesFrame):
     def NeedsSaving(self) -> bool:     # ConSeriesFrame(GenConSeriesFrame)
         return self._signature != self.Signature()
 
+    def UpdateNeedsSavingFlag(self):
+        s=self.Title.removesuffix(" *") # Remove any existing Needs Saving marker
+        if self.NeedsSaving():
+            s=s+" *"
+        self.Title=s
 
     # Serialize and deserialize
     def ToJson(self) -> str:     # ConSeriesFrame(GenConSeriesFrame)
@@ -100,6 +105,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             self.TextComments=d["_textComments"]
             self.Datasource=ConSeries().FromJson(d["_datasource"])
         return self
+
 
     @property
     def Seriesname(self) -> str:     # ConSeriesFrame(GenConSeriesFrame)
@@ -406,14 +412,9 @@ class ConSeriesFrame(GenConSeriesFrame):
     #------------------
     def RefreshWindow(self) -> None:     # ConSeriesFrame(GenConSeriesFrame)
         self._grid.RefreshWxGridFromDatasource()
-
-        s=self.Title.removesuffix(" *") # Remove any existing Needs Saving marker
-        if self.NeedsSaving():
-            s=s+" *"
-        self.Title=s
-
+        self.UpdateNeedsSavingFlag()
         self.bUploadConSeries.Enabled=len(self.Seriesname) > 0
-        self.bLoadSeriesFromFancy .Enabled=self.Datasource.NumRows == 0  # If any con instances have been created, don't offer a download from Fancy
+        self.bLoadSeriesFromFancy.Enabled=self.Datasource.NumRows == 0  # If any con instances have been created, don't offer a download from Fancy
 
 
     #------------------
@@ -650,6 +651,7 @@ class ConSeriesFrame(GenConSeriesFrame):
     #-------------------
     def OnKeyDown(self, event):     # ConSeriesFrame(GenConSeriesFrame)
         self._grid.OnKeyDown(event)
+        self.UpdateNeedsSavingFlag()
 
     #-------------------
     def OnKeyUp(self, event):     # ConSeriesFrame(GenConSeriesFrame)
@@ -662,9 +664,11 @@ class ConSeriesFrame(GenConSeriesFrame):
     #------------------
     def OnPopupPaste(self, event):      # ConSeriesFrame(GenConSeriesFrame)
         self._grid.OnPopupPaste(event)
+        self.UpdateNeedsSavingFlag()
 
     def OnGridCellChanged(self, event):                    # ConSeriesFrame(GenConSeriesFrame)
         self._grid.OnGridCellChanged(event)
+        self.UpdateNeedsSavingFlag()
         self.RefreshWindow()
 
     # ------------------
