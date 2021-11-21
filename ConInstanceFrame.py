@@ -19,7 +19,7 @@ from Settings import Settings
 from Log import Log
 
 from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, RemoveHTTP, ExtensionMatches, PyiResourcePath
-from WxHelpers import ProgressMessage
+from WxHelpers import ProgressMessage, OnCloseHandling
 
 
 # Get the file's page count if it's a pdf
@@ -235,18 +235,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
     # ----------------------------------------------
     def OnClose(self, event):
-        if self.NeedsSaving():
-            if type(event) == wx._core.CommandEvent:  # When the close event is an ESC or the ID_Cancel button, it's not a vetoable event, so it needs to be handled separately
-                resp=wx.MessageBox("This file list has been updated and not yet saved. Exit anyway?", 'Warning',
-                                   wx.OK|wx.CANCEL|wx.ICON_WARNING)
-                if resp == wx.CANCEL:
-                    return
-            elif event.CanVeto():
-                resp=wx.MessageBox("This file list has been updated and not yet saved. Exit anyway?", 'Warning',
-                       wx.OK|wx.CANCEL|wx.ICON_WARNING)
-                if resp == wx.CANCEL:
-                    event.Veto()
-                    return
+        if OnCloseHandling(event, self.NeedsSaving(), "This file list has been updated and not yet saved. Exit anyway?"):
+            return
 
         self.EndModal(wx.ID_OK if self.Uploaded else wx.ID_CANCEL)
 

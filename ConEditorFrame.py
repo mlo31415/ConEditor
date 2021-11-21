@@ -18,7 +18,7 @@ from Settings import Settings
 
 
 from HelpersPackage import SubstituteHTML, FindBracketedText, FormatLink, Int, MessageBox, PyiResourcePath
-from WxHelpers import ModalDialogManager
+from WxHelpers import ModalDialogManager, OnCloseHandling
 from Log import LogOpen, Log, LogFlush
 
 
@@ -427,12 +427,8 @@ class ConEditorFrame(GenConEditorFrame):
 
     # ------------------
     def OnClose(self, event):            # ConEditorFrame
-        if self.NeedsSaving():
-            if event.CanVeto():
-                ret=wx.MessageBox("The main con list has been updated and not yet saved. Exit anyway?", 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
-                if ret == wx.CANCEL:
-                    event.Veto()
-                    return
+        if OnCloseHandling(event, self.NeedsSaving(), "The main con list has been updated and not yet saved. Exit anyway?"):
+            return
 
         # Save the window's position
         pos=self.GetPosition()
