@@ -91,7 +91,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     def MarkAsSaved(self):
         self._signature=self.Signature()
 
-    def NeedsSaving(self):
+    def NeedsSaving(self) -> bool:
         return self._signature != self.Signature()
 
     # ----------------------------------------------
