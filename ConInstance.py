@@ -23,7 +23,7 @@ class ConFile(GridDataRowClass):
         self._URL: str=""               # The URL to be used for a link. (This is ignored if _isLink == False.)
                                         # It will be displayed using the localfilename as the link text.
                                         # Note that this is different than the URL method in the other frames
-        self._pages: Optional[int]=None # Page count
+        self._pages: int=0    # Page count
 
     def __str__(self):      # ConFile(GridDataRowClass)
         s=""
@@ -39,7 +39,7 @@ class ConFile(GridDataRowClass):
             s+="URL="+self.URL+"; "
         if self.Size > 0:
             s+="Size="+str(self.Size)+"; "
-        if self.Pages is not None and self.Pages > 0:
+        if self.Pages > 0:
             s+="Pages="+str(self.Pages)+"; "
         if self.IsTextRow:
             s+="IsTextRow; "
@@ -65,11 +65,11 @@ class ConFile(GridDataRowClass):
 
     def Signature(self) -> int:      # ConFile(GridDataRowClass)
         tot=hash(self._displayTitle.strip()+self._notes.strip()+self._localfilename.strip()+self._localpathname.strip()+self._sitefilename.strip()+self._URL.strip())
-        return tot+self._size+hash(self._isText)+(self._pages if self._pages is not None else 0)
+        return tot+self._size+hash(self._isText)+self._pages
 
     # Serialize and deserialize
     def ToJson(self) -> str:      # ConFile(GridDataRowClass)
-        d={"ver": 9,
+        d={"ver": 10,
            "_displayTitle": self._displayTitle,
            "_notes": self._notes,
            "_localpathname": self._localpathname,
@@ -97,6 +97,8 @@ class ConFile(GridDataRowClass):
             self._isText=d["_isText"]
         if d["ver"] > 6:
             self._pages=d["_pages"]
+            if self._pages is None:
+                self._pages=0
         if d["ver"] > 7:
             self._isLink=d["_isLink"]
         if d["ver"] > 8:
@@ -150,12 +152,17 @@ class ConFile(GridDataRowClass):
         self._size=val
 
     @property
-    def Pages(self) -> Optional[int]:      # ConFile(GridDataRowClass)
+    def Pages(self) -> int:      # ConFile(GridDataRowClass)
         return self._pages
     @Pages.setter
-    def Pages(self, val: Union[int, str, None]) -> None:
+    def Pages(self, val: Union[int, str]) -> None:
         if type(val) is str:
-            val=Int(val)
+            if val.strip() == "":
+                val=0
+            else:
+                val=Int(val)
+                if val is None:
+                    val=0
         self._pages=val
 
     @property
@@ -195,6 +202,8 @@ class ConFile(GridDataRowClass):
         if index == 2:
             return self.DisplayTitle
         if index == 3:
+            if self.Pages == 0:
+                return ""
             return self.Pages
         if index == 4:
             return self.Notes
@@ -213,6 +222,8 @@ class ConFile(GridDataRowClass):
             self.DisplayTitle=value
             return
         if index == 3:
+            if value.strip() == "":
+                value=0
             self.Pages=value
             return
         if index == 4:
@@ -236,7 +247,7 @@ class ConInstancePage(GridDataSource):
             ColDefinition("Display Name", Width=75),
             ColDefinition("Pages", Type="int", IsEditable="maybe"),
             ColDefinition("Notes", Width=150)
-        ]
+        ])
         self._element=ConFile
         self._conFileList: list[ConFile]=[]  # This supplies the Rows property that GridDataSource needs
         self._name: str=""
