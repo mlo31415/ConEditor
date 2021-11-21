@@ -187,8 +187,12 @@ class ConEditorFrame(GenConEditorFrame):
     def Signature(self) -> int:
         return self._grid.Signature()+hash(self.m_textCtrlTopText.GetValue().strip())
 
-    def MarkAsSaved(self):
+
+    def MarkAsSaved(self):        # ConEditorFrame(GenConEditorFrame)
         self._signature=self.Signature()
+        Log(f"MarkAsSaved: {self._signature=}")
+        self.UpdateNeedsSavingFlag()
+
 
     def NeedsSaving(self) -> bool:        # ConEditorFrame(GenConEditorFrame)
         s=self.Signature()
@@ -245,7 +249,6 @@ class ConEditorFrame(GenConEditorFrame):
             return
 
         self._grid.MakeTextLinesEditable()
-        self.MarkAsSaved()
         self.RefreshWindow()
         self.MarkAsSaved()
 
