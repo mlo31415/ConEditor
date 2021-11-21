@@ -86,7 +86,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     # Used to determine if anything has been updated
     def Signature(self) -> int:
         stuff=self.ConInstanceName.strip()+self.ConInstanceTopText.strip()+self.ConInstanceFancyURL.strip()+self.Credits.strip()
-        return hash(stuff)+self._grid.Signature()
+        return hash(stuff)+self.Datasource.Signature()
 
     def MarkAsSaved(self):
         self._signature=self.Signature()
