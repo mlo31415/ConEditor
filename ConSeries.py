@@ -91,7 +91,8 @@ class Con(GridDataRowClass):
             return self.Locale
         if index == "GoHs" or index == 3:
             return self.GoHs
-        Log(f"Con(GridDataRowClass).__getitem__({index}) does not exist")
+        if index != 4:  # Index == 4 is normal, being the terminator of an iteration through the columns
+            Log(f"Con(GridDataRowClass).__getitem__({index}) does not exist")
         raise IndexError
 
     #def SetVal(self, nameOrCol: Union[str, int], val: Union[str, int, FanzineDateRange]) -> None:
