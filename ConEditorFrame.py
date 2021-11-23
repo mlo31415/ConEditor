@@ -110,7 +110,6 @@ class ConList(GridDataSource):
 
     def Signature(self) -> int:         # ConList(GridDataSource)
         s=sum([hash(x)*(i+1) for i, x in enumerate(self._conlist)])
-        Log(f"ConList(GridDataSource).Signature: {s=}")
         return s
 
     @property
@@ -186,20 +185,16 @@ class ConEditorFrame(GenConEditorFrame):
     # Used to determine if anything has been updated
     def Signature(self) -> int:        # ConEditorFrame(GenConEditorFrame)
         s=self.Datasource.Signature()+hash(self.m_textCtrlTopText.GetValue().strip())
-        Log(f"ConEditorFrame(GenConEditorFrame).Signature: {s=}")
         return s
 
 
     def MarkAsSaved(self):        # ConEditorFrame(GenConEditorFrame)
         self._signature=self.Signature()
-        Log(f"MarkAsSaved: {self._signature=}")
         self.UpdateNeedsSavingFlag()
 
 
     def NeedsSaving(self) -> bool:        # ConEditorFrame(GenConEditorFrame)
-        s=self.Signature()
-        v=self._signature != s
-        Log(f"ConEditorFrame(GenConEditorFrame).NeedsSaving: {self._signature=}  {s=}  {v=}")
+        v=self._signature != self.Signature()
         self.UpdateNeedsSavingFlag()
         return v
 
@@ -208,7 +203,6 @@ class ConEditorFrame(GenConEditorFrame):
         s=self.Title.removesuffix(" *")  # Remove existing Needs Saving marker, if any
         if self.Signature() != self._signature:
             s=s+" *"
-        Log(f"ConEditorFrame(GenConEditorFrame).UpdateNeedsSavingFlag: {s}")
         self.Title=s
 
     # ------------------
