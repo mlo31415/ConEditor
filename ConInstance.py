@@ -65,7 +65,7 @@ class ConFile(GridDataRowClass):
 
     def Signature(self) -> int:      # ConFile(GridDataRowClass)
         tot=hash(self._displayTitle.strip()+self._notes.strip()+self._localfilename.strip()+self._localpathname.strip()+self._sitefilename.strip()+self._URL.strip())
-        return tot+self._size+hash(self._isText)+self._pages
+        return tot+self._size+hash(self._isText)+self.Pages
 
     # Serialize and deserialize
     def ToJson(self) -> str:      # ConFile(GridDataRowClass)
@@ -153,6 +153,8 @@ class ConFile(GridDataRowClass):
 
     @property
     def Pages(self) -> int:      # ConFile(GridDataRowClass)
+        if self._pages is None:
+            return 0
         return self._pages
     @Pages.setter
     def Pages(self, val: Union[int, str]) -> None:
