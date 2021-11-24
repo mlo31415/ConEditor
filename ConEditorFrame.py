@@ -308,7 +308,6 @@ class ConEditorFrame(GenConEditorFrame):
 
     #------------------
     def RefreshWindow(self) -> None:        # ConEditorFrame(GenConEditorFrame)
-        Log("ConEditorFrame(GenConEditorFrame).RefreshWindow")
         self._grid.RefreshWxGridFromDatasource()
         self.UpdateNeedsSavingFlag()
 
