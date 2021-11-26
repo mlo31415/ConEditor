@@ -284,7 +284,7 @@ class ConEditorFrame(GenConEditorFrame):
         newtable+='  <tbody>\n'
         for i, row in enumerate(self.Datasource.Rows):
             if i == 3:  # Add a crude horizontal rule between items 3 (Misc. Cons) and 4 (1st real con)
-                newtable+="    <tr>\n      <td>------------------</td>/n    <tr>\n"
+                newtable+="    <tr>\n      <td>------------------</td>\n    <tr>\n"
             newtable+="    <tr>\n"
             newtable+='      <td>'+FormatLink(row.URL, row.Name)+'</td>\n'
             newtable+="    </tr>\n"
