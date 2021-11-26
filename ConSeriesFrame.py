@@ -575,8 +575,8 @@ class ConSeriesFrame(GenConSeriesFrame):
         ProgressMessage(self).Show(F"Creating {newDirPath} and copying contents to it.")
         FTP().MKD(newDirPath)
 
-        # Copy the contents of the old con instance directory to the new one
-        if len(self._basedirectoryFTP) > 0:
+        # Make a list of the files in the old con instance directory
+        if self._basedirectoryFTP:
             oldDirPath=self._basedirectoryFTP+"/"+oldDirPath
         fileList=FTP().Nlst(oldDirPath)
 
