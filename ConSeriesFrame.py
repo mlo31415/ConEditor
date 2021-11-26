@@ -546,7 +546,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             newDirPath=self._basedirectoryFTP+"/"+newDirPath
         if FTP().PathExists(newDirPath):
             Log("OnPopupChangeConSeries: newDirPath '"+newDirPath+"' already exists", isError=True)
-            wx.MessageBox("OnPopupChangeConSeries: newDirPath '"+newDirPath+"' already exists", 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
+            wx.MessageBox(f"OnPopupChangeConSeries: newDirPath '{newDirPath}' already exists. Move can not proceed.", 'Warning', wx.OK|wx.ICON_WARNING)
             return
 
         # Find a location in the new con series list for this one to go to -- assume the list is in alphabetic order
@@ -573,9 +573,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         # Copy the con instance directory from the old con series directory to the new con series directory
 
         # Create the new con instance directory.
-        ProgressMessage(self).Show("Creating "+newDirPath+" and copying contents to it.")
-
-        # Make a list of the files in the old con instance directory
+        ProgressMessage(self).Show(F"Creating {newDirPath} and copying contents to it.")
         FTP().MKD(newDirPath)
 
         # Copy the contents of the old con instance directory to the new one
@@ -585,9 +583,9 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         # Copy the contents of the old con instance directory to the new one
         for file in fileList:
-            ProgressMessage(self).UpdateMessage("Copying "+file)
+            ProgressMessage(self).UpdateMessage(f"Copying {file}")
             if not FTP().CopyFile(oldDirPath, newDirPath, file):
-                msg="OnPopupChangeConSeries: Failure copying "+file+" from "+oldDirPath+" to " +newDirPath+"\nThis will require hand cleanup"
+                msg=f"OnPopupChangeConSeries: Failure copying {file} from {oldDirPath} to {newDirPath}\nThis will require hand cleanup."
                 Log(msg, isError=True)
                 wx.MessageBox(msg, 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
                 return
