@@ -598,7 +598,8 @@ class ConSeriesFrame(GenConSeriesFrame):
         else:
             return
 
-            #TODO: Delete the old con instance info from site
+        # Finally, delete the old directory
+        FTP().DeleteDir(oldDirPath)
 
 
     #------------------
