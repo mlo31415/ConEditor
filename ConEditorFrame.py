@@ -320,6 +320,8 @@ class ConEditorFrame(GenConEditorFrame):
                 return " "
             if n == "EARLY CONVENTIONS":
                 return " "
+            if n == "MISC. CONVENTIONS":
+                return " "
             if len(n.strip()) == 0:
                 return "ZZZZZZZZZ"      # This should sort last
             return n
