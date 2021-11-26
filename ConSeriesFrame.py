@@ -524,6 +524,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             if wx.ID_OK == dialog.ShowModal():
                 newSeriesName=dialog.GetStringSelection()
 
+        # Nothing selected -- abort
         if newSeriesName == "":
             return
 
@@ -535,11 +536,11 @@ class ConSeriesFrame(GenConSeriesFrame):
             return
 
         # Move it
-        # Get list of cons in selected con series
+        # Get list of cons in the move-to (new) series
         csf=ConSeriesFrame(self._basedirectoryFTP, newSeriesName, conserieslist, show=False)
         newconlist=[x.Name for x in csf.Datasource.Rows]
 
-        # The target con instance directory must not exist.
+        # The target con instance *directory* must not already exist.
         newDirPath="/"+newSeriesName+"/"+instanceName
         if len(self._basedirectoryFTP) > 0:
             newDirPath=self._basedirectoryFTP+"/"+newDirPath
@@ -549,7 +550,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             return
 
         # Find a location in the new con series list for this one to go to -- assume the list is in alphabetic order
-        # Note that this does not check for duplicate con instance names.  That needs to be sorted out by hand.
+        # Note that this does not check for duplicate con instance names.  That needs to be fixed by hand.
         loc=len(newconlist)
         if len(newconlist) == 0:
             loc=0
@@ -570,6 +571,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         UpdateLog().LogText("Moving '"+instanceName+"' from '"+oldDirPath+"' to '"+newDirPath+"'")
 
         # Copy the con instance directory from the old con series directory to the new con series directory
+
         # Create the new con instance directory.
         ProgressMessage(self).Show("Creating "+newDirPath+" and copying contents to it.")
 
@@ -580,6 +582,8 @@ class ConSeriesFrame(GenConSeriesFrame):
         if len(self._basedirectoryFTP) > 0:
             oldDirPath=self._basedirectoryFTP+"/"+oldDirPath
         fileList=FTP().Nlst(oldDirPath)
+
+        # Copy the contents of the old con instance directory to the new one
         for file in fileList:
             ProgressMessage(self).UpdateMessage("Copying "+file)
             if not FTP().CopyFile(oldDirPath, newDirPath, file):
