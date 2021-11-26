@@ -528,9 +528,8 @@ class ConSeriesFrame(GenConSeriesFrame):
         if newSeriesName == "":
             return
 
-        instanceName=self.Datasource.Rows[irow].Name
-
         # Ask for confirmation
+        instanceName=self.Datasource.Rows[irow].Name
         ret=wx.MessageBox("Move convention instance '"+instanceName+"' to new convention series '"+newSeriesName+"'?", 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
         if ret != wx.OK:
             return
