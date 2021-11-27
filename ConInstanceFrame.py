@@ -210,7 +210,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 # We need to try to make the fn into a somewhat more useful display title.
                 # Commonly, file names are prefixed by <conname> <con number/con year>, so we'll remove that if we find it.
                 dname=fn
-                pat=seriesname+"\\s*([0-9]+|[IVXL]+)\\s*(.+)"
+                pat=seriesname+"\s*(\'?[0-9]+|[IVXL]+)\s*(.+)"
                 m=re.match(pat, dname, flags=re.IGNORECASE)
                 if m is not None and len(m.groups()) == 2:
                     dname=m.groups()[1]
