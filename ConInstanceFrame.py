@@ -207,13 +207,20 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         if replacerow is None:
             for fn in dlg.GetFilenames():
                 conf=ConFile()
+
                 # We need to try to make the fn into a somewhat more useful display title.
-                # Commonly, file names are prefixed by <conname> <con number/con year>, so we'll remove that if we find it.
+                # Commonly, file names are prefixed by <conseriesname> <con number/con year>, so we'll remove that if we find it.
                 dname=fn
                 pat=seriesname+"\s*(\'?[0-9]+|[IVXL]+)\s*(.+)"
                 m=re.match(pat, dname, flags=re.IGNORECASE)
                 if m is not None and len(m.groups()) == 2:
                     dname=m.groups()[1]
+                # The conventions in the series may also have unique names rather than something like 'conseries 15'
+                pat=self.ConInstanceName+"\s*(.*)"
+                m=re.match(pat, dname, flags=re.IGNORECASE)
+                if m is not None and len(m.groups()) == 1:
+                    dname=m.groups()[0]
+
                 conf.DisplayTitle=dname
                 conf.SiteFilename=fn
                 conf.SourceFilename=fn
