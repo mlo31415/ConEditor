@@ -283,7 +283,7 @@ class ConEditorFrame(GenConEditorFrame):
         newtable+='  </thead>\n'
         newtable+='  <tbody>\n'
         for i, row in enumerate(self.Datasource.Rows):
-            if i == 3:  # Add a crude horizontal rule between items 3 (Misc. Cons) and 4 (1st real con)
+            if i == 4:  # Add a crude horizontal rule between items 3 (Misc. Cons) and 4 (1st real con)
                 newtable+="    <tr>\n      <td>------------------</td>\n    <tr>\n"
             newtable+="    <tr>\n"
             newtable+='      <td>'+FormatLink(row.URL, row.Name)+'</td>\n'
@@ -319,11 +319,13 @@ class ConEditorFrame(GenConEditorFrame):
         def sorter(c: Convention) -> str:
             n=c.Name.upper()        # Convert to all UC so that sort is case-insensitive
             if n == "WORLDCON":
-                return " "
+                return " 0"
             if n == "EARLY CONVENTIONS":
-                return " "
+                return " 1"
+            if n == "ONESIE CONVENTIONS":
+                return " 2"
             if n == "MISC. CONVENTIONS":
-                return " "
+                return " 3"
             if len(n.strip()) == 0:
                 return "ZZZZZZZZZ"      # This should sort last
             return n
