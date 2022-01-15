@@ -291,13 +291,13 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             if row.IsTextRow:
                 if len((row.SourceFilename+row.SiteFilename+row.DisplayTitle+row.Notes).strip()) == 0:
                     error=True
-                    Log(f"Malformed text row: #{i}  {row}")
+                    Log(f"Missing information in row {i}  {row}")
                     for j in range(self._grid.NumCols):
                         self._grid.SetCellBackgroundColor(i, j, Color.Pink)
             elif row.IsLinkRow:
                 if len(row.URL.strip()) == 0  or len(row.DisplayTitle.strip()) == 0:
                     error=True
-                    Log(f"Malformed link row: #{i}  {row}")
+                    Log(f"Missing URL or display title in row {i}  {row}")
                     for j in range(self._grid.NumCols):
                         self._grid.SetCellBackgroundColor(i, j, Color.Pink)
             else:
