@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import Optional
 
+import PyPDF4
 import wx
 from wx import _core
 import os
@@ -436,12 +437,35 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             ProgressMessage(self).Close()
             return
 
+        def AddMissingMetadata(file: str, convention: str, description: str):
+            if file.lower().endswith(".pdf"):
+                # pdfin=PyPDF4.PdfFileReader(open(file, 'rb'))
+                # pdf_info=pdfin.getDocumentInfo()
+                # title=pdf_info.title
+                # if not title:
+                #     pdfout=PyPDF4.PdfFileWriter().cloneDocumentFromReader(pdfin)
+                #     pdfout.getDocumentInfo().title=convention+": "+description
+                #     pdfout.write(open(file, 'wb'))
+                #     pdfout.close()
+                pdfin=PyPDF4.PdfFileReader(file, 'rb')
+                title=pdfin.getDocumentInfo().title
+                if not title:
+                    metadata=pdfin.getDocumentInfo()
+                    pdfout=PyPDF4.PdfFileWriter()
+                    pdfout.cloneReaderDocumentRoot(pdfin)
+                    pdfout.addMetadata({
+                        '/Title': convention+": "+description
+                    })
+                    pdfout.write(open(file, "wb"))
+
+
         wd="/"+self._seriesname+"/"+self._coninstancename
         FTP().CWD(wd)
         for delta in self.conInstanceDeltaTracker.Deltas:
             if delta.Verb == "add":
                 ProgressMessage(self).Show("Adding "+delta.Con.SourcePathname+" as "+delta.Con.SiteFilename)
                 Log("delta-ADD: "+delta.Con.SourcePathname+" as "+delta.Con.SiteFilename)
+                AddMissingMetadata(delta.Con.SourcePathname, self._coninstancename, delta.Con.DisplayTitle)
                 FTP().PutFile(delta.Con.SourcePathname, delta.Con.SiteFilename)
             elif delta.Verb == "rename":
                 ProgressMessage(self).Show("Renaming "+delta.Oldname+ " to "+delta.Con.SiteFilename)
