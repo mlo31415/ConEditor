@@ -454,7 +454,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     pdfout=PyPDF4.PdfFileWriter()
                     pdfout.cloneReaderDocumentRoot(pdfin)
                     pdfout.addMetadata({
-                        '/Title': convention+": "+description
+                        '/Title': convention+": "+description.removesuffix(".pfd").removesuffix(".PDF")
                     })
                     pdfout.write(open(file, "wb"))
 
