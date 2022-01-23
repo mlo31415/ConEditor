@@ -464,7 +464,9 @@ class ConEditorFrame(GenConEditorFrame):
 LogOpen("Log -- ConEditor.txt", "Log (Errors) -- ConEditor.txt")
 
 if not os.path.exists("FTP Credentials.json"):
-    MessageBox("Unable to find file 'FTP Credentials.json' file.", ignoredebugger=True)
+    msg=f"Unable to find file 'FTP Credentials.json' file.  Expected to find it in {os.getcwd()}"
+    MessageBox(msg, ignoredebugger=True)
+    Log(msg)
     exit(0)
 
 f=FTP()
