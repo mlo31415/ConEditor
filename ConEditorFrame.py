@@ -366,12 +366,14 @@ class ConEditorFrame(GenConEditorFrame):
             self.Datasource.Rows.insert(self._grid.clickedRow, Convention())
             self.RefreshWindow()
         conseriesname=self.Datasource[self._grid.clickedRow][0]
+        Log(f"EditConSeries: {conseriesname=}", Flush=True)
         # Create list of con series required by the con series editor
         conserieslist=[row.Name for row in self.Datasource.Rows]
         with ModalDialogManager(ConSeriesFrame, self._baseDirFTP, conseriesname, conserieslist) as dlg:
             if len(dlg.Seriesname.strip()) == 0:  # If the user didn't supply a con series name, we exit and don't show the dialog
                 return
 
+            Log(f"EditConSeries: about to dlg.ShowModal()", Flush=True)
             if dlg.ShowModal() == wx.OK:
                 conseriesname=dlg.tConSeries.GetValue()
                 self.Datasource.Rows[self._grid.clickedRow].URL="./"+conseriesname+"/index.html"

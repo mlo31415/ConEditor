@@ -29,6 +29,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         GenConSeriesFrame.__init__(self, None)
 
         self._basedirectoryFTP: str=basedirFTP
+        Log(f"ConSeriesFrame: {self._basedirectoryFTP=}", Flush=True)
 
         self._fancydownloadfailed: bool=False       # If a download from Fancyclopedia was attempted, did it fail? (This will be used to generate the return code)
         self._signature: int=0
@@ -53,7 +54,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         # Download the convention series from the FTP server
         self.DownloadConSeries(conseriesname)
-
+        Log(f"ConSeriesFrame.__init__: self.DownloadConSeries() has run", Flush=True)
         self._uploaded=False    # Set to true if the con series was uploaded to the website
 
         self.SetEscapeId(wx.ID_CANCEL)
