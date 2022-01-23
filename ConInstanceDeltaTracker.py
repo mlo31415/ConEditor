@@ -102,19 +102,19 @@ class ConInstanceDeltaTracker:
         return self._deltas
 
 
-class UpdateLog:
+class UpdateFTPLog:
     g_ID: Optional[str]=None
 
     def Init(self, id: str):
-        UpdateLog.g_ID=id
+        UpdateFTPLog.g_ID=id
         pass
 
     def Log(self, series: str, con: str = "", deltas: Optional[ConInstanceDeltaTracker] = None):
-        lines="Uploaded ConInstance: "+series+":"+con+"   "+"["+UpdateLog.g_ID+"  "+datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST]\n"
+        lines="Uploaded ConInstance: "+series+":"+con+"   "+"["+UpdateFTPLog.g_ID+"  "+datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST]\n"
         if deltas is not None and deltas.Num > 0:
             lines+="^^deltas by "+FTP().GetEditor()+":\n"+str(deltas)+"\n"
         FTP().AppendString("/updatelog.txt", lines)
         pass
 
     def LogText(self, txt: str):
-        FTP().AppendString("/updatelog.txt", txt+"   ["+UpdateLog.g_ID+"  "+FTP().GetEditor()+"  "+datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST]\n")
+        FTP().AppendString("/updatelog.txt", txt+"   ["+UpdateFTPLog.g_ID+"  "+FTP().GetEditor()+"  "+datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST]\n")

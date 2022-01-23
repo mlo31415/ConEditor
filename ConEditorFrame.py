@@ -12,7 +12,7 @@ from datetime import datetime
 from GenConEditorFrame import GenConEditorFrame
 from WxDataGrid import DataGrid, GridDataSource, GridDataRowClass, ColDefinition, ColDefinitionsList
 from ConSeriesFrame import ConSeriesFrame
-from ConInstanceDeltaTracker import UpdateLog
+from ConInstanceDeltaTracker import UpdateFTPLog
 from FTP import FTP
 from Settings import Settings
 
@@ -303,7 +303,7 @@ class ConEditorFrame(GenConEditorFrame):
             wx.MessageBox("Upload of /index.html failed")
 
 
-        UpdateLog().LogText("Uploaded Main convention list")
+        UpdateFTPLog().LogText("Uploaded Main convention list")
 
         self.MarkAsSaved()
         self.RefreshWindow()
@@ -495,9 +495,9 @@ Log("Website version="+str(vi))
 Settings().Load("ConEditor settings.json")
 
 with open("FTP Credentials.json") as f:
-    UpdateLog().Init(json.loads(f.read())["ID"])
+    UpdateFTPLog().Init(json.loads(f.read())["ID"])
 
-UpdateLog().LogText("-----------------------------------------------------------------------\nConEditor starting.")
+UpdateFTPLog().LogText("-----------------------------------------------------------------------\nConEditor starting.")
 LogFlush()
 
 app=wx.App(False)

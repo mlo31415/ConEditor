@@ -13,7 +13,7 @@ from PyPDF2 import PdfFileReader, PdfFileMerger, PdfFileWriter
 from GenConInstanceFrame import GenConInstanceFrame
 from WxDataGrid import DataGrid, Color
 from ConInstance import ConInstancePage, ConFile
-from ConInstanceDeltaTracker import ConInstanceDeltaTracker, UpdateLog
+from ConInstanceDeltaTracker import ConInstanceDeltaTracker, UpdateFTPLog
 from FTP import FTP
 from Settings import Settings
 from Log import Log
@@ -497,7 +497,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             else:
                 Log("delta-UNRECOGNIZED: "+str(delta))
 
-        UpdateLog().Log(self._seriesname, self._coninstancename, self.conInstanceDeltaTracker)
+        UpdateFTPLog().Log(self._seriesname, self._coninstancename, self.conInstanceDeltaTracker)
 
         self.conInstanceDeltaTracker=ConInstanceDeltaTracker()  # The upload is complete. Start tracking changes afresh
 

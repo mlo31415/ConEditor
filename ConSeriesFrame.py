@@ -9,7 +9,7 @@ from datetime import datetime
 
 from GenConSeriesFrame import GenConSeriesFrame
 from FTP import FTP
-from ConInstanceDeltaTracker import UpdateLog
+from ConInstanceDeltaTracker import UpdateFTPLog
 from ConSeries import ConSeries, Con
 from WxDataGrid import DataGrid
 from ConInstanceFrame import ConInstanceDialogClass
@@ -264,7 +264,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             wx.MessageBox("Upload failed")
             return False
 
-        UpdateLog().LogText("Uploaded ConSeries: "+self.Seriesname)
+        UpdateFTPLog().LogText("Uploaded ConSeries: "+self.Seriesname)
 
         ProgressMessage(self).Show("Upload succeeded: /"+self.Seriesname+"/index.html", close=True, delay=0.5)
         self.MarkAsSaved()      # It was just saved, so unless it's updated again, the dialog can exit without uploading
@@ -568,7 +568,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         csf.Datasource.Rows[loc]=self.Datasource.Rows[irow]
 
         oldDirPath = "/" + self.Seriesname + "/" + instanceName
-        UpdateLog().LogText("Moving '"+instanceName+"' from '"+oldDirPath+"' to '"+newDirPath+"'")
+        UpdateFTPLog().LogText("Moving '"+instanceName+"' from '"+oldDirPath+"' to '"+newDirPath+"'")
 
         # Copy the con instance directory from the old con series directory to the new con series directory
 
