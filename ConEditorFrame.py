@@ -458,8 +458,6 @@ class ConEditorFrame(GenConEditorFrame):
 
         self.Destroy()
 
-        LogFlush()
-        sys.exit(1)
 
 
 # Start the GUI and run the event loop
@@ -508,5 +506,8 @@ frame=ConEditorFrame(None)
 app.MainLoop()
 Log("Exit mainloop")
 pass
+
+LogFlush()
+sys.exit(1)
 
 
