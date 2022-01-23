@@ -1,7 +1,6 @@
 from __future__ import annotations
 from typing import Optional
 
-import PyPDF4
 import wx
 from wx import _core
 import os
@@ -9,7 +8,7 @@ import sys
 import json
 import re
 from datetime import datetime
-from PyPDF4 import PdfFileReader
+from PyPDF2 import PdfFileReader, PdfFileMerger, PdfFileWriter
 
 from GenConInstanceFrame import GenConInstanceFrame
 from WxDataGrid import DataGrid, Color
@@ -439,24 +438,31 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         def AddMissingMetadata(file: str, convention: str, description: str):
             if file.lower().endswith(".pdf"):
-                # pdfin=PyPDF4.PdfFileReader(open(file, 'rb'))
-                # pdf_info=pdfin.getDocumentInfo()
-                # title=pdf_info.title
-                # if not title:
-                #     pdfout=PyPDF4.PdfFileWriter().cloneDocumentFromReader(pdfin)
-                #     pdfout.getDocumentInfo().title=convention+": "+description
-                #     pdfout.write(open(file, 'wb'))
-                #     pdfout.close()
-                pdfin=PyPDF4.PdfFileReader(file, 'rb')
-                title=pdfin.getDocumentInfo().title
-                if not title:
-                    metadata=pdfin.getDocumentInfo()
-                    pdfout=PyPDF4.PdfFileWriter()
-                    pdfout.cloneReaderDocumentRoot(pdfin)
-                    pdfout.addMetadata({
-                        '/Title': convention+": "+description.strip().removesuffix(".pdf").removesuffix(".PDF")
-                    })
-                    pdfout.write(open(file, "wb"))
+
+                file_in=open(file, 'rb')
+                reader=PdfFileReader(file_in)
+                info=reader.getDocumentInfo()
+                if "/Title" in info.keys() and info["/Title"]:
+                    return  # There's *something* there already
+
+                writer=PdfFileWriter()
+
+                writer.appendPagesFromReader(reader)
+                metadata=reader.getDocumentInfo()
+                writer.addMetadata(metadata)
+
+                writer.addMetadata({
+                    '/Title': convention+": "+description.strip().removesuffix(".pdf").removesuffix(".PDF")
+                })
+                #os.remove(file)
+                path, ext=os.path.splitext(file)
+                newfile=path+" added"+ext
+                file_out=open(newfile, 'wb')
+                writer.write(file_out)
+                file_in.close()
+                file_out.close()
+                os.remove(file)
+                os.rename(newfile, file)
 
 
         wd="/"+self._seriesname+"/"+self._coninstancename
