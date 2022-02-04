@@ -8,7 +8,6 @@ import sys
 import json
 import re
 from datetime import datetime
-from PyPDF2 import PdfFileReader, PdfFileMerger, PdfFileWriter
 
 from GenConInstanceFrame import GenConInstanceFrame
 from WxDataGrid import DataGrid, Color
@@ -17,22 +16,10 @@ from ConInstanceDeltaTracker import ConInstanceDeltaTracker, UpdateFTPLog
 from FTP import FTP
 from Settings import Settings
 from Log import Log
-
 from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, RemoveHTTP, ExtensionMatches, PyiResourcePath
+from PDFHelpers import GetPdfPageCount, AddMissingMetadata
 from WxHelpers import ProgressMessage, OnCloseHandling
 
-
-# Get the file's page count if it's a pdf
-def GetPdfPageCount(pathname: str):
-    if not ExtensionMatches(pathname, ".pdf"):
-        return None
-    try:
-        with open(pathname, 'rb') as fl:
-            reader=PdfFileReader(fl)
-            return reader.getNumPages()
-    except:
-        Log("GetPdfPageCount: Exception raised while getting page count for '"+pathname+"'")
-        return None
 
 #####################################################################################
 class ConInstanceDialogClass(GenConInstanceFrame):
@@ -436,42 +423,16 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             ProgressMessage(self).Close()
             return
 
-        def AddMissingMetadata(file: str, convention: str, description: str):
-            if file.lower().endswith(".pdf"):
-
-                file_in=open(file, 'rb')
-                reader=PdfFileReader(file_in)
-                info=reader.getDocumentInfo()
-                if "/Title" in info.keys() and info["/Title"]:
-                    return  # There's *something* there already
-
-                writer=PdfFileWriter()
-
-                writer.appendPagesFromReader(reader)
-                metadata=reader.getDocumentInfo()
-                writer.addMetadata(metadata)
-
-                writer.addMetadata({
-                    '/Title': convention+": "+description.strip().removesuffix(".pdf").removesuffix(".PDF")
-                })
-                #os.remove(file)
-                path, ext=os.path.splitext(file)
-                newfile=path+" added"+ext
-                file_out=open(newfile, 'wb')
-                writer.write(file_out)
-                file_in.close()
-                file_out.close()
-                os.remove(file)
-                os.rename(newfile, file)
-
-
         wd="/"+self._seriesname+"/"+self._coninstancename
         FTP().CWD(wd)
         for delta in self.conInstanceDeltaTracker.Deltas:
             if delta.Verb == "add":
                 ProgressMessage(self).Show("Adding "+delta.Con.SourcePathname+" as "+delta.Con.SiteFilename)
                 Log("delta-ADD: "+delta.Con.SourcePathname+" as "+delta.Con.SiteFilename)
-                AddMissingMetadata(delta.Con.SourcePathname, self._coninstancename, delta.Con.DisplayTitle)
+                metadata={
+                    '/Title': self._coninstancename+": "+delta.Con.DisplayTitle.strip().removesuffix(".pdf").removesuffix(".PDF")
+                }
+                AddMissingMetadata(delta.Con.SourcePathname, metadata)
                 FTP().PutFile(delta.Con.SourcePathname, delta.Con.SiteFilename)
             elif delta.Verb == "rename":
                 ProgressMessage(self).Show("Renaming "+delta.Oldname+ " to "+delta.Con.SiteFilename)
