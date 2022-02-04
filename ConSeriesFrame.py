@@ -35,8 +35,10 @@ class ConSeriesFrame(GenConSeriesFrame):
         self._signature: int=0
         self._conserieslist=conserieslist
 
+        self._instanceRenameTracker: list[tuple[str,str]]=[]
+
         # Set up the grid
-        self._grid: DataGrid=DataGrid(self.gRowGrid)
+        self._grid: DataGrid=DataGrid(self.gRowGrid)    # Old, New
         self.Datasource=ConSeries()
 
         self._grid.HideRowLabels()
@@ -266,6 +268,16 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         UpdateFTPLog().LogText("Uploaded ConSeries: "+self.Seriesname)
 
+        # It is possible that the user edited some convention instance names.  This breaks the ink to the con instance directory because the names no longer match.
+        # We have the _instanceRenameTracker list which records any such changes.  If it is non-empty, go ahead and do the renames
+        # Note that this is not a perfect solution, since if the user is sufficiently convoluted he can undoubtedly screw it up. It should work for all simple and most complex cases.
+        if self._instanceRenameTracker:
+            for change in self._instanceRenameTracker:
+                old=change[0]
+                new=change[1]
+                FTP().Rename(old, new)
+
+
         ProgressMessage(self).Show("Upload succeeded: /"+self.Seriesname+"/index.html", close=True, delay=0.5)
         self.MarkAsSaved()      # It was just saved, so unless it's updated again, the dialog can exit without uploading
         self._uploaded=True     # Something's been uploaded
@@ -428,7 +440,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
     #------------------
     def OnPopupEditConPage(self, event):     # ConSeriesFrame(GenConSeriesFrame)
-        irow=self.clickedRow
+        irow=self._grid.clickedRow
         # If the RMB is a click on a convention instance name, we edit that name
         if "Name" in self.Datasource.ColHeaders:
             col=self.Datasource.ColHeaders.index("Name")
@@ -670,7 +682,22 @@ class ConSeriesFrame(GenConSeriesFrame):
         self.UpdateNeedsSavingFlag()
 
     def OnGridCellChanged(self, event):                    # ConSeriesFrame(GenConSeriesFrame)
+
+        # If we're editing the con instance name, we need to record this so that extra processing ca take place on save
+        irow=event.GetRow()
+        icol=event.GetCol()
+        if icol == 0 and irow <self._Datasource.NumRows:
+            newVal=self._grid.Grid.GetCellValue(irow, icol)
+            oldVal=self._Datasource[irow][icol]
+            if newVal != oldVal:
+                self._instanceRenameTracker.append((oldVal, newVal))
+            # Also update the URL
+            self.Datasource.Rows[irow].URL=newVal
+
+
         self._grid.OnGridCellChanged(event)
+
+
         self.UpdateNeedsSavingFlag()
         self.RefreshWindow()
 
