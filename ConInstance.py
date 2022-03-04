@@ -109,21 +109,21 @@ class ConFile(GridDataRowClass):
     def DisplayTitle(self) -> str:      # ConFile(GridDataRowClass)
         return self._displayTitle
     @DisplayTitle.setter
-    def DisplayTitle(self, val: str) -> None:
+    def DisplayTitle(self, val: str) -> None:      # ConFile(GridDataRowClass)
         self._displayTitle=val
 
     @property
     def Notes(self) -> str:      # ConFile(GridDataRowClass)
         return self._notes
     @Notes.setter
-    def Notes(self, val: str) -> None:
+    def Notes(self, val: str) -> None:      # ConFile(GridDataRowClass)
         self._notes=val
 
     @property
     def SourcePathname(self) -> str:      # ConFile(GridDataRowClass)
         return self._localpathname
     @SourcePathname.setter
-    def SourcePathname(self, val: str) -> None:
+    def SourcePathname(self, val: str) -> None:      # ConFile(GridDataRowClass)
         self._localpathname=val
         self._localfilename=os.path.basename(val)
 
@@ -132,7 +132,7 @@ class ConFile(GridDataRowClass):
     def SourceFilename(self) -> str:      # ConFile(GridDataRowClass)
         return self._localfilename
     @SourceFilename.setter
-    def SourceFilename(self, val: str) -> None:
+    def SourceFilename(self, val: str) -> None:      # ConFile(GridDataRowClass)
         self._localfilename=val
         self._localpathname="invalidated"
 
@@ -140,7 +140,7 @@ class ConFile(GridDataRowClass):
     def SiteFilename(self) -> str:      # ConFile(GridDataRowClass)
         return self._sitefilename
     @SiteFilename.setter
-    def SiteFilename(self, val: str) -> None:
+    def SiteFilename(self, val: str) -> None:      # ConFile(GridDataRowClass)
         self._sitefilename=RemoveAccents(val)
 
 
@@ -148,7 +148,7 @@ class ConFile(GridDataRowClass):
     def Size(self) -> int:      # ConFile(GridDataRowClass)
         return self._size
     @Size.setter
-    def Size(self, val: int) -> None:
+    def Size(self, val: int) -> None:      # ConFile(GridDataRowClass)
         self._size=val
 
     @property
@@ -157,7 +157,7 @@ class ConFile(GridDataRowClass):
             return 0
         return self._pages
     @Pages.setter
-    def Pages(self, val: Union[int, str]) -> None:
+    def Pages(self, val: Union[int, str]) -> None:      # ConFile(GridDataRowClass)
         if type(val) is str:
             val=Int0(val)
         self._pages=val
@@ -168,7 +168,6 @@ class ConFile(GridDataRowClass):
     @IsTextRow.setter
     def IsTextRow(self, val: bool) -> None:
         self._isText=val
-
 
     @property
     def IsLinkRow(self) -> bool:      # ConFile(GridDataRowClass)
@@ -185,7 +184,7 @@ class ConFile(GridDataRowClass):
         return self._localfilename
 
     @URL.setter
-    def URL(self, val: str) -> None:
+    def URL(self, val: str) -> None:      # ConFile(GridDataRowClass)
         self._URL=val
 
     # Get or set a value by name or column number in the grid
@@ -282,7 +281,7 @@ class ConInstancePage(GridDataSource):
     def Rows(self) -> list:
         return self._conFileList
     @Rows.setter
-    def Rows(self, rows: list) -> None:
+    def Rows(self, rows: list) -> None:        # ConInstancePage(GridDataSource)
         self._conFileList=rows
 
     @property        # ConInstancePage(GridDataSource)
@@ -293,7 +292,7 @@ class ConInstancePage(GridDataSource):
     def Name(self) -> str:
         return self._name
     @Name.setter
-    def Name(self, val: str) -> None:
+    def Name(self, val: str) -> None:        # ConInstancePage(GridDataSource)
         self._name=val
 
     @property        # ConInstancePage(GridDataSource)
@@ -310,7 +309,7 @@ class ConInstancePage(GridDataSource):
     def SpecialTextColor(self) -> Optional[Color]:
         return self._specialTextColor
     @SpecialTextColor.setter
-    def SpecialTextColor(self, val: Optional[Color]) -> None:
+    def SpecialTextColor(self, val: Optional[Color]) -> None:        # ConInstancePage(GridDataSource)
         self._specialTextColor=val
 
     def InsertEmptyRows(self, index: int, num: int=1) -> None:        # ConInstancePage(GridDataSource)
