@@ -229,6 +229,8 @@ class ConFile(GridDataRowClass):
         print("SetVal can't interpret '"+str(index)+"'")
         raise KeyError
 
+    def IsEmptyRow(self) -> bool:      # ConFile(GridDataRowClass)
+        return self.SourceFilename != "" or self.SiteFilename != "" or self.DisplayTitle != "" or self.Pages != 0 or self.Notes != ""
 
 
 #####################################################################################################
@@ -318,3 +320,5 @@ class ConInstancePage(GridDataSource):
         if index > len(self.Rows):
             index=len(self.Rows)
         self.Rows=self.Rows[:index]+[ConFile() for i in range(num)]+self.Rows[index:]
+
+

@@ -113,8 +113,8 @@ class Con(GridDataRowClass):
         Log(f"Con(GridDataRowClass).__putitem__({index}) does not exist")
         raise IndexError
 
-
-
+    def IsEmptyRow(self) -> bool:        # Con(GridDataRowClass)
+        return self._name != "" or self._locale != "" or self._dates != "" or self._gohs != "" or self._URL != ""
 
 ####################################################################################
 class ConSeries(GridDataSource):
@@ -191,3 +191,4 @@ class ConSeries(GridDataSource):
         if index > len(self.Rows):
             index=len(self.Rows)
         self.Rows=self.Rows[:index]+[Con() for i in range(num)]+self.Rows[index:]
+

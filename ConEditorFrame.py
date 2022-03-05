@@ -78,6 +78,9 @@ class Convention(GridDataRowClass):
     def URL(self, val: str) -> None:
         self._URL=val
 
+    def IsEmptyRow(self, i: int) -> bool:  # GridDataRowClass (abstract class)
+        return self._name != "" or self._URL != ""
+
 
 class ConList(GridDataSource):
 
@@ -142,6 +145,7 @@ class ConList(GridDataSource):
         if index > len(self.Rows):
             index=len(self.Rows)
         self.Rows=self.Rows[:index]+[Convention() for i in range(num)]+self.Rows[index:]
+
 
 
 ###############################################################################
