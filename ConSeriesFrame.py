@@ -434,9 +434,8 @@ class ConSeriesFrame(GenConSeriesFrame):
     def OnPopupCreateNewConPage(self, event):     # ConSeriesFrame(GenConSeriesFrame)
         irow=self._grid.clickedRow
         self._grid.Datasource.InsertEmptyRows(irow, 1)
+        self._grid.AllowCellEdit(irow, 0)   # The default is for the con's name not to be editable, but here we need to make it editable.
         self._grid.RefreshWxGridFromDatasource()
-        self.EditConInstancePage("", irow)
-        #self.RefreshWindow()
 
     #------------------
     def OnPopupEditConPage(self, event):     # ConSeriesFrame(GenConSeriesFrame)
