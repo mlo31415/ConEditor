@@ -479,7 +479,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             if irow < self.Datasource.NumRows and len(dlg.ConInstanceTopText.strip()) == 0:
                 row=self.Datasource.Rows[irow]
                 dates=None
-                if row.Dates is not None and not row.Dates.IsEmpty():
+                if row.Dates is not None and type(row.Dates) is not str and not row.Dates.IsEmpty():
                     dates=str(row.Dates)
                 locale=None
                 if row.Locale is not None and len(row.Locale) > 0:
