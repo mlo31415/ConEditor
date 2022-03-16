@@ -274,8 +274,9 @@ class ConSeriesFrame(GenConSeriesFrame):
         if self._instanceRenameTracker:
             for change in self._instanceRenameTracker:
                 old=change[0]
-                new=change[1]
-                FTP().Rename(old, new)
+                if len(old) > 0:
+                    new=change[1]
+                    FTP().Rename(old, new)
 
 
         ProgressMessage(self).Show("Upload succeeded: /"+self.Seriesname+"/index.html", close=True, delay=0.5)
