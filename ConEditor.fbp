@@ -46,7 +46,7 @@
             <property name="name">GenConSeriesFrame</property>
             <property name="pos"></property>
             <property name="size">700,682</property>
-            <property name="style">wxCLOSE_BOX|wxDEFAULT_DIALOG_STYLE|wxMAXIMIZE_BOX|wxMINIMIZE_BOX</property>
+            <property name="style">wxCLOSE_BOX|wxDEFAULT_DIALOG_STYLE|wxMAXIMIZE_BOX|wxMINIMIZE_BOX|wxRESIZE_BORDER</property>
             <property name="subclass">; ; forward_declare</property>
             <property name="title">Edit Convention Series</property>
             <property name="tooltip"></property>
