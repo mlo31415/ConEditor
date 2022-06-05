@@ -523,6 +523,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                 self.RefreshWindow()
 
     #------------------
+    # Take an existing con instance and move it to a new con series
     def OnPopupChangeConSeries(self, event):      # ConSeriesFrame(GenConSeriesFrame)
         irow=self._grid.clickedRow
         if irow < 0 or irow >= self.Datasource.NumRows:
@@ -696,7 +697,6 @@ class ConSeriesFrame(GenConSeriesFrame):
 
 
         self._grid.OnGridCellChanged(event)
-
 
         self.UpdateNeedsSavingFlag()
         self.RefreshWindow()
