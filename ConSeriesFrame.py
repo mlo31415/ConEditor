@@ -692,9 +692,6 @@ class ConSeriesFrame(GenConSeriesFrame):
             oldVal=self._Datasource[irow][icol]
             if newVal != oldVal:
                 self._instanceRenameTracker.append((oldVal, newVal))
-            # Also update the URL
-            self.Datasource.Rows[irow].URL=newVal
-
 
         self._grid.OnGridCellChanged(event)
 
