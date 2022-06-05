@@ -18,8 +18,7 @@ class Con(GridDataRowClass):
         self._URL: str=""                   # The URL of the individual con page, if any
 
     def Signature(self) -> int:        # Con(GridDataRowClass)
-        s=sum([hash(x) for x in self])
-        return s
+        return hash(self._name)+hash(self._locale)+hash(self._dates)+hash(self._gohs)+hash(self._URL)
 
     # Serialize and deserialize
     def ToJson(self) -> str:        # Con(GridDataRowClass)
