@@ -112,8 +112,11 @@ class Con(GridDataRowClass):
         Log(f"Con(GridDataRowClass).__putitem__({index}) does not exist")
         raise IndexError
 
+    # def IsEmptyRow(self) -> bool:  # Con(GridDataRowClass)
+    #     return self._name != "" or self._locale != "" or self._dates.IsEmpty() != "" or self._gohs != "" or self._URL != ""
+
     def IsEmptyRow(self) -> bool:        # Con(GridDataRowClass)
-        return self._name != "" or self._locale != "" or self._dates != "" or self._gohs != "" or self._URL != ""
+        return self._name == "" and self._locale == "" and self._dates.IsEmpty() and self._gohs == "" and self._URL == ""
 
 ####################################################################################
 class ConSeries(GridDataSource):
