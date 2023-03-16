@@ -101,7 +101,7 @@ class Con(GridDataRowClass):
             self.Name=value
             return
         if index == "Dates" or index == 1:
-            self.Dates=value
+            self.Dates=FanzineDateRange().Match(value)
             return
         if index == "Locale" or index == 2:
             self.Locale=value
