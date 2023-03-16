@@ -381,6 +381,8 @@ class ConSeriesFrame(GenConSeriesFrame):
         if ngoh is None:
             ngoh=FindIndexOfStringInList(headers, "Guests of Honor")
         if ngoh is None:
+            ngoh=FindIndexOfStringInList(headers, "Guests of Honour")
+        if ngoh is None:
             ngoh=FindIndexOfStringInList(headers, "Guests")
 
         for row in rows:
