@@ -374,6 +374,8 @@ class ConSeriesFrame(GenConSeriesFrame):
             nloc=FindIndexOfStringInList(headers, "Site, City")
         if nloc is None:
             nloc=FindIndexOfStringInList(headers, "Site")
+        if nloc is None:
+            nloc=FindIndexOfStringInList(headers, "Place")
 
         ngoh=FindIndexOfStringInList(headers, "GoHs")
         if ngoh is None:
