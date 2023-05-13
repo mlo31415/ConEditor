@@ -197,7 +197,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
                 # We need to try to make the fn into a somewhat more useful display title.
                 # Commonly, file names are prefixed by <conseriesname> <con number/con year>, so we'll remove that if we find it.
-                dname=fn
+                _, dname=os.path.split(fn)
                 pat=seriesname+"\s*(\'?[0-9]+|[IVXL]+)\s*(.+)"
                 m=re.match(pat, dname, flags=re.IGNORECASE)
                 if m is not None and len(m.groups()) == 2:
@@ -209,7 +209,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     dname=m.groups()[0]
 
                 conf.DisplayTitle=dname
-                conf.SiteFilename=fn
+                conf.SiteFilename=dname
                 conf.SourceFilename=fn
                 conf.SourcePathname=os.path.join(os.path.join(dlg.GetDirectory()), fn)
                 conf.Size=os.path.getsize(conf.SourcePathname)
