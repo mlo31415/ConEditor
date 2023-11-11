@@ -11,7 +11,7 @@ from GenConSeriesFrame import GenConSeriesFrame
 from FTP import FTP
 from ConInstanceDeltaTracker import UpdateFTPLog
 from ConSeries import ConSeries, Con
-from WxDataGrid import DataGrid
+from WxDataGrid import DataGrid, IsEditable
 from ConInstanceFrame import ConInstanceDialogClass
 from Settings import Settings
 
@@ -652,7 +652,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                 if len(self.Datasource.Rows[irow].URL) > 0:   # Only if there's a link in the cell
                     self.m_popupUnlink.Enabled=True
 
-        if icol < len(self.Datasource.ColDefs) and self.Datasource.ColDefs[icol].IsEditable == "maybe":
+        if icol < len(self.Datasource.ColDefs) and self.Datasource.ColDefs[icol].IsEditable == IsEditable.Maybe:
             self.m_popupAllowEditCell.Enabled=True
 
         if irow < self.Datasource.NumRows and self.Datasource.Rows[irow].URL is not None and self.Datasource.Rows[irow].URL != "":

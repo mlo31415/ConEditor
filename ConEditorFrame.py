@@ -10,7 +10,7 @@ import json
 from datetime import datetime
 
 from GenConEditorFrame import GenConEditorFrame
-from WxDataGrid import DataGrid, GridDataSource, GridDataRowClass, ColDefinition, ColDefinitionsList
+from WxDataGrid import DataGrid, GridDataSource, GridDataRowClass, ColDefinition, ColDefinitionsList, IsEditable
 from ConSeriesFrame import ConSeriesFrame
 from ConInstanceDeltaTracker import UpdateFTPLog
 from FTP import FTP
@@ -87,7 +87,7 @@ class ConList(GridDataSource):
     def __init__(self):
         GridDataSource.__init__(self)
         self._colDefs: ColDefinitionsList =ColDefinitionsList([
-            ColDefinition("Convention Series", Type="url", IsEditable="no")
+            ColDefinition("Convention Series", Type="url", IsEditable=IsEditable.No)
             ])    # There's only one column!
         self._gridDataRowClass: Convention=Convention()
         self._conlist: list[Convention]=[]  # This supplies the Rows property that GridDataSource needs

@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Optional, Union
 import json
 
-from WxDataGrid import GridDataSource, GridDataRowClass, ColDefinition, ColDefinitionsList
+from WxDataGrid import GridDataSource, GridDataRowClass, ColDefinition, ColDefinitionsList, IsEditable
 from HelpersPackage import RemoveAccents
 from FanzineIssueSpecPackage import FanzineDateRange
 from Log import Log
@@ -124,7 +124,7 @@ class ConSeries(GridDataSource):
     def __init__(self):
         GridDataSource.__init__(self)
         self._colDefs: ColDefinitionsList=ColDefinitionsList([
-            ColDefinition("Name", Type="url", Width=30, IsEditable="maybe"),
+            ColDefinition("Name", Type="url", Width=30, IsEditable=IsEditable.Maybe),
             ColDefinition("Dates", Type="date range", Width=30),
             ColDefinition("Locale", Width=30),
             ColDefinition("GoHs", Width=30),

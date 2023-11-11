@@ -10,7 +10,7 @@ import re
 from datetime import datetime
 
 from GenConInstanceFrame import GenConInstanceFrame
-from WxDataGrid import DataGrid, Color
+from WxDataGrid import DataGrid, Color, IsEditable
 from ConInstance import ConInstancePage, ConFile
 from ConInstanceDeltaTracker import ConInstanceDeltaTracker, UpdateFTPLog
 from FTP import FTP
@@ -507,7 +507,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         if event.GetRow() < self.Datasource.NumRows:
             self.m_popupDeleteRow.Enabled=True
 
-        if self.Datasource.ColDefs[self._grid.clickedColumn].IsEditable == "maybe":
+        if self.Datasource.ColDefs[self._grid.clickedColumn].IsEditable == IsEditable.Maybe:
             self.m_popupAllowEditCell.Enabled=True
 
         if self._grid.clickedColumn == 0 and self._grid.clickedRow < self._grid.NumRows:
