@@ -500,18 +500,22 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     def OnGridCellRightClick(self, event):
         self._grid.OnGridCellRightClick(event, self.m_GridPopup)
 
-        # Suppress the options used when doubleclicking on and empty line's column 0
-        self.m_popupNewsletter.Enabled=False
-        self.m_popupMiscellaneous.Enabled=False
-        self.m_popupPublications.Enabled=False
-        self.m_popupConventionReports.Enabled=False
-        self.m_popupPhotosAndVideo.Enabled=False
+        row=event.GetRow()
+        self._PopupInsertTextRow_RowNumber=row
+
+        # Suppress the options used when double clicking on and empty line's column 0
+        flag=self.Datasource.Rows[row].IsTextRow
+        self.m_popupNewsletter.Enabled=flag
+        self.m_popupMiscellaneous.Enabled=flag
+        self.m_popupPublications.Enabled=flag
+        self.m_popupConventionReports.Enabled=flag
+        self.m_popupPhotosAndVideo.Enabled=flag
 
         self.m_popupAddFiles.Enabled=True
         self.m_popupInsertText.Enabled=True
         self.m_popupInsertLink.Enabled=True
 
-        if event.GetRow() < self.Datasource.NumRows:
+        if row < self.Datasource.NumRows:
             self.m_popupDeleteRow.Enabled=True
 
         if self.Datasource.ColDefs[self._grid.clickedColumn].IsEditable == IsEditable.Maybe:
@@ -525,12 +529,16 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         self.PopupMenu(self.m_GridPopup, pos=self.gRowGrid.Position+event.Position)
 
+
     # ------------------
     def OnGridCellDoubleClick(self, event):  # ConEditorFrame
         self._grid.OnGridCellDoubleClick(event)
+
         row=event.GetRow()
+        self._PopupInsertTextRow_RowNumber=row
+
         if row > self.Datasource.NumRows:
-            return  # We do nothing when you double-click in an empty cell beyond the 1st row
+            return  # We do nothing when you double-click in an empty cell beyond the 1st empty row
         if event.GetCol() > 0:
             return  # Only on the first column
         if self._grid.Grid.GetCellValue(row, 0) != "":
@@ -557,8 +565,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.m_popupUpdateFile.Enabled=False
         self.m_popupAllowEditCell.Enabled=False
         self.m_popupDeleteRow.Enabled=False
-
-        self._PopupInsertTextRow_RowNumber=row
 
         # This caches row number for popup's use
         self.PopupMenu(self.m_GridPopup, pos=self.gRowGrid.Position+event.Position)
