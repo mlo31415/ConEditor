@@ -663,6 +663,8 @@ class ConSeriesFrame(GenConSeriesFrame):
     # ------------------
     def OnGridCellDoubleClick(self, event):     # ConSeriesFrame(GenConSeriesFrame)
         self._grid.OnGridCellDoubleClick(event)
+        if self._grid.clickedRow >= self.Datasource.NumRows:
+            return      # Double-clicking below the bottom means nothing
         if self._grid.clickedColumn == 0:
             name=self.Datasource[self._grid.clickedRow][0]
             self.EditConInstancePage(name, self._grid.clickedRow)
