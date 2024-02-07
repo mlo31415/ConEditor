@@ -518,6 +518,26 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         self.PopupMenu(self.m_GridPopup, pos=self.gRowGrid.Position+event.Position)
 
+    # ------------------
+    def OnGridCellDoubleClick(self, event):  # ConEditorFrame
+        self._grid.OnGridCellDoubleClick(event)
+        row=event.GetRow()
+        if row > self.Datasource.NumRows:
+            return  # We do nothing when you double-click in an empty cell beyond the 1st row
+        if event.GetCol() > 0:
+            return  # Only on the first column
+        if self._grid.Grid.GetCellValue(row, 0) != "":
+            return  # Only of the 1st cell is empty
+
+        # OK, we're going to turn this row -- which may need to be added -- into text row
+        if row >= self.Datasource.NumRows:
+            self._grid.ExpandDataSourceToInclude(row, 0)  # If we're inserting past the end of the datasource, insert empty rows as necessary to fill in between
+            self._grid.InsertEmptyRows(row, 1)
+        self.Datasource.Rows[row].IsTextRow=True
+        self.RefreshWindow()
+
+        #self.EditConSeries()
+
     # -------------------
     def OnKeyDown(self, event):
         self._grid.OnKeyDown(event)
@@ -553,7 +573,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         irow=self._grid.clickedRow
         if irow > self.Datasource.NumRows:
             self._grid.ExpandDataSourceToInclude(irow, 0)   # Insert empty rows into the datasource if necessary to keep things in sync
-        self._grid.InsertEmptyRows(irow, 1)
+
         self.Datasource.Rows[irow].IsLinkRow=True
         for icol in range(self._grid.NumCols):
             self._grid.AllowCellEdit(irow, icol)
