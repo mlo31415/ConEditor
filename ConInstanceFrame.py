@@ -500,6 +500,13 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     def OnGridCellRightClick(self, event):
         self._grid.OnGridCellRightClick(event, self.m_GridPopup)
 
+        # Suppress the options used when doubleclicking on and empty line's column 0
+        self.m_popupNewsletter.Enabled=False
+        self.m_popupMiscellaneous.Enabled=False
+        self.m_popupPublications.Enabled=False
+        self.m_popupConventionReports.Enabled=False
+        self.m_popupPhotosAndVideo.Enabled=False
+
         self.m_popupAddFiles.Enabled=True
         self.m_popupInsertText.Enabled=True
         self.m_popupInsertLink.Enabled=True
@@ -536,7 +543,45 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.Datasource.Rows[row].IsTextRow=True
         self.RefreshWindow()
 
-        #self.EditConSeries()
+        self.m_popupNewsletter.Enabled=True
+        self.m_popupMiscellaneous.Enabled=True
+        self.m_popupPublications.Enabled=True
+        self.m_popupConventionReports.Enabled=True
+        self.m_popupPhotosAndVideo.Enabled=True
+
+        self.m_popupCopy.Enabled=False
+        self.m_popupCopy.Enabled=False
+        self.m_popupAddFiles.Enabled=False
+        self.m_popupInsertText.Enabled=False
+        self.m_popupInsertLink.Enabled=False
+        self.m_popupUpdateFile.Enabled=False
+        self.m_popupAllowEditCell.Enabled=False
+        self.m_popupDeleteRow.Enabled=False
+
+        self._PopupInsertTextRow_RowNumber=row
+
+        # This caches row number for popup's use
+        self.PopupMenu(self.m_GridPopup, pos=self.gRowGrid.Position+event.Position)
+
+    def OnPopupPublications(self, event):
+        self.Datasource.Rows[self._PopupInsertTextRow_RowNumber][0]="Publications"
+        self.RefreshWindow()
+
+    def OnPopuplMiscellaneous(self, event):
+        self.Datasource.Rows[self._PopupInsertTextRow_RowNumber][0]="Miscellaneous"
+        self.RefreshWindow()
+
+    def OnPopupNewsletter(self, event):
+        self.Datasource.Rows[self._PopupInsertTextRow_RowNumber][0]="Newsletter"
+        self.RefreshWindow()
+
+    def OnPopupPhotosAndVideo(self, event):
+        self.Datasource.Rows[self._PopupInsertTextRow_RowNumber][0]="Photos and Videos"
+        self.RefreshWindow()
+
+    def OnPopupConventionReports(self, event):
+        self.Datasource.Rows[self._PopupInsertTextRow_RowNumber][0]="Convention Reports"
+        self.RefreshWindow()
 
     # -------------------
     def OnKeyDown(self, event):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ###########################################################################
-## Python code generated with wxFormBuilder (version Oct 26 2018)
+## Python code generated with wxFormBuilder (version 3.10.1-0-g8feb16b3)
 ## http://www.wxformbuilder.org/
 ##
 ## PLEASE DO *NOT* EDIT THIS FILE!
@@ -33,12 +33,12 @@ class GenConInstanceFrame ( wx.Dialog ):
 
 		radioBoxFileListFormatChoices = [ u"Table", u"LIst" ]
 		self.radioBoxFileListFormat = wx.RadioBox( self, wx.ID_ANY, u"File list format", wx.Point( -1,-1 ), wx.Size( -1,-1 ), radioBoxFileListFormatChoices, 1, wx.RA_SPECIFY_ROWS )
-		self.radioBoxFileListFormat.SetSelection( 0 )
+		self.radioBoxFileListFormat.SetSelection( 1 )
 		fgSizer5.Add( self.radioBoxFileListFormat, 0, wx.ALL, 5 )
 
 		radioBoxShowExtensionsChoices = [ u"Yes", u"No" ]
 		self.radioBoxShowExtensions = wx.RadioBox( self, wx.ID_ANY, u"Show Extensions?", wx.Point( -1,-1 ), wx.Size( -1,-1 ), radioBoxShowExtensionsChoices, 1, wx.RA_SPECIFY_ROWS )
-		self.radioBoxShowExtensions.SetSelection( 0 )
+		self.radioBoxShowExtensions.SetSelection( 1 )
 		fgSizer5.Add( self.radioBoxShowExtensions, 0, wx.ALL, 5 )
 
 		self.bAddFiles = wx.Button( self, wx.ID_ANY, u"Add Files", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -171,6 +171,21 @@ class GenConInstanceFrame ( wx.Dialog ):
 		self.m_popupAllowEditCell = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Allow Cell Edit", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_GridPopup.Append( self.m_popupAllowEditCell )
 
+		self.m_popupPublications = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"+Publications", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_GridPopup.Append( self.m_popupPublications )
+
+		self.m_popupMiscellaneous = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"+Miscellaneous", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_GridPopup.Append( self.m_popupMiscellaneous )
+
+		self.m_popupNewsletter = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"+Newsletter", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_GridPopup.Append( self.m_popupNewsletter )
+
+		self.m_popupPhotosAndVideo = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"+Photos & Video", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_GridPopup.Append( self.m_popupPhotosAndVideo )
+
+		self.m_popupConventionReports = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"+Convention Reports", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_GridPopup.Append( self.m_popupConventionReports )
+
 		self.Bind( wx.EVT_RIGHT_DOWN, self.GenConInstanceFrameOnContextMenu )
 
 
@@ -202,12 +217,17 @@ class GenConInstanceFrame ( wx.Dialog ):
 		self.Bind( wx.EVT_MENU, self.OnPopupUpdateFile, id = self.m_popupUpdateFile.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupInsertLink, id = self.m_popupInsertLink.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupAllowEditCell, id = self.m_popupAllowEditCell.GetId() )
+		self.Bind( wx.EVT_MENU, self.OnPopupPublications, id = self.m_popupPublications.GetId() )
+		self.Bind( wx.EVT_MENU, self.OnPopuplMiscellaneous, id = self.m_popupMiscellaneous.GetId() )
+		self.Bind( wx.EVT_MENU, self.OnPopupNewsletter, id = self.m_popupNewsletter.GetId() )
+		self.Bind( wx.EVT_MENU, self.OnPopupPhotosAndVideo, id = self.m_popupPhotosAndVideo.GetId() )
+		self.Bind( wx.EVT_MENU, self.OnPopupConventionReports, id = self.m_popupConventionReports.GetId() )
 
 	def __del__( self ):
 		pass
 
 
-	# Virtual event handlers, overide them in your derived class
+	# Virtual event handlers, override them in your derived class
 	def OnClose( self, event ):
 		event.Skip()
 
@@ -279,6 +299,21 @@ class GenConInstanceFrame ( wx.Dialog ):
 		event.Skip()
 
 	def OnPopupAllowEditCell( self, event ):
+		event.Skip()
+
+	def OnPopupPublications( self, event ):
+		event.Skip()
+
+	def OnPopuplMiscellaneous( self, event ):
+		event.Skip()
+
+	def OnPopupNewsletter( self, event ):
+		event.Skip()
+
+	def OnPopupPhotosAndVideo( self, event ):
+		event.Skip()
+
+	def OnPopupConventionReports( self, event ):
 		event.Skip()
 
 	def gRowGridOnContextMenu( self, event ):
