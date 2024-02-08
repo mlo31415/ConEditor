@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ###########################################################################
-## Python code generated with wxFormBuilder (version Oct 26 2018)
+## Python code generated with wxFormBuilder (version 3.10.1-0-g8feb16b3)
 ## http://www.wxformbuilder.org/
 ##
 ## PLEASE DO *NOT* EDIT THIS FILE!
@@ -24,7 +24,7 @@ class GenConSeriesFrame ( wx.Dialog ):
 
 		bSizerMainBox = wx.BoxSizer( wx.VERTICAL )
 
-		fgSizer6 = wx.FlexGridSizer( 2, 4, 0, 0 )
+		fgSizer6 = wx.FlexGridSizer( 2, 5, 0, 0 )
 		fgSizer6.AddGrowableRow( 1 )
 		fgSizer6.SetFlexibleDirection( wx.BOTH )
 		fgSizer6.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
@@ -53,8 +53,11 @@ class GenConSeriesFrame ( wx.Dialog ):
 		fgSizer8.Fit( self.m_panel2 )
 		fgSizer6.Add( self.m_panel2, 1, wx.EXPAND |wx.ALL, 5 )
 
-		self.bLoadSeriesFromFancy = wx.Button( self, wx.ID_ANY, u"Load New ConSeries from Fancy 3", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.bLoadSeriesFromFancy = wx.Button( self, wx.ID_ANY, u"Load Series from Fancy 3", wx.DefaultPosition, wx.DefaultSize, 0 )
 		fgSizer6.Add( self.bLoadSeriesFromFancy, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+
+		self.bRegenerateConPages = wx.Button( self, wx.ID_ANY, u"Regenerate Con Pages", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer6.Add( self.bRegenerateConPages, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
 		self.m_Cancel = wx.Button( self, wx.ID_OK, u"Exit", wx.DefaultPosition, wx.DefaultSize, 0 )
 		fgSizer6.Add( self.m_Cancel, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
@@ -198,6 +201,7 @@ class GenConSeriesFrame ( wx.Dialog ):
 		self.bUploadConSeries.Bind( wx.EVT_BUTTON, self.OnUploadConSeries )
 		self.m_radioBoxShowEmpty.Bind( wx.EVT_RADIOBOX, self.OnSetShowEmptyRadioBox )
 		self.bLoadSeriesFromFancy.Bind( wx.EVT_BUTTON, self.OnLoadSeriesFromFancy )
+		self.bRegenerateConPages.Bind( wx.EVT_BUTTON, self.OnRegenerateConPages )
 		self.m_Cancel.Bind( wx.EVT_BUTTON, self.OnClose )
 		self.tConSeries.Bind( wx.EVT_KEY_UP, self.ConTextConSeriesKeyUp )
 		self.tConSeries.Bind( wx.EVT_TEXT, self.OnTextConSeriesName )
@@ -222,7 +226,7 @@ class GenConSeriesFrame ( wx.Dialog ):
 		pass
 
 
-	# Virtual event handlers, overide them in your derived class
+	# Virtual event handlers, override them in your derived class
 	def OnClose( self, event ):
 		event.Skip()
 
@@ -233,6 +237,9 @@ class GenConSeriesFrame ( wx.Dialog ):
 		event.Skip()
 
 	def OnLoadSeriesFromFancy( self, event ):
+		event.Skip()
+
+	def OnRegenerateConPages( self, event ):
 		event.Skip()
 
 
