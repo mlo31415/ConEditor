@@ -506,7 +506,10 @@ class ConSeriesFrame(GenConSeriesFrame):
                 if row.GoHs is not None and len(row.GoHs) > 0:
                     gohs=row.GoHs.replace("&amp;", "&")
                     if ("," in gohs and not ", jr" in gohs) or "&" in gohs or " and " in gohs:
-                        description+="  The GoHs were "+gohs+"."  #TODO: Add the "and"
+                        # Assume that the GoHs are comma-separated. We want to add an and (w/o a comma) between the last two
+                        gohs=[x.strip() for x in gohs.split(",")]
+                        gohs=", ".join(gohs[:-1])+" and "+gohs[-1]
+                        description+="  The GoHs were "+gohs+"."
                     else:
                         description+="  The GoH was "+gohs+"."
                 dlg.ConInstanceTopText=description
