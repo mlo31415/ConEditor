@@ -65,6 +65,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         self.RefreshWindow()
         self.Show(show)
 
+
     @property
     def Datasource(self) -> ConSeries:
         return self._Datasource
@@ -528,6 +529,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             self.RefreshWindow()
 
 
+
     #------------------
     def OnPopupDeleteConPage(self, event):     # ConSeriesFrame(GenConSeriesFrame)
         irow=self._grid.clickedRow
@@ -687,6 +689,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             self.EditConInstancePage(names, irow)
             self.RefreshWindow()
 
+
     #-------------------
     def OnKeyDown(self, event):     # ConSeriesFrame(GenConSeriesFrame)
         self._grid.OnKeyDown(event)
@@ -720,6 +723,25 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         self.UpdateNeedsSavingFlag()
         self.RefreshWindow()
+
+
+    # ------------------
+    def OnRegenerateConPages(self, event):
+        ret=wx.MessageBox("Are you sure you want to regernate this conventions ConInstance pages?", "Are you sure?", wx.OK | wx.CANCEL)
+        if ret == wx.CANCEL:
+            return
+
+        for irow in range(self.Datasource.NumRows):
+            names=[None, self.Datasource[irow][0], None]
+            if irow > 0:
+                names[0]=self.Datasource[irow-1][0]  # Name of previous convention
+            if irow < self.Datasource.NumRows-1:
+                names[2]=self.Datasource[irow+1][0]  # Name of next convention
+            # We download the page, but don;t actually oprn the dialog.  Then we upload the page which regenerates it.
+            cif=ConInstanceDialogClass(self._basedirectoryFTP+"/"+self.Seriesname, self.Seriesname, names)
+            cif.OnUploadConInstancePage()
+
+
 
     # ------------------
     def OnClose(self, event):                             # ConSeriesFrame(GenConSeriesFrame)
