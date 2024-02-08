@@ -62,6 +62,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.RefreshWindow()
 
 
+
     @property
     def Datasource(self) -> ConInstancePage:
         return self._Datasource

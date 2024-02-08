@@ -242,7 +242,6 @@ class GenConSeriesFrame ( wx.Dialog ):
 	def OnRegenerateConPages( self, event ):
 		event.Skip()
 
-
 	def ConTextConSeriesKeyUp( self, event ):
 		event.Skip()
 
