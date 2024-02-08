@@ -681,10 +681,10 @@ class ConSeriesFrame(GenConSeriesFrame):
             irow=event.GetRow()
             names=[None, self.Datasource[irow][0], None]
             if irow > 0:
-                names[0]=self.Datasource[irow-1][0]   # Name of previous convention
-            if irow < self.Datasource.NumRows - 1:
-                names[2]=self.Datasource[irow+1][0]   # Name of next convention
-            self.EditConInstancePage(names, self._grid.clickedRow)
+                names[0]=self.Datasource[irow-1][0]  # Name of previous convention
+            if irow < self.Datasource.NumRows-1:
+                names[2]=self.Datasource[irow+1][0]  # Name of next convention
+            self.EditConInstancePage(names, irow)
             self.RefreshWindow()
 
     #-------------------
