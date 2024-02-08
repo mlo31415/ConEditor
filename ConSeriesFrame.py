@@ -448,8 +448,12 @@ class ConSeriesFrame(GenConSeriesFrame):
         # If the RMB is a click on a convention instance name, we edit that name
         if "Name" in self.Datasource.ColHeaders:
             col=self.Datasource.ColHeaders.index("Name")
-            name=self.Datasource[irow][col]
-            self.EditConInstancePage(name, irow)
+            names=[None, self.Datasource[irow][col], None]
+            if irow > 0:
+                names[0]=self.Datasource[irow-1][col]   # Name of previous convention
+            if irow < self.Datasource.NumRows - 1:
+                names[2]=self.Datasource[irow+1][col]   # Name of next convention
+            self.EditConInstancePage(names, irow)
             self._grid.Grid.SelectBlock(irow, col, irow, col)
             self.RefreshWindow()
 
@@ -469,15 +473,19 @@ class ConSeriesFrame(GenConSeriesFrame):
         self._grid.OnGridEditorShown(event)
 
     #------------------
-    def EditConInstancePage(self, instancename: str, irow: int) -> None:     # ConSeriesFrame(GenConSeriesFrame)
-        if len(instancename) == 0:
-            dlg=wx.TextEntryDialog(None, "Please enter the name of the Convention Instance you wish to create.", "Enter Convention Instance name")
-            if dlg.ShowModal() == wx.CANCEL or len(dlg.GetValue().strip()) == 0: # Do nothing if the user returns an empty string as name
-                return
-            instancename=dlg.GetValue()
+    def EditConInstancePage(self, instanceNames: [str, str, str], irow: int) -> None:     # ConSeriesFrame(GenConSeriesFrame)
+        # instanceNames: [Previous inataance, instance to be edited, next instance] (or None if does not exist_
 
-        with ModalDialogManager(ConInstanceDialogClass, self._basedirectoryFTP+"/"+self.Seriesname, self.Seriesname, instancename) as dlg:
-            dlg.ConInstanceName=instancename
+        assert len(instanceNames[1]) > 0
+        # if len(instanceName) == 0:
+        #     dlg=wx.TextEntryDialog(None, "Please enter the name of the Convention Instance you wish to create.", "Enter Convention Instance name")
+        #     if dlg.ShowModal() == wx.CANCEL or len(dlg.GetValue().strip()) == 0: # Do nothing if the user returns an empty string as name
+        #         return
+        #     instanceName=dlg.GetValue()
+
+
+        with ModalDialogManager(ConInstanceDialogClass, self._basedirectoryFTP+"/"+self.Seriesname, self.Seriesname, instanceNames) as dlg:
+            dlg.ConInstanceName=instanceNames[1]
 
             # Construct a description of the convention from the information in the con series entry, if any.
             if irow < self.Datasource.NumRows and len(dlg.ConInstanceTopText.strip()) == 0:
@@ -488,7 +496,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                 locale=None
                 if row.Locale is not None and len(row.Locale) > 0:
                     locale=row.Locale
-                description=instancename
+                description=instanceNames[1]
                 if dates is not None and locale is not None:
                     description+=" was held "+dates+" in "+locale+"."
                 elif dates is not None:
@@ -498,13 +506,13 @@ class ConSeriesFrame(GenConSeriesFrame):
                 if row.GoHs is not None and len(row.GoHs) > 0:
                     gohs=row.GoHs.replace("&amp;", "&")
                     if ("," in gohs and not ", jr" in gohs) or "&" in gohs or " and " in gohs:
-                        description+="  The GoHs were "+gohs+"."
+                        description+="  The GoHs were "+gohs+"."  #TODO: Add the "and"
                     else:
                         description+="  The GoH was "+gohs+"."
                 dlg.ConInstanceTopText=description
 
-            dlg.ConInstanceName=instancename
-            dlg.ConInstanceFancyURL="fancyclopedia.org/"+WikiPagenameToWikiUrlname(instancename)
+            dlg.ConInstanceName=instanceNames[1]
+            dlg.ConInstanceFancyURL="fancyclopedia.org/"+WikiPagenameToWikiUrlname(instanceNames[1])
 
             dlg.MarkAsSaved()
             dlg.RefreshWindow()
@@ -515,6 +523,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             self.Datasource.Rows[irow].Name=dlg.ConInstanceName
             self.Datasource.Rows[irow].URL=dlg.ConInstanceName
             self.RefreshWindow()
+
 
     #------------------
     def OnPopupDeleteConPage(self, event):     # ConSeriesFrame(GenConSeriesFrame)
@@ -666,8 +675,13 @@ class ConSeriesFrame(GenConSeriesFrame):
         if self._grid.clickedRow >= self.Datasource.NumRows:
             return      # Double-clicking below the bottom means nothing
         if self._grid.clickedColumn == 0:
-            name=self.Datasource[self._grid.clickedRow][0]
-            self.EditConInstancePage(name, self._grid.clickedRow)
+            irow=event.GetRow()
+            names=[None, self.Datasource[irow][0], None]
+            if irow > 0:
+                names[0]=self.Datasource[irow-1][0]   # Name of previous convention
+            if irow < self.Datasource.NumRows - 1:
+                names[2]=self.Datasource[irow+1][0]   # Name of next convention
+            self.EditConInstancePage(names, self._grid.clickedRow)
             self.RefreshWindow()
 
     #-------------------

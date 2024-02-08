@@ -24,7 +24,7 @@ from WxHelpers import ProgressMessage, OnCloseHandling
 #####################################################################################
 class ConInstanceDialogClass(GenConInstanceFrame):
 
-    def __init__(self, basedirFTP, seriesname, coninstancename):
+    def __init__(self, basedirFTP, seriesname, coninstancenames):
         GenConInstanceFrame.__init__(self, None)
 
         self._grid: DataGrid=DataGrid(self.gRowGrid)
@@ -34,7 +34,9 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         self._FTPbasedir=basedirFTP
         self._seriesname=seriesname
-        self._coninstancename=coninstancename
+        self._coninstancename=coninstancenames[1]
+        self._prevConInstanceName=coninstancenames[0]
+        self._nextConInstanceName=coninstancenames[2]
         self._credits=""
 
         self._signature=0
@@ -416,6 +418,21 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             newtable+="  </ul>\n"
 
         file=SubstituteHTML(file, "fanac-table", newtable)
+
+        # Update the prev- and next-con nav buttons
+        prevHTML="<button onclick=''><first></button>"
+        if self._prevConInstanceName is not None:
+            url=f"https://www.fanac.org/conpubs/{self._seriesname}/{self._prevConInstanceName}/index.html"
+            url=url.replace(" ", "%20")
+            prevHTML=f"<button onclick=window.location.href='{url}'>{self._prevConInstanceName}</button>"
+            file=SubstituteHTML(file, "fanac-prevCon", prevHTML)
+
+        nextHTML="<button onclick=''><last></button>"
+        if self._nextConInstanceName is not None:
+            url=f"https://www.fanac.org/conpubs/{self._seriesname}/{self._nextConInstanceName}/index.html"
+            url=url.replace(" ", "%20")
+            nextHTML=f"<button onclick=window.location.href='{url}'>{self._nextConInstanceName}</button>"
+            file=SubstituteHTML(file, "fanac-nextCon", nextHTML)
 
         if not FTP().PutFileAsString("/"+self._seriesname+"/"+self._coninstancename, "index.html", file, create=True):
             Log("Upload failed: /"+self._seriesname+"/"+self._coninstancename+"/index.html")
