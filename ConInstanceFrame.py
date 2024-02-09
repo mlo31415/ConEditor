@@ -421,19 +421,19 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         file=SubstituteHTML(file, "fanac-table", newtable)
 
         # Update the prev- and next-con nav buttons
-        prevHTML="<button onclick=''><first></button>"
+        prevHTML="<button onclick=''>(first)</button>"
         if self._prevConInstanceName is not None:
             url=f"https://www.fanac.org/conpubs/{self._seriesname}/{self._prevConInstanceName}/index.html"
             url=url.replace(" ", "%20")
             prevHTML=f"<button onclick=window.location.href='{url}'>{self._prevConInstanceName}</button>"
-            file=SubstituteHTML(file, "fanac-prevCon", prevHTML)
+        file=SubstituteHTML(file, "fanac-prevCon", prevHTML)
 
-        nextHTML="<button onclick=''><last></button>"
+        nextHTML="<button onclick=''>(last)</button>"
         if self._nextConInstanceName is not None:
             url=f"https://www.fanac.org/conpubs/{self._seriesname}/{self._nextConInstanceName}/index.html"
             url=url.replace(" ", "%20")
             nextHTML=f"<button onclick=window.location.href='{url}'>{self._nextConInstanceName}</button>"
-            file=SubstituteHTML(file, "fanac-nextCon", nextHTML)
+        file=SubstituteHTML(file, "fanac-nextCon", nextHTML)
 
         if not FTP().PutFileAsString("/"+self._seriesname+"/"+self._coninstancename, "index.html", file, create=True):
             Log("Upload failed: /"+self._seriesname+"/"+self._coninstancename+"/index.html")
