@@ -115,6 +115,7 @@ class Con(GridDataRowClass):
     # def IsEmptyRow(self) -> bool:  # Con(GridDataRowClass)
     #     return self._name != "" or self._locale != "" or self._dates.IsEmpty() != "" or self._gohs != "" or self._URL != ""
 
+    @property
     def IsEmptyRow(self) -> bool:        # Con(GridDataRowClass)
         return (self._name or self._name == "") and (self._locale or self._locale == "") and (self._dates is None or type(self._dates) is str  or self._dates.IsEmpty())  and (self._gohs or self._gohs == "") and (self._URL or self._URL == "")
 

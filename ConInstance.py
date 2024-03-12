@@ -229,6 +229,7 @@ class ConFile(GridDataRowClass):
         print("SetVal can't interpret '"+str(index)+"'")
         raise KeyError
 
+    @property
     def IsEmptyRow(self) -> bool:      # ConFile(GridDataRowClass)
         return self.SourceFilename != "" or self.SiteFilename != "" or self.DisplayTitle != "" or self.Pages != 0 or self.Notes != ""
 
