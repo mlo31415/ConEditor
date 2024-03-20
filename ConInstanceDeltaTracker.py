@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
 from datetime import datetime
 
 from ConInstance import ConFile
@@ -103,13 +102,13 @@ class ConInstanceDeltaTracker:
 
 
 class UpdateFTPLog:
-    g_ID: Optional[str]=None
+    g_ID: str|None =None
 
     def Init(self, id: str):
         UpdateFTPLog.g_ID=id
         pass
 
-    def Log(self, series: str, con: str = "", deltas: Optional[ConInstanceDeltaTracker] = None):
+    def Log(self, series: str, con: str = "", deltas: ConInstanceDeltaTracker|None = None):
         lines="Uploaded ConInstance: "+series+":"+con+"   "+"["+UpdateFTPLog.g_ID+"  "+datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST]\n"
         if deltas is not None and deltas.Num > 0:
             lines+="^^deltas by "+FTP().GetEditor()+":\n"+str(deltas)+"\n"

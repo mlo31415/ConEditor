@@ -1,5 +1,4 @@
 from __future__ import annotations
-from typing import Union, Optional
 
 from HelpersPackage import Int0, RemoveAccents
 
@@ -157,7 +156,7 @@ class ConFile(GridDataRowClass):
             return 0
         return self._pages
     @Pages.setter
-    def Pages(self, val: Union[int, str]) -> None:      # ConFile(GridDataRowClass)
+    def Pages(self, val: int|str) -> None:      # ConFile(GridDataRowClass)
         if type(val) is str:
             val=Int0(val)
         self._pages=val
@@ -188,8 +187,7 @@ class ConFile(GridDataRowClass):
         self._URL=val
 
     # Get or set a value by name or column number in the grid
-    #def GetVal(self, name: Union[str, int]) -> Union[str, int]:
-    def __getitem__(self, index: Union[int, slice]) -> Union[str, int]:      # ConFile(GridDataRowClass)
+    def __getitem__(self, index: int|slice) -> str|int:      # ConFile(GridDataRowClass)
         # (Could use return eval("self."+name))
         if index == 0:
             return self.SourceFilename
@@ -205,8 +203,7 @@ class ConFile(GridDataRowClass):
             return self.Notes
         return "Val can't interpret '"+str(index)+"'"
 
-    #def SetVal(self, nameOrCol: Union[str, int], val: Union[str, int]) -> None:
-    def __setitem__(self, index: Union[int, slice], value: str) -> None:      # ConFile(GridDataRowClass)
+    def __setitem__(self, index: int|slice, value: str) -> None:      # ConFile(GridDataRowClass)
         # (Could use return eval("self."+name))
         if index == 0:
             self.SourceFilename=value
@@ -251,7 +248,7 @@ class ConInstancePage(GridDataSource):
         self._element=ConFile
         self._conFileList: list[ConFile]=[]  # This supplies the Rows property that GridDataSource needs
         self._name: str=""
-        self._specialTextColor: Optional[Color, bool]=True
+        self._specialTextColor: Color|bool|None =True
 
     # Serialize and deserialize
     def ToJson(self) -> str:        # ConInstancePage(GridDataSource)
@@ -309,10 +306,10 @@ class ConInstancePage(GridDataSource):
         self._conFileList[index]=value
 
     @property        # ConInstancePage(GridDataSource)
-    def SpecialTextColor(self) -> Optional[Color]:
+    def SpecialTextColor(self) -> Color|None:
         return self._specialTextColor
     @SpecialTextColor.setter
-    def SpecialTextColor(self, val: Optional[Color]) -> None:        # ConInstancePage(GridDataSource)
+    def SpecialTextColor(self, val: Color|None) -> None:        # ConInstancePage(GridDataSource)
         self._specialTextColor=val
 
     def InsertEmptyRows(self, index: int, num: int=1) -> None:        # ConInstancePage(GridDataSource)

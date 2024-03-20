@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Union
-
 import os
 import sys
 import wx
@@ -48,15 +46,13 @@ class Convention(GridDataRowClass):
         return self
 
     # Get or set a value by name or column number
-    #def GetVal(self, name: Union[str, int]) -> Union[str, int]:
-    def __getitem__(self, index: Union[str, int, slice]) -> Union[str, int]:     # Convention(GridDataRowClass)
+    def __getitem__(self, index: str|int|slice) -> str|int:     # Convention(GridDataRowClass)
         # (Could use return eval("self."+name))
         if index == "Convention" or index == 0:
             return self._name
         return "Convention.Val can't interpret '"+str(index)+"'"
 
-    #def SetVal(self, nameOrCol: Union[str, int], val: Union[str, int]) -> None:
-    def __setitem__(self, nameOrCol: Union[str, int, slice], value: ColDefinition) -> None:     # Convention(GridDataRowClass)
+    def __setitem__(self, nameOrCol: str|int|slice, value: ColDefinition) -> None:     # Convention(GridDataRowClass)
         # (Could use return eval("self."+name))
         if nameOrCol == "Convention" or nameOrCol == 0:
             self._name=value

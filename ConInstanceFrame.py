@@ -1,5 +1,4 @@
 from __future__ import annotations
-from typing import Optional
 
 import wx
 from wx import _core
@@ -170,7 +169,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.AddFiles(self._seriesname, replacerow=self._grid.clickedRow)
 
     # ------------------
-    def AddFiles(self, seriesname: str, replacerow: Optional[int] = None) -> None:
+    def AddFiles(self, seriesname: str, replacerow: int|None = None) -> None:
         # Call the File Open dialog to get an con series HTML file
         if replacerow is None:
             dlg=wx.FileDialog (None, "Select files to upload", ".", "", "*.*", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE | wx.FD_CHANGE_DIR)

@@ -1,5 +1,4 @@
 from __future__ import annotations
-from typing import Optional, Union
 import json
 
 from WxDataGrid import GridDataSource, GridDataRowClass, ColDefinition, ColDefinitionsList, IsEditable
@@ -13,7 +12,7 @@ class Con(GridDataRowClass):
     def __init__(self):
         self._name: str=""                  # Name including number designation
         self._locale: str=""                # Name of locale where the con was held
-        self._dates: Optional[FanzineDateRange]=None      # Date range of the con
+        self._dates: FanzineDateRange|None =None      # Date range of the con
         self._gohs: str=""                  # A list of the con's GoHs
         self._URL: str=""                   # The URL of the individual con page, if any
 
@@ -65,7 +64,7 @@ class Con(GridDataRowClass):
         self._locale=val
 
     @property
-    def Dates(self) -> Optional[FanzineDateRange]:        # Con(GridDataRowClass)
+    def Dates(self) -> FanzineDateRange|None:        # Con(GridDataRowClass)
         return self._dates
     @Dates.setter
     def Dates(self, val: FanzineDateRange):
@@ -80,7 +79,7 @@ class Con(GridDataRowClass):
 
     # Get or set a value by name or column number
     #def GetVal(self, name: Union[str, int]) -> Union[str, int, FanzineDateRange]:
-    def __getitem__(self, index: Union[str, int, slice]) -> Union[str, int, FanzineDateRange]:        # Con(GridDataRowClass)
+    def __getitem__(self, index: str|int|slice) -> str|int|FanzineDateRange:        # Con(GridDataRowClass)
         # (Could use return eval("self."+name))
         if index == "Name" or index == 0:
             return self.Name
@@ -94,8 +93,8 @@ class Con(GridDataRowClass):
             Log(f"Con(GridDataRowClass).__getitem__({index}) does not exist")
         raise IndexError
 
-    #def SetVal(self, nameOrCol: Union[str, int], val: Union[str, int, FanzineDateRange]) -> None:
-    def __setitem__(self, index: Union[str, int, slice], value: Union[str, int, FanzineDateRange]) -> None:        # Con(GridDataRowClass)
+
+    def __setitem__(self, index: str|int|slice, value: str|int|FanzineDateRange) -> None:        # Con(GridDataRowClass)
         # (Could use return eval("self."+name))
         if index == "Name" or index == 0:
             self.Name=value
