@@ -521,7 +521,9 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self._PopupInsertTextRow_RowNumber=row
 
         # Suppress the options used when double clicking on and empty line's column 0
-        flag=self.Datasource.Rows[row].IsTextRow
+        flag=False
+        if row < self.Datasource.NumRows:
+            flag=self.Datasource.Rows[row].IsTextRow
         self.m_popupNewsletter.Enabled=flag
         self.m_popupMiscellaneous.Enabled=flag
         self.m_popupPublications.Enabled=flag
