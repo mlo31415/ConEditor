@@ -76,14 +76,14 @@ class ConSeriesFrame(GenConSeriesFrame):
 
     # ----------------------------------------------
     # Used to determine if anything has been updated
-    def Signature(self) -> int:     # ConSeriesFrame(GenConSeriesFrame)
+    def Signature(self) -> int:     
         stuff=self.Seriesname.strip()+self.TextFancyURL.strip()+self.TextComments.strip()+self._basedirectoryFTP.strip()
         return hash(stuff)+self.Datasource.Signature()
 
-    def MarkAsSaved(self):     # ConSeriesFrame(GenConSeriesFrame)
+    def MarkAsSaved(self):     
         self._signature=self.Signature()
 
-    def NeedsSaving(self) -> bool:     # ConSeriesFrame(GenConSeriesFrame)
+    def NeedsSaving(self) -> bool:     
         return self._signature != self.Signature()
 
     def UpdateNeedsSavingFlag(self):
@@ -93,7 +93,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         self.Title=s
 
     # Serialize and deserialize
-    def ToJson(self) -> str:     # ConSeriesFrame(GenConSeriesFrame)
+    def ToJson(self) -> str:     
         d={"ver": 4,
            "_textConSeries": self.Seriesname,
            "_textFancyURL": self.TextFancyURL,
@@ -101,7 +101,7 @@ class ConSeriesFrame(GenConSeriesFrame):
            "_datasource": self.Datasource.ToJson()}
         return json.dumps(d)
 
-    def FromJson(self, val: str) -> ConSeriesFrame:                         # ConSeriesFrame(GenConSeriesFrame)
+    def FromJson(self, val: str) -> ConSeriesFrame:                         
         d=json.loads(val)
         if d["ver"] >= 3:
             self.Seriesname=RemoveAccents(d["_textConSeries"])
@@ -112,21 +112,21 @@ class ConSeriesFrame(GenConSeriesFrame):
 
 
     @property
-    def Seriesname(self) -> str:     # ConSeriesFrame(GenConSeriesFrame)
+    def Seriesname(self) -> str:     
         return self.tConSeries.GetValue()
     @Seriesname.setter
     def Seriesname(self, val: str) -> None:
         self.tConSeries.SetValue(val)
 
     @property
-    def TextComments(self) -> str:     # ConSeriesFrame(GenConSeriesFrame)
+    def TextComments(self) -> str:     
         return self.tComments.GetValue()
     @TextComments.setter
     def TextComments(self, val: str) -> None:
         self.tComments.SetValue(val)
 
     @property
-    def TextFancyURL(self) -> str:     # ConSeriesFrame(GenConSeriesFrame)
+    def TextFancyURL(self) -> str:     
         return self.tFancyURL.GetValue()
     @TextFancyURL.setter
     def TextFancyURL(self, val: str) -> None:
@@ -135,7 +135,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
     #------------------
     # Download a ConSeries from Fanac.org
-    def DownloadConSeries(self, seriesname) -> bool:      # ConSeriesFrame(GenConSeriesFrame)
+    def DownloadConSeries(self, seriesname) -> bool:      
 
         # Clear out any old information
         self.Datasource=ConSeries()
@@ -186,7 +186,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
 
     #-------------------
-    def UploadConSeries(self) -> bool:       # ConSeriesFrame(GenConSeriesFrame)
+    def UploadConSeries(self) -> bool:       
 
         # First read in the template
         try:
@@ -288,7 +288,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
     #------------------
     # Save a con series object to disk.
-    def OnUploadConSeries(self, event):      # ConSeriesFrame(GenConSeriesFrame)
+    def OnUploadConSeries(self, event):      
         if self.Seriesname is None or len(self.Seriesname) == 0:
             wx.MessageBox("You must supply a convention series name to upload")
             return
@@ -298,7 +298,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
     #--------------------------------------------
     # Given the name of the ConSeries, go to fancy 3 and fetch the con series information and fill in a con seres from it.
-    def FetchConSeriesFromFancy(self, name, retry: bool=False) -> bool:     # ConSeriesFrame(GenConSeriesFrame)
+    def FetchConSeriesFromFancy(self, name, retry: bool=False) -> bool:     
         if name is None or name == "":
             return False
 
@@ -410,10 +410,10 @@ class ConSeriesFrame(GenConSeriesFrame):
 
     #------------------
     # Create a new, empty, con series
-    def OnLoadSeriesFromFancy(self, event):     # ConSeriesFrame(GenConSeriesFrame)
+    def OnLoadSeriesFromFancy(self, event):     
         self.DownloadConSeriesFromFancy(self.tConSeries.GetValue())
 
-    def DownloadConSeriesFromFancy(self, seriesname: str):     # ConSeriesFrame(GenConSeriesFrame)
+    def DownloadConSeriesFromFancy(self, seriesname: str):     
         self.Seriesname=seriesname
 
         ProgressMessage(self).Show("Loading "+self.Seriesname+" from Fancyclopedia 3")
@@ -429,7 +429,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         pass
 
     #------------------
-    def RefreshWindow(self) -> None:     # ConSeriesFrame(GenConSeriesFrame)
+    def RefreshWindow(self) -> None:     
         self._grid.RefreshWxGridFromDatasource()
         self.UpdateNeedsSavingFlag()
         self.bUploadConSeries.Enabled=len(self.Seriesname) > 0
@@ -437,14 +437,14 @@ class ConSeriesFrame(GenConSeriesFrame):
 
 
     #------------------
-    def OnPopupCreateNewConPage(self, event):     # ConSeriesFrame(GenConSeriesFrame)
+    def OnPopupCreateNewConPage(self, event):     
         irow=self._grid.clickedRow
         self._grid.Datasource.InsertEmptyRows(irow, 1)
         self._grid.AllowCellEdit(irow, 0)   # The default is for the con's name not to be editable, but here we need to make it editable.
         self._grid.RefreshWxGridFromDatasource()
 
     #------------------
-    def OnPopupEditConPage(self, event):     # ConSeriesFrame(GenConSeriesFrame)
+    def OnPopupEditConPage(self, event):     
         irow=self._grid.clickedRow
         # If the RMB is a click on a convention instance name, we edit that name
         if "Name" in self.Datasource.ColHeaders:
@@ -459,22 +459,22 @@ class ConSeriesFrame(GenConSeriesFrame):
             self.RefreshWindow()
 
     #------------------
-    def OnPopupAllowEditCell(self, event):     # ConSeriesFrame(GenConSeriesFrame)
+    def OnPopupAllowEditCell(self, event):     
         # Append a (row, col) tuple. This only lives for the life of this instance.
         self._grid.AllowCellEdit(self._grid.clickedRow, self._grid.clickedColumn)
         self.RefreshWindow()
 
     # ------------------
-    def OnPopupUnlink(self, event):     # ConSeriesFrame(GenConSeriesFrame)
+    def OnPopupUnlink(self, event):     
         self.Datasource.Rows[self._grid.clickedRow].URL=""
         self.RefreshWindow()
 
     # ------------------
-    def OnGridEditorShown(self, event):     # ConSeriesFrame(GenConSeriesFrame)
+    def OnGridEditorShown(self, event):     
         self._grid.OnGridEditorShown(event)
 
     #------------------
-    def EditConInstancePage(self, instanceNames: [str, str, str], irow: int) -> None:     # ConSeriesFrame(GenConSeriesFrame)
+    def EditConInstancePage(self, instanceNames: [str, str, str], irow: int) -> None:     
         # instanceNames: [Previous inataance, instance to be edited, next instance] (or None if does not exist_
 
         assert len(instanceNames[1]) > 0
@@ -531,7 +531,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
 
     #------------------
-    def OnPopupDeleteConPage(self, event):     # ConSeriesFrame(GenConSeriesFrame)
+    def OnPopupDeleteConPage(self, event):     
         irow=self._grid.clickedRow
         if irow >= 0 and irow < self.Datasource.NumRows:
             ret=wx.MessageBox("This will delete "+self.Datasource.Rows[irow].Name+" from the list of conventions on this page, but will not delete "+
@@ -542,7 +542,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
     #------------------
     # Take an existing con instance and move it to a new con series
-    def OnPopupChangeConSeries(self, event):      # ConSeriesFrame(GenConSeriesFrame)
+    def OnPopupChangeConSeries(self, event):      
         irow=self._grid.clickedRow
         if irow < 0 or irow >= self.Datasource.NumRows:
             Log("OnPopupChangeConSeries: bad irow="+str(irow))
@@ -635,24 +635,24 @@ class ConSeriesFrame(GenConSeriesFrame):
 
 
     #------------------
-    def OnTextFancyURL(self, event):      # ConSeriesFrame(GenConSeriesFrame)
+    def OnTextFancyURL(self, event):      
         self.RefreshWindow()
 
     #------------------
-    def OnTextConSeriesName( self, event ):     # ConSeriesFrame(GenConSeriesFrame)
+    def OnTextConSeriesName( self, event ):     
         self.RefreshWindow()
 
     #-----------------
     # When the user edits the ConSeries name, we update the Fancy URL (but not vice-versa)
-    def ConTextConSeriesKeyUp(self, event):     # ConSeriesFrame(GenConSeriesFrame)
+    def ConTextConSeriesKeyUp(self, event):     
         self.TextFancyURL="fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.tConSeries.GetValue())
 
     #------------------
-    def OnTextComments(self, event):      # ConSeriesFrame(GenConSeriesFrame)
+    def OnTextComments(self, event):      
         self.RefreshWindow()
 
     #------------------
-    def OnGridCellRightClick(self, event):     # ConSeriesFrame(GenConSeriesFrame)
+    def OnGridCellRightClick(self, event):     
         self._grid.OnGridCellRightClick(event, self.m_GridPopup)  # Set enabled state of default items; set all others to False
 
         icol=self._grid.clickedColumn
@@ -677,7 +677,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         self.PopupMenu(self.m_GridPopup)
 
     # ------------------
-    def OnGridCellDoubleClick(self, event):     # ConSeriesFrame(GenConSeriesFrame)
+    def OnGridCellDoubleClick(self, event):     
         self._grid.OnGridCellDoubleClick(event)
         if self._grid.clickedRow >= self.Datasource.NumRows:
             return      # Double-clicking below the bottom means nothing
@@ -693,24 +693,24 @@ class ConSeriesFrame(GenConSeriesFrame):
 
 
     #-------------------
-    def OnKeyDown(self, event):     # ConSeriesFrame(GenConSeriesFrame)
+    def OnKeyDown(self, event):     
         self._grid.OnKeyDown(event)
         self.UpdateNeedsSavingFlag()
 
     #-------------------
-    def OnKeyUp(self, event):     # ConSeriesFrame(GenConSeriesFrame)
+    def OnKeyUp(self, event):     
         self._grid.OnKeyUp(event)
 
     #------------------
-    def OnPopupCopy(self, event):      # ConSeriesFrame(GenConSeriesFrame)
+    def OnPopupCopy(self, event):      
         self._grid.OnPopupCopy(event)
 
     #------------------
-    def OnPopupPaste(self, event):      # ConSeriesFrame(GenConSeriesFrame)
+    def OnPopupPaste(self, event):      
         self._grid.OnPopupPaste(event)
         self.UpdateNeedsSavingFlag()
 
-    def OnGridCellChanged(self, event):                    # ConSeriesFrame(GenConSeriesFrame)
+    def OnGridCellChanged(self, event):                    
 
         # If we're editing the con instance name, we need to record this so that extra processing ca take place on save
         irow=event.GetRow()
@@ -746,7 +746,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
 
     # ------------------
-    def OnClose(self, event):                             # ConSeriesFrame(GenConSeriesFrame)
+    def OnClose(self, event):                             
         self.SetReturnCode(wx.OK)
 
         if self._fancydownloadfailed:
@@ -763,5 +763,5 @@ class ConSeriesFrame(GenConSeriesFrame):
         self.EndModal(wx.CANCEL)
 
 
-    def OnSetShowEmptyRadioBox(self, event):     # ConSeriesFrame(GenConSeriesFrame)
+    def OnSetShowEmptyRadioBox(self, event):     
         Settings().Put("ConSeriesFramePage:Show empty", self.m_radioBoxShowEmpty.GetSelection())
