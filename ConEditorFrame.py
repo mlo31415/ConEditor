@@ -340,12 +340,12 @@ class ConEditorFrame(GenConEditorFrame):
     def OnGridCellRightClick(self, event):            # ConEditorFrame
         self._grid.OnGridCellRightClick(event, self.m_GridPopup)  # Set enabled state of default items; set all others to False
 
-        self.m_popupItemInsert.Enabled=True
+        self.m_popupItemInsertConventionSeries.Enabled=True
         if self._grid.clickedRow < self.Datasource.NumRows:
-            self.m_popupItemDelete.Enabled=True
+            self.m_popupItemDeleteConventionSeries.Enabled=True
             self.m_popupItemEdit.Enabled=True
             self.m_popupRename.Enabled=True
-        self.m_popupItemInsert.Enabled=True
+        self.m_popupItemInsertConventionSeries.Enabled=True
         self.PopupMenu(self.m_GridPopup, pos=self.gRowGrid.Position+event.Position)
 
     # ------------------
