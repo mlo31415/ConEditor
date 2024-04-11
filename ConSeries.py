@@ -16,11 +16,11 @@ class Con(GridDataRowClass):
         self._gohs: str=""                  # A list of the con's GoHs
         self._URL: str=""                   # The URL of the individual con page, if any
 
-    def Signature(self) -> int:        # Con(GridDataRowClass)
+    def Signature(self) -> int:        
         return hash(self._name)+hash(self._locale)+hash(self._dates)+hash(self._gohs)+hash(self._URL)
 
     # Serialize and deserialize
-    def ToJson(self) -> str:        # Con(GridDataRowClass)
+    def ToJson(self) -> str:        
         d={"ver": 3,
            "_name": self._name,
            "_locale": self._locale,
@@ -29,7 +29,7 @@ class Con(GridDataRowClass):
            "_gohs": self._gohs}
         return json.dumps(d)
 
-    def FromJson(self, val: str) -> Con:        # Con(GridDataRowClass)
+    def FromJson(self, val: str) -> Con:        
         d=json.loads(val)
         self._name=RemoveAccents(d["_name"])
         self._locale=d["_locale"]
@@ -43,35 +43,35 @@ class Con(GridDataRowClass):
 
 
     @property
-    def Name(self) -> str:        # Con(GridDataRowClass)
+    def Name(self) -> str:        
         return self._name
     @Name.setter
     def Name(self, val: str):
         self._name=RemoveAccents(val)
 
     @property
-    def GoHs(self) -> str:        # Con(GridDataRowClass)
+    def GoHs(self) -> str:        
         return self._gohs
     @GoHs.setter
     def GoHs(self, val: str):
         self._gohs=val
 
     @property
-    def Locale(self) -> str:        # Con(GridDataRowClass)
+    def Locale(self) -> str:        
         return self._locale
     @Locale.setter
     def Locale(self, val: str):
         self._locale=val
 
     @property
-    def Dates(self) -> FanzineDateRange|None:        # Con(GridDataRowClass)
+    def Dates(self) -> FanzineDateRange|None:        
         return self._dates
     @Dates.setter
     def Dates(self, val: FanzineDateRange):
         self._dates=val
 
     @property
-    def URL(self) -> str:        # Con(GridDataRowClass)
+    def URL(self) -> str:        
         return self._URL
     @URL.setter
     def URL(self, val: str) -> None:
@@ -79,7 +79,7 @@ class Con(GridDataRowClass):
 
     # Get or set a value by name or column number
     #def GetVal(self, name: Union[str, int]) -> Union[str, int, FanzineDateRange]:
-    def __getitem__(self, index: str|int|slice) -> str|int|FanzineDateRange:        # Con(GridDataRowClass)
+    def __getitem__(self, index: str|int|slice) -> str|int|FanzineDateRange:        
         # (Could use return eval("self."+name))
         if index == "Name" or index == 0:
             return self.Name
@@ -94,7 +94,7 @@ class Con(GridDataRowClass):
         raise IndexError
 
 
-    def __setitem__(self, index: str|int|slice, value: str|int|FanzineDateRange) -> None:        # Con(GridDataRowClass)
+    def __setitem__(self, index: str|int|slice, value: str|int|FanzineDateRange) -> None:        
         # (Could use return eval("self."+name))
         if index == "Name" or index == 0:
             self.Name=value
@@ -111,11 +111,11 @@ class Con(GridDataRowClass):
         Log(f"Con(GridDataRowClass).__putitem__({index}) does not exist")
         raise IndexError
 
-    # def IsEmptyRow(self) -> bool:  # Con(GridDataRowClass)
+    # def IsEmptyRow(self) -> bool:  
     #     return self._name != "" or self._locale != "" or self._dates.IsEmpty() != "" or self._gohs != "" or self._URL != ""
 
     @property
-    def IsEmptyRow(self) -> bool:        # Con(GridDataRowClass)
+    def IsEmptyRow(self) -> bool:        
         return (self._name or self._name == "") and (self._locale or self._locale == "") and (self._dates is None or type(self._dates) is str  or self._dates.IsEmpty())  and (self._gohs or self._gohs == "") and (self._URL or self._URL == "")
 
 ####################################################################################
