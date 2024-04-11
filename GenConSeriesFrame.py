@@ -191,6 +191,9 @@ class GenConSeriesFrame ( wx.Dialog ):
 		self.m_popupChangeConSeries = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Change Convention Series", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_GridPopup.Append( self.m_popupChangeConSeries )
 
+		self.m_popupLinkToOtherConventionInstance = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Link to Another Convection Instance", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_GridPopup.Append( self.m_popupLinkToOtherConventionInstance )
+
 		self.Bind( wx.EVT_RIGHT_DOWN, self.GenConSeriesFrameOnContextMenu )
 
 
@@ -221,6 +224,7 @@ class GenConSeriesFrame ( wx.Dialog ):
 		self.Bind( wx.EVT_MENU, self.OnPopupAllowEditCell, id = self.m_popupAllowEditCell.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupUnlink, id = self.m_popupUnlink.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupChangeConSeries, id = self.m_popupChangeConSeries.GetId() )
+		self.Bind( wx.EVT_MENU, self.OnPopupLinkToAnotherConInstance, id = self.m_popupLinkToOtherConventionInstance.GetId() )
 
 	def __del__( self ):
 		pass
@@ -241,6 +245,7 @@ class GenConSeriesFrame ( wx.Dialog ):
 
 	def OnRegenerateConPages( self, event ):
 		event.Skip()
+
 
 	def ConTextConSeriesKeyUp( self, event ):
 		event.Skip()
@@ -294,6 +299,9 @@ class GenConSeriesFrame ( wx.Dialog ):
 		event.Skip()
 
 	def OnPopupChangeConSeries( self, event ):
+		event.Skip()
+
+	def OnPopupLinkToAnotherConInstance( self, event ):
 		event.Skip()
 
 	def gRowGridOnContextMenu( self, event ):

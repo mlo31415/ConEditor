@@ -658,13 +658,15 @@ class ConSeriesFrame(GenConSeriesFrame):
         icol=self._grid.clickedColumn
         irow=self._grid.clickedRow
 
-        if icol == 0:      # All of the popup options work on the 1st column only
+        if icol == 0:      # These popup options work on the 1st column only
             self.m_popupCreateNewConPage.Enabled=True
             if irow < self.Datasource.NumRows:
                 self.m_popupDeleteConPage.Enabled=True
                 self.m_popupEditConPage.Enabled=True
                 if len(self.Datasource.Rows[irow].URL) > 0:   # Only if there's a link in the cell
                     self.m_popupUnlink.Enabled=True
+                if len(self.Datasource.Rows[irow].URL) == 0:   # Only if there's NO link in the cell
+                    self.m_popupLinkToOtherConventionInstance.Enabled=True
 
         if icol < len(self.Datasource.ColDefs) and self.Datasource.ColDefs[icol].IsEditable == IsEditable.Maybe:
             self.m_popupAllowEditCell.Enabled=True
