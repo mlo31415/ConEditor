@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ###########################################################################
-## Python code generated with wxFormBuilder (version Oct 26 2018)
+## Python code generated with wxFormBuilder (version 3.10.1-0-g8feb16b3)
 ## http://www.wxformbuilder.org/
 ##
 ## PLEASE DO *NOT* EDIT THIS FILE!
@@ -99,11 +99,11 @@ class GenConEditorFrame ( wx.Frame ):
 		self.m_popupItemPaste = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Paste", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_GridPopup.Append( self.m_popupItemPaste )
 
-		self.m_popupItemInsert = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Insert Convention Series", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_GridPopup.Append( self.m_popupItemInsert )
+		self.m_popupItemInsertConventionSeries = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Insert New Convention Series", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_GridPopup.Append( self.m_popupItemInsertConventionSeries )
 
-		self.m_popupItemDelete = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Delete Convention Series", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_GridPopup.Append( self.m_popupItemDelete )
+		self.m_popupItemDeleteConventionSeries = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Delete Convention Series", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_GridPopup.Append( self.m_popupItemDeleteConventionSeries )
 
 		self.m_popupItemEdit = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Edit Convention Series", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_GridPopup.Append( self.m_popupItemEdit )
@@ -131,8 +131,8 @@ class GenConEditorFrame ( wx.Frame ):
 		self.gRowGrid.Bind( wx.EVT_KEY_UP, self.OnKeyUp )
 		self.Bind( wx.EVT_MENU, self.OnPopupCopy, id = self.m_popupItemCopy.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupPaste, id = self.m_popupItemPaste.GetId() )
-		self.Bind( wx.EVT_MENU, self.OnPopupInsertCon, id = self.m_popupItemInsert.GetId() )
-		self.Bind( wx.EVT_MENU, self.OnPopupDeleteCon, id = self.m_popupItemDelete.GetId() )
+		self.Bind( wx.EVT_MENU, self.OnPopupInsertConSeries, id = self.m_popupItemInsertConventionSeries.GetId() )
+		self.Bind( wx.EVT_MENU, self.OnPopupDeleteCon, id = self.m_popupItemDeleteConventionSeries.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupEditCon, id = self.m_popupItemEdit.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupRename, id = self.m_popupRename.GetId() )
 
@@ -140,7 +140,7 @@ class GenConEditorFrame ( wx.Frame ):
 		pass
 
 
-	# Virtual event handlers, overide them in your derived class
+	# Virtual event handlers, override them in your derived class
 	def OnClose( self, event ):
 		event.Skip()
 
@@ -183,7 +183,7 @@ class GenConEditorFrame ( wx.Frame ):
 	def OnPopupPaste( self, event ):
 		event.Skip()
 
-	def OnPopupInsertCon( self, event ):
+	def OnPopupInsertConSeries( self, event ):
 		event.Skip()
 
 	def OnPopupDeleteCon( self, event ):

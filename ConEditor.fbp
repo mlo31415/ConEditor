@@ -57,7 +57,7 @@
             <property name="window_name"></property>
             <property name="window_style"></property>
             <event name="OnClose">OnClose</event>
-            <object class="wxBoxSizer" expanded="0">
+            <object class="wxBoxSizer" expanded="1">
                 <property name="minimum_size"></property>
                 <property name="name">bSizerMainBox</property>
                 <property name="orient">wxVERTICAL</property>
@@ -1313,6 +1313,20 @@
                     <property name="shortcut"></property>
                     <property name="unchecked_bitmap"></property>
                     <event name="OnMenuSelection">OnPopupChangeConSeries</event>
+                </object>
+                <object class="wxMenuItem" expanded="1">
+                    <property name="bitmap"></property>
+                    <property name="checked">0</property>
+                    <property name="enabled">1</property>
+                    <property name="help"></property>
+                    <property name="id">wxID_ANY</property>
+                    <property name="kind">wxITEM_NORMAL</property>
+                    <property name="label">Link to Another Convection Instance</property>
+                    <property name="name">m_popupLinkToOtherConventionInstance</property>
+                    <property name="permission">none</property>
+                    <property name="shortcut"></property>
+                    <property name="unchecked_bitmap"></property>
+                    <event name="OnMenuSelection">OnPopupLinkToAnotherConInstance</event>
                 </object>
             </object>
         </object>
@@ -3251,7 +3265,7 @@
                     </object>
                 </object>
             </object>
-            <object class="wxMenu" expanded="0">
+            <object class="wxMenu" expanded="1">
                 <property name="label">MyMenu</property>
                 <property name="name">m_GridPopup</property>
                 <property name="permission">protected</property>
@@ -3290,12 +3304,12 @@
                     <property name="help"></property>
                     <property name="id">wxID_ANY</property>
                     <property name="kind">wxITEM_NORMAL</property>
-                    <property name="label">Insert Convention Series</property>
-                    <property name="name">m_popupItemInsert</property>
+                    <property name="label">Insert New Convention Series</property>
+                    <property name="name">m_popupItemInsertConventionSeries</property>
                     <property name="permission">none</property>
                     <property name="shortcut"></property>
                     <property name="unchecked_bitmap"></property>
-                    <event name="OnMenuSelection">OnPopupInsertCon</event>
+                    <event name="OnMenuSelection">OnPopupInsertConSeries</event>
                 </object>
                 <object class="wxMenuItem" expanded="0">
                     <property name="bitmap"></property>
@@ -3305,7 +3319,7 @@
                     <property name="id">wxID_ANY</property>
                     <property name="kind">wxITEM_NORMAL</property>
                     <property name="label">Delete Convention Series</property>
-                    <property name="name">m_popupItemDelete</property>
+                    <property name="name">m_popupItemDeleteConventionSeries</property>
                     <property name="permission">none</property>
                     <property name="shortcut"></property>
                     <property name="unchecked_bitmap"></property>
