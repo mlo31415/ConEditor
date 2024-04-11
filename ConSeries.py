@@ -134,14 +134,14 @@ class ConSeries(GridDataSource):
         self._name: str=""
 
     # Serialize and deserialize
-    def ToJson(self) -> str:        #  ConSeries(GridDataSource)
+    def ToJson(self) -> str:        
         d={"ver": 5,
            "_name": self._name}
         for i, s in enumerate(self._series):
             d[i]=s.ToJson()
         return json.dumps(d)
 
-    def FromJson(self, val: str) -> ConSeries:        #  ConSeries(GridDataSource)
+    def FromJson(self, val: str) -> ConSeries:        
         d=json.loads(val)
         self._name=RemoveAccents(d["_name"])    # Clean out old accented entries
         self._series=[]
@@ -152,22 +152,22 @@ class ConSeries(GridDataSource):
 
         return self
 
-    def __getitem__(self, index) -> Con:        #  ConSeries(GridDataSource)
+    def __getitem__(self, index) -> Con:        
         assert index != -1
         return self._series[index]
 
-    def __setitem__(self, index: int, val: Con):        #  ConSeries(GridDataSource)
+    def __setitem__(self, index: int, val: Con):        
         self._series[index]=val
 
-    def Signature(self) -> int:        #  ConSeries(GridDataSource)
+    def Signature(self) -> int:        
         return hash(self._name)+sum([x.Signature()*(i+1) for i, x in enumerate(self.Rows)])
 
     @property
-    def NumRows(self) -> int:        #  ConSeries(GridDataSource)
+    def NumRows(self) -> int:        
         return len(self._series)
 
     @property
-    def Rows(self) -> list[Con]:        #  ConSeries(GridDataSource)
+    def Rows(self) -> list[Con]:        
         return self._series
     @Rows.setter
     def Rows(self, rows: list[Con]) -> None:
@@ -175,19 +175,19 @@ class ConSeries(GridDataSource):
 
 
     @property
-    def ColDefs(self) -> ColDefinitionsList:        #  ConSeries(GridDataSource)
+    def ColDefs(self) -> ColDefinitionsList:        
         return self._colDefs
 
     #------------
     @property
-    def Name(self) -> str:        #  ConSeries(GridDataSource)
+    def Name(self) -> str:        
         return self._name
     @Name.setter
     def Name(self, val: str) -> None:
         self._name=val
 
 
-    def InsertEmptyRows(self, index: int, num: int=1) -> None:        #  ConSeries(GridDataSource)
+    def InsertEmptyRows(self, index: int, num: int=1) -> None:        
         if num <= 0:
             return
         if index > len(self.Rows):
