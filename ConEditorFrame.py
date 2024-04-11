@@ -26,19 +26,19 @@ class Convention(GridDataRowClass):
         self._URL: str=""       # The location of the convention series html page relative to the main cons page; empty if no series page exists yet
 
 
-    def Signature(self) -> int:     # Convention(GridDataRowClass)
+    def Signature(self) -> int:     
         s=hash(self._name.strip()+self._URL.strip())
         Log(f"Convention(GridDataRowClass).Signature {s=}")
         return s
 
     # Serialize and deserialize
-    def ToJson(self) -> str:     # Convention(GridDataRowClass)
+    def ToJson(self) -> str:     
         d={"ver": 2,
            "_name": self._name,
            "_URL": self._URL}
         return json.dumps(d)
 
-    def FromJson(self, val: str) -> Convention:     # Convention(GridDataRowClass)
+    def FromJson(self, val: str) -> Convention:     
         d=json.loads(val)
         self._name=d["_name"]
         self._URL=d["_URL"]
@@ -46,13 +46,13 @@ class Convention(GridDataRowClass):
         return self
 
     # Get or set a value by name or column number
-    def __getitem__(self, index: str|int|slice) -> str|int:     # Convention(GridDataRowClass)
+    def __getitem__(self, index: str|int|slice) -> str|int:     
         # (Could use return eval("self."+name))
         if index == "Convention" or index == 0:
             return self._name
         return "Convention.Val can't interpret '"+str(index)+"'"
 
-    def __setitem__(self, nameOrCol: str|int|slice, value: ColDefinition) -> None:     # Convention(GridDataRowClass)
+    def __setitem__(self, nameOrCol: str|int|slice, value: ColDefinition) -> None:     
         # (Could use return eval("self."+name))
         if nameOrCol == "Convention" or nameOrCol == 0:
             self._name=value
@@ -61,14 +61,14 @@ class Convention(GridDataRowClass):
         raise KeyError
 
     @property
-    def Name(self) -> str:     # Convention(GridDataRowClass)
+    def Name(self) -> str:     
         return self._name
     @Name.setter
     def Name(self, val: str) -> None:
         self._name=val
 
     @property
-    def URL(self) -> str:     # Convention(GridDataRowClass)
+    def URL(self) -> str:     
         return self._URL
     @URL.setter
     def URL(self, val: str) -> None:
