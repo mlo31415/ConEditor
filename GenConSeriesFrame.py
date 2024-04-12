@@ -59,7 +59,7 @@ class GenConSeriesFrame ( wx.Dialog ):
 		self.bRegenerateConPages = wx.Button( self, wx.ID_ANY, u"Regenerate Con Pages", wx.DefaultPosition, wx.DefaultSize, 0 )
 		fgSizer6.Add( self.bRegenerateConPages, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
-		self.m_Cancel = wx.Button( self, wx.ID_OK, u"Exit", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_Cancel = wx.Button( self, wx.ID_OK, u"Close", wx.DefaultPosition, wx.DefaultSize, 0 )
 		fgSizer6.Add( self.m_Cancel, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
 
