@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import re
 import wx, wx._core
 import wx.grid
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
+from urllib.parse import unquote
 import json
 from datetime import datetime
 
@@ -16,8 +18,8 @@ from ConInstanceFrame import ConInstanceDialogClass
 from Settings import Settings
 
 from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, UnformatLinks, RemoveAllHTMLTags, RemoveAccents
-from HelpersPackage import FindIndexOfStringInList, PyiResourcePath
-from WxHelpers import ModalDialogManager, ProgressMessage, OnCloseHandling
+from HelpersPackage import FindIndexOfStringInList, PyiResourcePath, MessageBox
+from WxHelpers import ModalDialogManager, ProgressMessage, OnCloseHandling, MessageBoxInput
 from Log import Log
 from FanzineIssueSpecPackage import FanzineDateRange
 
@@ -239,13 +241,38 @@ class ConSeriesFrame(GenConSeriesFrame):
         newtable+='  </thead>\n'
         newtable+='  <tbody>\n'
         for row in self.Datasource.Rows:
-            if (row.URL is None or row.URL == "") and not showempty:    # Skip empty cons?
+            if (row.URL is None or row.URL == "") and (row.Name is None or row.Name == "") and not showempty:    # Skip empty cons?
                 continue
             newtable+="    <tr>\n"
+
+            # The first column is special, since there's processing to handle references to con instances in other con series
             if row.URL is None or row.URL == "":
                 newtable+='      <td>'+row.Name+'</td>\n'
             else:
-                newtable+='      <td>'+FormatLink(RemoveAccents(row.URL)+"/index.html", row.Name)+'</td>\n'
+                # Check if the format is "[->]con name ([->]con name2)" which indicates a link convention (one part of two series)
+                m=re.match("^(->)?(.*?)\s*\((->)?(.*?)\)$", row.Name)
+                if m is None:
+                    # A vanilla convention
+                    newtable+='      <td>'+FormatLink(RemoveAccents(row.URL)+"/index.html", row.Name)+'</td>\n'
+                else:
+                    # This con is linked to another.  The format of the line is [->] coninstancename ([->] conseriesname/coninstancename)
+                    # The location of the "->" tells us which location has the real con instance data and which is just a link
+                    firstArrow=m.groups()[0]
+                    first=RemoveAccents(m.groups()[1])
+                    secondArrow=m.groups()[2]
+                    second=RemoveAccents(m.groups()[3])
+                    if firstArrow is not None and secondArrow is None:
+                        # The directory is in the first location (i.e., the current con series), then we don't need to do anything fancy with the href
+                        series, instance=first.split("/")
+                        newtable+='      <td>'+FormatLink(f"{instance}/index.html", f"{first} ({second})")+'</td>\n'
+                    elif secondArrow is not None and firstArrow is None:
+                        # The directory is in the second location, so the link has to get us from the current directory to the second directory.
+                        series, instance=second.split("/")
+                        newtable+='      <td>'+FormatLink(f"../{series}/{instance}/index.html", f"{first} ({second})")+'</td>\n'
+                    else:
+                        wx.MessageBox("Page generation failure. We seem to have either zero or two '->'s when we should have had exactly one.")
+                        return False
+
             if hasdates:
                 newtable+='      <td>'+str(row.Dates) if not None else ""+'</td>\n'
             if haslocations:
@@ -634,6 +661,23 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         # Finally, delete the old directory
         FTP().DeleteDir(oldDirPath)
+
+    # ------------------
+    def OnPopupLinkToAnotherConInstance(self, event):
+        newcon=MessageBoxInput("Use a browser to copy the URL of the convention instance you want to link to from the convention series table and paste it here.", "Link an existing convention to this series.")
+        m=re.match("http[s]?://fanac.org/conpubs/(.*?/.*?).index.html$", newcon, re.IGNORECASE)
+        if m is None:
+            MessageBox(f"Could not interperet '{newcon} as a conpubs convention URL")
+            event.skip()
+            return
+
+        series, con=unquote(m.groups()[0]).split("/")
+        irow=self._grid.clickedRow
+        #self.Datasource.Rows[irow][0]+=f' (->{series}/{con})'
+        self.Datasource.Rows[irow].Name=f"{self.Datasource.Rows[irow].Name} (->{series}/{con})"
+        self.Datasource.Rows[irow].URL=unquote(m.groups()[0])
+        self.RefreshWindow()
+        event.Skip()
 
 
     #------------------
