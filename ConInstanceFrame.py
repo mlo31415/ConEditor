@@ -170,7 +170,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
     # ------------------
     def AddFiles(self, seriesname: str, replacerow: int|None = None) -> None:
-        # Call the File Open dialog to get an con series HTML file
+        # Call the File Open dialog to get a con series HTML file
         if replacerow is None:
             dlg=wx.FileDialog (None, "Select files to upload", ".", "", "*.*", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE | wx.FD_CHANGE_DIR)
         else:
@@ -193,23 +193,23 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         Settings().Put("Last FileDialog directory", dlg.GetDirectory())
 
-        if replacerow is None:
-            for fn in dlg.GetFilenames():
-                conf=ConFile()
+        for fn in dlg.GetFilenames():
+            conf=ConFile()
 
-                # We need to try to make the fn into a somewhat more useful display title.
-                # Commonly, file names are prefixed by <conseriesname> <con number/con year>, so we'll remove that if we find it.
-                _, dname=os.path.split(fn)
-                pat=seriesname+"\s*(\'?[0-9]+|[IVXL]+)\s*(.+)"
-                m=re.match(pat, dname, flags=re.IGNORECASE)
-                if m is not None and len(m.groups()) == 2:
-                    dname=m.groups()[1]
-                # The conventions in the series may also have unique names rather than something like 'conseries 15'
-                pat=self.ConInstanceName+"\s*(.*)"
-                m=re.match(pat, dname, flags=re.IGNORECASE)
-                if m is not None and len(m.groups()) == 1:
-                    dname=m.groups()[0]
+            # We need to try to make the fn into a somewhat more useful display title.
+            # Commonly, file names are prefixed by <conseriesname> <con number/con year>, so we'll remove that if we find it.
+            _, dname=os.path.split(fn)
+            pat=seriesname+"\s*(\'?[0-9]+|[IVXL]+)\s*(.+)"
+            m=re.match(pat, dname, flags=re.IGNORECASE)
+            if m is not None and len(m.groups()) == 2:
+                dname=m.groups()[1]
+            # The conventions in the series may also have unique names rather than something like 'conseries 15'
+            pat=self.ConInstanceName+"\s*(.*)"
+            m=re.match(pat, dname, flags=re.IGNORECASE)
+            if m is not None and len(m.groups()) == 1:
+                dname=m.groups()[0]
 
+            if replacerow is None:
                 conf.DisplayTitle=dname
                 conf.SiteFilename=dname
                 conf.SourceFilename=fn
@@ -218,13 +218,15 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 conf.Pages=GetPdfPageCount(conf.SourcePathname)
                 self.conInstanceDeltaTracker.Add(conf)
                 self.Datasource.Rows.append(conf)
-        else:
-            if len(dlg.GetFilenames()) > 0:
-                conf=self.Datasource.Rows[replacerow]
-                fn=dlg.GetFilenames()[0]
-                newfilename=os.path.join(os.path.join(dlg.GetDirectory()), fn)
-                self.conInstanceDeltaTracker.Replace(conf, conf.SourcePathname)
-                self.Datasource.Rows[replacerow].SourcePathname=newfilename
+            else:
+                # Note that when replacerow is None, the get file dialog was invoked so as to allow only one file to be selected.
+                if len(fn) > 0:
+                    conf.SiteFilename=dname
+                    conf.SourceFilename=fn
+                    conf=self.Datasource.Rows[replacerow]
+                    newfilename=os.path.join(os.path.join(dlg.GetDirectory()), fn)
+                    self.conInstanceDeltaTracker.Replace(conf, conf.SourcePathname)
+                    self.Datasource.Rows[replacerow].SourcePathname=newfilename
 
         dlg.Destroy()
         self.RefreshWindow()
@@ -258,9 +260,11 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
 
     # ----------------------------------------------
+    # This has been pulled out of the OnUploadConInstance() handler so it can also be called to auto update a series of pages
     def OnUploadConInstancePage(self) -> None:
 
-        # Delete any trailing blank rows.  (Blank rows anywhere are as error, but we only silently drop trailing blank rows.)
+        # Delete any trailing empty rows.
+        # Empty rows anywhere are as error, but we only silently drop trailing blank rows. Note that a a blank text row is not an empty row.
         # Find the last non-blank row.
         last=None
         for i, row in enumerate(self.Datasource.Rows):
