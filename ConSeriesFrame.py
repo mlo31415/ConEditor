@@ -207,7 +207,9 @@ class ConSeriesFrame(GenConSeriesFrame):
             del self.Datasource.Rows[last+1:]
 
         # Determine if we're missing 100% of the data for the Dates, Location, or GoH columns so we can drop them from the listing
+        #TODO: Do we want to add this??
 
+        # Begin generating the file for uploading
         ProgressMessage(self).Show("Uploading /"+self.Seriesname+"/index.html")
 
         # We want to do substitutions, replacing whatever is there now with the new data
