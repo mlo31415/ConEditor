@@ -405,7 +405,7 @@ class ConEditorFrame(GenConEditorFrame):
         self.RefreshWindow()
 
     #------------------
-    def OnPopupInsertCon(self, event):            # ConEditorFrame
+    def OnPopupInsertConSeries(self, event):            # ConEditorFrame
         self.Datasource.Rows.insert(self._grid.clickedRow, Convention())
         self.EditConSeries()    # clickedRow is set by the RMB clicked event that must have preceeded this.
         self.RefreshWindow()
