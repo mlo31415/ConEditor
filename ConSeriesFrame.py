@@ -161,6 +161,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             # Get the JSON from the file
             j=FindBracketedText(file, "fanac-json", stripHtml=False)[0]
             if j is None or j == "":
+                ProgressMessage().Close(delay=0)
                 Log("DownloadConSeries: Can't load convention information from "+pathname)
                 wx.MessageBox("Can't load convention information from "+pathname)
                 return False
@@ -168,6 +169,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             try:
                 self.FromJson(j)
             except (json.decoder.JSONDecodeError):
+                ProgressMessage().Close(delay=0)
                 Log("DownloadConSeries: JSONDecodeError when loading convention information from "+pathname)
                 wx.MessageBox("JSONDecodeError when loading convention information from "+pathname)
                 return False
@@ -270,6 +272,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                         series, instance=second.split("/")
                         newtable+='      <td>'+FormatLink(f"../{series}/{instance}/index.html", f"{first} ({second})")+'</td>\n'
                     else:
+                        ProgressMessage().Close(delay=0)
                         wx.MessageBox("Page generation failure. We seem to have either zero or two '->'s when we should have had exactly one.")
                         return False
 
