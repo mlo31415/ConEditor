@@ -266,11 +266,11 @@ class ConSeriesFrame(GenConSeriesFrame):
                     if firstArrow is not None and secondArrow is None:
                         # The directory is in the first location (i.e., the current con series), then we don't need to do anything fancy with the href
                         series, instance=first.split("/")
-                        newtable+='      <td>'+FormatLink(f"{instance}/index.html", f"{first} ({second})")+'</td>\n'
+                        newtable+='      <td>'+FormatLink(f"{instance}/index.html", f"{first} <br>({second})")+'</td>\n'
                     elif secondArrow is not None and firstArrow is None:
                         # The directory is in the second location, so the link has to get us from the current directory to the second directory.
                         series, instance=second.split("/")
-                        newtable+='      <td>'+FormatLink(f"../{series}/{instance}/index.html", f"{first} ({second})")+'</td>\n'
+                        newtable+='      <td>'+FormatLink(f"../{series}/{instance}/index.html", f"{first} <br>({second})")+'</td>\n'
                     else:
                         ProgressMessage().Close(delay=0)
                         wx.MessageBox("Page generation failure. We seem to have either zero or two '->'s when we should have had exactly one.")
