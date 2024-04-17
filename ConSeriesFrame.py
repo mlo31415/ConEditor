@@ -168,7 +168,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
             try:
                 self.FromJson(j)
-            except (json.decoder.JSONDecodeError):
+            except json.decoder.JSONDecodeError:
                 ProgressMessage().Close(delay=0)
                 Log("DownloadConSeries: JSONDecodeError when loading convention information from "+pathname)
                 wx.MessageBox("JSONDecodeError when loading convention information from "+pathname)
