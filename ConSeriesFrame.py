@@ -572,6 +572,21 @@ class ConSeriesFrame(GenConSeriesFrame):
                 self._grid.DeleteRows(irow, 1)
                 self.RefreshWindow()
 
+
+    #------------------
+    def OnPopupRenameConPage(self, event):
+        icol=self._grid.clickedColumn
+        irow=self._grid.clickedRow
+
+        v=MessageBoxInput("Enter the new convention instance name", title="Renaming Convention Instance", initialValue=self.Datasource.Rows[irow].Name, ignoredebugger=True)
+
+        if v is not None:
+            self.Datasource.Rows[irow].Name=v
+            self.Datasource.Rows[irow].URL=v
+            self._grid.RefreshWxGridFromDatasource()
+        event.Skip()
+
+
     #------------------
     # Take an existing con instance and move it to a new con series
     def OnPopupChangeConSeries(self, event):      
@@ -712,6 +727,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             if irow < self.Datasource.NumRows:
                 self.m_popupDeleteConPage.Enabled=True
                 self.m_popupEditConPage.Enabled=True
+                self.m_popupRenameConPage.Enabled=True
                 if len(self.Datasource.Rows[irow].URL) > 0:   # Only if there's a link in the cell
                     self.m_popupUnlink.Enabled=True
                 if len(self.Datasource.Rows[irow].URL) == 0:   # Only if there's NO link in the cell

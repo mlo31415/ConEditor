@@ -179,6 +179,9 @@ class GenConSeriesFrame ( wx.Dialog ):
 		self.m_popupDeleteConPage = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Delete Convention Page", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_GridPopup.Append( self.m_popupDeleteConPage )
 
+		self.m_popupRenameConPage = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Rename Convention Page", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_GridPopup.Append( self.m_popupRenameConPage )
+
 		self.m_popupEditConPage = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Edit Convention Page", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_GridPopup.Append( self.m_popupEditConPage )
 
@@ -220,6 +223,7 @@ class GenConSeriesFrame ( wx.Dialog ):
 		self.Bind( wx.EVT_MENU, self.OnPopupPaste, id = self.m_menuItemPaste.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupCreateNewConPage, id = self.m_popupCreateNewConPage.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupDeleteConPage, id = self.m_popupDeleteConPage.GetId() )
+		self.Bind( wx.EVT_MENU, self.OnPopupRenameConPage, id = self.m_popupRenameConPage.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupEditConPage, id = self.m_popupEditConPage.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupAllowEditCell, id = self.m_popupAllowEditCell.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupUnlink, id = self.m_popupUnlink.GetId() )
@@ -287,6 +291,9 @@ class GenConSeriesFrame ( wx.Dialog ):
 		event.Skip()
 
 	def OnPopupDeleteConPage( self, event ):
+		event.Skip()
+
+	def OnPopupRenameConPage( self, event ):
 		event.Skip()
 
 	def OnPopupEditConPage( self, event ):

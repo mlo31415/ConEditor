@@ -1258,6 +1258,20 @@
                     <property name="unchecked_bitmap"></property>
                     <event name="OnMenuSelection">OnPopupDeleteConPage</event>
                 </object>
+                <object class="wxMenuItem" expanded="1">
+                    <property name="bitmap"></property>
+                    <property name="checked">0</property>
+                    <property name="enabled">1</property>
+                    <property name="help"></property>
+                    <property name="id">wxID_ANY</property>
+                    <property name="kind">wxITEM_NORMAL</property>
+                    <property name="label">Rename Convention Page</property>
+                    <property name="name">m_popupRenameConPage</property>
+                    <property name="permission">none</property>
+                    <property name="shortcut"></property>
+                    <property name="unchecked_bitmap"></property>
+                    <event name="OnMenuSelection">OnPopupRenameConPage</event>
+                </object>
                 <object class="wxMenuItem" expanded="0">
                     <property name="bitmap"></property>
                     <property name="checked">0</property>
