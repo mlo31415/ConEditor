@@ -580,7 +580,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         v=MessageBoxInput("Enter the new convention instance name", title="Renaming Convention Instance", initialValue=self.Datasource.Rows[irow].Name, ignoredebugger=True)
 
-        if v is not None:
+        if v is not None and v is not "":
             self.Datasource.Rows[irow].Name=v
             self.Datasource.Rows[irow].URL=v
             self._grid.RefreshWxGridFromDatasource()
