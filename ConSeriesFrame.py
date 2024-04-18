@@ -295,6 +295,12 @@ class ConSeriesFrame(GenConSeriesFrame):
         if self.Seriesname is None or len(self.Seriesname) == 0:
             Log("UploadConSeries: No series name provided")
             return False
+
+        # Save the old file as a backup.
+        if not FTP().BackupServerFile(f"/{self.Seriesname}/index.html"):
+            Log(f"UploadConSeries: Could not back up server file /{self.Seriesname}/index.html")
+            return False
+
         if not FTP().PutFileAsString("/"+self.Seriesname, "index.html", file, create=True):
             wx.MessageBox("Upload failed")
             return False
