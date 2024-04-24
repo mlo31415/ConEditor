@@ -307,9 +307,11 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         UpdateFTPLog().LogText("Uploaded ConSeries: "+self.Seriesname)
 
-        # It is possible that the user edited some convention instance names.  This breaks the ink to the con instance directory because the names no longer match.
+        # It is possible that the user edited some convention instance names.  This breaks the link to the con instance directory because
+        # the names no longer match.
         # We have the _instanceRenameTracker list which records any such changes.  If it is non-empty, go ahead and do the renames
-        # Note that this is not a perfect solution, since if the user is sufficiently convoluted he can undoubtedly screw it up. It should work for all simple and most complex cases.
+        # Note that this is not a perfect solution, since if the user is sufficiently convoluted he can undoubtedly screw it up. It should work for
+        # all simple and most complex cases.
         if self._instanceRenameTracker:
             for change in self._instanceRenameTracker:
                 old=change[0]
@@ -587,6 +589,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         v=MessageBoxInput("Enter the new convention instance name", title="Renaming Convention Instance", initialValue=self.Datasource.Rows[irow].Name, ignoredebugger=True)
 
         if v is not None and v is not "":
+            self._instanceRenameTracker.append((self.Datasource.Rows[irow].Name, v))
             self.Datasource.Rows[irow].Name=v
             self.Datasource.Rows[irow].URL=v
             self._grid.RefreshWxGridFromDatasource()
