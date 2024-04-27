@@ -1,5 +1,4 @@
 from __future__ import annotations
-import json
 
 from WxDataGrid import GridDataSource, GridDataRowClass, ColDefinition, ColDefinitionsList, IsEditable
 from HelpersPackage import RemoveAccents
@@ -9,37 +8,17 @@ from Log import Log
 
 ####################################################################################
 class Con(GridDataRowClass):
-    def __init__(self):
-        self._name: str=""                  # Name including number designation
-        self._locale: str=""                # Name of locale where the con was held
-        self._dates: FanzineDateRange|None =None      # Date range of the con
-        self._gohs: str=""                  # A list of the con's GoHs
-        self._URL: str=""                   # The URL of the individual con page, if any
+    def __init__(self, Name="", Link="", Extra="", Locale="", Dates=None, GoHs="", URL=""):
+        self._name: str=Name                  # Name including number designation
+        self._link: str=Link
+        self._extra: str=Extra
+        self._locale: str=Locale                # Name of locale where the con was held
+        self._dates: FanzineDateRange|None =Dates      # Date range of the con
+        self._gohs: str=GoHs                  # A list of the con's GoHs
+        self._URL: str=URL                   # The URL of the individual con page, if any
 
     def Signature(self) -> int:        
         return hash(self._name)+hash(self._locale)+hash(self._dates)+hash(self._gohs)+hash(self._URL)
-
-    # Serialize and deserialize
-    def ToJson(self) -> str:        
-        d={"ver": 3,
-           "_name": self._name,
-           "_locale": self._locale,
-           "_dates": str(self._dates),
-           "_URL": self._URL,
-           "_gohs": self._gohs}
-        return json.dumps(d)
-
-    def FromJson(self, val: str) -> Con:        
-        d=json.loads(val)
-        self._name=RemoveAccents(d["_name"])
-        self._locale=d["_locale"]
-        self._gohs=d["_gohs"]
-        self._dates=FanzineDateRange().Match(d["_dates"])
-        if "_URL" in d.keys():
-            self._URL=d["_URL"]
-        else:
-            self._URL=""
-        return self
 
 
     @property
@@ -48,6 +27,14 @@ class Con(GridDataRowClass):
     @Name.setter
     def Name(self, val: str):
         self._name=RemoveAccents(val)
+
+
+    @property
+    def Extra(self) -> str:
+        return self._extra
+    @Extra.setter
+    def Extra(self, val: str):
+        self._extra=RemoveAccents(val)
 
     @property
     def GoHs(self) -> str:        
@@ -83,13 +70,17 @@ class Con(GridDataRowClass):
         # (Could use return eval("self."+name))
         if index == "Name" or index == 0:
             return self.Name
-        if index == "Dates" or index == 1:
+        if index == "URL" or index == 1:
+            return self.URL
+        if index == "Extra" or index == 2:
+            return self.Extra
+        if index == "Dates" or index == 3:
             return self.Dates
-        if index == "Locale" or index == 2:
+        if index == "Locale" or index == 4:
             return self.Locale
-        if index == "GoHs" or index == 3:
+        if index == "GoHs" or index == 5:
             return self.GoHs
-        if index != 4:  # Index == 4 is normal, being the terminator of an iteration through the columns
+        if index != 6:  # Index == 4 is normal, being the terminator of an iteration through the columns
             Log(f"Con(GridDataRowClass).__getitem__({index}) does not exist")
         raise IndexError
 
@@ -99,16 +90,22 @@ class Con(GridDataRowClass):
         if index == "Name" or index == 0:
             self.Name=value
             return
-        if index == "Dates" or index == 1:
+        if index == "URL" or index == 1:
+            self.URL=value
+            return
+        if index == "Extra" or index == 2:
+            self.Extra=value
+            return
+        if index == "Dates" or index == 3:
             self.Dates=FanzineDateRange().Match(value)
             return
-        if index == "Locale" or index == 2:
+        if index == "Locale" or index == 4:
             self.Locale=value
             return
-        if index == "GoHs" or index == 3:
+        if index == "GoHs" or index == 5:
             self.GoHs=value
             return
-        Log(f"Con(GridDataRowClass).__putitem__({index}) does not exist")
+        Log(f"Con(GridDataRowClass).__putitem__('{index}') does not exist")
         raise IndexError
 
     # def IsEmptyRow(self) -> bool:  
@@ -116,7 +113,10 @@ class Con(GridDataRowClass):
 
     @property
     def IsEmptyRow(self) -> bool:        
-        return (self._name or self._name == "") and (self._locale or self._locale == "") and (self._dates is None or type(self._dates) is str  or self._dates.IsEmpty())  and (self._gohs or self._gohs == "") and (self._URL or self._URL == "")
+        return ((self._name or self._name == "") and (self._link or self._link == "") and (self._extra or self._extra == "") and
+                 (self._locale or self._locale == "") and (self._dates is None or type(self._dates) is str  or self._dates.IsEmpty()) and
+                (self._gohs or self._gohs == "") and (self._URL or self._URL == ""))
+
 
 ####################################################################################
 class ConSeries(GridDataSource):
@@ -124,7 +124,9 @@ class ConSeries(GridDataSource):
     def __init__(self):
         GridDataSource.__init__(self)
         self._colDefs: ColDefinitionsList=ColDefinitionsList([
-            ColDefinition("Name", Type="url", Width=30, IsEditable=IsEditable.Maybe),
+            ColDefinition("Name", Type="text", Width=30, IsEditable=IsEditable.Maybe),
+            ColDefinition("Link", Type="url", Width=30, IsEditable=IsEditable.Yes),
+            ColDefinition("Extra",Type="text", Width=30, IsEditable=IsEditable.Yes),
             ColDefinition("Dates", Type="date range", Width=30),
             ColDefinition("Locale", Width=30),
             ColDefinition("GoHs", Width=30),
@@ -133,24 +135,6 @@ class ConSeries(GridDataSource):
         self._series: list[Con]=[]  # This supplies the Rows property that GridDataSource needs
         self._name: str=""
 
-    # Serialize and deserialize
-    def ToJson(self) -> str:        
-        d={"ver": 5,
-           "_name": self._name}
-        for i, s in enumerate(self._series):
-            d[i]=s.ToJson()
-        return json.dumps(d)
-
-    def FromJson(self, val: str) -> ConSeries:        
-        d=json.loads(val)
-        self._name=RemoveAccents(d["_name"])    # Clean out old accented entries
-        self._series=[]
-        i=0
-        while str(i) in d.keys():       # This is because json merges 1 and "1" as the same. (It appears to be a bug.)
-            self._series.append(Con().FromJson(d[str(i)]))
-            i+=1
-
-        return self
 
     def __getitem__(self, index) -> Con:        
         assert index != -1

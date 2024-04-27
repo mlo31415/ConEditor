@@ -6,7 +6,6 @@ import wx.grid
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
 from urllib.parse import unquote
-import json
 from datetime import datetime
 
 from GenConSeriesFrame import GenConSeriesFrame
@@ -17,7 +16,7 @@ from WxDataGrid import DataGrid, IsEditable
 from ConInstanceFrame import ConInstanceDialogClass
 from Settings import Settings
 
-from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, UnformatLinks, RemoveAllHTMLTags, RemoveAccents
+from HelpersPackage import SubstituteHTML, FormatLink, FindBracktedText2, WikiPagenameToWikiUrlname, UnformatLinks, RemoveAllHTMLTags, RemoveAccents
 from HelpersPackage import FindIndexOfStringInList, PyiResourcePath, MessageBox
 from WxHelpers import ModalDialogManager, ProgressMessage, OnCloseHandling, MessageBoxInput
 from Log import Log
@@ -94,24 +93,6 @@ class ConSeriesFrame(GenConSeriesFrame):
             s=s+" *"
         self.Title=s
 
-    # Serialize and deserialize
-    def ToJson(self) -> str:     
-        d={"ver": 4,
-           "_textConSeries": self.Seriesname,
-           "_textFancyURL": self.TextFancyURL,
-           "_textComments": self.TextComments,
-           "_datasource": self.Datasource.ToJson()}
-        return json.dumps(d)
-
-    def FromJson(self, val: str) -> ConSeriesFrame:                         
-        d=json.loads(val)
-        if d["ver"] >= 3:
-            self.Seriesname=RemoveAccents(d["_textConSeries"])
-            self.TextFancyURL=RemoveAccents(d["_textFancyURL"])
-            self.TextComments=d["_textComments"]
-            self.Datasource=ConSeries().FromJson(d["_datasource"])
-        return self
-
 
     @property
     def Seriesname(self) -> str:     
@@ -157,27 +138,14 @@ class ConSeriesFrame(GenConSeriesFrame):
             pathname=self._basedirectoryFTP+"/"+pathname
 
         if file is not None:
-
-            # Get the JSON from the file
-            j=FindBracketedText(file, "fanac-json", stripHtml=False)[0]
-            if j is None or j == "":
-                ProgressMessage().Close(delay=0)
-                Log("DownloadConSeries: Can't load convention information from "+pathname)
-                wx.MessageBox("Can't load convention information from "+pathname)
-                return False
-
-            try:
-                self.FromJson(j)
-            except json.decoder.JSONDecodeError:
-                ProgressMessage().Close(delay=0)
-                Log("DownloadConSeries: JSONDecodeError when loading convention information from "+pathname)
-                wx.MessageBox("JSONDecodeError when loading convention information from "+pathname)
+            if not self.LoadConSeriesFromHTML(file):
+                ProgressMessage(self).Show(self.Seriesname+" Load Failed", close=True, delay=0.5)
                 return False
         else:
             # Offer to download the data from Fancy 3
             self.Seriesname=seriesname
             resp=wx.MessageBox("Do you wish to download the convention series "+seriesname+" from Fancyclopedia 3?", 'Shortcut', wx.YES|wx.NO|wx.ICON_QUESTION)
-            if resp == wx.YES:
+            if resp == wx.YES:      # If no, we just present an empty form.
                 self.DownloadConSeriesFromFancy(seriesname)
 
         if self.TextFancyURL is None or len(self.TextFancyURL) == 0:
@@ -188,6 +156,95 @@ class ConSeriesFrame(GenConSeriesFrame):
         ProgressMessage(self).Show(self.Seriesname+" Loaded", close=True, delay=0.5)
         return True
 
+
+    def ReadTableRow(self, row: str, delim="td") -> list[str]:
+        rest=row
+        out=[]
+        while True:
+            item, rest=FindBracktedText2(rest, delim, caseInsensitive=True)
+            if item == "":
+                break
+            if f"<{delim}>" in item:    # This corrects for an error in which we have the pattern '<td>xxx<td>yyy</td>' which displays perfectly well
+                item=item.split(f"<{delim}>")
+                out.extend(item)
+            else:
+                out.append(item)
+
+        return out
+
+    #----------------------------
+    # Populate the ConSeriesFrame structure
+    def LoadConSeriesFromHTML(self, file: str) -> bool:
+        # Look for the series name in the header
+        head, rest=FindBracktedText2(file, "head", caseInsensitive=True)
+        series, _=FindBracktedText2(head, "title", caseInsensitive=True)
+        if series == "":
+            Log("LoadConSeriesFromHTML() could not find <title>...</title> in <head>...</head>")
+            return False
+        self.Seriesname=series
+
+        # Locate the Fancy 3 reference
+        ref, _=FindBracktedText2(rest, "fanac-instance", caseInsensitive=True)
+        if ref == "":
+            Log(f"DecodeConSeriesHTML(): failed to find the <fanac-instance> tags in the body")
+            return False
+        m=re.match('<a href="(https://fancyclopedia.org/.*?)">.*?</a>$', ref, re.IGNORECASE)
+        if m is None:
+            Log(f"DecodeConSeriesHTML(): failed to find the fancyclopedia link in the <fanac-instance> tag in the main table")
+            return False
+        self.TextFancyURL=RemoveAccents(m.groups()[0])
+
+        # Comments do not seem to have been used
+        self.TextComments=""
+
+        # There should only be one table and that contains the list of con instances
+        table, _=FindBracktedText2(rest, "fanac-table", caseInsensitive=True)
+        if table == "":
+            Log(f"DecodeConSeriesHTML(): failed to find the <fanac-table> tags")
+            return False
+
+        # Read the table
+        # Get the table header and decode the columns
+        header, rest=FindBracktedText2(table, "thead", caseInsensitive=True)
+        if header == "":
+            Log(f"DecodeConSeriesHTML(): failed to find the <thead> tags in the body")
+            return False
+        # Find the column headings
+        headers=self.ReadTableRow(header, "th")
+
+        # Now read the rows
+        rows=[]
+        while True:
+            row, rest=FindBracktedText2(rest, "tr", caseInsensitive=True)
+            if row == "":
+                break
+            rows.append(self.ReadTableRow(row))
+
+        cons=[]
+        for row in rows:
+            con=Con()
+            for i, header in enumerate(headers):
+                match header:
+                    case "Convention":
+                        con.Name, con.URL, con.Extra = self.ExtractConNameInfo(con, row[i])
+                    case "Location":
+                        con.Locale=row[i]
+                    case _:
+                        con[header]=row[i]
+
+            cons.append(con)
+        self.Datasource.Rows=cons
+
+        return True
+
+    #---------------------
+    # header is of the form <a href=xxxx>yyyy</a>zzzz
+    def ExtractConNameInfo(self, con: Con, header: str) -> (str, str, str):
+        m=re.match('<a href="(.*?)">(.*?)</a>(.*)$', header, re.IGNORECASE)
+        if m is not None:
+            return m.groups()[1], m.groups()[0], m.groups()[2]
+        # Well, perhaps it of the form XXX
+        return header, "", ""
 
     #-------------------
     def UploadConSeries(self) -> bool:       
@@ -247,37 +304,19 @@ class ConSeriesFrame(GenConSeriesFrame):
                 continue
             newtable+="    <tr>\n"
 
-            # The first column is special, since there's processing to handle references to con instances in other con series
-            if row.URL is None or row.URL == "":
-                newtable+='      <td>'+row.Name+'</td>\n'
+            # Generate the first colum from the name, url and extra
+            if row.URL == "":
+                newtable+=f"    <td>{row.Name}"
             else:
-                # Check if the format is "[->]con name ([->]con name2)" which indicates a link convention (one part of two series)
-                m=re.match("^(->)?(.*?)\s*\((->)?(.*?)\)$", row.Name)
-                if m is None:
-                    # A vanilla convention
-                    newtable+='      <td>'+FormatLink(RemoveAccents(row.URL)+"/index.html", row.Name)+'</td>\n'
-                else:
-                    # This con is linked to another.  The format of the line is [->] coninstancename ([->] conseriesname/coninstancename)
-                    # The location of the "->" tells us which location has the real con instance data and which is just a link
-                    firstArrow=m.groups()[0]
-                    first=RemoveAccents(m.groups()[1])
-                    secondArrow=m.groups()[2]
-                    second=RemoveAccents(m.groups()[3])
-                    if firstArrow is not None and secondArrow is None:
-                        # The directory is in the first location (i.e., the current con series), then we don't need to do anything fancy with the href
-                        series, instance=first.split("/")
-                        newtable+='      <td>'+FormatLink(f"{instance}/index.html", f"{first} <br>({second})")+'</td>\n'
-                    elif secondArrow is not None and firstArrow is None:
-                        # The directory is in the second location, so the link has to get us from the current directory to the second directory.
-                        series, instance=second.split("/")
-                        newtable+='      <td>'+FormatLink(f"../{series}/{instance}/index.html", f"{first} <br>({second})")+'</td>\n'
-                    else:
-                        ProgressMessage().Close(delay=0)
-                        wx.MessageBox("Page generation failure. We seem to have either zero or two '->'s when we should have had exactly one.")
-                        return False
+                newtable+=f"    <td><a href={row.URL}>{row.Name}</a>"
+            if row.Extra != "":
+                newtable+=f" {row.Extra}"
+            newtable+="</td>\n"
 
             if hasdates:
-                newtable+='      <td>'+str(row.Dates) if not None else ""+'</td>\n'
+                newtable+='      <td>'
+                newtable+=str(row.Dates) if row.Dates is not None else ""
+                newtable+='</td>\n'
             if haslocations:
                 newtable+='      <td>'+row.Locale+'</td>\n'
             if hasgohs:
@@ -287,21 +326,23 @@ class ConSeriesFrame(GenConSeriesFrame):
         newtable+="  </table>\n"
 
         file=SubstituteHTML(file, "fanac-table", newtable)
-        file=SubstituteHTML(file, "fanac-json", self.ToJson())
 
         file=SubstituteHTML(file, "fanac-date", datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST")
 
         # Now try to FTP the data up to fanac.org
         if self.Seriesname is None or len(self.Seriesname) == 0:
+            ProgressMessage(self).Close()
             Log("UploadConSeries: No series name provided")
             return False
 
         # Save the old file as a backup.
         if not FTP().BackupServerFile(f"/{self.Seriesname}/index.html"):
+            ProgressMessage(self).Close()
             Log(f"UploadConSeries: Could not back up server file /{self.Seriesname}/index.html")
             return False
 
         if not FTP().PutFileAsString("/"+self.Seriesname, "index.html", file, create=True):
+            ProgressMessage(self).Close()
             wx.MessageBox("Upload failed")
             return False
 
@@ -588,7 +629,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         v=MessageBoxInput("Enter the new convention instance name", title="Renaming Convention Instance", initialValue=self.Datasource.Rows[irow].Name, ignoredebugger=True)
 
-        if v is not None and v is not "":
+        if v is not None and v != "":
             self._instanceRenameTracker.append((self.Datasource.Rows[irow].Name, v))
             self.Datasource.Rows[irow].Name=v
             self.Datasource.Rows[irow].URL=v
@@ -676,7 +717,6 @@ class ConSeriesFrame(GenConSeriesFrame):
                 Log(msg, isError=True)
                 wx.MessageBox(msg, 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
                 return
-        ProgressMessage(self).Close()
 
         # Save the old and new con series. Don't upload the modified old series if uploading the new one failed
         if csf.UploadConSeries():
@@ -684,10 +724,12 @@ class ConSeriesFrame(GenConSeriesFrame):
             self._grid.DeleteRows(irow)
             self.UploadConSeries()
         else:
+            ProgressMessage(self).Close()
             return
 
         # Finally, delete the old directory
         FTP().DeleteDir(oldDirPath)
+        ProgressMessage(self).Close()
 
     # ------------------
     def OnPopupLinkToAnotherConInstance(self, event):
@@ -789,7 +831,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         # If we're editing the con instance name, we need to record this so that extra processing ca take place on save
         irow=event.GetRow()
         icol=event.GetCol()
-        if icol == 0 and irow <self._Datasource.NumRows:
+        if icol == 0 and irow < self._Datasource.NumRows:
             newVal=self._grid.Grid.GetCellValue(irow, icol)
             oldVal=self._Datasource[irow][icol]
             if newVal != oldVal:
