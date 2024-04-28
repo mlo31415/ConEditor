@@ -215,10 +215,13 @@ class ConSeriesFrame(GenConSeriesFrame):
         # Now read the rows
         rows=[]
         while True:
-            row, rest=FindBracktedText2(rest, "tr", caseInsensitive=True)
-            if row == "":
+            rowtext, rest=FindBracktedText2(rest, "tr", caseInsensitive=True)
+            if rowtext == "":
                 break
-            rows.append(self.ReadTableRow(row))
+            row=self.ReadTableRow(rowtext)
+            if len(row) < len(headers):
+                row.extend(" "*(len(headers)-len(row)))
+            rows.append(row)
 
         cons=[]
         for row in rows:
