@@ -299,10 +299,15 @@ class ConEditorFrame(GenConEditorFrame):
 
             file=SubstituteHTML(file, "fanac-date", datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST")
 
-        Log("Uploading /index.html")
-        if not FTP().PutFileAsString("/", "index.html", file):
-            Log("Upload of /index.html failed")
-            wx.MessageBox("Upload of /index.html failed")
+            Log("Uploading /index.html")
+            # Save the old file as a backup.
+            if not FTP().BackupServerFile(f"/index.html"):
+                Log(f"Could not back up server file /index.html")
+                return False
+
+            if not FTP().PutFileAsString("/", "index.html", file):
+                Log("Upload of /index.html failed")
+                wx.MessageBox("Upload of /index.html failed")
 
             UpdateFTPLog().LogText("Uploaded Main convention list")
 
