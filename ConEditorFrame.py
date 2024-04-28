@@ -16,7 +16,7 @@ from Settings import Settings
 
 
 from HelpersPackage import SubstituteHTML, FindBracketedText, FormatLink, Int, MessageBox, PyiResourcePath
-from WxHelpers import ModalDialogManager, OnCloseHandling
+from WxHelpers import ModalDialogManager, OnCloseHandling, ProgressMessage2
 from Log import LogOpen, Log, LogFlush
 
 
@@ -263,47 +263,48 @@ class ConEditorFrame(GenConEditorFrame):
         self.Upload()
 
     def Upload(self):        # ConEditorFrame(GenConEditorFrame)
-        # First read in the template
-        file=None
-        try:
-            with open(PyiResourcePath("Template-ConMain.html")) as f:
-                file=f.read()
-        except:
-            wx.MessageBox("Can't read 'Template-ConMain.html'")
 
-        # We want to do substitutions, replacing whatever is there now with the new data
-        # The con's name might be tagged with <fanac-instance>, the random text with "fanac-headertext"
-        file=SubstituteHTML(file, "fanac-stuff", self.m_textCtrlTopText.GetValue())
+        with ModalDialogManager(ProgressMessage2, "Uploading index.html to fanac.org/conpubs", parent=self) as pm:
+            # First read in the template
+            file=None
+            try:
+                with open(PyiResourcePath("Template-ConMain.html")) as f:
+                    file=f.read()
+            except:
+                wx.MessageBox("Can't read 'Template-ConMain.html'")
 
-        # Now construct the table which we'll then substitute.
-        newtable="  <thead>\n"
-        newtable+="    <tr>\n"
-        newtable+='      <th scope="col">Convention</th>\n'
-        newtable+='    </tr>\n'
-        newtable+='  </thead>\n'
-        newtable+='  <tbody>\n'
-        for i, row in enumerate(self.Datasource.Rows):
-            if i == 4:  # Add a crude horizontal rule between items 3 (Misc. Cons) and 4 (1st real con)
-                newtable+="    <tr>\n      <td>------------------</td>\n    <tr>\n"
+            # We want to do substitutions, replacing whatever is there now with the new data
+            # The con's name might be tagged with <fanac-instance>, the random text with "fanac-headertext"
+            file=SubstituteHTML(file, "fanac-stuff", self.m_textCtrlTopText.GetValue())
+
+            # Now construct the table which we'll then substitute.
+            newtable="  <thead>\n"
             newtable+="    <tr>\n"
-            newtable+='      <td>'+FormatLink(row.URL, row.Name)+'</td>\n'
-            newtable+="    </tr>\n"
-        newtable+="    </tbody>\n"
+            newtable+='      <th scope="col">Convention</th>\n'
+            newtable+='    </tr>\n'
+            newtable+='  </thead>\n'
+            newtable+='  <tbody>\n'
+            for i, row in enumerate(self.Datasource.Rows):
+                if i == 4:  # Add a crude horizontal rule between items 3 (Misc. Cons) and 4 (1st real con)
+                    newtable+="    <tr>\n      <td>------------------</td>\n    <tr>\n"
+                newtable+="    <tr>\n"
+                newtable+='      <td>'+FormatLink(row.URL, row.Name)+'</td>\n'
+                newtable+="    </tr>\n"
+            newtable+="    </tbody>\n"
 
-        # Substitute the table into the template
-        file=SubstituteHTML(file, "fanac-table", newtable)
-        # Store the json for the page into the template
-        file=SubstituteHTML(file, "fanac-json", self.ToJson())
+            # Substitute the table into the template
+            file=SubstituteHTML(file, "fanac-table", newtable)
+            # Store the json for the page into the template
+            file=SubstituteHTML(file, "fanac-json", self.ToJson())
 
-        file=SubstituteHTML(file, "fanac-date", datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST")
+            file=SubstituteHTML(file, "fanac-date", datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST")
 
         Log("Uploading /index.html")
         if not FTP().PutFileAsString("/", "index.html", file):
             Log("Upload of /index.html failed")
             wx.MessageBox("Upload of /index.html failed")
 
-
-        UpdateFTPLog().LogText("Uploaded Main convention list")
+            UpdateFTPLog().LogText("Uploaded Main convention list")
 
         self.MarkAsSaved()
         self.RefreshWindow()
