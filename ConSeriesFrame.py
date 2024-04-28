@@ -844,7 +844,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         # If we're editing the con instance name, we need to record this so that extra processing ca take place on save
         irow=event.GetRow()
         icol=event.GetCol()
-        if icol == 0 and irow < self._Datasource.NumRows:
+        if icol == 1 and irow < self._Datasource.NumRows:
             newVal=self._grid.Grid.GetCellValue(irow, icol)
             oldVal=self._Datasource[irow][icol]
             if newVal != oldVal:
