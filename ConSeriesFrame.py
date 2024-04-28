@@ -223,14 +223,14 @@ class ConSeriesFrame(GenConSeriesFrame):
         cons=[]
         for row in rows:
             con=Con()
-            for i, header in enumerate(headers):
+            for icol, header in enumerate(headers):
                 match header:
                     case "Convention":
-                        con.Name, con.URL, con.Extra = self.ConNameInfoUnpack(row[i])
+                        con.Name, con.URL, con.Extra = self.ConNameInfoUnpack(row[icol])
                     case "Location":
-                        con.Locale=row[i]
+                        con.Locale=row[icol]
                     case _:
-                        con[header]=row[i]
+                        con[header]=row[icol]
 
             cons.append(con)
         self.Datasource.Rows=cons
@@ -259,9 +259,9 @@ class ConSeriesFrame(GenConSeriesFrame):
     def ConNameInfoPack(self, name: str, url: str, extra: str) -> str:
         unpacked=""
         if url == "":
-            unpacked+=f"    <td>{name}"
+            unpacked+=f"{name}"
         else:
-            unpacked+=f'    <td><a href="{url}">{name}</a>'
+            unpacked+=f'<a href="{url}">{name}</a>'
         if extra != "":
             unpacked+=f" {extra}"
 
@@ -327,7 +327,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                 newtable+="    <tr>\n"
 
                 # Generate the first column from the name, url and extra
-                newtable+=f"<td>{self.ConNameInfoPack(row.Name, row.URL, row.Extra)}</td>/n"
+                newtable+=f"    <td>{self.ConNameInfoPack(row.Name, row.URL, row.Extra)}</td>/n"
 
                 # And the rest
                 if hasdates:
@@ -638,18 +638,18 @@ class ConSeriesFrame(GenConSeriesFrame):
 
     #------------------
     def OnPopupRenameConInstancePage(self, event):
-        icol=self._grid.clickedColumn
         irow=self._grid.clickedRow
 
-
-
+        # We know from the RMB popup item activation rules that cols 0 and 1 are identical and this is a real row.
         v=wxMessageDialogInput("Enter the new convention instance name.  Note that this will also rename the convention instance's folder on the server.", title="Renaming Convention Instance", initialValue=self.Datasource.Rows[irow].Name, parent=self)
-#TODO: Need to handle linked and unlinked con names
-        if v is not None and v != "":
-            self._instanceRenameTracker.append((self.Datasource.Rows[irow].Name, v))
-            self.Datasource.Rows[irow].Name=v
-            self.Datasource.Rows[irow].URL=v
-            self._grid.RefreshWxGridFromDatasource()
+        if v is None or v != "":
+            return  # Bail out if no input  provided
+
+        self._instanceRenameTracker.append((self.Datasource.Rows[irow].Name, v))    # Schedule the rename of the con instance directory on the server
+        self.Datasource.Rows[irow].Name=v
+        self.Datasource.Rows[irow].URL=v
+        self._grid.RefreshWxGridFromDatasource()
+        self.RefreshWindow()
         event.Skip()
 
 
@@ -798,8 +798,10 @@ class ConSeriesFrame(GenConSeriesFrame):
                     self.m_popupUnlink.Enabled=True
                 if len(self.Datasource.Rows[irow].URL) == 0:   # Only if there's NO link in the cell
                     self.m_popupLinkToOtherConventionInstance.Enabled=True
+
         if (icol == 0 or icol == 1) and irow < self.Datasource.NumRows:
-            self.m_popupRenameConInstancePage.Enabled=True      # We only allow renaming if click is on cols 0 or 1
+            if self.Datasource.Rows[irow].Name == self.Datasource.Rows[irow].URL:   # If the names points to a url which is different, this RMB woun;t be useful.
+                self.m_popupRenameConInstancePage.Enabled=True      # We only allow renaming if click is on cols 0 or 1
 
         if icol < len(self.Datasource.ColDefs) and self.Datasource.ColDefs[icol].IsEditable == IsEditable.Maybe:
             self.m_popupAllowEditCell.Enabled=True
