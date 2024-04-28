@@ -240,7 +240,7 @@ class ConSeriesFrame(GenConSeriesFrame):
     #---------------------
     # header is of the form <a href=xxxx>yyyy</a>zzzz
     def ExtractConNameInfo(self, con: Con, header: str) -> (str, str, str):
-        m=re.match('<a href="(.*?)">(.*?)</a>(.*)$', header, re.IGNORECASE)
+        m=re.match('<a href="?(.*?)"?>(.*?)</a>(.*)$', header, re.IGNORECASE)
         if m is not None:
             return m.groups()[1], m.groups()[0], m.groups()[2]
         # Well, perhaps it of the form XXX
