@@ -18,7 +18,7 @@ from Settings import Settings
 
 from HelpersPackage import SubstituteHTML, FormatLink, FindBracktedText2, WikiPagenameToWikiUrlname, UnformatLinks, RemoveAllHTMLTags, RemoveAccents
 from HelpersPackage import FindIndexOfStringInList, PyiResourcePath, MessageBox
-from WxHelpers import ModalDialogManager, ProgressMessage, OnCloseHandling, MessageBoxInput
+from WxHelpers import ModalDialogManager, ProgressMessage2, OnCloseHandling, MessageBoxInput, wxMessageDialogInput
 from Log import Log
 from FanzineIssueSpecPackage import FanzineDateRange
 
@@ -130,31 +130,31 @@ class ConSeriesFrame(GenConSeriesFrame):
         if self._basedirectoryFTP is None:
             assert False   # Never take this branch.  Delete when I'm sure.
 
-        ProgressMessage(self).Show("Loading "+self.Seriesname+"/index.html from fanac.org")
-        file=FTP().GetFileAsString("/"+self.Seriesname, "index.html")
+        with ModalDialogManager(ProgressMessage2, f"Loading {self.Seriesname}/index.html from fanac.org", parent=self) as pm:
+            file=FTP().GetFileAsString("/"+self.Seriesname, "index.html")
 
-        pathname=self.Seriesname+"/index.html"
-        if len(self._basedirectoryFTP) > 0:
-            pathname=self._basedirectoryFTP+"/"+pathname
+            pathname=self.Seriesname+"/index.html"
+            if len(self._basedirectoryFTP) > 0:
+                pathname=self._basedirectoryFTP+"/"+pathname
 
-        if file is not None:
-            if not self.LoadConSeriesFromHTML(file):
-                ProgressMessage(self).Show(self.Seriesname+" Load Failed", close=True, delay=0.5)
-                return False
-        else:
-            # Offer to download the data from Fancy 3
-            self.Seriesname=seriesname
-            resp=wx.MessageBox("Do you wish to download the convention series "+seriesname+" from Fancyclopedia 3?", 'Shortcut', wx.YES|wx.NO|wx.ICON_QUESTION)
-            if resp == wx.YES:      # If no, we just present an empty form.
-                self.DownloadConSeriesFromFancy(seriesname)
+            if file is not None:
+                if not self.LoadConSeriesFromHTML(file):
+                    pm.Update(f"{self.Seriesname} Load Failed", delay=0.5)
+                    return False
+            else:
+                # Offer to download the data from Fancy 3
+                self.Seriesname=seriesname
+                resp=wx.MessageBox(f"Do you wish to download the convention series {seriesname} from Fancyclopedia 3?", 'Shortcut', wx.YES|wx.NO|wx.ICON_QUESTION)
+                if resp == wx.YES:      # If no, we just present an empty form.
+                    self.DownloadConSeriesFromFancy(seriesname)
 
-        if self.TextFancyURL is None or len(self.TextFancyURL) == 0:
-            self.TextFancyURL="fancyclopedia.org/"+WikiPagenameToWikiUrlname(seriesname)
+            if self.TextFancyURL is None or len(self.TextFancyURL) == 0:
+                self.TextFancyURL=f"fancyclopedia.org/{WikiPagenameToWikiUrlname(seriesname)}"
 
-        self._grid.MakeTextLinesEditable()
-        self.RefreshWindow()
-        ProgressMessage(self).Show(self.Seriesname+" Loaded", close=True, delay=0.5)
-        return True
+            self._grid.MakeTextLinesEditable()
+            self.RefreshWindow()
+            pm.Update(f"{self.Seriesname} Loaded", delay=0.5)
+            return True
 
 
     def ReadTableRow(self, row: str, delim="td") -> list[str]:
@@ -271,97 +271,94 @@ class ConSeriesFrame(GenConSeriesFrame):
         #TODO: Do we want to add this??
 
         # Begin generating the file for uploading
-        ProgressMessage(self).Show("Uploading /"+self.Seriesname+"/index.html")
+        with ModalDialogManager(ProgressMessage2, f"Uploading /{self.Seriesname}/index.html", parent=self) as pm:
 
-        # We want to do substitutions, replacing whatever is there now with the new data
-        # The con's name is tagged with <fanac-instance>, the random text with "fanac-headertext"
-        link=FormatLink("https://fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.Seriesname), self.Seriesname)
-        file=SubstituteHTML(file, "title", self.Seriesname)
-        file=SubstituteHTML(file, "fanac-instance", link)
-        file=SubstituteHTML(file, "fanac-headertext", self.TextComments)
+            # We want to do substitutions, replacing whatever is there now with the new data
+            # The con's name is tagged with <fanac-instance>, the random text with "fanac-headertext"
+            link=FormatLink(f"https://fancyclopedia.org/{WikiPagenameToWikiUrlname(self.Seriesname)}", self.Seriesname)
+            file=SubstituteHTML(file, "title", self.Seriesname)
+            file=SubstituteHTML(file, "fanac-instance", link)
+            file=SubstituteHTML(file, "fanac-headertext", self.TextComments)
 
-        showempty=self.m_radioBoxShowEmpty.GetSelection() == 0  # Radio button: Show Empty cons?
-        hasdates=len([d.Dates for d in self.Datasource.Rows if d.Dates is not None and isinstance(d.Dates, FanzineDateRange) and not d.Dates.IsEmpty()]) > 0
-        haslocations=len([d.Locale for d in self.Datasource.Rows if d.Locale is not None and len(d.Locale) > 0]) > 0
-        hasgohs=len([d.GoHs for d in self.Datasource.Rows if d.GoHs is not None and len(d.GoHs) > 0]) > 0
+            showempty=self.m_radioBoxShowEmpty.GetSelection() == 0  # Radio button: Show Empty cons?
+            hasdates=len([d.Dates for d in self.Datasource.Rows if d.Dates is not None and isinstance(d.Dates, FanzineDateRange) and not d.Dates.IsEmpty()]) > 0
+            haslocations=len([d.Locale for d in self.Datasource.Rows if d.Locale is not None and len(d.Locale) > 0]) > 0
+            hasgohs=len([d.GoHs for d in self.Datasource.Rows if d.GoHs is not None and len(d.GoHs) > 0]) > 0
 
-        # Now construct the table which we'll then substitute.
-        newtable='<table class="table" id="conseriestable">\n'
-        newtable+="  <thead>\n"
-        newtable+='    <tr id="conseriestable">\n'
-        newtable+='      <th scope="col">Convention</th>\n'
-        if hasdates:
-            newtable+='      <th scope="col">Dates</th>\n'
-        if haslocations:
-            newtable+='      <th scope="col">Location</th>\n'
-        if hasgohs:
-            newtable+='      <th scope="col">GoHs</th>\n'
-        newtable+='    </tr>\n'
-        newtable+='  </thead>\n'
-        newtable+='  <tbody>\n'
-        for row in self.Datasource.Rows:
-            if (row.URL is None or row.URL == "") and (row.Name is None or row.Name == "") and not showempty:    # Skip empty cons?
-                continue
-            newtable+="    <tr>\n"
-
-            # Generate the first colum from the name, url and extra
-            if row.URL == "":
-                newtable+=f"    <td>{row.Name}"
-            else:
-                newtable+=f"    <td><a href={row.URL}>{row.Name}</a>"
-            if row.Extra != "":
-                newtable+=f" {row.Extra}"
-            newtable+="</td>\n"
-
+            # Now construct the table which we'll then substitute.
+            newtable='<table class="table" id="conseriestable">\n'
+            newtable+="  <thead>\n"
+            newtable+='    <tr id="conseriestable">\n'
+            newtable+='      <th scope="col">Convention</th>\n'
             if hasdates:
-                newtable+='      <td>'
-                newtable+=str(row.Dates) if row.Dates is not None else ""
-                newtable+='</td>\n'
+                newtable+='      <th scope="col">Dates</th>\n'
             if haslocations:
-                newtable+='      <td>'+row.Locale+'</td>\n'
+                newtable+='      <th scope="col">Location</th>\n'
             if hasgohs:
-                newtable+='      <td>'+row.GoHs+'</td>\n'
-            newtable+="    </tr>\n"
-        newtable+="    </tbody>\n"
-        newtable+="  </table>\n"
+                newtable+='      <th scope="col">GoHs</th>\n'
+            newtable+='    </tr>\n'
+            newtable+='  </thead>\n'
+            newtable+='  <tbody>\n'
+            for row in self.Datasource.Rows:
+                if (row.URL is None or row.URL == "") and (row.Name is None or row.Name == "") and not showempty:    # Skip empty cons?
+                    continue
+                newtable+="    <tr>\n"
 
-        file=SubstituteHTML(file, "fanac-table", newtable)
+                # Generate the first colum from the name, url and extra
+                if row.URL == "":
+                    newtable+=f"    <td>{row.Name}"
+                else:
+                    newtable+=f'    <td><a href="{row.URL}">{row.Name}</a>'
+                if row.Extra != "":
+                    newtable+=f" {row.Extra}"
+                newtable+="</td>\n"
 
-        file=SubstituteHTML(file, "fanac-date", datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST")
+                if hasdates:
+                    newtable+='      <td>'
+                    newtable+=str(row.Dates) if row.Dates is not None else ""
+                    newtable+='</td>\n'
+                if haslocations:
+                    newtable+=f'      <td>{row.Locale}</td>\n'
+                if hasgohs:
+                    newtable+=f'      <td>{row.GoHs}</td>\n'
+                newtable+="    </tr>\n"
+            newtable+="    </tbody>\n"
+            newtable+="  </table>\n"
 
-        # Now try to FTP the data up to fanac.org
-        if self.Seriesname is None or len(self.Seriesname) == 0:
-            ProgressMessage(self).Close()
-            Log("UploadConSeries: No series name provided")
-            return False
+            file=SubstituteHTML(file, "fanac-table", newtable)
 
-        # Save the old file as a backup.
-        if not FTP().BackupServerFile(f"/{self.Seriesname}/index.html"):
-            ProgressMessage(self).Close()
-            Log(f"UploadConSeries: Could not back up server file /{self.Seriesname}/index.html")
-            return False
+            file=SubstituteHTML(file, "fanac-date", datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST")
 
-        if not FTP().PutFileAsString("/"+self.Seriesname, "index.html", file, create=True):
-            ProgressMessage(self).Close()
-            wx.MessageBox("Upload failed")
-            return False
+            # Now try to FTP the data up to fanac.org
+            if self.Seriesname is None or len(self.Seriesname) == 0:
+                Log("UploadConSeries: No series name provided")
+                return False
 
-        UpdateFTPLog().LogText("Uploaded ConSeries: "+self.Seriesname)
+            # Save the old file as a backup.
+            if not FTP().BackupServerFile(f"/{self.Seriesname}/index.html"):
+                Log(f"UploadConSeries: Could not back up server file /{self.Seriesname}/index.html")
+                return False
 
-        # It is possible that the user edited some convention instance names.  This breaks the link to the con instance directory because
-        # the names no longer match.
-        # We have the _instanceRenameTracker list which records any such changes.  If it is non-empty, go ahead and do the renames
-        # Note that this is not a perfect solution, since if the user is sufficiently convoluted he can undoubtedly screw it up. It should work for
-        # all simple and most complex cases.
-        if self._instanceRenameTracker:
-            for change in self._instanceRenameTracker:
-                old=change[0]
-                if len(old) > 0:
-                    new=change[1]
-                    FTP().Rename(old, new)
+            if not FTP().PutFileAsString(f"/{self.Seriesname}", "index.html", file, create=True):
+                wx.MessageBox("Upload failed")
+                return False
+
+            UpdateFTPLog().LogText("Uploaded ConSeries: "+self.Seriesname)
+
+            # It is possible that the user edited some convention instance names.  This breaks the link to the con instance directory because
+            # the names no longer match.
+            # We have the _instanceRenameTracker list which records any such changes.  If it is non-empty, go ahead and do the renames
+            # Note that this is not a perfect solution, since if the user is sufficiently convoluted he can undoubtedly screw it up. It should work for
+            # all simple and most complex cases.
+            if self._instanceRenameTracker:
+                for change in self._instanceRenameTracker:
+                    old=change[0]
+                    if len(old) > 0:
+                        new=change[1]
+                        FTP().Rename(old, new)
 
 
-        ProgressMessage(self).Show("Upload succeeded: /"+self.Seriesname+"/index.html", close=True, delay=0.5)
+            pm.Update(f"Upload succeeded: /{self.Seriesname}/index.html", delay=0.5)
         self.MarkAsSaved()      # It was just saved, so unless it's updated again, the dialog can exit without uploading
         self._uploaded=True     # Something's been uploaded
         self.RefreshWindow()
@@ -405,7 +402,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         tables=soup.find_all("table", class_="wikitable mw-collapsible")
         if tables == None or len(tables) == 0:
-            msg="Can't find a table in Fancy 3 page "+pageurl+".  Is it possible that its name on Fancy 3 is different?"
+            msg="fCan't find a table in Fancy 3 page {pageurl}.  Is it possible that its name on Fancy 3 is different?"
             Log(msg)
             self._fancydownloadfailed=True
             wx.MessageBox(msg)
@@ -435,9 +432,9 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         # Did we find anything?
         if len(headers) == 0 or len(rows) == 0:
-            Log("FetchConSeriesFromFancy: Can't interpret Fancy 3 page '"+pageurl+"'")
+            Log(f"FetchConSeriesFromFancy: Can't interpret Fancy 3 page '{pageurl}'")
             self._fancydownloadfailed=True
-            wx.MessageBox("Can't interpret Fancy 3 page '"+pageurl+"'")
+            wx.MessageBox(f"Can't interpret Fancy 3 page '{pageurl}'")
             return False
 
         # OK. We have the data.  Now fill in the ConSeries object
@@ -497,17 +494,17 @@ class ConSeriesFrame(GenConSeriesFrame):
     def DownloadConSeriesFromFancy(self, seriesname: str):     
         self.Seriesname=seriesname
 
-        ProgressMessage(self).Show("Loading "+self.Seriesname+" from Fancyclopedia 3")
-        self.Datasource=ConSeries()
-        self.Datasource.Name=self.Seriesname
+        with ModalDialogManager(ProgressMessage2, f"Loading {self.Seriesname} from Fancyclopedia 3", parent=self) as pm:
+            self.Datasource=ConSeries()
+            self.Datasource.Name=self.Seriesname
 
-        ret=self.FetchConSeriesFromFancy(self.Seriesname)
-        if not ret:
-            return
+            ret=self.FetchConSeriesFromFancy(self.Seriesname)
+            if not ret:
+                return
 
-        self.RefreshWindow()
-        ProgressMessage(self).Show(self.Seriesname+" loaded successfully from Fancyclopedia 3", close=True, delay=0.5)
-        pass
+            self.RefreshWindow()
+            pm.Update(f"{self.Seriesname} loaded successfully from Fancyclopedia 3", delay=0.5)
+
 
     #------------------
     def RefreshWindow(self) -> None:     
@@ -615,7 +612,7 @@ class ConSeriesFrame(GenConSeriesFrame):
     def OnPopupDeleteConPage(self, event):     
         irow=self._grid.clickedRow
         if irow >= 0 and irow < self.Datasource.NumRows:
-            ret=wx.MessageBox("This will delete "+self.Datasource.Rows[irow].Name+" from the list of conventions on this page, but will not delete "+
+            ret=wx.MessageBox(f"This will delete {self.Datasource.Rows[irow].Name} from the list of conventions on this page, but will not delete "+
                               "its directory or files from fanac.org. You must use FTP to do that.", 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
             if ret == wx.OK:
                 self._grid.DeleteRows(irow, 1)
@@ -627,8 +624,8 @@ class ConSeriesFrame(GenConSeriesFrame):
         icol=self._grid.clickedColumn
         irow=self._grid.clickedRow
 
-        v=MessageBoxInput("Enter the new convention instance name", title="Renaming Convention Instance", initialValue=self.Datasource.Rows[irow].Name, ignoredebugger=True)
-
+        v=wxMessageDialogInput("Enter the new convention instance name.  Note that this will also rename the convention instance's folder on the server.", title="Renaming Convention Instance", initialValue=self.Datasource.Rows[irow].Name, parent=self)
+#TODO: Need to handle linked and unlinked con names
         if v is not None and v != "":
             self._instanceRenameTracker.append((self.Datasource.Rows[irow].Name, v))
             self.Datasource.Rows[irow].Name=v
@@ -659,7 +656,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         # Ask for confirmation
         instanceName=self.Datasource.Rows[irow].Name
-        ret=wx.MessageBox("Move convention instance '"+instanceName+"' to new convention series '"+newSeriesName+"'?", 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
+        ret=wx.MessageBox(f"Move convention instance '{instanceName}' to new convention series '{newSeriesName}'?", 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
         if ret != wx.OK:
             return
 
@@ -673,7 +670,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         if len(self._basedirectoryFTP) > 0:
             newDirPath=self._basedirectoryFTP+"/"+newDirPath
         if FTP().PathExists(newDirPath):
-            Log("OnPopupChangeConSeries: newDirPath '"+newDirPath+"' already exists", isError=True)
+            Log(f"OnPopupChangeConSeries: newDirPath '{newDirPath}' already exists", isError=True)
             wx.MessageBox(f"OnPopupChangeConSeries: newDirPath '{newDirPath}' already exists. Move can not proceed.", 'Warning', wx.OK|wx.ICON_WARNING)
             return
 
@@ -701,35 +698,34 @@ class ConSeriesFrame(GenConSeriesFrame):
         # Copy the con instance directory from the old con series directory to the new con series directory
 
         # Create the new con instance directory.
-        ProgressMessage(self).Show(F"Creating {newDirPath} and copying contents to it.")
-        FTP().MKD(newDirPath)
+        with ModalDialogManager(ProgressMessage2, f"Creating {newDirPath} and copying contents to it.", parent=self) as pm:
+            FTP().MKD(newDirPath)
 
-        # Make a list of the files in the old con instance directory
-        if self._basedirectoryFTP:
-            oldDirPath=self._basedirectoryFTP+"/"+oldDirPath
-        fileList=FTP().Nlst(oldDirPath)
+            # Make a list of the files in the old con instance directory
+            if self._basedirectoryFTP:
+                oldDirPath=self._basedirectoryFTP+"/"+oldDirPath
+            fileList=FTP().Nlst(oldDirPath)
 
-        # Copy the contents of the old con instance directory to the new one
-        for file in fileList:
-            ProgressMessage(self).UpdateMessage(f"Copying {file}")
-            if not FTP().CopyFile(oldDirPath, newDirPath, file):
-                msg=f"OnPopupChangeConSeries: Failure copying {file} from {oldDirPath} to {newDirPath}\nThis will require hand cleanup."
-                Log(msg, isError=True)
-                wx.MessageBox(msg, 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
+            # Copy the contents of the old con instance directory to the new one
+            for file in fileList:
+                pm.UpdateMessage(f"Copying {file}")
+                if not FTP().CopyFile(oldDirPath, newDirPath, file):
+                    msg=f"OnPopupChangeConSeries: Failure copying {file} from {oldDirPath} to {newDirPath}\nThis will require hand cleanup."
+                    Log(msg, isError=True)
+                    wx.MessageBox(msg, 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
+                    return
+
+            # Save the old and new con series. Don't upload the modified old series if uploading the new one failed
+            if csf.UploadConSeries():
+                # Remove the old link and upload
+                self._grid.DeleteRows(irow)
+                self.UploadConSeries()
+            else:
                 return
 
-        # Save the old and new con series. Don't upload the modified old series if uploading the new one failed
-        if csf.UploadConSeries():
-            # Remove the old link and upload
-            self._grid.DeleteRows(irow)
-            self.UploadConSeries()
-        else:
-            ProgressMessage(self).Close()
-            return
+            # Finally, delete the old directory
+            FTP().DeleteDir(oldDirPath)
 
-        # Finally, delete the old directory
-        FTP().DeleteDir(oldDirPath)
-        ProgressMessage(self).Close()
 
     # ------------------
     def OnPopupLinkToAnotherConInstance(self, event):
@@ -856,7 +852,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             if irow < self.Datasource.NumRows-1:
                 names[2]=self.Datasource[irow+1][0]  # Name of next convention
             # We download the page, but don;t actually oprn the dialog.  Then we upload the page which regenerates it.
-            cif=ConInstanceDialogClass(self._basedirectoryFTP+"/"+self.Seriesname, self.Seriesname, names)
+            cif=ConInstanceDialogClass(f"{self._basedirectoryFTP}/{self.Seriesname}", self.Seriesname, names)
             cif.OnUploadConInstancePage()
 
 

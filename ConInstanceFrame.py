@@ -17,7 +17,7 @@ from Settings import Settings
 from Log import Log
 from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, RemoveHTTP, ExtensionMatches, PyiResourcePath
 from PDFHelpers import GetPdfPageCount, AddMissingMetadata
-from WxHelpers import ProgressMessage, OnCloseHandling
+from WxHelpers import OnCloseHandling, ModalDialogManager, ProgressMessage2
 
 
 #####################################################################################
@@ -317,173 +317,173 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             Log("Can't read 'Template-ConPage.html'")
             return
 
-        ProgressMessage(self).Show("Uploading /"+self._seriesname+"/"+self._coninstancename+"/index.html")
+        with ModalDialogManager(ProgressMessage2, f"Uploading /{self._seriesname}/{self._coninstancename}/index.html", parent=self) as pm:
 
-        # We want to do substitutions, replacing whatever is there now with the new data
-        # The con's name is tagged with <fanac-instance>, the random text with "fanac-headertext"
-        fancylink=FormatLink("https://fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.ConInstanceName), self.ConInstanceName)
-        file=SubstituteHTML(file, "title", self.ConInstanceName)
-        file=SubstituteHTML(file, "fanac-instance", fancylink)
-        file=SubstituteHTML(file, "fanac-stuff", self.ConInstanceTopText)
+            # We want to do substitutions, replacing whatever is there now with the new data
+            # The con's name is tagged with <fanac-instance>, the random text with "fanac-headertext"
+            fancylink=FormatLink("https://fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.ConInstanceName), self.ConInstanceName)
+            file=SubstituteHTML(file, "title", self.ConInstanceName)
+            file=SubstituteHTML(file, "fanac-instance", fancylink)
+            file=SubstituteHTML(file, "fanac-stuff", self.ConInstanceTopText)
 
-        # Fill in the top buttons
-        s="<button onclick=\"window.location.href='https://fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.ConInstanceName)+"'\"> Fancyclopedia 3 </button>&nbsp;&nbsp;"+ \
-        "<button onclick=\"window.location.href='..'\">All "+self._seriesname+"s</button>"
-        file=SubstituteHTML(file, "fanac-topbuttons", s)
+            # Fill in the top buttons
+            s="<button onclick=\"window.location.href='https://fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.ConInstanceName)+"'\"> Fancyclopedia 3 </button>&nbsp;&nbsp;"+ \
+            "<button onclick=\"window.location.href='..'\">All "+self._seriesname+"s</button>"
+            file=SubstituteHTML(file, "fanac-topbuttons", s)
 
-        # If there are missing page counts for pdfs, try to gett hem. (This can eventually be eliminated as there will be no pre-V7 files on the server.)
-        self.FillInMissingPDFPageCounts()
+            # If there are missing page counts for pdfs, try to gett hem. (This can eventually be eliminated as there will be no pre-V7 files on the server.)
+            self.FillInMissingPDFPageCounts()
 
-        file=SubstituteHTML(file, "fanac-json", self.ToJson())
-        file=SubstituteHTML(file, "fanac-date", datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST")
-        if len(self.Credits.strip()) > 0:
-            file=SubstituteHTML(file, "fanac-credits", 'Credits: '+self.Credits.strip()+"<br>")    #<p id="randomtext"><small>   +'</small></p>'
+            file=SubstituteHTML(file, "fanac-json", self.ToJson())
+            file=SubstituteHTML(file, "fanac-date", datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST")
+            if len(self.Credits.strip()) > 0:
+                file=SubstituteHTML(file, "fanac-credits", 'Credits: '+self.Credits.strip()+"<br>")    #<p id="randomtext"><small>   +'</small></p>'
 
-        def FormatSizes(row) -> str:
-            info=""
-            if row.Size > 0 or row.Pages > 0:
-                info="<small>("
-                if row.Size > 0:
-                    info+="{:,.1f}".format(row.Size/(1024**2))+'&nbsp;MB'
-                if row.Pages > 0:
+            def FormatSizes(row) -> str:
+                info=""
+                if row.Size > 0 or row.Pages > 0:
+                    info="<small>("
                     if row.Size > 0:
-                        info+="; "
-                    info+=str(row.Pages)+" pp"
-                info+=")</small>"
-            return info
+                        info+="{:,.1f}".format(row.Size/(1024**2))+'&nbsp;MB'
+                    if row.Pages > 0:
+                        if row.Size > 0:
+                            info+="; "
+                        info+=str(row.Pages)+" pp"
+                    info+=")</small>"
+                return info
 
-        showExtensions=self.radioBoxShowExtensions.GetSelection() != 0
-        def MaybeSuppressPDFExtension(fn: str, suppress: bool) -> str:
-            if suppress:
-                parts=os.path.splitext(row.DisplayTitle)
-                if parts[1].lower() in [".pdf", ".jpg", ".png", ".doc", ".docx"]:
-                    fn = parts[0]
-            return fn
+            showExtensions=self.radioBoxShowExtensions.GetSelection() != 0
+            def MaybeSuppressPDFExtension(fn: str, suppress: bool) -> str:
+                if suppress:
+                    parts=os.path.splitext(row.DisplayTitle)
+                    if parts[1].lower() in [".pdf", ".jpg", ".png", ".doc", ".docx"]:
+                        fn = parts[0]
+                return fn
 
-        if self.radioBoxFileListFormat.GetSelection() == 0: # Are we to output a table?
-            # Now construct the table which we'll then substitute.
-            newtable='<table class="table"  id="conpagetable">\n'
-            newtable+="  <thead>\n"
-            newtable+="    <tr>\n"
-            newtable+='      <th scope="col">Document</th>\n'
-            newtable+='      <th scope="col">Size</th>\n'
-            newtable+='      <th scope="col">Notes</th>\n'
-            newtable+='    </tr>\n'
-            newtable+='  </thead>\n'
-            newtable+='  <tbody>\n'
-            for i, row in enumerate(self.Datasource.Rows):
+            if self.radioBoxFileListFormat.GetSelection() == 0: # Are we to output a table?
+                # Now construct the table which we'll then substitute.
+                newtable='<table class="table"  id="conpagetable">\n'
+                newtable+="  <thead>\n"
                 newtable+="    <tr>\n"
-                # Display title column
-                if row.IsTextRow:
-                    newtable+='      <td colspan="3">'+row.SourceFilename+" "+row.SiteFilename+" "+row.DisplayTitle+" "+row.Notes+'</td>\n'
-                elif row.IsLinkRow:
-                    newtable+='      <td colspan="3">'+FormatLink(row.URL, row.DisplayTitle)+'</td>\n'
-                else:   # Ordinary row
-                    # The document title/link column
-                    s=MaybeSuppressPDFExtension(row.DisplayTitle, showExtensions)
-                    newtable+='      <td>'+FormatLink(row.SiteFilename, s)+'</td>\n'
+                newtable+='      <th scope="col">Document</th>\n'
+                newtable+='      <th scope="col">Size</th>\n'
+                newtable+='      <th scope="col">Notes</th>\n'
+                newtable+='    </tr>\n'
+                newtable+='  </thead>\n'
+                newtable+='  <tbody>\n'
+                for i, row in enumerate(self.Datasource.Rows):
+                    newtable+="    <tr>\n"
+                    # Display title column
+                    if row.IsTextRow:
+                        newtable+='      <td colspan="3">'+row.SourceFilename+" "+row.SiteFilename+" "+row.DisplayTitle+" "+row.Notes+'</td>\n'
+                    elif row.IsLinkRow:
+                        newtable+='      <td colspan="3">'+FormatLink(row.URL, row.DisplayTitle)+'</td>\n'
+                    else:   # Ordinary row
+                        # The document title/link column
+                        s=MaybeSuppressPDFExtension(row.DisplayTitle, showExtensions)
+                        newtable+='      <td>'+FormatLink(row.SiteFilename, s)+'</td>\n'
 
-                    # This is the size & page count column
-                    newtable+='      <td>'+FormatSizes(row)+'</td>\n'
+                        # This is the size & page count column
+                        newtable+='      <td>'+FormatSizes(row)+'</td>\n'
 
-                    # Notes column
-                    info='      <td> </td>\n'
-                    if len(row.Notes) > 0:
-                        info='      <td>'+str(row.Notes)+'</td>\n'
-                    newtable+=info
+                        # Notes column
+                        info='      <td> </td>\n'
+                        if len(row.Notes) > 0:
+                            info='      <td>'+str(row.Notes)+'</td>\n'
+                        newtable+=info
 
-                newtable+="    </tr>\n"
-            newtable+="    </tbody>\n"
-            newtable+="  </table>\n"
-        else:   # Output a list
-            # Construct a list which we'll then substitute.
-            newtable='<ul  id="conpagetable">\n'
-            for row in self.Datasource.Rows:
-                if row.IsTextRow:
-                    text=row.SourceFilename+" "+row.SiteFilename+" "+row.DisplayTitle+" "+row.Notes
-                    newtable+='    </ul><b>'+text.strip()+'</b><ul id="conpagetable">\n'
-                elif row.IsLinkRow:
-                    newtable+='    <li id="conpagetable">'+FormatLink(row.URL, row.DisplayTitle)+"</li>\n"
-                else:
-                    s=MaybeSuppressPDFExtension(row.DisplayTitle, showExtensions)
-                    newtable+='    <li id="conpagetable">'+FormatLink(row.SiteFilename, s)
-
-                    val=FormatSizes(row)
-                    if len(val) > 0:
-                        newtable+='&nbsp;&nbsp;'+val+'\n'
+                    newtable+="    </tr>\n"
+                newtable+="    </tbody>\n"
+                newtable+="  </table>\n"
+            else:   # Output a list
+                # Construct a list which we'll then substitute.
+                newtable='<ul  id="conpagetable">\n'
+                for row in self.Datasource.Rows:
+                    if row.IsTextRow:
+                        text=row.SourceFilename+" "+row.SiteFilename+" "+row.DisplayTitle+" "+row.Notes
+                        newtable+='    </ul><b>'+text.strip()+'</b><ul id="conpagetable">\n'
+                    elif row.IsLinkRow:
+                        newtable+='    <li id="conpagetable">'+FormatLink(row.URL, row.DisplayTitle)+"</li>\n"
                     else:
-                        newtable+='&nbsp;&nbsp;(--)\n'
+                        s=MaybeSuppressPDFExtension(row.DisplayTitle, showExtensions)
+                        newtable+='    <li id="conpagetable">'+FormatLink(row.SiteFilename, s)
 
-                    # Notes
-                    if len(row.Notes) > 0:
-                        newtable+="&nbsp;&nbsp;("+str(row.Notes)+")"
-                    newtable+="</li>\n"
+                        val=FormatSizes(row)
+                        if len(val) > 0:
+                            newtable+='&nbsp;&nbsp;'+val+'\n'
+                        else:
+                            newtable+='&nbsp;&nbsp;(--)\n'
 
-            newtable+="  </ul>\n"
+                        # Notes
+                        if len(row.Notes) > 0:
+                            newtable+="&nbsp;&nbsp;("+str(row.Notes)+")"
+                        newtable+="</li>\n"
 
-        file=SubstituteHTML(file, "fanac-table", newtable)
+                newtable+="  </ul>\n"
 
-        # Update the prev- and next-con nav buttons
-        prevHTML="<button onclick=''>(first)</button>"
-        if self._prevConInstanceName is not None:
-            url=f"https://www.fanac.org/conpubs/{self._seriesname}/{self._prevConInstanceName}/index.html"
-            url=url.replace(" ", "%20")
-            prevHTML=f"<button onclick=window.location.href='{url}'>{self._prevConInstanceName}</button>"
-        file=SubstituteHTML(file, "fanac-prevCon", prevHTML)
+            file=SubstituteHTML(file, "fanac-table", newtable)
 
-        nextHTML="<button onclick=''>(last)</button>"
-        if self._nextConInstanceName is not None:
-            url=f"https://www.fanac.org/conpubs/{self._seriesname}/{self._nextConInstanceName}/index.html"
-            url=url.replace(" ", "%20")
-            nextHTML=f"<button onclick=window.location.href='{url}'>{self._nextConInstanceName}</button>"
-        file=SubstituteHTML(file, "fanac-nextCon", nextHTML)
+            # Update the prev- and next-con nav buttons
+            prevHTML="<button onclick=''>(first)</button>"
+            if self._prevConInstanceName is not None:
+                url=f"https://www.fanac.org/conpubs/{self._seriesname}/{self._prevConInstanceName}/index.html"
+                url=url.replace(" ", "%20")
+                prevHTML=f"<button onclick=window.location.href='{url}'>{self._prevConInstanceName}</button>"
+            file=SubstituteHTML(file, "fanac-prevCon", prevHTML)
 
-        if not FTP().PutFileAsString("/"+self._seriesname+"/"+self._coninstancename, "index.html", file, create=True):
-            Log("Upload failed: /"+self._seriesname+"/"+self._coninstancename+"/index.html")
-            wx.MessageBox("OnUploadConInstancePage: Upload failed: /"+self._seriesname+"/"+self._coninstancename+"/index.html")
-            ProgressMessage(self).Close()
-            return
+            nextHTML="<button onclick=''>(last)</button>"
+            if self._nextConInstanceName is not None:
+                url=f"https://www.fanac.org/conpubs/{self._seriesname}/{self._nextConInstanceName}/index.html"
+                url=url.replace(" ", "%20")
+                nextHTML=f"<button onclick=window.location.href='{url}'>{self._nextConInstanceName}</button>"
+            file=SubstituteHTML(file, "fanac-nextCon", nextHTML)
 
-        wd="/"+self._seriesname+"/"+self._coninstancename
-        FTP().CWD(wd)
-        for delta in self.conInstanceDeltaTracker.Deltas:
-            if delta.Verb == "add":
-                ProgressMessage(self).Show("Adding "+delta.Con.SourcePathname+" as "+delta.Con.SiteFilename)
-                Log("delta-ADD: "+delta.Con.SourcePathname+" as "+delta.Con.SiteFilename)
-                metadata={
-                    '/Title': self._coninstancename+": "+delta.Con.DisplayTitle.strip().removesuffix(".pdf").removesuffix(".PDF")
-                }
-                AddMissingMetadata(delta.Con.SourcePathname, metadata)
-                FTP().PutFile(delta.Con.SourcePathname, delta.Con.SiteFilename)
-            elif delta.Verb == "rename":
-                ProgressMessage(self).Show("Renaming "+delta.Oldname+ " to "+delta.Con.SiteFilename)
-                Log("delta-RENAME: "+delta.Oldname+" to "+delta.Con.SiteFilename)
-                if len(delta.Oldname.strip()) == 0:
-                    Log("***Renaming an blank name can't be right! Ignored",isError=True)
-                    continue
-                FTP().Rename(delta.Oldname, delta.Con.SiteFilename)
-            elif delta.Verb == "delete":
-                if not delta.Con.IsTextRow and not delta.Con.IsLinkRow:
-                    ProgressMessage(self).Show("Deleting "+delta.Con.SiteFilename)
-                    Log("delta-DELETE: "+delta.Con.SiteFilename)
+            if not FTP().PutFileAsString("/"+self._seriesname+"/"+self._coninstancename, "index.html", file, create=True):
+                Log("Upload failed: /"+self._seriesname+"/"+self._coninstancename+"/index.html")
+                wx.MessageBox("OnUploadConInstancePage: Upload failed: /"+self._seriesname+"/"+self._coninstancename+"/index.html")
+                return
+
+            wd="/"+self._seriesname+"/"+self._coninstancename
+            FTP().CWD(wd)
+            for delta in self.conInstanceDeltaTracker.Deltas:
+                if delta.Verb == "add":
+                    pm.Update("Adding "+delta.Con.SourcePathname+" as "+delta.Con.SiteFilename)
+                    Log("delta-ADD: "+delta.Con.SourcePathname+" as "+delta.Con.SiteFilename)
+                    metadata={
+                        '/Title': self._coninstancename+": "+delta.Con.DisplayTitle.strip().removesuffix(".pdf").removesuffix(".PDF")
+                    }
+                    AddMissingMetadata(delta.Con.SourcePathname, metadata)
+                    FTP().PutFile(delta.Con.SourcePathname, delta.Con.SiteFilename)
+                elif delta.Verb == "rename":
+                    pm.Update("Renaming "+delta.Oldname+ " to "+delta.Con.SiteFilename)
+                    Log("delta-RENAME: "+delta.Oldname+" to "+delta.Con.SiteFilename)
+                    if len(delta.Oldname.strip()) == 0:
+                        Log("***Renaming an blank name can't be right! Ignored",isError=True)
+                        continue
+                    FTP().Rename(delta.Oldname, delta.Con.SiteFilename)
+                elif delta.Verb == "delete":
+                    if not delta.Con.IsTextRow and not delta.Con.IsLinkRow:
+                        pm.Update("Deleting "+delta.Con.SiteFilename)
+                        Log("delta-DELETE: "+delta.Con.SiteFilename)
+                        if len(delta.Con.SiteFilename.strip()) > 0:
+                            FTP().DeleteFile(delta.Con.SiteFilename)
+                elif delta.Verb == "replace":
+                    pm.Update(f"Replacing {delta.Oldname} with new/updated file")
+                    Log("delta-REPLACE: "+delta.Con.SourcePathname+" <-- "+delta.Oldname)
+                    Log("   delta-DELETE: "+delta.Con.SiteFilename)
                     if len(delta.Con.SiteFilename.strip()) > 0:
                         FTP().DeleteFile(delta.Con.SiteFilename)
-            elif delta.Verb == "replace":
-                ProgressMessage(self).Show("Replacing "+delta.Oldname+" with new/updated file")
-                Log("delta-REPLACE: "+delta.Con.SourcePathname+" <-- "+delta.Oldname)
-                Log("   delta-DELETE: "+delta.Con.SiteFilename)
-                if len(delta.Con.SiteFilename.strip()) > 0:
-                    FTP().DeleteFile(delta.Con.SiteFilename)
-                Log("   delta-ADD: "+delta.Con.SourcePathname+" as "+delta.Con.SiteFilename)
-                FTP().PutFile(delta.Con.SourcePathname, delta.Con.SiteFilename)
-            else:
-                Log("delta-UNRECOGNIZED: "+str(delta))
+                    Log("   delta-ADD: "+delta.Con.SourcePathname+" as "+delta.Con.SiteFilename)
+                    FTP().PutFile(delta.Con.SourcePathname, delta.Con.SiteFilename)
+                else:
+                    Log("delta-UNRECOGNIZED: "+str(delta))
 
-        UpdateFTPLog().Log(self._seriesname, self._coninstancename, self.conInstanceDeltaTracker)
+            UpdateFTPLog().Log(self._seriesname, self._coninstancename, self.conInstanceDeltaTracker)
 
-        self.conInstanceDeltaTracker=ConInstanceDeltaTracker()  # The upload is complete. Start tracking changes afresh
+            self.conInstanceDeltaTracker=ConInstanceDeltaTracker()  # The upload is complete. Start tracking changes afresh
 
-        ProgressMessage(self).Show("Upload succeeded: /"+self._seriesname+"/"+self._coninstancename+"/index.html", close=True, delay=0.5)
+            pm.Update(f"Upload succeeded: /{self._seriesname}/{self._coninstancename}/index.html", delay=0.5)
+
         self.MarkAsSaved()
         self.Uploaded=True
         self.RefreshWindow()
@@ -496,22 +496,21 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.Datasource=ConInstancePage()
 
         # Read the existing CIP
-        ProgressMessage(self).Show("Downloading "+self._FTPbasedir+"/"+self._coninstancename+"/index.html")
-        file=FTP().GetFileAsString(self._FTPbasedir+"/"+self._coninstancename, "index.html")
-        if file is None:
-            Log("DownloadConInstancePage: "+self._FTPbasedir+"/"+self._coninstancename+"/index.html does not exist -- create a new file and upload it")
-            #wx.MessageBox(self._FTPbasedir+"/"+self._coninstancename+"/index.html does not exist -- create a new file and upload it")
-            ProgressMessage(self).Close()
-            return  # Just return with the ConInstance page empty
+        with ModalDialogManager(ProgressMessage2, f"Downloading {self._FTPbasedir}/{self._coninstancename}/index.html", parent=self) as pm:
+            file=FTP().GetFileAsString(self._FTPbasedir+"/"+self._coninstancename, "index.html")
+            if file is None:
+                Log("DownloadConInstancePage: "+self._FTPbasedir+"/"+self._coninstancename+"/index.html does not exist -- create a new file and upload it")
+                #wx.MessageBox(self._FTPbasedir+"/"+self._coninstancename+"/index.html does not exist -- create a new file and upload it")
+                return  # Just return with the ConInstance page empty
 
-        # Get the JSON
-        j=FindBracketedText(file, "fanac-json", stripHtml=False)[0]
-        if j is not None and j != "":
-            self.FromJson(j)
+            # Get the JSON
+            j=FindBracketedText(file, "fanac-json", stripHtml=False)[0]
+            if j is not None and j != "":
+                self.FromJson(j)
 
-        self.Title="Editing "+self._coninstancename
+            self.Title="Editing "+self._coninstancename
 
-        ProgressMessage(self).Show(self._FTPbasedir+"/"+self._coninstancename+"/index.html downloaded", close=True, delay=0.5)
+            pm.Update(self._FTPbasedir+"/"+self._coninstancename+"/index.html downloaded", delay=0.5)
         self._grid.MakeTextLinesEditable()
         self.MarkAsSaved()
         self.RefreshWindow()
