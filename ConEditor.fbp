@@ -1265,12 +1265,12 @@
                     <property name="help"></property>
                     <property name="id">wxID_ANY</property>
                     <property name="kind">wxITEM_NORMAL</property>
-                    <property name="label">Rename Convention Page</property>
-                    <property name="name">m_popupRenameConPage</property>
+                    <property name="label">Rename Convention Instance Page</property>
+                    <property name="name">m_popupRenameConInstancePage</property>
                     <property name="permission">none</property>
                     <property name="shortcut"></property>
                     <property name="unchecked_bitmap"></property>
-                    <event name="OnMenuSelection">OnPopupRenameConPage</event>
+                    <event name="OnMenuSelection">OnPopupRenameConInstancePage</event>
                 </object>
                 <object class="wxMenuItem" expanded="0">
                     <property name="bitmap"></property>

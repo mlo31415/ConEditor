@@ -637,7 +637,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
 
     #------------------
-    def OnPopupRenameConPage(self, event):
+    def OnPopupRenameConInstancePage(self, event):
         icol=self._grid.clickedColumn
         irow=self._grid.clickedRow
 
@@ -791,7 +791,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             if irow < self.Datasource.NumRows:
                 self.m_popupDeleteConPage.Enabled=True
                 self.m_popupEditConPage.Enabled=True
-                self.m_popupRenameConPage.Enabled=True
+                self.m_popupRenameConInstancePage.Enabled=True
                 if len(self.Datasource.Rows[irow].URL) > 0:   # Only if there's a link in the cell
                     self.m_popupUnlink.Enabled=True
                 if len(self.Datasource.Rows[irow].URL) == 0:   # Only if there's NO link in the cell
