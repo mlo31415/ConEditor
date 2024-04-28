@@ -226,7 +226,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             for i, header in enumerate(headers):
                 match header:
                     case "Convention":
-                        con.Name, con.URL, con.Extra = self.ExtractConNameInfo(con, row[i])
+                        con.Name, con.URL, con.Extra = self.ConNameInfoUnpack(row[i])
                     case "Location":
                         con.Locale=row[i]
                     case _:
@@ -239,12 +239,34 @@ class ConSeriesFrame(GenConSeriesFrame):
 
     #---------------------
     # header is of the form <a href=xxxx>yyyy</a>zzzz
-    def ExtractConNameInfo(self, con: Con, header: str) -> (str, str, str):
-        m=re.match('<a href="?(.*?)"?>(.*?)</a>(.*)$', header, re.IGNORECASE)
+    # Generate the Name, URL and extra columns
+    def ConNameInfoUnpack(self, packed: str) -> (str, str, str):
+        name=packed
+        url=""
+        extra=""
+
+        m=re.match('<a href=\"?(.*?)\"?>(.*?)</a>(.*)$', packed, re.IGNORECASE)
         if m is not None:
-            return m.groups()[1], m.groups()[0], m.groups()[2]
-        # Well, perhaps it of the form XXX
-        return header, "", ""
+            url=m.groups()[0].strip()
+            name=m.groups()[1].strip()
+            extra=m.groups()[2].strip()
+
+        return name, url, extra
+
+
+    #---------------------
+    # Generate the contents of the Convention column from the Name, URL and extra columns
+    def ConNameInfoPack(self, name: str, url: str, extra: str) -> str:
+        unpacked=""
+        if url == "":
+            unpacked+=f"    <td>{name}"
+        else:
+            unpacked+=f'    <td><a href="{url}">{name}</a>'
+        if extra != "":
+            unpacked+=f" {extra}"
+
+        return unpacked
+
 
     #-------------------
     def UploadConSeries(self) -> bool:       
@@ -305,14 +327,9 @@ class ConSeriesFrame(GenConSeriesFrame):
                 newtable+="    <tr>\n"
 
                 # Generate the first column from the name, url and extra
-                if row.URL == "":
-                    newtable+=f"    <td>{row.Name}"
-                else:
-                    newtable+=f'    <td><a href="{row.URL}">{row.Name}</a>'
-                if row.Extra != "":
-                    newtable+=f" {row.Extra}"
-                newtable+="</td>\n"
+                newtable+=f"<td>{self.ConNameInfoPack(row.Name, row.URL, row.Extra)}</td>/n"
 
+                # And the rest
                 if hasdates:
                     newtable+='      <td>'
                     newtable+=str(row.Dates) if row.Dates is not None else ""
