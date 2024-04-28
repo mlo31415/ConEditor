@@ -304,7 +304,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                     continue
                 newtable+="    <tr>\n"
 
-                # Generate the first colum from the name, url and extra
+                # Generate the first column from the name, url and extra
                 if row.URL == "":
                     newtable+=f"    <td>{row.Name}"
                 else:
