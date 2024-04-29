@@ -16,7 +16,7 @@ from WxDataGrid import DataGrid, IsEditable
 from ConInstanceFrame import ConInstanceDialogClass
 from Settings import Settings
 
-from HelpersPackage import SubstituteHTML, FormatLink, FindBracktedText2, WikiPagenameToWikiUrlname, UnformatLinks, RemoveAllHTMLTags, RemoveAccents
+from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText2, WikiPagenameToWikiUrlname, UnformatLinks, RemoveAllHTMLTags, RemoveAccents
 from HelpersPackage import FindIndexOfStringInList, PyiResourcePath, MessageBox
 from WxHelpers import ModalDialogManager, ProgressMessage2, OnCloseHandling, MessageBoxInput, wxMessageDialogInput
 from Log import Log
@@ -161,7 +161,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         rest=row
         out=[]
         while True:
-            item, rest=FindBracktedText2(rest, delim, caseInsensitive=True)
+            item, rest=FindBracketedText2(rest, delim, caseInsensitive=True)
             if item == "":
                 break
             if f"<{delim}>" in item:    # This corrects for an error in which we have the pattern '<td>xxx<td>yyy</td>' which displays perfectly well
@@ -176,15 +176,15 @@ class ConSeriesFrame(GenConSeriesFrame):
     # Populate the ConSeriesFrame structure
     def LoadConSeriesFromHTML(self, file: str) -> bool:
         # Look for the series name in the header
-        head, rest=FindBracktedText2(file, "head", caseInsensitive=True)
-        series, _=FindBracktedText2(head, "title", caseInsensitive=True)
+        head, rest=FindBracketedText2(file, "head", caseInsensitive=True)
+        series, _=FindBracketedText2(head, "title", caseInsensitive=True)
         if series == "":
             Log("LoadConSeriesFromHTML() could not find <title>...</title> in <head>...</head>")
             return False
         self.Seriesname=series
 
         # Locate the Fancy 3 reference
-        ref, _=FindBracktedText2(rest, "fanac-instance", caseInsensitive=True)
+        ref, _=FindBracketedText2(rest, "fanac-instance", caseInsensitive=True)
         if ref == "":
             Log(f"DecodeConSeriesHTML(): failed to find the <fanac-instance> tags in the body")
             return False
@@ -198,14 +198,14 @@ class ConSeriesFrame(GenConSeriesFrame):
         self.TextComments=""
 
         # There should only be one table and that contains the list of con instances
-        table, _=FindBracktedText2(rest, "fanac-table", caseInsensitive=True)
+        table, _=FindBracketedText2(rest, "fanac-table", caseInsensitive=True)
         if table == "":
             Log(f"DecodeConSeriesHTML(): failed to find the <fanac-table> tags")
             return False
 
         # Read the table
         # Get the table header and decode the columns
-        header, rest=FindBracktedText2(table, "thead", caseInsensitive=True)
+        header, rest=FindBracketedText2(table, "thead", caseInsensitive=True)
         if header == "":
             Log(f"DecodeConSeriesHTML(): failed to find the <thead> tags in the body")
             return False
@@ -215,7 +215,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         # Now read the rows
         rows=[]
         while True:
-            rowtext, rest=FindBracktedText2(rest, "tr", caseInsensitive=True)
+            rowtext, rest=FindBracketedText2(rest, "tr", caseInsensitive=True)
             if rowtext == "":
                 break
             row=self.ReadTableRow(rowtext)
