@@ -374,8 +374,11 @@ class ConSeriesFrame(GenConSeriesFrame):
                 for change in self._instanceRenameTracker:
                     old=change[0]
                     if len(old) > 0:
+                        if old[0:1] == ".." or old[0:2] == "/..":
+                            Log(f"UploadConSeries(): The old directory name '{old}' is elsewhere, so we will not attempt to rename it.")
+                            continue
                         new=change[1]
-                        pm.Update(f"Renaming {old} to {new} on server.")
+                        pm.Update(f"Renaming '{old}' to '{new}' on server.")
                         FTP().Rename(old, new)
 
             pm.Update(f"Upload succeeded: /{self.Seriesname}/index.html", delay=0.5)
