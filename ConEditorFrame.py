@@ -139,7 +139,7 @@ class ConEditorFrame(GenConEditorFrame):
         if tlwp:
             self.SetPosition(tlwp)
 
-        self.Download()
+        self.DownloadMainConlist()
         self.MarkAsSaved()
         self.Show()
 
@@ -178,7 +178,7 @@ class ConEditorFrame(GenConEditorFrame):
 
 
     # ------------------
-    def Download(self):            # ConEditorFrame
+    def DownloadMainConlist(self):            # ConEditorFrame
         # Clear out any old information
         self.Datasource=ConList()
 
@@ -223,11 +223,11 @@ class ConEditorFrame(GenConEditorFrame):
 
     #------------------
     def OnButtonUploadClick(self, event):            # ConEditorFrame
-        self.Upload()
+        self.UploadMainConlist()
 
 
     #------------------
-    def Upload(self):        # ConEditorFrame(GenConEditorFrame)
+    def UploadMainConlist(self):        # ConEditorFrame(GenConEditorFrame)
 
         with ModalDialogManager(ProgressMessage2, "Uploading index.html to fanac.org/conpubs", parent=self) as pm:
             # First read in the template
@@ -410,7 +410,7 @@ class ConEditorFrame(GenConEditorFrame):
             self.RefreshWindow()
             FTP().SetDirectory("/")
             FTP().Rename(oldname, newname)
-            self.Upload()
+            self.UploadMainConlist()
 
     # ------------------
     def OnTopTextUpdated(self, event):        # ConEditorFrame(GenConEditorFrame)
