@@ -263,6 +263,14 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     # This has been pulled out of the OnUploadConInstance() handler so it can also be called to auto update a series of pages
     def OnUploadConInstancePage(self) -> None:
 
+        self.UploadConInstancePage()
+
+        self.MarkAsSaved()
+        self.Uploaded=True
+        self.RefreshWindow()
+
+
+    def UploadConInstancePage(self) -> bool:
         # Delete any trailing empty rows.
         # Empty rows anywhere are as error, but we only silently drop trailing blank rows. Note that a a blank text row is not an empty row.
         # Find the last non-blank row.
@@ -302,7 +310,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         if error:
             self._grid.Grid.ForceRefresh()
             wx.MessageBox("Malformed row found")
-            return
+            return False
 
 
         # Read in the template
@@ -315,7 +323,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         except:
             wx.MessageBox("Can't read 'Template-ConPage.html'")
             Log("Can't read 'Template-ConPage.html'")
-            return
+            return False
 
         with ModalDialogManager(ProgressMessage2, f"Uploading /{self._seriesname}/{self._coninstancename}/index.html", parent=self) as pm:
 
@@ -441,7 +449,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             if not FTP().PutFileAsString("/"+self._seriesname+"/"+self._coninstancename, "index.html", file, create=True):
                 Log("Upload failed: /"+self._seriesname+"/"+self._coninstancename+"/index.html")
                 wx.MessageBox("OnUploadConInstancePage: Upload failed: /"+self._seriesname+"/"+self._coninstancename+"/index.html")
-                return
+                return False
 
             wd="/"+self._seriesname+"/"+self._coninstancename
             FTP().CWD(wd)
@@ -484,9 +492,9 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
             pm.Update(f"Upload succeeded: /{self._seriesname}/{self._coninstancename}/index.html", delay=0.5)
 
-        self.MarkAsSaved()
-        self.Uploaded=True
-        self.RefreshWindow()
+        return True
+
+
 
 
     #------------------
