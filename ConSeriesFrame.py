@@ -330,7 +330,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                 newtable+="    <tr>\n"
 
                 # Generate the first column from the name, url and extra
-                newtable+=f"    <td>{self.ConNameInfoPack(row.Name, row.URL, row.Extra)}</td>/n"
+                newtable+=f"    <td>{self.ConNameInfoPack(row.Name, row.URL, row.Extra)}</td>\n"
 
                 # And the rest
                 if hasdates:
