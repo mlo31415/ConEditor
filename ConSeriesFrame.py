@@ -375,13 +375,15 @@ class ConSeriesFrame(GenConSeriesFrame):
                     old=change[0]
                     if len(old) > 0:
                         new=change[1]
+                        pm.Update(f"Renaming {old} to {new} on server.")
                         FTP().Rename(old, new)
 
-
             pm.Update(f"Upload succeeded: /{self.Seriesname}/index.html", delay=0.5)
+
         self.MarkAsSaved()      # It was just saved, so unless it's updated again, the dialog can exit without uploading
         self._uploaded=True     # Something's been uploaded
         self.RefreshWindow()
+
         return True
 
     #------------------
@@ -645,7 +647,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         # We know from the RMB popup item activation rules that cols 0 and 1 are identical and this is a real row.
         v=wxMessageDialogInput("Enter the new convention instance name.  Note that this will also rename the convention instance's folder on the server.", title="Renaming Convention Instance", initialValue=self.Datasource.Rows[irow].Name, parent=self)
-        if v is None or v != "":
+        if v is None or v == "":
             return  # Bail out if no input  provided
 
         self._instanceRenameTracker.append((self.Datasource.Rows[irow].Name, v))    # Schedule the rename of the con instance directory on the server
