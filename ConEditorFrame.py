@@ -15,35 +15,23 @@ from FTP import FTP
 from Settings import Settings
 
 
-from HelpersPackage import SubstituteHTML, FindBracketedText, FormatLink, Int, MessageBox, PyiResourcePath
+from HelpersPackage import SubstituteHTML, FindBracketedText2, FormatLink, Int, MessageBox, PyiResourcePath, FindLinkInString
 from WxHelpers import ModalDialogManager, OnCloseHandling, ProgressMessage2
 from Log import LogOpen, Log, LogFlush
 
 
 class Convention(GridDataRowClass):
-    def __init__(self):
+    def __init__(self, Name: str="", URL: str=""):
         self._name: str=""      # The name of the convention series
         self._URL: str=""       # The location of the convention series html page relative to the main cons page; empty if no series page exists yet
+        self.Name=Name
+        self.URL=URL
 
 
     def Signature(self) -> int:     
         s=hash(self._name.strip()+self._URL.strip())
         Log(f"Convention(GridDataRowClass).Signature {s=}")
         return s
-
-    # Serialize and deserialize
-    def ToJson(self) -> str:     
-        d={"ver": 2,
-           "_name": self._name,
-           "_URL": self._URL}
-        return json.dumps(d)
-
-    def FromJson(self, val: str) -> Convention:     
-        d=json.loads(val)
-        self._name=d["_name"]
-        self._URL=d["_URL"]
-
-        return self
 
     # Get or set a value by name or column number
     def __getitem__(self, index: str|int|slice) -> str|int:     
@@ -74,7 +62,7 @@ class Convention(GridDataRowClass):
     def URL(self, val: str) -> None:
         self._URL=val
 
-    def IsEmptyRow(self, i: int) -> bool:  # GridDataRowClass (abstract class)
+    def IsEmptyRow(self, i: int) -> bool:
         return self._name != "" or self._URL != ""
 
 
@@ -88,23 +76,6 @@ class ConList(GridDataSource):
         self._gridDataRowClass: Convention=Convention()
         self._conlist: list[Convention]=[]  # This supplies the Rows property that GridDataSource needs
 
-    # -----------------------------
-    # Serialize and deserialize
-    def ToJson(self) -> str:         # ConList(GridDataSource)
-        d={"ver": 2}
-        for i, s in enumerate(self._conlist):
-            d[i]=s.ToJson()
-
-        return json.dumps(d)
-
-    def FromJson(self, val: str) -> ConList:         # ConList(GridDataSource)
-        d=json.loads(val)
-        self._conlist=[]
-        i=0
-        while str(i) in d.keys():       # Using str(i) is because json merges 1 and "1" as the same. (It appears to be a bug.)
-            self._conlist.append(Convention().FromJson(d[str(i)]))
-            i+=1
-        return self
 
 
     def Signature(self) -> int:         # ConList(GridDataSource)
@@ -168,7 +139,7 @@ class ConEditorFrame(GenConEditorFrame):
         if tlwp:
             self.SetPosition(tlwp)
 
-        self.Load()
+        self.Download()
         self.MarkAsSaved()
         self.Show()
 
@@ -205,23 +176,9 @@ class ConEditorFrame(GenConEditorFrame):
             s=s+" *"
         self.Title=s
 
-    # ------------------
-    # Serialize and deserialize
-    def ToJson(self) -> str:        # ConEditorFrame(GenConEditorFrame)
-        d={"ver": 1,
-           "_datasource": self.Datasource.ToJson()
-           }
-
-        return json.dumps(d)
-
-    def FromJson(self, val: str) -> ConEditorFrame:            # ConEditorFrame
-        d=json.loads(val)
-        self.Datasource=ConList().FromJson(d["_datasource"])
-
-        return self
 
     # ------------------
-    def Load(self):            # ConEditorFrame
+    def Download(self):            # ConEditorFrame
         # Clear out any old information
         self.Datasource=ConList()
 
@@ -232,17 +189,23 @@ class ConEditorFrame(GenConEditorFrame):
             self.RefreshWindow()
             return
 
-        # Get the JSON
-        j=FindBracketedText(file, "fanac-json", stripHtml=False, caseInsensitive=True)[0]
-        if j is None or j == "":
-            wx.MessageBox("Can't load convention information from conpubs' index.html")
-            return
+        table, rest=FindBracketedText2(file, "fanac-table", caseInsensitive=True)
+        tbody, _=FindBracketedText2(table, "tbody", caseInsensitive=True)
+        
+        rows:[Convention]=[]
+        while True:
+            tr, tbody=FindBracketedText2(tbody, "tr", caseInsensitive=True)
+            if tr == "":
+                break
+            td, _=FindBracketedText2(tr, "td", caseInsensitive=True)
+            if "----" in td:
+                continue    # Skip over dividing lines
+            _, link, text, _=FindLinkInString(td)
+            rows.append(Convention(text, link))
 
-        try:
-            self.FromJson(j)
-        except (json.decoder.JSONDecodeError):
-            wx.MessageBox("JSONDecodeError when loading convention information from conpubs' index.html")
-            return
+        if len(rows) > 0:
+            self.Datasource.Rows=rows
+
 
         self._grid.MakeTextLinesEditable()
         self.RefreshWindow()
@@ -262,6 +225,8 @@ class ConEditorFrame(GenConEditorFrame):
     def OnButtonUploadClick(self, event):            # ConEditorFrame
         self.Upload()
 
+
+    #------------------
     def Upload(self):        # ConEditorFrame(GenConEditorFrame)
 
         with ModalDialogManager(ProgressMessage2, "Uploading index.html to fanac.org/conpubs", parent=self) as pm:
@@ -294,8 +259,6 @@ class ConEditorFrame(GenConEditorFrame):
 
             # Substitute the table into the template
             file=SubstituteHTML(file, "fanac-table", newtable)
-            # Store the json for the page into the template
-            file=SubstituteHTML(file, "fanac-json", self.ToJson())
 
             file=SubstituteHTML(file, "fanac-date", datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST")
 
@@ -310,6 +273,7 @@ class ConEditorFrame(GenConEditorFrame):
                 wx.MessageBox("Upload of /index.html failed")
 
             UpdateFTPLog().LogText("Uploaded Main convention list")
+            pm.Update("Upload succeeded.", delayy=0.5)
 
         self.MarkAsSaved()
         self.RefreshWindow()
