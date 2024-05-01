@@ -1,10 +1,8 @@
 from __future__ import annotations
 
 import wx
-from wx import _core
 import os
 import sys
-import json
 import re
 from datetime import datetime
 
@@ -14,8 +12,9 @@ from ConInstance import ConInstancePage, ConFile
 from ConInstanceDeltaTracker import ConInstanceDeltaTracker, UpdateFTPLog
 from FTP import FTP
 from Settings import Settings
-from Log import Log
-from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText, WikiPagenameToWikiUrlname, RemoveHTTP, ExtensionMatches, PyiResourcePath
+from Log import Log, LogError
+from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText2, WikiPagenameToWikiUrlname, Int0, ExtensionMatches, PyiResourcePath
+from HelpersPackage import FindNextBracketedText, FindLinkInString
 from PDFHelpers import GetPdfPageCount, AddMissingMetadata
 from WxHelpers import OnCloseHandling, ModalDialogManager, ProgressMessage2
 
@@ -89,27 +88,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             s=s+" *"
         self.Title=s
 
-    # ----------------------------------------------
-    # Serialize and deserialize
-    def ToJson(self) -> str:
-        d={"ver": 4,
-           "ConInstanceName": self.ConInstanceName,
-           "ConInstanceStuff": self.ConInstanceTopText,
-           "ConInstanceFancyURL": self.ConInstanceFancyURL,
-           "Credits": self.Credits,
-           "_datasource": self.Datasource.ToJson()}
-        return json.dumps(d)
-
-    def FromJson(self, val: str) -> GenConInstanceFrame:
-        d=json.loads(val)
-        self.ConInstanceName=d["ConInstanceName"]
-        self.ConInstanceTopText=d["ConInstanceStuff"]
-        self.ConInstanceFancyURL=d["ConInstanceFancyURL"]
-        if d["ver"] > 3:
-            self.Credits=d["Credits"]
-        self.ConInstanceFancyURL=RemoveHTTP(self.ConInstanceFancyURL)
-        self.Datasource=ConInstancePage().FromJson(d["_datasource"])
-        return self
 
     # ----------------------------------------------
     @property
@@ -296,15 +274,15 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     for j in range(self._grid.NumCols):
                         self._grid.SetCellBackgroundColor(i, j, Color.Pink)
             elif row.IsLinkRow:
-                if len(row.URL.strip()) == 0  or len(row.DisplayTitle.strip()) == 0:
+                if len(row.SiteFilename.strip()) == 0  or len(row.DisplayTitle.strip()) == 0:
                     error=True
-                    Log(f"Missing URL or display title in row {i}  {row}")
+                    Log(f"Missing site filename or display name in row {i}  {row}")
                     for j in range(self._grid.NumCols):
                         self._grid.SetCellBackgroundColor(i, j, Color.Pink)
-            else:
+            else:   # Ordinary row
                 if len(row.SourceFilename.strip()) == 0 or len(row.SiteFilename.strip()) == 0 or len(row.DisplayTitle.strip()) == 0:
                     error=True
-                    Log(f"Missing filename or display name in row {i}  {row}")
+                    Log(f"Missing filename, sitename, or display name in row {i}  {row}")
                     for j in range(self._grid.NumCols):
                         self._grid.SetCellBackgroundColor(i, j, Color.Pink)
         if error:
@@ -342,7 +320,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             # If there are missing page counts for pdfs, try to gett hem. (This can eventually be eliminated as there will be no pre-V7 files on the server.)
             self.FillInMissingPDFPageCounts()
 
-            file=SubstituteHTML(file, "fanac-json", self.ToJson())
             file=SubstituteHTML(file, "fanac-date", datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST")
             if len(self.Credits.strip()) > 0:
                 file=SubstituteHTML(file, "fanac-credits", 'Credits: '+self.Credits.strip()+"<br>")    #<p id="randomtext"><small>   +'</small></p>'
@@ -385,7 +362,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     if row.IsTextRow:
                         newtable+='      <td colspan="3">'+row.SourceFilename+" "+row.SiteFilename+" "+row.DisplayTitle+" "+row.Notes+'</td>\n'
                     elif row.IsLinkRow:
-                        newtable+='      <td colspan="3">'+FormatLink(row.URL, row.DisplayTitle)+'</td>\n'
+                        newtable+='      <td colspan="3">'+FormatLink(row.SiteFilename, row.DisplayTitle)+'</td>\n'
                     else:   # Ordinary row
                         # The document title/link column
                         s=MaybeSuppressPDFExtension(row.DisplayTitle, showExtensions)
@@ -411,7 +388,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                         text=row.SourceFilename+" "+row.SiteFilename+" "+row.DisplayTitle+" "+row.Notes
                         newtable+='    </ul><b>'+text.strip()+'</b><ul id="conpagetable">\n'
                     elif row.IsLinkRow:
-                        newtable+='    <li id="conpagetable">'+FormatLink(row.URL, row.DisplayTitle)+"</li>\n"
+                        newtable+='    <li id="conpagetable">'+FormatLink(row.SiteFilename, row.DisplayTitle)+"</li>\n"
                     else:
                         s=MaybeSuppressPDFExtension(row.DisplayTitle, showExtensions)
                         newtable+='    <li id="conpagetable">'+FormatLink(row.SiteFilename, s)
@@ -499,29 +476,123 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
     #------------------
     # Download a ConInstance
-    def DownloadConInstancePage(self) -> None:
+    def DownloadConInstancePage(self) -> bool:
         # Clear out any old information
         self.Datasource=ConInstancePage()
 
         # Read the existing CIP
-        with ModalDialogManager(ProgressMessage2, f"Downloading {self._FTPbasedir}/{self._coninstancename}/index.html", parent=self) as pm:
-            file=FTP().GetFileAsString(self._FTPbasedir+"/"+self._coninstancename, "index.html")
+        with (ModalDialogManager(ProgressMessage2, f"Downloading {self._FTPbasedir}/{self._coninstancename}/index.html", parent=self) as pm):
+            file=FTP().GetFileAsString(f"{self._FTPbasedir}/{self._coninstancename}", "index.html")
             if file is None:
-                Log("DownloadConInstancePage: "+self._FTPbasedir+"/"+self._coninstancename+"/index.html does not exist -- create a new file and upload it")
+                LogError("DownloadConInstancePage: "+self._FTPbasedir+"/"+self._coninstancename+"/index.html does not exist -- create a new file and upload it")
                 #wx.MessageBox(self._FTPbasedir+"/"+self._coninstancename+"/index.html does not exist -- create a new file and upload it")
-                return  # Just return with the ConInstance page empty
+                return False # Just return with the ConInstance page empty
 
-            # Get the JSON
-            j=FindBracketedText(file, "fanac-json", stripHtml=False)[0]
-            if j is not None and j != "":
-                self.FromJson(j)
+            file=file.replace("/n", "")     # I don't know where these are comming from, but they don't belong there!
 
-            self.Title="Editing "+self._coninstancename
+            body, _=FindBracketedText2(file, "body", caseInsensitive=True)
+            if body is None:
+                LogError("DownloadConInstancePage(): Can't find <body> tag")
+                return False
+
+            fanacInstance, _=FindBracketedText2(body, "fanac-instance", caseInsensitive=True)
+            if fanacInstance is None:
+                LogError("DownloadConInstancePage(): Can't find <fanac-instance> tag")
+                return False
+
+            topButtons, _=FindBracketedText2(body, "fanac-topButtons", caseInsensitive=True)
+            if topButtons is None:
+                LogError("DownloadConInstancePage(): Can't find <fanac-topButtons> tag")
+                return False
+
+            fanacstuff, _=FindBracketedText2(body, "fanac-stuff", caseInsensitive=True)
+            if fanacstuff is None:
+                LogError("DownloadConInstancePage(): Can't find <fanac-stuff> tag")
+                return False
+            self.topText.SetValue(fanacstuff)
+
+            fanaccredits, _=FindBracketedText2(body, "fanac-credits", caseInsensitive=True)
+            if fanaccredits is None:
+                LogError("DownloadConInstancePage(): Can't find <fanac-credits> tag")
+                return False
+            self.tCredits.SetValue(fanaccredits)
+
+            rows: list[tuple[str, str]]=[]
+            ulists, _=FindBracketedText2(body, "fanac-table", caseInsensitive=True)
+
+            # The ulists are a series of ulist items, each ulist is a series of <li></li> items
+            # The tags usually have ' id="conpagetable"' which can be ignored
+            remainder=ulists.replace(' id="conpagetable"', "")
+            while True:
+                lead, tag, contents, remainder=FindNextBracketedText(remainder)
+                if tag == "":
+                    break
+                Log(f"*** {tag=}  {contents=}")
+                if tag == "ul":
+                    remainder=lead+contents+remainder   # If we encounter a <ul>...</ul> tag, we edit it out, keeping what's outside it and what's inside it
+                    continue
+                rows.append((tag, contents))
+
+            # Now decode the lines
+            for row in rows:
+                if row[0] == "li":
+                    Log(f"\n{row[1]=}")
+                    conf=ConFile()
+                    # We're looking for an <a></a> followed by <small>/</small>
+                    a, rest=FindBracketedText2(row[1], "a", includeBrackets=True)
+                    Log(f"{a=}   {rest=}")
+                    if a == "":
+                        LogError(f"DownloadConInstancePage(): Can't find <a> tag in {row}")
+                        return False
+                    _, href, text, _=FindLinkInString(a)
+                    if href == "":
+                        LogError(f"DownloadConInstancePage(): Can't find href= in <a> tag in {row}")
+                        return False
+                    # if href is a foreign link, then this is a link line
+                    if "/" in href:
+                        conf.DisplayTitle=text
+                        conf.SiteFilename=href
+                        conf.IsLinkRow=True
+                        self.Datasource.Rows.append(conf)
+                        continue
+
+                    # It appears to be an ordiary file like
+                    conf.DisplayTitle=text
+                    conf.SiteFilename=href
+
+                    if len(rest.strip()) > 0:
+                        small, _=FindBracketedText2(rest, "small")
+                        if small == "":
+                            LogError(f"DownloadConInstancePage(): Can't find <small> tag in {rest}")
+                            return False
+                        small=small.replace("&nbsp;", " ")
+                        if ";" in small:
+                            m=re.match("^.*?([0-9.]+).*;[^0-9]?([0-9]+)", small, re.IGNORECASE)
+                            if m is not None:
+                                conf.Size=float(m.group(1))
+                                conf.Pages=Int0(m.group(2))
+                        else:
+                            m=re.match("^.*?([0-9.]+)", small, re.IGNORECASE)
+                            if m is not None:
+                                conf.Size=Int0(m.group(1))
+
+                        if m is None:
+                            LogError(f"DownloadConInstancePage(): Can't decode contents of <small> tag in {row}")
+                            return False
+
+                    self.Datasource.Rows.append(conf)
+
+                elif row[0] == "b":
+                    conf=ConFile()
+                    conf.IsTextRow=True
+                    conf.TextLineText=row[1]
+                    self.Datasource.Rows.append(conf)
+
 
             pm.Update(self._FTPbasedir+"/"+self._coninstancename+"/index.html downloaded", delay=0.5)
+
+        self.Title="Editing "+self._coninstancename
         self._grid.MakeTextLinesEditable()
-        self.MarkAsSaved()
-        self.RefreshWindow()
 
 
     # ------------------
@@ -531,7 +602,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         row=event.GetRow()
         self._PopupInsertTextRow_RowNumber=row
 
-        # Suppress the options used when double clicking on and empty line's column 0
+        # Suppress the options used when double-clicking on an empty line's column 0
         flag=False
         if row < self.Datasource.NumRows:
             flag=self.Datasource.Rows[row].IsTextRow
