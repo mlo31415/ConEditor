@@ -100,7 +100,7 @@ class ConFile(GridDataRowClass):
         return self.DisplayTitle
     @TextLineText.setter
     def TextLineText(self, val: str) -> None:
-        self.DisplayFilename=val
+        self.DisplayTitle=val
 
 
     @property
