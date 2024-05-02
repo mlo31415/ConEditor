@@ -724,7 +724,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         irow=self._grid.clickedRow
         if irow > self.Datasource.NumRows:
             self._grid.ExpandDataSourceToInclude(irow, 0)   # Insert empty rows into the datasource if necessary to keep things in sync
-
+        self._grid.InsertEmptyRows(irow, 1)     # Insert the new empty row
         self.Datasource.Rows[irow].IsLinkRow=True
         for icol in range(self._grid.NumCols):
             self._grid.AllowCellEdit(irow, icol)
