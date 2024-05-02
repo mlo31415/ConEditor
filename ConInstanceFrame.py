@@ -245,7 +245,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         self.MarkAsSaved()
         self.Uploaded=True
-        self.RefreshWindow()
 
 
     def UploadConInstancePage(self) -> bool:
