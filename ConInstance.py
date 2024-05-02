@@ -14,7 +14,7 @@ class ConFile(GridDataRowClass):
         self._notes: str=""             # The free-format description
         self._localfilename: str=""     # The filename of the source file
         self._localpathname: str="."    # The local pathname of the source file (path+filename)
-        self._sitefilename: str=""      # The name to be used for this file on the website (It will be (part of) the URL.)
+        self._sitefilename: str=""      # The name to be used for this file on the website (It will be (part of) the URL and holds the URL for link rows.)
         self._size: int=0               # The file's size in bytes
         self._isText: bool=False        # Is this a piece of text rather than a convention?
         self._isLink: bool=False        # Is this a link?
