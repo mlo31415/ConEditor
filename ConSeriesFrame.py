@@ -757,7 +757,7 @@ class ConSeriesFrame(GenConSeriesFrame):
     # ------------------
     def OnPopupLinkToAnotherConInstance(self, event):
         newcon=MessageBoxInput("Use a browser to copy the URL of the convention instance you want to link to from the convention series table and paste it here.", "Link an existing convention to this series.")
-        m=re.match("http[s]?://fanac.org/conpubs/(.*?/.*?).index.html$", newcon, re.IGNORECASE)
+        m=re.match("https?://fanac.org/conpubs/(.*?/.*?).index.html$", newcon, re.IGNORECASE)
         if m is None:
             MessageBox(f"Could not interperet '{newcon} as a conpubs convention URL")
             event.skip()
