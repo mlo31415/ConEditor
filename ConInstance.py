@@ -20,6 +20,7 @@ class ConFile(GridDataRowClass):
         self._isLink: bool=False        # Is this a link?
         self._pages: int=0              # Page count
 
+
     def __str__(self):      
         s=""
         if len(self.SourceFilename) > 0:
@@ -30,9 +31,9 @@ class ConFile(GridDataRowClass):
             s+="Display="+self.DisplayTitle+"; "
         if len(self.Notes) > 0:
             s+="Notes="+self.Notes+"; "
-        if self.Size > 0:
+        if Int0(self.Size) > 0:
             s+="Size="+str(self.Size)+"; "
-        if self.Pages > 0:
+        if Int0(self.Pages) > 0:
             s+="Pages="+str(self.Pages)+"; "
         if self.IsTextRow:
             s+="IsTextRow; "
@@ -57,10 +58,8 @@ class ConFile(GridDataRowClass):
         return cf
 
     def Signature(self) -> int:      
-        tot=hash(self._displayTitle.strip()+self._notes.strip()+self._localfilename.strip()+self._localpathname.strip()+self._sitefilename.strip()
-                 #+self._URL.strip()
-        )
-        return tot+self._size+hash(self._isText)+self.Pages
+        tot=hash(self._displayTitle.strip()+self._notes.strip()+self._localfilename.strip()+self._localpathname.strip()+self._sitefilename.strip())
+        return tot+hash(self._size)+hash(self._isText)+Int0(self.Pages)
 
 
     @property
