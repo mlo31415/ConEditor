@@ -650,7 +650,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             self._grid.ExpandDataSourceToInclude(row, 0)  # If we're inserting past the end of the datasource, insert empty rows as necessary to fill in between
             self._grid.InsertEmptyRows(row, 1)
         self.Datasource.Rows[row].IsTextRow=True
-        self.RefreshWindow()
 
         self.m_popupNewsletter.Enabled=True
         self.m_popupMiscellaneous.Enabled=True
