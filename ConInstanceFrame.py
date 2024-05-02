@@ -279,9 +279,9 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     for j in range(self._grid.NumCols):
                         self._grid.SetCellBackgroundColor(i, j, Color.Pink)
             else:   # Ordinary row
-                if len(row.SourceFilename.strip()) == 0 or len(row.SiteFilename.strip()) == 0 or len(row.DisplayTitle.strip()) == 0:
+                if len(row.SiteFilename.strip()) == 0 or len(row.DisplayTitle.strip()) == 0:
                     error=True
-                    Log(f"Missing filename, sitename, or display name in row {i}  {row}")
+                    Log(f"Missing sitename, or display name in row {i}  {row}")
                     for j in range(self._grid.NumCols):
                         self._grid.SetCellBackgroundColor(i, j, Color.Pink)
         if error:
