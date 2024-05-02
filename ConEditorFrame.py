@@ -17,7 +17,66 @@ from Settings import Settings
 
 from HelpersPackage import SubstituteHTML, FindBracketedText2, FormatLink, Int, MessageBox, PyiResourcePath, FindLinkInString
 from WxHelpers import ModalDialogManager, OnCloseHandling, ProgressMessage2
-from Log import LogOpen, Log, LogFlush
+from Log import LogOpen, Log, LogFlush, LogSetTimestamping
+
+
+
+def main():
+    print("Starting main()")
+    # Start the GUI and run the event loop
+    LogOpen("Log -- ConEditor.txt", "Log (Errors) -- ConEditor.txt")
+
+    if not os.path.exists("FTP Credentials.json"):
+        msg=f"Unable to find file 'FTP Credentials.json' file.  Expected to find it in {os.getcwd()}"
+        MessageBox(msg, ignoredebugger=True)
+        Log(msg)
+        exit(0)
+
+    f=FTP()
+
+    if not f.OpenConnection("FTP Credentials.json"):
+        MessageBox("Unable to open connection to FTP server fanac.org", ignoredebugger=True)
+        Log("Main: OpenConnection('FTP Credentials.json' failed")
+        exit(0)
+
+    # Attempt to download the version from the website and confirm that this executable is capable
+    conEditorVersion=2
+    v=FTP().GetAsString("version")
+    if v is None or len(v) == 0:
+        Log("Main: GetAsString('version' failed")
+        MessageBox("Unable to get version from FTP server fanac.org", ignoredebugger=True)
+        exit(0)
+
+    Log("CWD="+os.getcwd())
+    LogSetTimestamping(True)
+
+    vi=Int(v)
+    if vi > conEditorVersion:
+        Log("Main: Obsolete ConEditor version!  fanac.org/conpubs is version "+str(vi)+" while this app is version "+str(conEditorVersion))
+        MessageBox("Obsolete ConEditor version!  fanac.org/conpubs is version "+str(vi)+" while this app is version "+str(conEditorVersion), ignoredebugger=True)
+        exit(0)
+    Log("Website version="+str(vi))
+
+    # Load the global settings dictionary
+    Settings().Load("ConEditor settings.json")
+
+    with open("FTP Credentials.json") as f:
+        UpdateFTPLog().Init(json.loads(f.read())["ID"])
+
+    UpdateFTPLog().LogText("-----------------------------------------------------------------------\nConEditor starting.")
+    LogFlush()
+
+    app=wx.App(False)
+    frame=ConEditorFrame(None)
+
+    app.MainLoop()
+    Log("Exit mainloop")
+    pass
+
+    LogFlush()
+    sys.exit(1)
+
+
 
 
 class Convention(GridDataRowClass):
@@ -430,56 +489,7 @@ class ConEditorFrame(GenConEditorFrame):
 
 
 
-# Start the GUI and run the event loop
-LogOpen("Log -- ConEditor.txt", "Log (Errors) -- ConEditor.txt")
-
-if not os.path.exists("FTP Credentials.json"):
-    msg=f"Unable to find file 'FTP Credentials.json' file.  Expected to find it in {os.getcwd()}"
-    MessageBox(msg, ignoredebugger=True)
-    Log(msg)
-    exit(0)
-
-f=FTP()
-
-if not f.OpenConnection("FTP Credentials.json"):
-    MessageBox("Unable to open connection to FTP server fanac.org", ignoredebugger=True)
-    Log("Main: OpenConnection('FTP Credentials.json' failed")
-    exit(0)
-
-# Attempt to download the version from the website and confirm that this executable is capable
-conEditorVersion=2
-v=FTP().GetAsString("version")
-if v is None or len(v) == 0:
-    Log("Main: GetAsString('version' failed")
-    MessageBox("Unable to get version from FTP server fanac.org", ignoredebugger=True)
-    exit(0)
-
-Log("CWD="+os.getcwd())
-
-vi=Int(v)
-if vi > conEditorVersion:
-    Log("Main: Obsolete ConEditor version!  fanac.org/conpubs is version "+str(vi)+" while this app is version "+str(conEditorVersion))
-    MessageBox("Obsolete ConEditor version!  fanac.org/conpubs is version "+str(vi)+" while this app is version "+str(conEditorVersion), ignoredebugger=True)
-    exit(0)
-Log("Website version="+str(vi))
-
-# Load the global settings dictionary
-Settings().Load("ConEditor settings.json")
-
-with open("FTP Credentials.json") as f:
-    UpdateFTPLog().Init(json.loads(f.read())["ID"])
-
-UpdateFTPLog().LogText("-----------------------------------------------------------------------\nConEditor starting.")
-LogFlush()
-
-app=wx.App(False)
-frame=ConEditorFrame(None)
-
-app.MainLoop()
-Log("Exit mainloop")
-pass
-
-LogFlush()
-sys.exit(1)
 
 
+if __name__ == "__main__":
+    main()
