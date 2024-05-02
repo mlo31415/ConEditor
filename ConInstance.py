@@ -191,7 +191,7 @@ class ConFile(GridDataRowClass):
 
     @property
     def IsEmptyRow(self) -> bool:      
-        return self.SourceFilename != "" or self.SiteFilename != "" or self.DisplayTitle != "" or self.Pages != 0 or self.Notes != ""
+        return self.SourceFilename == "" and self.SiteFilename == "" and self.DisplayTitle == "" and Int0(self.Pages) == 0 and self.Notes != ""
 
 
 #####################################################################################################
