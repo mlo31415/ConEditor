@@ -828,7 +828,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         Settings().Put("ConInstanceFramePage:Show Extensions", self.radioBoxShowExtensions.GetSelection())
 
     #------------------
-    def RefreshWindow(self) -> None:
-        self._grid.RefreshWxGridFromDatasource()
+    def RefreshWindow(self, DontRefreshGrid: bool=False) -> None:
+        if not DontRefreshGrid:
+            self._grid.RefreshWxGridFromDatasource()
         self.UpdateNeedsSavingFlag()
 
