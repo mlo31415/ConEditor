@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from HelpersPackage import Int0, RemoveAccents
-
-from WxDataGrid import GridDataSource, Color, GridDataRowClass, ColDefinition, ColDefinitionsList, IsEditable
-import json
 import os
+
+from HelpersPackage import Int0, RemoveAccents
+from WxDataGrid import GridDataSource, Color, GridDataRowClass, ColDefinition, ColDefinitionsList, IsEditable
+
 
 # An individual file to be listed under a convention
 # This is a single row
