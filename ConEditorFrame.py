@@ -145,7 +145,7 @@ class ConEditorFrame(GenConEditorFrame):
 
 
     @property
-    def Datasource(self) -> ConList:        # ConEditorFrame(GenConEditorFrame)
+    def Datasource(self) -> ConList:        
         return self._Datasource
     @Datasource.setter
     def Datasource(self, val: ConList):
@@ -154,23 +154,23 @@ class ConEditorFrame(GenConEditorFrame):
 
     # ----------------------------------------------
     # Used to determine if anything has been updated
-    def Signature(self) -> int:        # ConEditorFrame(GenConEditorFrame)
+    def Signature(self) -> int:        
         s=self.Datasource.Signature()+hash(self.m_textCtrlTopText.GetValue().strip())
         return s
 
 
-    def MarkAsSaved(self):        # ConEditorFrame(GenConEditorFrame)
+    def MarkAsSaved(self):        
         self._signature=self.Signature()
         self.UpdateNeedsSavingFlag()
 
 
-    def NeedsSaving(self) -> bool:        # ConEditorFrame(GenConEditorFrame)
+    def NeedsSaving(self) -> bool:        
         v=self._signature != self.Signature()
         self.UpdateNeedsSavingFlag()
         return v
 
 
-    def UpdateNeedsSavingFlag(self):        # ConEditorFrame(GenConEditorFrame)
+    def UpdateNeedsSavingFlag(self):        
         s=self.Title.removesuffix(" *")  # Remove existing Needs Saving marker, if any
         if self.Signature() != self._signature:
             s=s+" *"
@@ -178,7 +178,7 @@ class ConEditorFrame(GenConEditorFrame):
 
 
     # ------------------
-    def DownloadMainConlist(self):            # ConEditorFrame
+    def DownloadMainConlist(self):            
         # Clear out any old information
         self.Datasource=ConList()
 
@@ -214,7 +214,7 @@ class ConEditorFrame(GenConEditorFrame):
 
 
     @property
-    def Title(self) -> str:        # ConEditorFrame(GenConEditorFrame)
+    def Title(self) -> str:        
         return self.GetTitle()
     @Title.setter
     def Title(self, val) -> None:
@@ -222,12 +222,12 @@ class ConEditorFrame(GenConEditorFrame):
 
 
     #------------------
-    def OnButtonUploadClick(self, event):            # ConEditorFrame
+    def OnButtonUploadClick(self, event):            
         self.UploadMainConlist()
 
 
     #------------------
-    def UploadMainConlist(self):        # ConEditorFrame(GenConEditorFrame)
+    def UploadMainConlist(self):        
 
         with ModalDialogManager(ProgressMessage2, "Uploading index.html to fanac.org/conpubs", parent=self) as pm:
             # First read in the template
@@ -279,12 +279,12 @@ class ConEditorFrame(GenConEditorFrame):
         self.RefreshWindow()
 
     #------------------
-    def RefreshWindow(self) -> None:        # ConEditorFrame(GenConEditorFrame)
+    def RefreshWindow(self) -> None:        
         self._grid.RefreshWxGridFromDatasource()
         self.UpdateNeedsSavingFlag()
 
     #------------------
-    def OnButtonSortClick(self, event):            # ConEditorFrame(GenConEditorFrame)
+    def OnButtonSortClick(self, event):            
         # Worldcon sorts ahead of everything else; Then "Early Conventions"; Then all other conventions; Finally empty lines after everything else
         def sorter(c: Convention) -> str:
             n=c.Name.upper()        # Convert to all UC so that sort is case-insensitive
@@ -303,11 +303,11 @@ class ConEditorFrame(GenConEditorFrame):
         self.RefreshWindow()
 
     #------------------
-    def OnButtonExitClick(self, event):            # ConEditorFrame
+    def OnButtonExitClick(self, event):            
         self.OnClose(event)
 
     #------------------
-    def OnGridCellRightClick(self, event):            # ConEditorFrame
+    def OnGridCellRightClick(self, event):            
         self._grid.OnGridCellRightClick(event, self.m_GridPopup)  # Set enabled state of default items; set all others to False
 
         self.m_popupItemInsertConventionSeries.Enabled=True
@@ -319,11 +319,11 @@ class ConEditorFrame(GenConEditorFrame):
         self.PopupMenu(self.m_GridPopup, pos=self.gRowGrid.Position+event.Position)
 
     # ------------------
-    def OnGridEditorShown(self, event):        # ConEditorFrame(GenConEditorFrame)
+    def OnGridEditorShown(self, event):        
         self._grid.OnGridEditorShown(event)
 
     # ------------------
-    def OnGridCellDoubleClick(self, event):            # ConEditorFrame
+    def OnGridCellDoubleClick(self, event):            
         self._grid.OnGridCellDoubleClick(event)
         if event.GetRow() > self.Datasource.NumRows:
             return      # For now, we do nothing when you double-click in an empty cell
@@ -331,7 +331,7 @@ class ConEditorFrame(GenConEditorFrame):
         self.EditConSeries()
 
     # ------------------
-    def EditConSeries(self):        # ConEditorFrame(GenConEditorFrame)
+    def EditConSeries(self):        
         if self._grid.clickedRow >= self.Datasource.NumRows:
             self.Datasource.Rows.insert(self._grid.clickedRow, Convention())
             self.RefreshWindow()
@@ -352,36 +352,36 @@ class ConEditorFrame(GenConEditorFrame):
         self.RefreshWindow()
 
     #-------------------
-    def OnKeyDown(self, event):            # ConEditorFrame(GenConEditorFrame)
+    def OnKeyDown(self, event):            
         self._grid.OnKeyDown(event)
         self.UpdateNeedsSavingFlag()
 
     #-------------------
-    def OnKeyUp(self, event):            # ConEditorFrame(GenConEditorFrame)
+    def OnKeyUp(self, event):            
         self._grid.OnKeyUp(event)
 
     #------------------
-    def OnPopupCopy(self, event):            # ConEditorFrame(GenConEditorFrame)
+    def OnPopupCopy(self, event):            
         self._grid.OnPopupCopy(event)
 
     #------------------
-    def OnPopupPaste(self, event):        # ConEditorFrame(GenConEditorFrame)
+    def OnPopupPaste(self, event):        
         self._grid.OnPopupPaste(event)
         self.RefreshWindow()
 
     #------------------
-    def OnGridCellChanged(self, event):            # ConEditorFrame (GenConEditorFrame)
+    def OnGridCellChanged(self, event):
         self._grid.OnGridCellChanged(event)
         self.RefreshWindow()
 
     #------------------
-    def OnPopupInsertConSeries(self, event):            # ConEditorFrame
+    def OnPopupInsertConSeries(self, event):            
         self.Datasource.Rows.insert(self._grid.clickedRow, Convention())
         self.EditConSeries()    # clickedRow is set by the RMB clicked event that must have preceeded this.
         self.RefreshWindow()
 
     # ------------------
-    def OnPopupDeleteCon(self, event):            # ConEditorFrame
+    def OnPopupDeleteCon(self, event):            
         ret=wx.MessageBox(f"This will delete {self.Datasource.Rows[self._grid.clickedRow].Name} from the list of convention series, but will not delete its directory or files from fanac.org. You must use FTP to do that.", 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
         if ret == wx.OK:
             self._grid.DeleteRows(self._grid.clickedRow, 1)
@@ -389,12 +389,12 @@ class ConEditorFrame(GenConEditorFrame):
         event.Skip()
 
     # ------------------
-    def OnPopupEditCon(self, event):            # ConEditorFrame
+    def OnPopupEditCon(self, event):            
         self.EditConSeries()    # clickedRow is set by the RMB clicked event that must have preceeded this.
         event.Skip()
 
     # ------------------
-    def OnPopupRename(self, event):            # ConEditorFrame
+    def OnPopupRename(self, event):            
         oldname=self.Datasource[self._grid.clickedRow][0]
         dlg=wx.TextEntryDialog(None, "Enter the new name of the Convention Series.", "Edit Convention Series name", value=oldname)
         if dlg.ShowModal() == wx.CANCEL or len(dlg.GetValue().strip()) == 0:
@@ -413,12 +413,12 @@ class ConEditorFrame(GenConEditorFrame):
             self.UploadMainConlist()
 
     # ------------------
-    def OnTopTextUpdated(self, event):        # ConEditorFrame(GenConEditorFrame)
+    def OnTopTextUpdated(self, event):        
         self.Datasource.toptext=self.m_textCtrlTopText.GetValue()
         self.RefreshWindow()
 
     # ------------------
-    def OnClose(self, event):            # ConEditorFrame
+    def OnClose(self, event):            
         if OnCloseHandling(event, self.NeedsSaving(), "The main con list has been updated and not yet saved. Exit anyway?"):
             return
 
