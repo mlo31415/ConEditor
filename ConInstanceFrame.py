@@ -800,24 +800,24 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
     # ------------------
     def OnTextConInstanceName(self, event):
-        self.RefreshWindow()
+        self.RefreshWindow(DontRefreshGrid=True)
 
     # ------------------
     def OnTextConInstanceNameKeyUp(self, event):
         self.ConInstanceFancyURL="fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.tConInstanceName.GetValue().strip())
-        self.RefreshWindow()
+        self.RefreshWindow(DontRefreshGrid=True)
 
     # ------------------
     def OnTextConInstanceFancyURL(self, event):
-        self.RefreshWindow()
+        self.RefreshWindow(DontRefreshGrid=True)
 
     # ------------------
     def OnTopTextComments(self, event):
-        self.RefreshWindow()
+        self.RefreshWindow(DontRefreshGrid=True)
 
     # ------------------
     def OnTextConInstanceCredits(self, event):
-        self.RefreshWindow()
+        self.RefreshWindow(DontRefreshGrid=True)
 
     # ------------------
     def OnRadioFileListFormat(self, event):
