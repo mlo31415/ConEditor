@@ -631,7 +631,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
 
     # ------------------
-    def OnGridCellDoubleClick(self, event):  # ConEditorFrame
+    def OnGridCellDoubleClick(self, event):
         self._grid.OnGridCellDoubleClick(event)
 
         row=event.GetRow()
