@@ -634,13 +634,14 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     def OnGridCellDoubleClick(self, event):
         self._grid.OnGridCellDoubleClick(event)
 
+        # Doubleclicking on and empty cell 0 of a line brings up a popup menu of standard text headings and makes th elink into a text row.
         row=event.GetRow()
         self._PopupInsertTextRow_RowNumber=row
 
         if row > self.Datasource.NumRows:
             return  # We do nothing when you double-click in an empty cell beyond the 1st empty row
         if event.GetCol() > 0:
-            return  # Only on the first column
+            return  # Only doubleclicks on the first column work
         if self._grid.Grid.GetCellValue(row, 0) != "":
             return  # Only of the 1st cell is empty
 
