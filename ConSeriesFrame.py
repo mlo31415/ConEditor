@@ -629,7 +629,6 @@ class ConSeriesFrame(GenConSeriesFrame):
                     self.Datasource.Rows.append(Con())
             self.Datasource.Rows[irow].Name=dlg.ConInstanceName
             self.Datasource.Rows[irow].URL=dlg.ConInstanceName
-            self.RefreshWindow()
 
 
 
