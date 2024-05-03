@@ -24,6 +24,8 @@ from FanzineIssueSpecPackage import FanzineDateRange
 
 
 
+
+
 #####################################################################################
 class ConSeriesFrame(GenConSeriesFrame):
     def __init__(self, basedirFTP, conseriesname, conserieslist, show=True):
@@ -558,8 +560,8 @@ class ConSeriesFrame(GenConSeriesFrame):
             if irow < self.Datasource.NumRows - 1:
                 names[2]=self.Datasource[irow+1][col]   # Name of next convention
             self.EditConInstancePage(names, irow)
-            self._grid.Grid.SelectBlock(irow, col, irow, col)
-            self.RefreshWindow()
+            #self._grid.Grid.SelectBlock(irow, col, irow, col)
+            # self.RefreshWindow()
 
     #------------------
     def OnPopupAllowEditCell(self, event):     
