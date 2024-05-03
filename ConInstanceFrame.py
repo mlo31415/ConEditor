@@ -787,13 +787,9 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 self.conInstanceDeltaTracker.Rename(self.Datasource.Rows[row], originalfname)
         else:
             self._grid.OnGridCellChanged(event)
-            if self.Datasource.Rows[row].IsLinkRow and col == 0:
             textCol, hrefCol=self.Datasource.TextAndHrefCols
             if self.Datasource.Rows[row].IsLinkRow and col == hrefCol:
                 # We do some fiddling with the incoming URLs
-                if not self.Datasource.Rows[row].URL.lower().startswith("http"):
-                    self.Datasource[row][col]="https://"+self.Datasource.Rows[row].URL
-
                 if not self.Datasource.Rows[row].SiteFilename.lower().startswith("http"):
                     self.Datasource[row][col]="https://"+self.Datasource.Rows[row].SiteFilename
             self.RefreshWindow()
