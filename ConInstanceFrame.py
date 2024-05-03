@@ -201,6 +201,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 if len(fn) > 0:
                     conf.SiteFilename=dname
                     conf.SourceFilename=fn
+                    conf.Size=os.path.getsize(conf.SourcePathname)/(1024**2)
                     conf=self.Datasource.Rows[replacerow]
                     newfilename=os.path.join(dlg.GetDirectory(), fn)
                     self.conInstanceDeltaTracker.Replace(conf, conf.SourcePathname)
@@ -328,7 +329,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 if row.Size > 0 or row.Pages > 0:
                     info="<small>("
                     if row.Size > 0:
-                        info+="{:,.1f}".format(row.Size/(1024**2))+'&nbsp;MB'
+                        info+="{:,.1f}".format(row.Size)+'&nbsp;MB'
                     if row.Pages > 0:
                         if row.Size > 0:
                             info+="; "
@@ -394,9 +395,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
                         val=FormatSizes(row)
                         if len(val) > 0:
-                            newtable+='&nbsp;&nbsp;'+val+'\n'
-                        else:
-                            newtable+='&nbsp;&nbsp;(--)\n'
+                            newtable+='&nbsp;&nbsp;'+val
+                        newtable+='\n'
 
                         # Notes
                         if len(row.Notes) > 0:
@@ -573,7 +573,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                         else:
                             m=re.match("^.*?([0-9.]+)", small, re.IGNORECASE)
                             if m is not None:
-                                conf.Size=Int0(m.group(1))
+                                conf.Size=Float0(m.group(1))
 
                         if m is None:
                             LogError(f"DownloadConInstancePage(): Can't decode contents of <small> tag in {row}")

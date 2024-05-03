@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 
-from HelpersPackage import Int0, RemoveAccents
+from HelpersPackage import Int0, Float0, RemoveAccents
 from WxDataGrid import GridDataSource, Color, GridDataRowClass, ColDefinition, ColDefinitionsList, IsEditable
 
 
@@ -31,7 +31,7 @@ class ConFile(GridDataRowClass):
             s+="Display="+self.DisplayTitle+"; "
         if len(self.Notes) > 0:
             s+="Notes="+self.Notes+"; "
-        if Int0(self.Size) > 0:
+        if Float0(self.Size) > 0:
             s+="Size="+str(self.Size)+"; "
         if Int0(self.Pages) > 0:
             s+="Pages="+str(self.Pages)+"; "
@@ -110,10 +110,14 @@ class ConFile(GridDataRowClass):
 
 
     @property
-    def Size(self) -> int:      
+    def Size(self) -> float:
         return self._size
     @Size.setter
-    def Size(self, val: int) -> None:      
+    def Size(self, val: int|float|str) -> None:
+        if isinstance(val, str):
+            val=Float0(val)
+        if val > 500:  # We're looking for a value in MB, but if we get a value in bytess, convert it
+            val=val/(1024**2)
         self._size=val
 
     @property
@@ -143,7 +147,7 @@ class ConFile(GridDataRowClass):
 
 
     # Get or set a value by name or column number in the grid
-    def __getitem__(self, index: int|slice) -> str|int:      
+    def __getitem__(self, index: int|slice) -> str|int|float:
         # (Could use return eval("self."+name))
         if index == 0:
             return self.DisplayTitle
@@ -179,7 +183,7 @@ class ConFile(GridDataRowClass):
                 self.Pages=Int0(value.strip())
             return
         if index == 4:
-            self.Size=value
+            self.Size=Float0(value)
             return
         if index == 5:
             self.Notes=value
