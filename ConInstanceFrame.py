@@ -565,19 +565,12 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                             LogError(f"DownloadConInstancePage(): Can't find <small> tag in {rest}")
                             return False
                         small=small.replace("&nbsp;", " ")
-                        if ";" in small:
-                            m=re.match("^.*?([0-9.]+).*;[^0-9]?([0-9]+)", small, re.IGNORECASE)
-                            if m is not None:
-                                conf.Size=float(m.group(1))
-                                conf.Pages=Int0(m.group(2))
-                        else:
-                            m=re.match("^.*?([0-9.]+)", small, re.IGNORECASE)
-                            if m is not None:
-                                conf.Size=Float0(m.group(1))
-
-                        if m is None:
-                            LogError(f"DownloadConInstancePage(): Can't decode contents of <small> tag in {row}")
-                            return False
+                        m=re.match(".*?([0-9.]+) MB", small, re.IGNORECASE)
+                        if m is not None:
+                            conf.Size=Float0(m.group(1))
+                        m=re.match(".*?([0-9]+) pp", small, re.IGNORECASE)
+                        if m is not None:
+                            conf.Pages=Int0(m.group(1))
 
                     self.Datasource.Rows.append(conf)
 
