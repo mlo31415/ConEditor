@@ -191,8 +191,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 conf.DisplayTitle=dname
                 conf.SiteFilename=dname
                 conf.SourceFilename=fn
-                conf.SourcePathname=os.path.join(dlg.GetDirectory(), fn)
-                conf.Size=os.path.getsize(conf.SourcePathname)
+                conf.SourcePathname=str(os.path.join(dlg.GetDirectory(), fn))
+
                 conf.Pages=GetPdfPageCount(conf.SourcePathname)
                 self.conInstanceDeltaTracker.Add(conf)
                 self.Datasource.Rows.append(conf)
