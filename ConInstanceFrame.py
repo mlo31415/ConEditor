@@ -313,8 +313,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             file=SubstituteHTML(file, "fanac-stuff", self.ConInstanceTopText)
 
             # Fill in the top buttons
-            s="<button onclick=\"window.location.href='https://fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.ConInstanceName)+"'\"> Fancyclopedia 3 </button>&nbsp;&nbsp;"+ \
-            "<button onclick=\"window.location.href='..'\">All "+self._seriesname+"s</button>"
+            s=f"<button onclick=\"window.location.href='https://fancyclopedia.org/{WikiPagenameToWikiUrlname(self.ConInstanceName)}'\"> Fancyclopedia 3 </button>&nbsp;&nbsp;"
+            s+=f"<button onclick=\"window.location.href='../index.html'\">All {self._seriesname}s</button>"
             file=SubstituteHTML(file, "fanac-topbuttons", s)
 
             # If there are missing page counts for pdfs, try to gett hem. (This can eventually be eliminated as there will be no pre-V7 files on the server.)
