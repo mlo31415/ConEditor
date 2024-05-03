@@ -13,7 +13,7 @@ from ConInstanceDeltaTracker import ConInstanceDeltaTracker, UpdateFTPLog
 from FTP import FTP
 from Settings import Settings
 from Log import Log, LogError
-from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText2, WikiPagenameToWikiUrlname, Int0, ExtensionMatches, PyiResourcePath
+from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText2, WikiPagenameToWikiUrlname, Int0, Float0, ExtensionMatches, PyiResourcePath
 from HelpersPackage import FindNextBracketedText, FindLinkInString
 from PDFHelpers import GetPdfPageCount, AddMissingMetadata
 from WxHelpers import OnCloseHandling, ModalDialogManager, ProgressMessage2
