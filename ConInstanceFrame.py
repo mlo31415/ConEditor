@@ -322,7 +322,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
             file=SubstituteHTML(file, "fanac-date", datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST")
             if len(self.Credits.strip()) > 0:
-                file=SubstituteHTML(file, "fanac-credits", self.Credits.strip())    #<p id="randomtext"><small>   +'</small></p>'
+                file=SubstituteHTML(file, "fanac-credits", self.Credits.strip())
 
             def FormatSizes(row) -> str:
                 info=""
