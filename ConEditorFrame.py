@@ -408,7 +408,7 @@ class ConEditorFrame(GenConEditorFrame):
                 self.Datasource.Rows[self._grid.clickedRow].URL="./"+conseriesname+"/index.html"
                 self.Datasource.Rows[self._grid.clickedRow].Name=conseriesname
 
-        self.RefreshWindow()
+
 
     #-------------------
     def OnKeyDown(self, event):            
