@@ -159,6 +159,10 @@ class ConSeriesFrame(GenConSeriesFrame):
             return True
 
 
+    #----------------------------------------------------------------------
+    # Read a row from an HTML table and output a list of cell contents
+    # The input is normally the text bounded by <tr>...</tr>
+    # The cells are all the strings delimited by <delim>...</delim>
     def ReadTableRow(self, row: str, delim="td") -> list[str]:
         rest=row
         out=[]
@@ -173,6 +177,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                 out.append(item)
 
         return out
+
 
     #----------------------------
     # Populate the ConSeriesFrame structure
@@ -242,9 +247,12 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         return True
 
+
     #---------------------
+    # Unpack a conpubs conname from a con instance convention column  which may include a url, the url's text (a name), and some extra material
     # header is of the form <a href=xxxx>yyyy</a>zzzz
     # Generate the Name, URL and extra columns
+    # Reversed by ConNameInfoPack()
     def ConNameInfoUnpack(self, packed: str) -> (str, str, str):
         name=packed
         url=""
@@ -261,6 +269,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
     #---------------------
     # Generate the contents of the Convention column from the Name, URL and extra columns
+    # Reverse of ConNameInfoUnpack()
     def ConNameInfoPack(self, name: str, url: str, extra: str) -> str:
         unpacked=""
         if url == "":
@@ -274,6 +283,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
 
     #-------------------
+    # Upload a con series page to the location specified in the class
     def UploadConSeries(self) -> bool:       
 
         # First read in the template
