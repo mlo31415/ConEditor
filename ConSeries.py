@@ -125,7 +125,7 @@ class ConSeries(GridDataSource):
         GridDataSource.__init__(self)
         self._colDefs: ColDefinitionsList=ColDefinitionsList([
             ColDefinition("Name", Type="text", Width=30, IsEditable=IsEditable.Maybe),
-            ColDefinition("Link", Type="url", Width=30, IsEditable=IsEditable.Yes),
+            ColDefinition("Link", Type="url", Width=30, IsEditable=IsEditable.Maybe),
             ColDefinition("Extra",Type="text", Width=30, IsEditable=IsEditable.Yes),
             ColDefinition("Dates", Type="date range", Width=30),
             ColDefinition("Locale", Width=30),
