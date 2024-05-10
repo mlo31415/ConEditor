@@ -394,6 +394,8 @@ class ConSeriesFrame(GenConSeriesFrame):
                         FTP().Rename(old, new)
 
             pm.Update(f"Upload succeeded: /{self.Seriesname}/index.html", delay=0.5)
+            # Log("UploadConSeries: About to close progress message gadget")
+        # Log("UploadConSeries: Finished uploading ConSeries")
 
         self.MarkAsSaved()      # It was just saved, so unless it's updated again, the dialog can exit without uploading
         self._uploaded=True     # Something's been uploaded
@@ -544,12 +546,14 @@ class ConSeriesFrame(GenConSeriesFrame):
 
 
     #------------------
-    def RefreshWindow(self) -> None:     
+    def RefreshWindow(self) -> None:
+        # Log(f"RefreshWindow: Called: Refreshing {self.Seriesname}")
         self._grid.RefreshWxGridFromDatasource()
+        # Log(f"RefreshWindow: RefreshWxGridFromDatasource() finished")
         self.UpdateNeedsSavingFlag()
         self.bUploadConSeries.Enabled=len(self.Seriesname) > 0
         self.bLoadSeriesFromFancy.Enabled=self.Datasource.NumRows == 0  # If any con instances have been created, don't offer a download from Fancy
-
+        # Log(f"RefreshWindow: Done")
 
     #------------------
     def OnPopupCreateNewConPage(self, event):     
@@ -603,6 +607,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         with ModalDialogManager(ConInstanceDialogClass, self._basedirectoryFTP+"/"+self.Seriesname, self.Seriesname, instanceNames) as dlg:
             dlg.ConInstanceName=instanceNames[1]
 
+            # Log("ModalDialogManager(ConInstanceDialogClass() started")
             # Construct a description of the convention from the information in the con series entry, if any.
             if irow < self.Datasource.NumRows and len(dlg.ConInstanceTopText.strip()) == 0:
                 row=self.Datasource.Rows[irow]
@@ -641,6 +646,8 @@ class ConSeriesFrame(GenConSeriesFrame):
                     self.Datasource.Rows.append(Con())
             self.Datasource.Rows[irow].Name=dlg.ConInstanceName
             self.Datasource.Rows[irow].URL=dlg.ConInstanceName
+
+    # Log("ModalDialogManager(ConInstanceDialogClass() done")
 
 
 
@@ -844,6 +851,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                 names[2]=self.Datasource[irow+1][0]  # Name of next convention
             self.EditConInstancePage(names, irow)
             self.RefreshWindow()
+            # Log("OnGridCellDoubleClick() ending")
 
 
     #-------------------

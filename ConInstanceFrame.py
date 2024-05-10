@@ -4,6 +4,7 @@ import wx
 import os
 import sys
 import re
+# import inspect
 from datetime import datetime
 
 from GenConInstanceFrame import GenConInstanceFrame
@@ -57,7 +58,9 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.SetEscapeId(wx.ID_CANCEL)
 
         self.MarkAsSaved()
+        # Log("ConInstanceDialogClass.__init__(): About to refresh window.")
         self.RefreshWindow()
+        # Log("ConInstanceDialogClass.__init__(): Window refreshed.")
 
 
 
@@ -585,6 +588,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         self.Title="Editing "+self._coninstancename
         self._grid.MakeTextLinesEditable()
+        # Log("DownloadConInstancePage() exit.")
 
 
     # ------------------
@@ -664,22 +668,27 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
     def OnPopupPublications(self, event):
         self.Datasource.Rows[self._PopupInsertTextRow_RowNumber][0]="Publications"
+        # Log("OnPopupPublications(): About to refresh")
         self.RefreshWindow()
 
     def OnPopuplMiscellaneous(self, event):
         self.Datasource.Rows[self._PopupInsertTextRow_RowNumber][0]="Miscellaneous"
+        # Log("OnPopuplMiscellaneous(): About to refresh")
         self.RefreshWindow()
 
     def OnPopupNewsletter(self, event):
         self.Datasource.Rows[self._PopupInsertTextRow_RowNumber][0]="Newsletter"
+        # Log("OnPopupNewsletter(): About to refresh")
         self.RefreshWindow()
 
     def OnPopupPhotosAndVideo(self, event):
         self.Datasource.Rows[self._PopupInsertTextRow_RowNumber][0]="Photos and Videos"
+        # Log("OnPopupPhotosAndVideo(): About to refresh")
         self.RefreshWindow()
 
     def OnPopupConventionReports(self, event):
         self.Datasource.Rows[self._PopupInsertTextRow_RowNumber][0]="Convention Reports"
+        # Log("OnPopupConventionReports(): About to refresh")
         self.RefreshWindow()
 
     # -------------------
@@ -698,6 +707,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     # ------------------
     def OnPopupPaste(self, event):
         self._grid.OnPopupPaste(event)
+        # Log("OnPopupPaste(): About to refresh")
         self.RefreshWindow()
 
     # ------------------
@@ -710,6 +720,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self._grid.Grid.SetCellSize(irow, 0, 1, self._grid.NumCols)
         for icol in range(self._grid.NumCols):
             self._grid.AllowCellEdit(irow, icol)
+
+        # Log("OnPopupInsertText(): About to refresh")
         self.RefreshWindow()
 
     # ------------------
@@ -721,12 +733,15 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.Datasource.Rows[irow].IsLinkRow=True
         for icol in range(self._grid.NumCols):
             self._grid.AllowCellEdit(irow, icol)
+
+        # Log("OnPopupInsertLink(): About to refresh")
         self.RefreshWindow()
 
     # ------------------
     def OnPopupAllowEditCell(self, event):
         # Append a (row, col) tuple. This only lives for the life of this instance.
         self._grid.AllowCellEdit(self._grid.clickedRow, self._grid.clickedColumn)
+        # Log("OnPopupAllowEditCell(): About to refresh")
         self.RefreshWindow()
 
     # ------------------
@@ -752,6 +767,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         for row in self.Datasource.Rows[top:bottom+1]:
             self.conInstanceDeltaTracker.Delete(row)
         self._grid.DeleteRows(top, bottom-top+1)
+        # Log("OnPopupDeleteRow(): About to refresh")
         self.RefreshWindow()
 
 
@@ -774,6 +790,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 newname, _=os.path.splitext(newfname)
                 newfname=newname+oext
                 self.Datasource[row][col]=newfname
+                # Log("OnGridCellChanged(): About to refresh #1")
                 self.RefreshWindow()
 
             if originalfname != newfname:
@@ -785,6 +802,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 # We do some fiddling with the incoming URLs
                 if not self.Datasource.Rows[row].SiteFilename.lower().startswith("http"):
                     self.Datasource[row][col]="https://"+self.Datasource.Rows[row].SiteFilename
+            # Log("OnGridCellChanged(): About to refresh #2")
             self.RefreshWindow()
 
     # ------------------
@@ -822,6 +840,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
     #------------------
     def RefreshWindow(self, DontRefreshGrid: bool=False) -> None:
+        # Log(f"ConInstanceFrame.RefreshWindow({DontRefreshGrid=}) called from {inspect.stack()[2][3]}  called from {inspect.stack()[3][3]}  called from {inspect.stack()[4][3]}")
         if not DontRefreshGrid:
             self._grid.RefreshWxGridFromDatasource()
         self.UpdateNeedsSavingFlag()
