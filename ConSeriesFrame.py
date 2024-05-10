@@ -409,9 +409,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         if self.Seriesname is None or len(self.Seriesname) == 0:
             wx.MessageBox("You must supply a convention series name to upload")
             return
-        wait=wx.BusyCursor()
         self.UploadConSeries()
-        del wait    # End the wait cursor
 
     #--------------------------------------------
     # Given the name of the ConSeries, go to fancy 3 and fetch the con series information and fill in a con seres from it.
