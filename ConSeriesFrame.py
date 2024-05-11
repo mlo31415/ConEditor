@@ -603,7 +603,6 @@ class ConSeriesFrame(GenConSeriesFrame):
 
 
         with ModalDialogManager(ConInstanceDialogClass, self._basedirectoryFTP+"/"+self.Seriesname, self.Seriesname, instanceNames) as dlg:
-            dlg.ConInstanceName=instanceNames[1]
 
             # Log("ModalDialogManager(ConInstanceDialogClass() started")
             # Construct a description of the convention from the information in the con series entry, if any.
@@ -899,9 +898,11 @@ class ConSeriesFrame(GenConSeriesFrame):
                 names[0]=self.Datasource[irow-1][0]  # Name of previous convention
             if irow < self.Datasource.NumRows-1:
                 names[2]=self.Datasource[irow+1][0]  # Name of next convention
-            # We download the page, but don;t actually oprn the dialog.  Then we upload the page which regenerates it.
+            # We download the page, but don't actually open the dialog.  Then we upload the page which regenerates it.
             cif=ConInstanceDialogClass(f"{self._basedirectoryFTP}/{self.Seriesname}", self.Seriesname, names)
-            cif.OnUploadConInstancePage()
+            cif.ConInstanceName=self.Datasource[irow][0]
+            #dlg.ConInstanceFancyURL="fancyclopedia.org/"+WikiPagenameToWikiUrlname(instanceNames[1])
+            cif.UploadConInstancePage()
 
 
 
