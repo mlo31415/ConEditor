@@ -889,7 +889,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
     # ------------------
     def OnRegenerateConPages(self, event):
-        ret=wx.MessageBox("Are you sure you want to regernate this conventions ConInstance pages?", "Are you sure?", wx.OK | wx.CANCEL)
+        ret=wx.MessageBox("Are you sure you want to regenerate this convention sseris's ConInstance pages?", "Are you sure?", wx.OK | wx.CANCEL)
         if ret == wx.CANCEL:
             return
 
