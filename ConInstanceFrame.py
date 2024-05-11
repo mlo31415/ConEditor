@@ -175,7 +175,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         Settings().Put("Last FileDialog directory", dlg.GetDirectory())
 
         for fn in dlg.GetFilenames():
-            conf=ConFile()
+            if len(fn) ==0:
+                continue
 
             # We need to try to make the fn into a somewhat more useful display title.
             # Commonly, file names are prefixed by <conseriesname> <con number/con year>, so we'll remove that if we find it.
@@ -191,24 +192,24 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 dname=m.groups()[0]
 
             if replacerow is None:
-                conf.DisplayTitle=dname
-                conf.SiteFilename=dname
-                conf.SourceFilename=fn
-                conf.SourcePathname=str(os.path.join(dlg.GetDirectory(), fn))
+                conf=ConFile()       # This is a new row
+            else:
+                conf=self.Datasource.Rows[replacerow]       # Update an existing row
 
-                conf.Pages=GetPdfPageCount(conf.SourcePathname)
+            conf.SiteFilename=dname
+            conf.SourceFilename=fn
+            conf.SourcePathname=str(os.path.join(dlg.GetDirectory(), fn))
+            conf.Pages=GetPdfPageCount(conf.SourcePathname)
+            conf.Size=os.path.getsize(conf.SourcePathname)/(1024**2)
+
+            if replacerow is None:
+                conf.DisplayTitle=dname     # Note that we only update the name for a new row.
                 self.conInstanceDeltaTracker.Add(conf)
                 self.Datasource.Rows.append(conf)
             else:
-                # Note that when replacerow is None, the get file dialog was invoked so as to allow only one file to be selected.
-                if len(fn) > 0:
-                    conf.SiteFilename=dname
-                    conf.SourceFilename=fn
-                    conf.Size=os.path.getsize(conf.SourcePathname)/(1024**2)
-                    conf=self.Datasource.Rows[replacerow]
-                    newfilename=os.path.join(dlg.GetDirectory(), fn)
-                    self.conInstanceDeltaTracker.Replace(conf, conf.SourcePathname)
-                    self.Datasource.Rows[replacerow].SourcePathname=newfilename
+                newfilename=os.path.join(dlg.GetDirectory(), fn)
+                self.conInstanceDeltaTracker.Replace(conf, conf.SourcePathname)
+                self.Datasource.Rows[replacerow].SourcePathname=newfilename
 
         dlg.Destroy()
         self.RefreshWindow()
