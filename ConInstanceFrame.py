@@ -307,7 +307,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             Log("Can't read 'Template-ConPage.html'")
             return False
 
-        with ModalDialogManager(ProgressMessage2, f"Uploading /{self._seriesname}/{self._coninstancename}/index.html", parent=self) as pm:
         if pm is None:
             with ModalDialogManager(ProgressMessage2, f"Uploading /{self._seriesname}/{self._coninstancename}/index.html", parent=self) as pm:
                 return self.DoCIPUpload(file, pm)
