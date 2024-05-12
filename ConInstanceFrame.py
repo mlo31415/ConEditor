@@ -33,9 +33,9 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         self._FTPbasedir=basedirFTP
         self._seriesname=seriesname
-        self._coninstancename=coninstancenames[1]
-        self._prevConInstanceName=coninstancenames[0]
-        self._nextConInstanceName=coninstancenames[2]
+        self._coninstancename=instancename
+        self._prevConInstanceName=prevconname
+        self._nextConInstanceName=nextconname
         self._credits=""
 
         self._signature=0
@@ -349,13 +349,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 info+=")</small>"
             return info
 
-            showExtensions=self.radioBoxShowExtensions.GetSelection() != 0
-            def MaybeSuppressPDFExtension(fn: str, suppress: bool) -> str:
-                if suppress:
-                    parts=os.path.splitext(row.DisplayTitle)
-                    if parts[1].lower() in [".pdf", ".jpg", ".png", ".doc", ".docx"]:
-                        fn = parts[0]
-                return fn
         showExtensions=self.radioBoxShowExtensions.GetSelection() != 0
 
         def MaybeSuppressPDFExtension(fn: str, suppress: bool) -> str:
@@ -488,8 +481,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         pm.Update(f"Upload succeeded: /{self._seriesname}/{self._coninstancename}/index.html", delay=0.5)
         return True
-
-
 
 
     #------------------
