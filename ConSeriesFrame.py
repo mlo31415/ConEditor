@@ -53,6 +53,8 @@ class ConSeriesFrame(GenConSeriesFrame):
             conseriesname=dlg.GetValue()
 
         self.Seriesname=conseriesname
+        self._prevConInstanceName: str=""
+        self._nextConInstanceName: str=""
 
         val=Settings().Get("ConSeriesFramePage:Show empty", default=0)      # Default is to show empty slots
         self.m_radioBoxShowEmpty.SetSelection(val)
