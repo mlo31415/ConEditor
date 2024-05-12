@@ -604,7 +604,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         #     instanceName=dlg.GetValue()
 
 
-        with ModalDialogManager(ConInstanceDialogClass, self._basedirectoryFTP+"/"+self.Seriesname, self.Seriesname, instanceNames) as dlg:
+        with ModalDialogManager(ConInstanceDialogClass, self._basedirectoryFTP+"/"+self.Seriesname, self.Seriesname, instanceNames[1], instanceNames[0], instanceNames[2]) as dlg:
 
             # Log("ModalDialogManager(ConInstanceDialogClass() started")
             # Construct a description of the convention from the information in the con series entry, if any.
@@ -670,7 +670,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         if v is None or v == "":
             return  # Bail out if no input  provided
 
-        self._instanceRenameTracker.append((self.Datasource.Rows[irow].Name, v))    # Schedule the rename of the con instance directory on the server
+        self.RenameConInstancePage(self.Datasource.Rows[irow].Name, v)
         self.Datasource.Rows[irow].Name=v
         self.Datasource.Rows[irow].URL=v
         self._grid.RefreshWxGridFromDatasource()
@@ -678,7 +678,23 @@ class ConSeriesFrame(GenConSeriesFrame):
         event.Skip()
 
 
-    #------------------
+    def RenameConInstancePage(self, oldname: str, newname: str) -> None:
+
+        if len(oldname) > 0:
+            if oldname[0:1] == ".." or oldname[0:2] == "/..":
+                Log(f"UploadConSeries(): The old directory name '{oldname}' is not in this directory, so we will not attempt to rename it.")
+
+        with ModalDialogManager(ProgressMessage2(f"Renaming Con instance {oldname} as {newname} on server", parent=self)) as pm:
+            FTP().Rename(oldname, newname)
+
+            # Download and then Upload the Con instance page to update its new name.
+            pm.Update(f"Refreshing '{newname}'")
+            self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname, newname, self._prevConInstanceName, self._nextConInstanceName, pm=pm)
+            # Note that we might want to consider doing the same for the previous and next pages to update the inter-page links...
+
+
+
+#------------------
     # Take an existing con instance and move it to a new con series
     def OnPopupChangeConSeries(self, event):      
         irow=self._grid.clickedRow
@@ -880,7 +896,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             newVal=self._grid.Grid.GetCellValue(irow, icol)
             oldVal=self._Datasource[irow][icol]
             if newVal != oldVal:
-                self._instanceRenameTracker.append((oldVal, newVal))
+                self.RenameConInstancePage(oldVal, newVal)
 
         self._grid.OnGridCellChanged(event)
 
@@ -906,6 +922,10 @@ class ConSeriesFrame(GenConSeriesFrame):
             #dlg.ConInstanceFancyURL="fancyclopedia.org/"+WikiPagenameToWikiUrlname(instanceNames[1])
             cif.UploadConInstancePage()
 
+    def DownloadThenUploadConInstancePage(self, seriespath: str, seriesname: str, instancename: str, prevcon: str, nextcon: str, pm=None):
+        cif=ConInstanceDialogClass(seriespath, seriesname, instancename, prevcon, nextcon, pm=pm)
+        # dlg.ConInstanceFancyURL="fancyclopedia.org/"+WikiPagenameToWikiUrlname(instanceNames[1])
+        cif.UploadConInstancePage(pm=pm)
 
 
     # ------------------
