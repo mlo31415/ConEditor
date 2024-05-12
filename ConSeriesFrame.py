@@ -379,22 +379,6 @@ class ConSeriesFrame(GenConSeriesFrame):
 
             UpdateFTPLog().LogText("Uploaded ConSeries: "+self.Seriesname)
 
-            # It is possible that the user edited some convention instance names.  This breaks the link to the con instance directory because
-            # the names no longer match.
-            # We have the _instanceRenameTracker list which records any such changes.  If it is non-empty, go ahead and do the renames
-            # Note that this is not a perfect solution, since if the user is sufficiently convoluted he can undoubtedly screw it up. It should work for
-            # all simple and most complex cases.
-            if self._instanceRenameTracker:
-                for change in self._instanceRenameTracker:
-                    old=change[0]
-                    if len(old) > 0:
-                        if old[0:1] == ".." or old[0:2] == "/..":
-                            Log(f"UploadConSeries(): The old directory name '{old}' is elsewhere, so we will not attempt to rename it.")
-                            continue
-                        new=change[1]
-                        pm.Update(f"Renaming '{old}' to '{new}' on server.")
-                        FTP().Rename(old, new)
-
             pm.Update(f"Upload succeeded: /{self.Seriesname}/index.html", delay=0.5)
             # Log("UploadConSeries: About to close progress message gadget")
         # Log("UploadConSeries: Finished uploading ConSeries")
