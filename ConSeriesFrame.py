@@ -896,16 +896,15 @@ class ConSeriesFrame(GenConSeriesFrame):
             return
 
         for irow in range(self.Datasource.NumRows):
-            names=[None, self.Datasource[irow][0], None]
+            prevname=None
+            nextname=None
             if irow > 0:
-                names[0]=self.Datasource[irow-1][0]  # Name of previous convention
+                prevname=self.Datasource[irow-1][0]  # Name of previous convention
             if irow < self.Datasource.NumRows-1:
-                names[2]=self.Datasource[irow+1][0]  # Name of next convention
+                nextname=self.Datasource[irow+1][0]  # Name of next convention
             # We download the page, but don't actually open the dialog.  Then we upload the page which regenerates it.
-            cif=ConInstanceDialogClass(f"{self._basedirectoryFTP}/{self.Seriesname}", self.Seriesname, names)
-            cif.ConInstanceName=self.Datasource[irow][0]
-            #dlg.ConInstanceFancyURL="fancyclopedia.org/"+WikiPagenameToWikiUrlname(instanceNames[1])
-            cif.UploadConInstancePage()
+            self.DownloadThenUploadConInstancePage(f"{self._basedirectoryFTP}/{self.Seriesname}", self.Seriesname, self.Datasource[irow][0], prevname, nextname)
+
 
     def DownloadThenUploadConInstancePage(self, seriespath: str, seriesname: str, instancename: str, prevcon: str, nextcon: str, pm=None):
         cif=ConInstanceDialogClass(seriespath, seriesname, instancename, prevcon, nextcon, pm=pm)
