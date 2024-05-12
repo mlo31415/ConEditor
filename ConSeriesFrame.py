@@ -38,7 +38,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         self._signature: int=0
         self._conserieslist=conserieslist
 
-        self._instanceRenameTracker: list[tuple[str,str]]=[]
+        # self._instanceRenameTracker: list[tuple[str,str]]=[]
 
         # Set up the grid
         self._grid: DataGrid=DataGrid(self.gRowGrid)    # Old, New
@@ -514,6 +514,7 @@ class ConSeriesFrame(GenConSeriesFrame):
     def OnLoadSeriesFromFancy(self, event):     
         self.DownloadConSeriesFromFancy(self.tConSeries.GetValue())
 
+
     def DownloadConSeriesFromFancy(self, seriesname: str):     
         self.Seriesname=seriesname
 
@@ -890,7 +891,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
     # ------------------
     def OnRegenerateConPages(self, event):
-        ret=wx.MessageBox("Are you sure you want to regenerate this convention sseris's ConInstance pages?", "Are you sure?", wx.OK | wx.CANCEL)
+        ret=wx.MessageBox("Are you sure you want to regenerate this convention series's ConInstance pages?", "Are you sure?", wx.OK | wx.CANCEL)
         if ret == wx.CANCEL:
             return
 
