@@ -23,7 +23,7 @@ from WxHelpers import OnCloseHandling, ModalDialogManager, ProgressMessage2
 #####################################################################################
 class ConInstanceDialogClass(GenConInstanceFrame):
 
-    def __init__(self, basedirFTP, seriesname: str, instancename: str, prevconname: str, nextconname: str, pm=None):
+    def __init__(self, basedirFTP, seriesname: str, instancename: str, prevconname: str="", nextconname: str="", pm=None):
         GenConInstanceFrame.__init__(self, None)
 
         self._grid: DataGrid=DataGrid(self.gRowGrid)
@@ -54,6 +54,12 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.Datasource.SpecialTextColor=None
 
         self.DownloadConInstancePage(pm=pm)
+
+        # If either the prev or next con name is non-empty, override the downladed value.
+        if prevconname != "":
+            self._prevConInstanceName=prevconname
+        if nextconname != "":
+            self._nextConInstanceName=nextconname
 
         self.SetEscapeId(wx.ID_CANCEL)
 

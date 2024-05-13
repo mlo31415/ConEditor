@@ -674,8 +674,11 @@ class ConSeriesFrame(GenConSeriesFrame):
 
             # Download and then Upload the Con instance page to update its new name.
             pm.Update(f"Refreshing '{newname}'")
-            self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname, newname, self._prevConInstanceName, self._nextConInstanceName, pm=pm)
-            # Note that we might want to consider doing the same for the previous and next pages to update the inter-page links...
+            self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname, newname, pm=pm)
+
+            # Now do the same for the previous and next pages to update the inter-page links.
+            self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname,self._prevConInstanceName, pm=pm)
+            self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname,self._nextConInstanceName, pm=pm)
 
 
 
@@ -903,10 +906,10 @@ class ConSeriesFrame(GenConSeriesFrame):
             if irow < self.Datasource.NumRows-1:
                 nextname=self.Datasource[irow+1][0]  # Name of next convention
             # We download the page, but don't actually open the dialog.  Then we upload the page which regenerates it.
-            self.DownloadThenUploadConInstancePage(f"{self._basedirectoryFTP}/{self.Seriesname}", self.Seriesname, self.Datasource[irow][0], prevname, nextname)
+            self.DownloadThenUploadConInstancePage(f"{self._basedirectoryFTP}/{self.Seriesname}", self.Seriesname, self.Datasource[irow][0], prevcon=prevname, nextcon=nextname)
 
 
-    def DownloadThenUploadConInstancePage(self, seriespath: str, seriesname: str, instancename: str, prevcon: str, nextcon: str, pm=None):
+    def DownloadThenUploadConInstancePage(self, seriespath: str, seriesname: str, instancename: str, prevcon: str="", nextcon: str="", pm=None):
         cif=ConInstanceDialogClass(seriespath, seriesname, instancename, prevcon, nextcon, pm=pm)
         # dlg.ConInstanceFancyURL="fancyclopedia.org/"+WikiPagenameToWikiUrlname(instanceNames[1])
         cif.UploadConInstancePage(pm=pm)
