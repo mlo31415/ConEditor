@@ -43,7 +43,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         # A list of changes to the file stored on the website which will need to be made upon upload.
         self.conInstanceDeltaTracker=ConInstanceDeltaTracker()
 
-        self._uploaded=False    # Has this instance been uploaded? (This is needed to generate the return value from the dialog.)
+        self._downloaded=False  # Has this con instance been successfully downloaed?
+        self._uploaded=False    # Has this con instance been successfully uploaded? (This is needed to generate the return value from the dialog.)
 
         val=Settings().Get("ConInstanceFramePage:File list format", default=1)  # Default value is display as list
         self.radioBoxFileListFormat.SetSelection(val)
@@ -54,6 +55,11 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.Datasource.SpecialTextColor=None
 
         self.DownloadConInstancePage(pm=pm)
+        if not self.DownloadConInstancePage(pm=pm):
+            wx.MessageBox(f"Unable to download ConInstance page {self._FTPbasedir}/{self._coninstancename}/index.html")
+            return
+
+        self._downloaded=True
 
         # If either the prev or next con name is non-empty, override the downladed value.
         if prevconname != "":
@@ -317,6 +323,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             with ModalDialogManager(ProgressMessage2, f"Uploading /{self._seriesname}/{self._coninstancename}/index.html", parent=self) as pm:
                 return self.DoCIPUpload(file, pm)
 
+        pm.Update(f"Uploading /{self._seriesname}/{self._coninstancename}/index.html")
         return self.DoCIPUpload(file, pm)
 
 
@@ -499,8 +506,15 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         ret=False
         if pm is None:
             with (ModalDialogManager(ProgressMessage2, f"Downloading {self._FTPbasedir}/{self._coninstancename}/index.html", parent=self) as pm):
+                if not FTP().FileExists(f"{self._FTPbasedir}/{self._coninstancename}/index.html"):
+                    LogError(f"DownloadConInstancePage(): {self._FTPbasedir}/{self._coninstancename}/index.html not found")
+                    return False
                 ret=self.DoCIPDownload(pm=pm)
         else:
+            pm.Update(f"Downloading {self._FTPbasedir}/{self._coninstancename}/index.html")
+            if not FTP().FileExists(f"{self._FTPbasedir}/{self._coninstancename}/index.html"):
+                LogError(f"DownloadConInstancePage(): {self._FTPbasedir}/{self._coninstancename}/index.html not found")
+                return False
             ret=self.DoCIPDownload(pm=pm)
 
         self.Title="Editing "+self._coninstancename
@@ -510,14 +524,18 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
 
 
+    # ----------------------------------------------
     def DoCIPDownload(self, pm: ProgressMessage2) -> bool:
+        if not self.ValidLocalLink(self._coninstancename):
+            return False
+
         file=FTP().GetFileAsString(f"{self._FTPbasedir}/{self._coninstancename}", "index.html")
         if file is None:
             LogError("DownloadConInstancePage: "+self._FTPbasedir+"/"+self._coninstancename+"/index.html does not exist -- create a new file and upload it")
             # wx.MessageBox(self._FTPbasedir+"/"+self._coninstancename+"/index.html does not exist -- create a new file and upload it")
             return False  # Just return with the ConInstance page empty
 
-        file=file.replace("/n", "")  # I don't know where these are comming from, but they don't belong there!
+        file=file.replace("/n", "")  # I don't know where these are coming from, but they don't belong there!
 
         body, _=FindBracketedText2(file, "body", caseInsensitive=True)
         if body is None:
