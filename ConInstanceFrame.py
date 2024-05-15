@@ -502,6 +502,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.Datasource=ConInstancePage()
 
         # Read the existing CIP
+        # We have two versions, one in which DownloadConInstancePage() is called with a ProgressMessage already showing and one where it must create it
         ret=False
         if pm is None:
             with (ModalDialogManager(ProgressMessage2, f"Downloading {self._FTPbasedir}/{self._coninstancename}/index.html", parent=self) as pm):
