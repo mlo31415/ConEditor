@@ -880,6 +880,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         self._grid.OnPopupPaste(event)
         self.UpdateNeedsSavingFlag()
 
+
     def OnGridCellChanged(self, event):                    
 
         # If we're editing the con instance name, we need to record this so that extra processing ca take place on save
@@ -905,8 +906,8 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         for irow in range(self.Datasource.NumRows):
             # Do nothing in cases with complex names (e.g., extras or differing links)
-            if self.Datasource[irow].Extra != "" or self.Datasource[irow].URL != "":
-                Log(f"OnRegenerateConPages(): Skipping {self.Datasource[irow].Name} because of non-empty extra or URL")
+            if self.Datasource[irow].Extra != "" or self.Datasource[irow].URL != "" and self.Datasource[irow].URL != self.Datasource[irow].Name:
+                Log(f"OnRegenerateConPages(): Skipping {self.Datasource[irow].Name} because of non-empty extra or URL, Name='{self.Datasource[irow].Name}'   Link='{self.Datasource[irow].URL}'  Extra='{self.Datasource[irow].Extra}'")
                 continue
 
             prevname=None
@@ -916,7 +917,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             if irow < self.Datasource.NumRows-1:
                 nextname=self.Datasource[irow+1].Name
             # We download the page, but don't actually open the dialog.  Then we upload the page which regenerates it.
-            self.DownloadThenUploadConInstancePage(f"{self._basedirectoryFTP}/{self.Seriesname}", self.Seriesname, self.Datasource[irow].Name, prevcon=prevname, nextcon=nextname)
+            self.DownloadThenUploadConInstancePage(f"{self._basedirectoryFTP}/{self.Seriesname}", self.Seriesname, self.Datasource[irow].Name, self.Datasource[irow].Name, prevcon=prevname, nextcon=nextname)
 
 
     # ------------------
