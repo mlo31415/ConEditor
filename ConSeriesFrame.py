@@ -677,8 +677,8 @@ class ConSeriesFrame(GenConSeriesFrame):
             self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname, newname, pm=pm)
 
             # Now do the same for the previous and next pages to update the inter-page links.
-            self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname,self._prevConInstanceName, pm=pm)
-            self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname,self._nextConInstanceName, pm=pm)
+            self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname, self._prevConInstanceName, pm=pm)
+            self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname, self._nextConInstanceName, pm=pm)
 
 
 
