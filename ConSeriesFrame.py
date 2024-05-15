@@ -591,6 +591,10 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         with ModalDialogManager(ConInstanceDialogClass, self._basedirectoryFTP+"/"+self.Seriesname, self.Seriesname, instanceNames[1], instanceNames[0], instanceNames[2]) as dlg:
 
+            if not dlg._downloaded:
+                dlg._dlg.EndModal(wx.ID_OK)
+                return
+
             # Log("ModalDialogManager(ConInstanceDialogClass() started")
             # Construct a description of the convention from the information in the con series entry, if any.
             if irow < self.Datasource.NumRows and len(dlg.ConInstanceTopText.strip()) == 0:
@@ -851,8 +855,8 @@ class ConSeriesFrame(GenConSeriesFrame):
             if irow > 0:
                 names[0]=self.Datasource[irow-1].Name
             if irow < self.Datasource.NumRows-1:
-                names[2]=self.Datasource[irow+1][0]  # Name of next convention
                 names[2]=self.Datasource[irow+1].Name
+            #x=self.Datasource.Rows[irow].Name
             self.EditConInstancePage(names, irow)
             self.RefreshWindow()
             # Log("OnGridCellDoubleClick() ending")
@@ -915,8 +919,8 @@ class ConSeriesFrame(GenConSeriesFrame):
             self.DownloadThenUploadConInstancePage(f"{self._basedirectoryFTP}/{self.Seriesname}", self.Seriesname, self.Datasource[irow].Name, prevcon=prevname, nextcon=nextname)
 
 
-    def DownloadThenUploadConInstancePage(self, seriespath: str, seriesname: str, instancename: str, prevcon: str="", nextcon: str="", pm=None):
-        cif=ConInstanceDialogClass(seriespath, seriesname, instancename, prevcon, nextcon, pm=pm)
+    def DownloadThenUploadConInstancePage(self, seriespath: str, seriesname: str, conlink: str, condisplayname: str, prevcon: str="", nextcon: str="", pm=None):
+        cif=ConInstanceDialogClass(seriespath, seriesname, conlink, condisplayname, prevcon, nextcon, pm=pm)
         # dlg.ConInstanceFancyURL="fancyclopedia.org/"+WikiPagenameToWikiUrlname(instanceNames[1])
         cif.UploadConInstancePage(pm=pm)
 
