@@ -121,6 +121,7 @@ class Convention(GridDataRowClass):
     def URL(self, val: str) -> None:
         self._URL=val
 
+    @property
     def IsEmptyRow(self) -> bool:
         return self._name != "" or self._URL != ""
 
