@@ -647,17 +647,17 @@ class ConSeriesFrame(GenConSeriesFrame):
 
 
     #------------------
+    # This can only deal wityh a simple name: To popup menu item should not be enabled for cons with different links or extras
     def OnPopupRenameConInstancePage(self, event):
         irow=self._grid.clickedRow
 
         # We know from the RMB popup item activation rules that cols 0 and 1 are identical and this is a real row.
-        v=wxMessageDialogInput("Enter the new convention instance name.  Note that this will also rename the convention instance's folder on the server.", title="Renaming Convention Instance", initialValue=self.Datasource.Rows[irow].Name, parent=self)
-        if v is None or v == "":
+        newname=wxMessageDialogInput("Enter the new convention instance name.  Note that this will also rename the convention instance's folder on the server.", title="Renaming Convention Instance", initialValue=self.Datasource.Rows[irow].Name, parent=self)
+        if newname is None or newname == "":
             return  # Bail out if no input  provided
-
-        self.RenameConInstancePage(self.Datasource.Rows[irow].Name, v)
-        self.Datasource.Rows[irow].Name=v
-        self.Datasource.Rows[irow].URL=v
+        self.RenameConInstancePage(self.Datasource.Rows[irow].Name, newname)
+        self.Datasource.Rows[irow].Name=newname
+        self.Datasource.Rows[irow].URL=newname
         self._grid.RefreshWxGridFromDatasource()
         self.RefreshWindow()
         event.Skip()
