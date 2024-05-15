@@ -54,7 +54,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         self.Datasource.SpecialTextColor=None
 
-        self.DownloadConInstancePage(pm=pm)
         if not self.DownloadConInstancePage(pm=pm):
             wx.MessageBox(f"Unable to download ConInstance page {self._FTPbasedir}/{self._coninstancename}/index.html")
             return
