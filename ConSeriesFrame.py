@@ -847,11 +847,12 @@ class ConSeriesFrame(GenConSeriesFrame):
             return      # Double-clicking below the bottom means nothing
         if self._grid.clickedColumn == 0:
             irow=event.GetRow()
-            names=[None, self.Datasource[irow][0], None]
+            names=[None, self.Datasource[irow].Name, None]
             if irow > 0:
-                names[0]=self.Datasource[irow-1][0]  # Name of previous convention
+                names[0]=self.Datasource[irow-1].Name
             if irow < self.Datasource.NumRows-1:
                 names[2]=self.Datasource[irow+1][0]  # Name of next convention
+                names[2]=self.Datasource[irow+1].Name
             self.EditConInstancePage(names, irow)
             self.RefreshWindow()
             # Log("OnGridCellDoubleClick() ending")
@@ -902,11 +903,11 @@ class ConSeriesFrame(GenConSeriesFrame):
             prevname=None
             nextname=None
             if irow > 0:
-                prevname=self.Datasource[irow-1][0]  # Name of previous convention
+                prevname=self.Datasource[irow-1].Name
             if irow < self.Datasource.NumRows-1:
-                nextname=self.Datasource[irow+1][0]  # Name of next convention
+                nextname=self.Datasource[irow+1].Name
             # We download the page, but don't actually open the dialog.  Then we upload the page which regenerates it.
-            self.DownloadThenUploadConInstancePage(f"{self._basedirectoryFTP}/{self.Seriesname}", self.Seriesname, self.Datasource[irow][0], prevcon=prevname, nextcon=nextname)
+            self.DownloadThenUploadConInstancePage(f"{self._basedirectoryFTP}/{self.Seriesname}", self.Seriesname, self.Datasource[irow].Name, prevcon=prevname, nextcon=nextname)
 
 
     def DownloadThenUploadConInstancePage(self, seriespath: str, seriesname: str, instancename: str, prevcon: str="", nextcon: str="", pm=None):
