@@ -919,9 +919,12 @@ class ConSeriesFrame(GenConSeriesFrame):
             self.DownloadThenUploadConInstancePage(f"{self._basedirectoryFTP}/{self.Seriesname}", self.Seriesname, self.Datasource[irow].Name, prevcon=prevname, nextcon=nextname)
 
 
+    # ------------------
+    # Download a con instance and then immediately re-upload it.  This will regenerate the page using the latest template and processing.
     def DownloadThenUploadConInstancePage(self, seriespath: str, seriesname: str, conlink: str, condisplayname: str, prevcon: str="", nextcon: str="", pm=None):
+        # Download toa ConInstanceDialogClass, but do not activate it.  Nothing happens visually othe rthan the ProgressMessage being updated.
         cif=ConInstanceDialogClass(seriespath, seriesname, conlink, condisplayname, prevcon, nextcon, pm=pm)
-        # dlg.ConInstanceFancyURL="fancyclopedia.org/"+WikiPagenameToWikiUrlname(instanceNames[1])
+        # nd upload it back
         cif.UploadConInstancePage(pm=pm)
 
 
