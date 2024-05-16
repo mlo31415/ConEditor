@@ -832,6 +832,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             event.Veto()
             return
 
+        # Handle the column "Site Name" specially
         if self.Datasource.ColHeaders[col] == "Site Name":    # Editing the filename on the Conpubs site
             originalfname=self.Datasource[row][col]
             _, oext=os.path.splitext(originalfname)
@@ -847,15 +848,17 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
             if originalfname != newfname:
                 self.conInstanceDeltaTracker.Rename(self.Datasource.Rows[row], originalfname)
-        else:
-            self._grid.OnGridCellChanged(event)
-            textCol, hrefCol=self.Datasource.TextAndHrefCols
-            if self.Datasource.Rows[row].IsLinkRow and col == hrefCol:
-                # We do some fiddling with the incoming URLs
-                if not self.Datasource.Rows[row].SiteFilename.lower().startswith("http"):
-                    self.Datasource[row][col]="https://"+self.Datasource.Rows[row].SiteFilename
-            # Log("OnGridCellChanged(): About to refresh #2")
-            self.RefreshWindow()
+            return
+
+        # All other columns
+        self._grid.OnGridCellChanged(event)
+        textCol, hrefCol=self.Datasource.TextAndHrefCols
+        if self.Datasource.Rows[row].IsLinkRow and col == hrefCol:
+            # We do some fiddling with the incoming URLs
+            if not self.Datasource.Rows[row].SiteFilename.lower().startswith("http"):
+                self.Datasource[row][col]="https://"+self.Datasource.Rows[row].SiteFilename
+        # Log("OnGridCellChanged(): About to refresh #2")
+        self.RefreshWindow()
 
     # ------------------
     def OnGridEditorShown(self, event):
