@@ -592,7 +592,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         with ModalDialogManager(ConInstanceDialogClass, self._basedirectoryFTP+"/"+self.Seriesname, self.Seriesname, instanceNames[1], instanceNames[0], instanceNames[2]) as dlg:
 
             if not dlg._downloaded:
-                dlg._dlg.EndModal(wx.ID_OK)
+                dlg.Destroy()
                 return
 
             # Log("ModalDialogManager(ConInstanceDialogClass() started")
@@ -635,8 +635,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             self.Datasource.Rows[irow].Name=dlg.ConInstanceName
             self.Datasource.Rows[irow].URL=dlg.ConInstanceName
 
-    # Log("ModalDialogManager(ConInstanceDialogClass() done")
-
+        # Log("ModalDialogManager(ConInstanceDialogClass() done")
 
 
     #------------------
