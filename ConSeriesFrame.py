@@ -558,7 +558,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                 names[0]=self.Datasource[irow-1][col]   # Name of previous convention
             if irow < self.Datasource.NumRows - 1:
                 names[2]=self.Datasource[irow+1][col]   # Name of next convention
-            self.EditConInstancePage(names, irow)
+            self.EditConInstancePage(irow, names)
             #self._grid.Grid.SelectBlock(irow, col, irow, col)
             # self.RefreshWindow()
 
@@ -578,7 +578,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         self._grid.OnGridEditorShown(event)
 
     #------------------
-    def EditConInstancePage(self, instanceNames: [str, str, str], irow: int) -> None:     
+    def EditConInstancePage(self, irow: int, instanceNames: [str, str, str]) -> None:
         # instanceNames: [Previous inataance, instance to be edited, next instance] (or None if does not exist_
 
         assert len(instanceNames[1]) > 0
@@ -856,7 +856,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             if irow < self.Datasource.NumRows-1:
                 names[2]=self.Datasource[irow+1].Name
             #x=self.Datasource.Rows[irow].Name
-            self.EditConInstancePage(names, irow)
+            self.EditConInstancePage(irow, names)
             self.RefreshWindow()
             # Log("OnGridCellDoubleClick() ending")
 
