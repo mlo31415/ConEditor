@@ -886,11 +886,20 @@ class ConSeriesFrame(GenConSeriesFrame):
         # If we're editing the con instance name, we need to record this so that extra processing ca take place on save
         irow=event.GetRow()
         icol=event.GetCol()
-        if icol == 1 and irow < self._Datasource.NumRows:
-            newVal=self._grid.Grid.GetCellValue(irow, icol)
-            oldVal=self._Datasource[irow][icol]
-            if newVal != oldVal:
-                self.RenameConInstancePage(oldVal, newVal)
+
+        # If we're renaming the
+        if "Link" in self.Datasource.ColDefs:
+            if icol == self.Datasource.ColDefs.index("Link"):
+                if irow < self._Datasource.NumRows:
+                    newVal=self._grid.Grid.GetCellValue(irow, icol)
+                    oldVal=self._Datasource[irow][icol]
+                    if newVal != oldVal:
+                        self.RenameConInstancePage(oldVal, newVal)
+
+        if "Name" in self.Datasource.ColDefs:
+            if icol == self.Datasource.ColDefs.index("Name"):
+                pass    # Do stuff
+
 
         self._grid.OnGridCellChanged(event)
 
