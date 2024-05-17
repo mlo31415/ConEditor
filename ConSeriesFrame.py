@@ -579,19 +579,30 @@ class ConSeriesFrame(GenConSeriesFrame):
 
     #------------------
     def EditConInstancePage(self, irow: int, instanceNames: [str, str, str]) -> None:
-        # instanceNames: [Previous inataance, instance to be edited, next instance] (or None if does not exist_
 
         assert len(instanceNames[1]) > 0
-        # if len(instanceName) == 0:
-        #     dlg=wx.TextEntryDialog(None, "Please enter the name of the Convention Instance you wish to create.", "Enter Convention Instance name")
-        #     if dlg.ShowModal() == wx.CANCEL or len(dlg.GetValue().strip()) == 0: # Do nothing if the user returns an empty string as name
-        #         return
-        #     instanceName=dlg.GetValue()
+
+        # We have three cases:
+        # Case 1: edit a con that is on the list with an existing page. The URL is filled
+        # Case 2: edit a con that is on the list with no existing page. The URL is blank
+        # Case 3: edit a blank line. No name, no URL
+
+        case=0
+        if irow >= self.Datasource.NumRows:
+            case=3
+        else:
+            row=self.Datasource.Rows[irow]
+            if row.URL == "":
+                case=2
+            else:
+                assert len(row.Name) > 0
+                case=1
 
 
         with ModalDialogManager(ConInstanceDialogClass, self._basedirectoryFTP+"/"+self.Seriesname, self.Seriesname, instanceNames[1], instanceNames[0], instanceNames[2]) as dlg:
 
-            if not dlg._downloaded:
+            if case  == 1 and len(dlg._returnMessage) > 0:
+                wx.MessageBox(dlg._returnMessage)
                 dlg.Destroy()
                 return
 
