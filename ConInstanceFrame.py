@@ -59,8 +59,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             self._returnMessage=f"Unable to download ConInstance page {self._FTPbasedir}/{self._conlink}/index.html"
             return
 
-        self._downloaded=True
-
         # If either the prev or next con name is non-empty, override the downladed value.
         if prevconname != "":
             self._prevConInstanceName=prevconname
