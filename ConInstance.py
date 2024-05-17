@@ -109,6 +109,7 @@ class ConFile(GridDataRowClass):
         self._sitefilename=RemoveAccents(val)
 
 
+    # Size is in MB
     @property
     def Size(self) -> float:
         return self._size
@@ -160,7 +161,7 @@ class ConFile(GridDataRowClass):
                 return ""
             return self.Pages
         if index == 4:
-            return self.Size
+            return f"{self.Size:.1f}"
         if index == 5:
             return self.Notes
         return "Val can't interpret '"+str(index)+"'"
