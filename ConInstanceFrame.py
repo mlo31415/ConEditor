@@ -191,13 +191,11 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             # We need to try to make the fn into a somewhat more useful display title.
             # Commonly, file names are prefixed by <conseriesname> <con number/con year>, so we'll remove that if we find it.
             _, dname=os.path.split(fn)
-            pat=seriesname+"\s*(\'?[0-9]+|[IVXL]+)\s*(.+)"
-            m=re.match(pat, dname, flags=re.IGNORECASE)
+            m=re.match(seriesname+"\s*(\'?[0-9]+|[IVXL]+)\s*(.+)", dname, flags=re.IGNORECASE)
             if m is not None and len(m.groups()) == 2:
                 dname=m.groups()[1]
             # The conventions in the series may also have unique names rather than something like 'conseries 15'
-            pat=self.ConInstanceName+"\s*(.*)"
-            m=re.match(pat, dname, flags=re.IGNORECASE)
+            m=re.match(self.ConInstanceName+"\s*(.*)", dname, flags=re.IGNORECASE)
             if m is not None and len(m.groups()) == 1:
                 dname=m.groups()[0]
 
