@@ -43,7 +43,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         # A list of changes to the file stored on the website which will need to be made upon upload.
         self.conInstanceDeltaTracker=ConInstanceDeltaTracker()
 
-        self._downloaded=False  # Has this con instance been successfully downloaed?
+        self._returnMessage=""  # Error message if download failed
         self._uploaded=False    # Has this con instance been successfully uploaded? (This is needed to generate the return value from the dialog.)
 
         val=Settings().Get("ConInstanceFramePage:File list format", default=1)  # Default value is display as list
@@ -54,8 +54,9 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         self.Datasource.SpecialTextColor=None
 
+
         if not self.DownloadConInstancePage(pm=pm):
-            wx.MessageBox(f"Unable to download ConInstance page {self._FTPbasedir}/{self._coninstancename}/index.html")
+            self._returnMessage=f"Unable to download ConInstance page {self._FTPbasedir}/{self._conlink}/index.html"
             return
 
         self._downloaded=True
