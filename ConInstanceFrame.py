@@ -23,7 +23,7 @@ from WxHelpers import OnCloseHandling, ModalDialogManager, ProgressMessage2
 #####################################################################################
 class ConInstanceDialogClass(GenConInstanceFrame):
 
-    def __init__(self, basedirFTP, seriesname: str, instancename: str, prevconname: str="", nextconname: str="", pm=None):
+    def __init__(self, basedirFTP, seriesname: str, conlink: str, condisplayname: str, prevconname: str= "", nextconname: str= "", pm=None):
         GenConInstanceFrame.__init__(self, None)
 
         self._grid: DataGrid=DataGrid(self.gRowGrid)
@@ -33,7 +33,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         self._FTPbasedir=basedirFTP
         self._seriesname=seriesname
-        self._coninstancename=instancename
+        self._conlink=conlink
+        self._condisplayname=condisplayname
         self._prevConInstanceName=prevconname
         self._nextConInstanceName=nextconname
         self._credits=""
@@ -316,10 +317,10 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             return False
 
         if pm is None:
-            with ModalDialogManager(ProgressMessage2, f"Uploading /{self._seriesname}/{self._coninstancename}/index.html", parent=self) as pm:
+            with ModalDialogManager(ProgressMessage2, f"Uploading /{self._seriesname}/{self._conlink}/index.html", parent=self) as pm:
                 return self.DoCIPUpload(file, pm)
 
-        pm.Update(f"Uploading /{self._seriesname}/{self._coninstancename}/index.html")
+        pm.Update(f"Uploading /{self._seriesname}/{self._conlink}/index.html")
         return self.DoCIPUpload(file, pm)
 
 
@@ -444,19 +445,19 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             nextHTML=f"<button onclick=window.location.href='{url}'>{self._nextConInstanceName}</button>"
         file=SubstituteHTML(file, "fanac-nextCon", nextHTML)
 
-        if not FTP().PutFileAsString("/"+self._seriesname+"/"+self._coninstancename, "index.html", file, create=True):
-            Log("Upload failed: /"+self._seriesname+"/"+self._coninstancename+"/index.html")
-            wx.MessageBox("OnUploadConInstancePage: Upload failed: /"+self._seriesname+"/"+self._coninstancename+"/index.html")
+        if not FTP().PutFileAsString("/"+self._seriesname+"/"+self._conlink, "index.html", file, create=True):
+            Log("Upload failed: /"+self._seriesname+"/"+self._conlink+"/index.html")
+            wx.MessageBox("OnUploadConInstancePage: Upload failed: /"+self._seriesname+"/"+self._conlink+"/index.html")
             return False
 
-        wd="/"+self._seriesname+"/"+self._coninstancename
+        wd="/"+self._seriesname+"/"+self._conlink
         FTP().CWD(wd)
         for delta in self.conInstanceDeltaTracker.Deltas:
             if delta.Verb == "add":
                 pm.Update("Adding "+delta.Con.SourcePathname+" as "+delta.Con.SiteFilename)
                 Log("delta-ADD: "+delta.Con.SourcePathname+" as "+delta.Con.SiteFilename)
                 metadata={
-                    '/Title': self._coninstancename+": "+delta.Con.DisplayTitle.strip().removesuffix(".pdf").removesuffix(".PDF")
+                    '/Title': self._conlink+": "+delta.Con.DisplayTitle.strip().removesuffix(".pdf").removesuffix(".PDF")
                 }
                 AddMissingMetadata(delta.Con.SourcePathname, metadata)
                 FTP().PutFile(delta.Con.SourcePathname, delta.Con.SiteFilename)
@@ -484,11 +485,11 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             else:
                 Log("delta-UNRECOGNIZED: "+str(delta))
 
-        UpdateFTPLog().Log(self._seriesname, self._coninstancename, self.conInstanceDeltaTracker)
+        UpdateFTPLog().Log(self._seriesname, self._conlink, self.conInstanceDeltaTracker)
 
         self.conInstanceDeltaTracker=ConInstanceDeltaTracker()  # The upload is complete. Start tracking changes afresh
 
-        pm.Update(f"Upload succeeded: /{self._seriesname}/{self._coninstancename}/index.html", delay=0.5)
+        pm.Update(f"Upload succeeded: /{self._seriesname}/{self._conlink}/index.html", delay=0.5)
         return True
 
 
@@ -502,19 +503,19 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         # We have two versions, one in which DownloadConInstancePage() is called with a ProgressMessage already showing and one where it must create it
         ret=False
         if pm is None:
-            with (ModalDialogManager(ProgressMessage2, f"Downloading {self._FTPbasedir}/{self._coninstancename}/index.html", parent=self) as pm):
-                if not FTP().FileExists(f"{self._FTPbasedir}/{self._coninstancename}/index.html"):
-                    LogError(f"DownloadConInstancePage(): {self._FTPbasedir}/{self._coninstancename}/index.html not found")
+            with (ModalDialogManager(ProgressMessage2, f"Downloading {self._FTPbasedir}/{self._conlink}/index.html", parent=self) as pm):
+                if not FTP().FileExists(f"{self._FTPbasedir}/{self._conlink}/index.html"):
+                    LogError(f"DownloadConInstancePage(): {self._FTPbasedir}/{self._conlink}/index.html not found")
                     return False
                 ret=self.DoCIPDownload(pm=pm)
         else:
-            pm.Update(f"Downloading {self._FTPbasedir}/{self._coninstancename}/index.html")
-            if not FTP().FileExists(f"{self._FTPbasedir}/{self._coninstancename}/index.html"):
-                LogError(f"DownloadConInstancePage(): {self._FTPbasedir}/{self._coninstancename}/index.html not found")
+            pm.Update(f"Downloading {self._FTPbasedir}/{self._conlink}/index.html")
+            if not FTP().FileExists(f"{self._FTPbasedir}/{self._conlink}/index.html"):
+                LogError(f"DownloadConInstancePage(): {self._FTPbasedir}/{self._conlink}/index.html not found")
                 return False
             ret=self.DoCIPDownload(pm=pm)
 
-        self.Title="Editing "+self._coninstancename
+        self.Title="Editing "+self._conlink
         self._grid.MakeTextLinesEditable()
         # Log("DownloadConInstancePage() exit.")
         return ret
@@ -523,12 +524,12 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
     # ----------------------------------------------
     def DoCIPDownload(self, pm: ProgressMessage2) -> bool:
-        if not self.ValidLocalLink(self._coninstancename):
+        if not self.ValidLocalLink(self._conlink):
             return False
 
-        file=FTP().GetFileAsString(f"{self._FTPbasedir}/{self._coninstancename}", "index.html")
+        file=FTP().GetFileAsString(f"{self._FTPbasedir}/{self._conlink}", "index.html")
         if file is None:
-            LogError("DownloadConInstancePage: "+self._FTPbasedir+"/"+self._coninstancename+"/index.html does not exist -- create a new file and upload it")
+            LogError("DownloadConInstancePage: "+self._FTPbasedir+"/"+self._conlink+"/index.html does not exist -- create a new file and upload it")
             # wx.MessageBox(self._FTPbasedir+"/"+self._coninstancename+"/index.html does not exist -- create a new file and upload it")
             return False  # Just return with the ConInstance page empty
 
@@ -637,7 +638,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 conf.TextLineText=row[1]
                 self.Datasource.Rows.append(conf)
 
-        pm.Update(self._FTPbasedir+"/"+self._coninstancename+"/index.html downloaded", delay=0.5)
+        pm.Update(self._FTPbasedir+"/"+self._conlink+"/index.html downloaded", delay=0.5)
         return True
 
     # ------------------
