@@ -520,7 +520,16 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         # Log("DownloadConInstancePage() exit.")
         return ret
 
+    #----------------------------------------------
+    def ValidLocalLink(self, link: str) -> bool:
+        if link is None or link == "":
+            return False
+        if link[0] == ".":
+            return False
+        if "/" in link:
+            return False
 
+        return True
 
     # ----------------------------------------------
     def DoCIPDownload(self, pm: ProgressMessage2) -> bool:
