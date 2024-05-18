@@ -333,7 +333,7 @@ class ConEditorFrame(GenConEditorFrame):
                 wx.MessageBox("Upload of /index.html failed")
 
             UpdateFTPLog().LogText("Uploaded Main convention list")
-            pm.Update("Upload succeeded.", delayy=0.5)
+            pm.Update("Upload succeeded.", delay=0.5)
 
         self.MarkAsSaved()
         self.RefreshWindow()
