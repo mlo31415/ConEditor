@@ -569,6 +569,9 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         if fanaccredits is None:
             LogError("DownloadConInstancePage(): Can't find <fanac-credits> tag")
             return False
+        m=re.match("^\s*Credits?:?\s*(?:Publications provided by )?(.*?)\s*(<br>)?\s*$", fanaccredits)  # Remove some debris that shows up on older pages.
+        if m is not None:
+            fanaccredits=m.group(1)
         self.tCredits.SetValue(fanaccredits)
 
         rows: list[tuple[str, str]]=[]
