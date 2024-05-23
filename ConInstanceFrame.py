@@ -624,8 +624,16 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     conf.IsLinkRow=True
                     self.Datasource.Rows.append(conf)
                     continue
+                # Strip any view-Fit specs from the end of the URL.  There may be more than one.
+                # They may be of the form
+                #       #view=Fit
+                #       #xxx=yyy&view-Fit
+                # Strategy is to first remove all view=Fit&, then any #view=Fit
+                while "view=fit" in href.lower():
+                    href=re.sub("view=fit&", "", href, count=99, flags=re.IGNORECASE)
+                    href=re.sub("#view=fit", "", href, count=1, flags=re.IGNORECASE)
 
-                # It appears to be an ordiary file like
+                # It appears to be an ordinary file like
                 conf.DisplayTitle=text
                 conf.SiteFilename=href
 
