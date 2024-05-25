@@ -583,8 +583,8 @@ class ConSeriesFrame(GenConSeriesFrame):
         assert len(instanceNames[1]) > 0
 
         # We have three cases:
-        # Case 1: edit a con that is on the list with an existing page. The URL is filled
-        # Case 2: edit a con that is on the list with no existing page. The URL is blank
+        # Case 1: edit a con that is on the list and that has an existing page. The URL is filled
+        # Case 2: edit a con that is on the list but with no existing page. The URL is blank
         # Case 3: edit a blank line. No name, no URL
 
         case=0
