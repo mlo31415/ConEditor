@@ -23,7 +23,7 @@ from WxHelpers import OnCloseHandling, ModalDialogManager, ProgressMessage2
 #####################################################################################
 class ConInstanceDialogClass(GenConInstanceFrame):
 
-    def __init__(self, basedirFTP, seriesname: str, conlink: str, condisplayname: str, prevconname: str= "", nextconname: str= "", pm=None):
+    def __init__(self, basedirFTP, seriesname: str, conlink: str, prevconname: str= "", nextconname: str= "", pm=None):
         GenConInstanceFrame.__init__(self, None)
 
         self._grid: DataGrid=DataGrid(self.gRowGrid)
@@ -34,7 +34,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self._FTPbasedir=basedirFTP
         self._seriesname=seriesname
         self._conlink=conlink
-        self._condisplayname=condisplayname
         self._prevConInstanceName=prevconname
         self._nextConInstanceName=nextconname
         self._credits=""

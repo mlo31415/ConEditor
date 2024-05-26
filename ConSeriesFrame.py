@@ -937,14 +937,14 @@ class ConSeriesFrame(GenConSeriesFrame):
             if irow < self.Datasource.NumRows-1:
                 nextname=self.Datasource[irow+1].Name
             # We download the page, but don't actually open the dialog.  Then we upload the page which regenerates it.
-            self.DownloadThenUploadConInstancePage(f"{self._basedirectoryFTP}/{self.Seriesname}", self.Seriesname, self.Datasource[irow].Name, self.Datasource[irow].Name, prevcon=prevname, nextcon=nextname)
+            self.DownloadThenUploadConInstancePage(f"{self._basedirectoryFTP}/{self.Seriesname}", self.Seriesname, self.Datasource[irow].Name, prevcon=prevname, nextcon=nextname)
 
 
     # ------------------
     # Download a con instance and then immediately re-upload it.  This will regenerate the page using the latest template and processing.
-    def DownloadThenUploadConInstancePage(self, seriespath: str, seriesname: str, conlink: str, condisplayname: str, prevcon: str="", nextcon: str="", pm=None):
+    def DownloadThenUploadConInstancePage(self, seriespath: str, seriesname: str, conlink: str, prevcon: str="", nextcon: str="", pm=None):
         # Download toa ConInstanceDialogClass, but do not activate it.  Nothing happens visually othe rthan the ProgressMessage being updated.
-        cif=ConInstanceDialogClass(seriespath, seriesname, conlink, condisplayname, prevcon, nextcon, pm=pm)
+        cif=ConInstanceDialogClass(seriespath, seriesname, conlink, prevcon, nextcon, pm=pm)
         # nd upload it back
         cif.UploadConInstancePage(pm=pm)
 
