@@ -391,7 +391,7 @@ class ConEditorFrame(GenConEditorFrame):
         self.EditConSeries()
 
     # ------------------
-    def EditConSeries(self):        
+    def EditConSeries(self, IsNewSeries: bool=False):
         if self._grid.clickedRow >= self.Datasource.NumRows:
             self.Datasource.Rows.insert(self._grid.clickedRow, Convention())
             self.RefreshWindow()
@@ -402,6 +402,8 @@ class ConEditorFrame(GenConEditorFrame):
         with ModalDialogManager(ConSeriesFrame, self._baseDirFTP, conseriesname, conserieslist) as dlg:
             if len(dlg.Seriesname.strip()) == 0:  # If the user didn't supply a con series name, we exit and don't show the dialog
                 return
+
+            dlg._isNewSeriesPage=IsNewSeries        # This will prevent attempt to back up non-existent current series file
 
             Log(f"EditConSeries: about to dlg.ShowModal()", Flush=True)
             if dlg.ShowModal() == wx.OK:
@@ -437,7 +439,7 @@ class ConEditorFrame(GenConEditorFrame):
     #------------------
     def OnPopupInsertConSeries(self, event):            
         self.Datasource.Rows.insert(self._grid.clickedRow, Convention())
-        self.EditConSeries()    # clickedRow is set by the RMB clicked event that must have preceeded this.
+        self.EditConSeries(IsNewSeries=True)    # clickedRow is set by the RMB clicked event that must have preceeded this.
         self.RefreshWindow()
 
     # ------------------

@@ -38,7 +38,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         self._signature: int=0
         self._conserieslist=conserieslist
 
-        # self._instanceRenameTracker: list[tuple[str,str]]=[]
+        self._isNewSeriesPage=False     # Must be overridded after class is instantiated if needed
 
         # Set up the grid
         self._grid: DataGrid=DataGrid(self.gRowGrid)    # Old, New
@@ -368,10 +368,11 @@ class ConSeriesFrame(GenConSeriesFrame):
                 Log("UploadConSeries: No series name provided")
                 return False
 
-            # Save the old file as a backup.
-            if not FTP().BackupServerFile(f"/{self.Seriesname}/index.html"):
-                Log(f"UploadConSeries: Could not back up server file /{self.Seriesname}/index.html")
-                return False
+            # If there is an old file, save it as a backup.
+            if not self._isNewSeriesPage:
+                if not FTP().BackupServerFile(f"/{self.Seriesname}/index.html"):
+                    Log(f"UploadConSeries: Could not back up server file /{self.Seriesname}/index.html")
+                    return False
 
             if not FTP().PutFileAsString(f"/{self.Seriesname}", "index.html", file, create=True):
                 wx.MessageBox("Upload failed")
