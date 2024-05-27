@@ -840,7 +840,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                     self.m_popupLinkToOtherConventionInstance.Enabled=True
 
         if (icol == 0 or icol == 1) and irow < self.Datasource.NumRows:
-            if self.Datasource.Rows[irow].Name == self.Datasource.Rows[irow].URL:   # If the names points to a url which is different, this RMB woun;t be useful.
+            if self.Datasource.Rows[irow].Name == self.Datasource.Rows[irow].URL:   # If the name points to a url which is different, this RMB woun't be useful.
                 self.m_popupRenameConInstancePage.Enabled=True      # We only allow renaming if click is on cols 0 or 1
 
         if icol < len(self.Datasource.ColDefs) and self.Datasource.ColDefs[icol].IsEditable == IsEditable.Maybe:
