@@ -421,7 +421,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         del wait  # End the wait cursor
 
         tables=soup.find_all("table", class_="wikitable mw-collapsible")
-        if tables == None or len(tables) == 0:
+        if tables is None or len(tables) == 0:
             msg="fCan't find a table in Fancy 3 page {pageurl}.  Is it possible that its name on Fancy 3 is different?"
             Log(msg)
             self._fancydownloadfailed=True
