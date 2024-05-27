@@ -117,7 +117,7 @@ class ConFile(GridDataRowClass):
     def Size(self, val: int|float|str) -> None:
         if isinstance(val, str):
             val=Float0(val)
-        if val > 500:  # We're looking for a value in MB, but if we get a value in bytess, convert it
+        if val > 500:  # We're looking for a value in MB, but if we get a value in bytes, convert it
             val=val/(1024**2)
         self._size=val
 

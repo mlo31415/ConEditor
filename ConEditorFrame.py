@@ -439,7 +439,7 @@ class ConEditorFrame(GenConEditorFrame):
     #------------------
     def OnPopupInsertConSeries(self, event):            
         self.Datasource.Rows.insert(self._grid.clickedRow, Convention())
-        self.EditConSeries(IsNewSeries=True)    # clickedRow is set by the RMB clicked event that must have preceeded this.
+        self.EditConSeries(IsNewSeries=True)    # clickedRow is set by the RMB clicked event that must have preceded this.
         self.RefreshWindow()
 
     # ------------------
@@ -452,7 +452,7 @@ class ConEditorFrame(GenConEditorFrame):
 
     # ------------------
     def OnPopupEditCon(self, event):            
-        self.EditConSeries()    # clickedRow is set by the RMB clicked event that must have preceeded this.
+        self.EditConSeries()    # clickedRow is set by the RMB clicked event that must have preceded this.
         event.Skip()
 
     # ------------------
