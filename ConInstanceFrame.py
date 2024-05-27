@@ -339,7 +339,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         if len(self.Credits.strip()) > 0:
             file=SubstituteHTML(file, "fanac-credits", self.Credits.strip())
 
-        def FormatSizes(row) -> str:
+        def FormatSizes(row: ConFile) -> str:
             info=""
             if row.Size > 0 or row.Pages > 0:
                 info="<small>("
