@@ -137,10 +137,6 @@ class ConSeriesFrame(GenConSeriesFrame):
         with ModalDialogManager(ProgressMessage2, f"Loading {self.Seriesname}/index.html from fanac.org", parent=self) as pm:
             file=FTP().GetFileAsString("/"+self.Seriesname, "index.html")
 
-            pathname=self.Seriesname+"/index.html"
-            if len(self._basedirectoryFTP) > 0:
-                pathname=self._basedirectoryFTP+"/"+pathname
-
             if file is not None:
                 if not self.LoadConSeriesFromHTML(file):
                     pm.Update(f"{self.Seriesname} Load Failed", delay=0.5)
