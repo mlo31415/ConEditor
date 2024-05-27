@@ -59,7 +59,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             self._returnMessage=f"Unable to download ConInstance page {self._FTPbasedir}/{self._conlink}/index.html"
             return
 
-        # If either the prev or next con name is non-empty, override the downladed value.
+        # If either the prev or next con name is non-empty, override the downloaded value.
         if prevconname != "":
             self._prevConInstanceName=prevconname
         if nextconname != "":
@@ -262,7 +262,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
     def UploadConInstancePage(self, pm=None) -> bool:
         # Delete any trailing empty rows.
-        # Empty rows anywhere are as error, but we only silently drop trailing blank rows. Note that a a blank text row is not an empty row.
+        # Empty rows anywhere are as error, but we only silently drop trailing blank rows. Note that a blank text row is not an empty row.
         # Find the last non-blank row.
         last=None
         for i, row in enumerate(self.Datasource.Rows):
