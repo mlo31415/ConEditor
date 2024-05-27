@@ -67,7 +67,7 @@ def main():
     LogFlush()
 
     app=wx.App(False)
-    frame=ConEditorFrame(None)
+    frame=ConEditorFrame(None)      #Required
 
     app.MainLoop()
     Log("Exit mainloop")
