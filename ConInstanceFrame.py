@@ -285,13 +285,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     Log(f"Missing information in row {i}  {row}")
                     for j in range(self._grid.NumCols):
                         self._grid.SetCellBackgroundColor(i, j, Color.Pink)
-            elif row.IsLinkRow:
-                if len(row.SiteFilename.strip()) == 0  or len(row.DisplayTitle.strip()) == 0:
-                    error=True
-                    Log(f"Missing site filename or display name in row {i}  {row}")
-                    for j in range(self._grid.NumCols):
-                        self._grid.SetCellBackgroundColor(i, j, Color.Pink)
-            else:   # Ordinary row
+            else:   # Ordinary rows and Link rows
                 if len(row.SiteFilename.strip()) == 0 or len(row.DisplayTitle.strip()) == 0:
                     error=True
                     Log(f"Missing sitename, or display name in row {i}  {row}")
@@ -519,20 +513,20 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         # Log("DownloadConInstancePage() exit.")
         return ret
 
-    #----------------------------------------------
-    def ValidLocalLink(self, link: str) -> bool:
-        if link is None or link == "":
-            return False
-        if link[0] == ".":
-            return False
-        if "/" in link:
-            return False
-
-        return True
 
     # ----------------------------------------------
     def DoCIPDownload(self, pm: ProgressMessage2) -> bool:
-        if not self.ValidLocalLink(self._conlink):
+
+        def ValidLocalLink(link: str) -> bool:    # Made a method because it might be reused
+            if link is None or link == "":
+                return False
+            if link[0] == ".":
+                return False
+            if "/" in link:
+                return False
+            return True
+
+        if not ValidLocalLink(self._conlink):
             return False
 
         file=FTP().GetFileAsString(f"{self._FTPbasedir}/{self._conlink}", "index.html")
