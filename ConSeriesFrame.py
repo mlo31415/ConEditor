@@ -18,7 +18,7 @@ from Settings import Settings
 
 from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText2, WikiPagenameToWikiUrlname, UnformatLinks, RemoveAllHTMLTags, RemoveAccents
 from HelpersPackage import FindIndexOfStringInList, PyiResourcePath, MessageBox
-from WxHelpers import ModalDialogManager, ProgressMessage2, OnCloseHandling, MessageBoxInput, wxMessageDialogInput
+from WxHelpers import ModalDialogManager, ProgressMessage2, OnCloseHandling, MessageBoxInput, wxMessageDialogInput, wxMessageBox
 from Log import Log
 from FanzineIssueSpecPackage import FanzineDateRange
 
@@ -874,6 +874,18 @@ class ConSeriesFrame(GenConSeriesFrame):
         # We edit on a double-click to either the Name or Link cell
         if self._grid.clickedColumn in (self.Datasource.ColDefs.index("Name"), self.Datasource.ColDefs.index("Link")):
             irow=event.GetRow()
+            url=self.Datasource[irow].URL
+            if url != "index.html":
+                if url.startswith("../"):
+                    url=url.removeprefix("../")
+                    name="???"
+                    if len(url.split("/")) > 1:
+                        url, name=url.split("/")[0:2]
+                    wxMessageBox(f"The convention '{self.Datasource[irow].Name}' is not located in convention series '{self.Seriesname}'.\n"
+                                 f"Edit instance '{name}' in convention series '{url}'.")
+                    return
+                wxMessageBox(f"Cannot edit {url} since it is not a conpubs directory.")
+                return
             names=[None, self.Datasource[irow].Name, None]
             if irow > 0:
                 names[0]=self.Datasource[irow-1].Name
