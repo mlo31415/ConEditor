@@ -262,6 +262,17 @@ class ConSeriesFrame(GenConSeriesFrame):
             name=m.groups()[1].strip()
             extra=m.groups()[2].strip()
 
+        # If there is no extra found and if name is of the form "xxx (yyy)", set name=xxx and extra=(yyy)
+        if extra == "":
+            m=re.match("(.*)\((.*)\)$", name)
+            if m is not None:
+                if len(m.groups(2)) > 0:
+                    name=m.groups()[0]
+                    extra=f"({m.groups()[1]})"
+
+        if url == f"{name}/index.html" or url == name:
+            url=""
+
         return name, url, extra
 
 
