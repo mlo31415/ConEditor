@@ -271,7 +271,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                     extra=f"({m.groups()[1]})"
 
         if url == f"{name}/index.html" or url == name:
-            url=""
+            url="index.html"
 
         return name, url, extra
 
@@ -280,15 +280,17 @@ class ConSeriesFrame(GenConSeriesFrame):
     # Generate the contents of the Convention column from the Name, URL and extra columns
     # Reverse of ConNameInfoUnpack()
     def ConNameInfoPack(self, name: str, url: str, extra: str) -> str:
-        unpacked=""
+        packed=""
         if url == "":
-            unpacked+=f"{name}"
+            packed+=f"{name}"
+        if url == "index.html":
+            packed+=f'<a href="{name}/index.html">{name}</a>'
         else:
-            unpacked+=f'<a href="{url}">{name}</a>'
+            packed+=f'<a href="{url}">{name}</a>'
         if extra != "":
-            unpacked+=f" {extra}"
+            packed+=f" {extra}"
 
-        return unpacked
+        return packed
 
 
     #-------------------
