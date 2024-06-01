@@ -868,7 +868,9 @@ class ConSeriesFrame(GenConSeriesFrame):
         self._grid.OnGridCellDoubleClick(event)
         if self._grid.clickedRow >= self.Datasource.NumRows:
             return      # Double-clicking below the bottom means nothing
-        if self._grid.clickedColumn == 0:
+
+        # We edit on a double-click to either the Name or Link cell
+        if self._grid.clickedColumn in (self.Datasource.ColDefs.index("Name"), self.Datasource.ColDefs.index("Link")):
             irow=event.GetRow()
             names=[None, self.Datasource[irow].Name, None]
             if irow > 0:
