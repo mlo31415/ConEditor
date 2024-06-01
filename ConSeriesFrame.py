@@ -100,7 +100,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
     @property
     def Seriesname(self) -> str:     
-        return self.tConSeries.GetValue()
+        return self.tConSeries.GetValue().strip()
     @Seriesname.setter
     def Seriesname(self, val: str) -> None:
         self.tConSeries.SetValue(val)
@@ -609,7 +609,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         with ModalDialogManager(ConInstanceDialogClass, self._basedirectoryFTP+"/"+self.Seriesname, self.Seriesname, instanceNames[1], instanceNames[0], instanceNames[2]) as dlg:
 
-            if case  == 1 and len(dlg._returnMessage) > 0:
+            if case == 1 and len(dlg._returnMessage) > 0:
                 wx.MessageBox(dlg._returnMessage)
                 dlg.Destroy()
                 return
@@ -675,6 +675,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         # We know from the RMB popup item activation rules that cols 0 and 1 are identical and this is a real row.
         newname=wxMessageDialogInput("Enter the new convention instance name.  Note that this will also rename the convention instance's folder on the server.", title="Renaming Convention Instance", initialValue=self.Datasource.Rows[irow].Name, parent=self)
+        newname=newname.strip()
         if newname is None or newname == "":
             return  # Bail out if no input  provided
         self.RenameConInstancePage(self.Datasource.Rows[irow].Name, newname)
