@@ -641,7 +641,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                 for i in range(irow-self.Datasource.NumRows+1):
                     self.Datasource.Rows.append(Con())
             self.Datasource.Rows[irow].Name=dlg.ConInstanceName
-            self.Datasource.Rows[irow].URL=dlg.ConInstanceName
+            self.Datasource.Rows[irow].URL=""
 
         # Log("ModalDialogManager(ConInstanceDialogClass() done")
 
