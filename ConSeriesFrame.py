@@ -680,7 +680,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             if oldname[0:1] == ".." or oldname[0:2] == "/..":
                 Log(f"UploadConSeries(): The old directory name '{oldname}' is not in this directory, so we will not attempt to rename it.")
 
-        with ModalDialogManager(ProgressMessage2(f"Renaming Con instance {oldname} as {newname} on server", parent=self)) as pm:
+        with ModalDialogManager(ProgressMessage2, f"Renaming Con instance {oldname} as {newname} on server", parent=self) as pm:
             FTP().Rename(oldname, newname)
 
             # Download and then Upload the Con instance page to update its new name.
@@ -767,7 +767,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
             # Copy the contents of the old con instance directory to the new one
             for file in fileList:
-                pm.UpdateMessage(f"Copying {file}")
+                pm.Update(f"Copying {file}")
                 if not FTP().CopyFile(oldDirPath, newDirPath, file):
                     msg=f"OnPopupChangeConSeries: Failure copying {file} from {oldDirPath} to {newDirPath}\nThis will require hand cleanup."
                     Log(msg, isError=True)
