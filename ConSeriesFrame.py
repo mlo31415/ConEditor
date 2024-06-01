@@ -894,24 +894,49 @@ class ConSeriesFrame(GenConSeriesFrame):
         irow=event.GetRow()
         icol=event.GetCol()
 
-        # If we're renaming the
-        if "Link" in self.Datasource.ColDefs:
-            if icol == self.Datasource.ColDefs.index("Link"):
+        # An edit to the name causes a rename of the page if there is no independent link.  If there is an independent link,
+        # then all that's changed is the display text for the link
+        if icol == self.Datasource.ColDefs.index("Name"):
+            iLinkCol=self.Datasource.ColDefs.index("Link")
+            if iLinkCol != -1 and self.Datasource.Rows[iLinkCol].URL != "":
                 if irow < self._Datasource.NumRows:
                     newVal=self._grid.Grid.GetCellValue(irow, icol)
                     oldVal=self._Datasource[irow][icol]
                     if newVal != oldVal:
                         self.RenameConInstancePage(oldVal, newVal)
+                    self.UpdateNeedsSavingFlag()
+                    return
 
-        if "Name" in self.Datasource.ColDefs:
-            if icol == self.Datasource.ColDefs.index("Name"):
-                pass    # Do stuff
+        if icol == self.Datasource.ColDefs.index("Link"):
+            # We need to convert the input into a URL relative to the current server directory
+            # Is this a link to another conpubs file or is a link outside of conpubs?
+            # Case 1, a relative link
+            #       ../Boskone/Boskone 20/Prohgram Book.pdf
+            #   Display as-is
+            # Case 2, a link copied from a browser
+            #       https://www.fanac.org/conpubs/Con*Stellation/Con*Stellation%20IV:%20Aquarius/Program%20Book.pdf#view=Fit
+            #   Convert this to Case 1 format
+            # Case 3, a link to somewhere else
+            #       http://somewhere.com/dir/file.ext
+            #   Display as-is
+            val=self._grid.Grid.GetCellValue(irow, icol)
+            m=re.match("^https?://(.*)$", val)
+            if m is not None:
+                val=str(m.group(1))     # Remove leading http[s]
+            m=re.match("^(www.)?fanac.org/conpubs/(.*)", val)
+            if m is not None:
+                val=f"../{m.groups()[1]}"    # Remove www.fanac.org/conpubs/
 
+            self._grid.GridCellChangeProcessing(irow, icol, val)
 
-        self._grid.OnGridCellChanged(event)
+            self.UpdateNeedsSavingFlag()
+            return
 
+        val=self._grid.Grid.GetCellValue(irow, icol)
+        self._grid.GridCellChangeProcessing(irow, icol, val)
         self.UpdateNeedsSavingFlag()
-        self.RefreshWindow(StartRow=irow, EndRow=irow, StartCol=icol, EndCol=icol)
+
+
 
 
     # ------------------
