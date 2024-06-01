@@ -445,7 +445,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         headers=[]
         rows=[]
         for bsrow in bsrows:
-            if len(headers) == 0:       #Save the header row separately
+            if len(headers) == 0:       # Save the header row separately
                 heads=bsrow.find_all("th")
                 if len(heads) > 0:
                     for head in heads:
@@ -934,6 +934,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             #   Convert this to Case 1 format
             # Case 3, a link to somewhere else
             #       http://somewhere.com/dir/file.ext
+            #       index.html
             #   Display as-is
             val=self._grid.Grid.GetCellValue(irow, icol)
             m=re.match("^https?://(.*)$", val)
