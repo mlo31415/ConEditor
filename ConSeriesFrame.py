@@ -574,8 +574,16 @@ class ConSeriesFrame(GenConSeriesFrame):
 
     #------------------
     def OnPopupAllowEditCell(self, event):     
-        # Append a (row, col) tuple. This only lives for the life of this instance.
-        self._grid.AllowCellEdit(self._grid.clickedRow, self._grid.clickedColumn)
+        # Append a (row, col) tuple for each cell allowing edit. This only lives for the life of this instance.
+        cb=self._grid.Grid.SelectionBlockBottomRight[0].Col
+        rb=self._grid.Grid.SelectionBlockBottomRight[0].Row
+        ct=self._grid.Grid.SelectionBlockTopLeft[0].Col
+        rt=self._grid.Grid.SelectionBlockTopLeft[0].Row
+        if cb >= ct and rb >= rt and rb >= 0 and cb < self.Datasource.NumCols:
+            for icol in range(ct, cb+1):
+                if self.Datasource.ColDefs[icol].IsEditable == IsEditable.Maybe:
+                    for irow in range(rt, rb+1):
+                        self._grid.AllowCellEdit(irow, icol)
         self.RefreshWindow()
 
     # ------------------
@@ -653,8 +661,8 @@ class ConSeriesFrame(GenConSeriesFrame):
             if self.Datasource.NumRows <= irow:
                 for i in range(irow-self.Datasource.NumRows+1):
                     self.Datasource.Rows.append(Con())
-            self.Datasource.Rows[irow].Name=dlg.ConInstanceName
-            self.Datasource.Rows[irow].URL=""
+            self.Datasource.Rows[irow].Name=dlg.ConInstanceName.strip()
+            self.Datasource.Rows[irow].URL="index.html"
 
         # Log("ModalDialogManager(ConInstanceDialogClass() done")
 
@@ -842,6 +850,13 @@ class ConSeriesFrame(GenConSeriesFrame):
         icol=self._grid.clickedColumn
         irow=self._grid.clickedRow
 
+        cb=event.EventObject.SelectionBlockBottomRight[0].Col
+        rb=event.EventObject.SelectionBlockBottomRight[0].Row
+        ct=event.EventObject.SelectionBlockTopLeft[0].Col
+        rt=event.EventObject.SelectionBlockTopLeft[0].Row
+        if cb >= ct and rb >= rt and rb >= 0 and cb < self.Datasource.NumCols:
+            self.m_popupAllowEditCell.Enabled=True
+
         if icol == 0:      # These popup options work on the 1st column only
             self.m_popupCreateNewConPage.Enabled=True
             if irow < self.Datasource.NumRows:
@@ -857,8 +872,6 @@ class ConSeriesFrame(GenConSeriesFrame):
             if self.Datasource.Rows[irow].Name == self.Datasource.Rows[irow].URL:   # If the name points to a url which is different, this RMB woun't be useful.
                 self.m_popupRenameConInstancePage.Enabled=True      # We only allow renaming if click is on cols 0 or 1
 
-        if icol < len(self.Datasource.ColDefs) and self.Datasource.ColDefs[icol].IsEditable == IsEditable.Maybe:
-            self.m_popupAllowEditCell.Enabled=True
 
         if irow < self.Datasource.NumRows and self.Datasource.Rows[irow].URL is not None and self.Datasource.Rows[irow].URL != "":
             self.m_popupChangeConSeries.Enabled=True    # Enable only for rows that exist and point to a con instance
@@ -893,6 +906,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                 names[2]=self.Datasource[irow+1].Name
             #x=self.Datasource.Rows[irow].Name
             self.EditConInstancePage(irow, names)
+
             self.RefreshWindow()
             # Log("OnGridCellDoubleClick() ending")
 
