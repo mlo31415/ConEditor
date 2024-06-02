@@ -976,7 +976,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         for irow in range(self.Datasource.NumRows):
             # Do nothing in cases with complex names (e.g., extras or differing links)
-            if self.Datasource[irow].Extra != "" or self.Datasource[irow].URL != "" and self.Datasource[irow].URL != self.Datasource[irow].Name:
+            if self.Datasource[irow].URL != "" and self.Datasource[irow].URL != "index.html":
                 Log(f"OnRegenerateConPages(): Skipping {self.Datasource[irow].Name} because of non-empty extra or URL, Name='{self.Datasource[irow].Name}'   Link='{self.Datasource[irow].URL}'  Extra='{self.Datasource[irow].Extra}'")
                 continue
 
