@@ -283,7 +283,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         packed=""
         if url == "":
             packed+=f"{name}"
-        if url == "index.html":
+        elif url == "index.html":
             packed+=f'<a href="{name}/index.html">{name}</a>'
         else:
             packed+=f'<a href="{url}">{name}</a>'
