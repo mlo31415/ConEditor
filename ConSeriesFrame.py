@@ -575,15 +575,22 @@ class ConSeriesFrame(GenConSeriesFrame):
     #------------------
     def OnPopupAllowEditCell(self, event):     
         # Append a (row, col) tuple for each cell allowing edit. This only lives for the life of this instance.
-        cb=self._grid.Grid.SelectionBlockBottomRight[0].Col
-        rb=self._grid.Grid.SelectionBlockBottomRight[0].Row
-        ct=self._grid.Grid.SelectionBlockTopLeft[0].Col
-        rt=self._grid.Grid.SelectionBlockTopLeft[0].Row
-        if cb >= ct and rb >= rt and rb >= 0 and cb < self.Datasource.NumCols:
-            for icol in range(ct, cb+1):
-                if self.Datasource.ColDefs[icol].IsEditable == IsEditable.Maybe:
-                    for irow in range(rt, rb+1):
-                        self._grid.AllowCellEdit(irow, icol)
+        icol=self._grid.clickedColumn
+        irow=self._grid.clickedRow
+        # Have we clicked on a selected block?
+        if len(self._grid.Grid.SelectionBlockBottomRight) > 0 and len(self._grid.Grid.SelectionBlockTopLeft) > 0:
+            cb=self._grid.Grid.SelectionBlockBottomRight[0].Col
+            rb=self._grid.Grid.SelectionBlockBottomRight[0].Row
+            ct=self._grid.Grid.SelectionBlockTopLeft[0].Col
+            rt=self._grid.Grid.SelectionBlockTopLeft[0].Row
+            if cb >= ct and rb >= rt and rb >= 0 and cb < self.Datasource.NumCols:
+                for icol in range(ct, cb+1):
+                    if self.Datasource.ColDefs[icol].IsEditable == IsEditable.Maybe:
+                        for irow in range(rt, rb+1):
+                            self._grid.AllowCellEdit(irow, icol)
+        # RMBed on a single cell?
+        elif icol < len(self.Datasource.ColDefs) and self.Datasource.ColDefs[icol].IsEditable == IsEditable.Maybe:
+            self._grid.AllowCellEdit(irow, icol)
         self.RefreshWindow()
 
     # ------------------
@@ -850,11 +857,14 @@ class ConSeriesFrame(GenConSeriesFrame):
         icol=self._grid.clickedColumn
         irow=self._grid.clickedRow
 
-        cb=event.EventObject.SelectionBlockBottomRight[0].Col
-        rb=event.EventObject.SelectionBlockBottomRight[0].Row
-        ct=event.EventObject.SelectionBlockTopLeft[0].Col
-        rt=event.EventObject.SelectionBlockTopLeft[0].Row
-        if cb >= ct and rb >= rt and rb >= 0 and cb < self.Datasource.NumCols:
+        if len(event.EventObject.SelectionBlockBottomRight) > 0 and len(event.EventObject.SelectionBlockTopLeft) > 0:
+            cb=event.EventObject.SelectionBlockBottomRight[0].Col
+            rb=event.EventObject.SelectionBlockBottomRight[0].Row
+            ct=event.EventObject.SelectionBlockTopLeft[0].Col
+            rt=event.EventObject.SelectionBlockTopLeft[0].Row
+            if cb >= ct and rb >= rt and rb >= 0 and cb < self.Datasource.NumCols:
+                self.m_popupAllowEditCell.Enabled=True
+        elif icol < len(self.Datasource.ColDefs) and self.Datasource.ColDefs[icol].IsEditable == IsEditable.Maybe:
             self.m_popupAllowEditCell.Enabled=True
 
         if icol == 0:      # These popup options work on the 1st column only
