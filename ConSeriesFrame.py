@@ -293,6 +293,22 @@ class ConSeriesFrame(GenConSeriesFrame):
         return packed
 
 
+    # ---------------------
+    # Unpack extra: something like stuff (con name) stuff, and ignore some things that might look like con names but aren't. (E.g., (virtual))
+    # Return first-stuff, con-name, later-stuff.  If no con-name, it's all in first-stuff
+    def UnpackExtra(self, extra: str) -> tuple[str, str, str]:
+        m=re.match(r"^([^()]*)(\(.*?\))?(.*)$", extra)
+        if m is None:
+            return "", "", ""
+        if len(m.groups()) == 3:
+            g2=str(m.groups()[1])
+            if g2.lower() == "(virtual)":    # A Common parenthesized extra that is not a con's name
+                return extra, "", ""
+            return str(m.groups()[0]), g2, str(m.groups()[2])   # m.groups()[n] is some sort of generalized str
+        return extra, "", ""    # No match -- just return
+
+
+
     #-------------------
     # Upload a con series page to the location specified in the class
     def UploadConSeries(self) -> bool:       
@@ -723,96 +739,157 @@ class ConSeriesFrame(GenConSeriesFrame):
 
 
 #------------------
-    # Take an existing con instance and move it to a new con series
+    # Take an existing con instance and move it to a new con series.  This can either be a simple move or a move-and-link
+    # We allow convention xxx in series XXX to be moved to aseries YYY with new name yyy, and the entry in XXX being deleted or renamed with a link to the new location
     def OnPopupChangeConSeries(self, event):      
-        irow=self._grid.clickedRow
-        if irow < 0 or irow >= self.Datasource.NumRows:
-            Log("OnPopupChangeConSeries: bad irow="+str(irow))
+        irowOld=self._grid.clickedRow
+        if irowOld < 0 or irowOld >= self.Datasource.NumRows:
+            Log("OnPopupChangeConSeries: bad irow="+str(irowOld))
             return
+
+        ret=wxMessageBox("Is this a Move-(Maybe-Rename)-and-Link-Back? (No selects a simple Move.)", style=wx.YES_NO)
+        IsMoveAndLink = ret == wx.ID_YES
 
         # Create a popup list dialog to select target con series.  Remove self to prevent user error
         # Do not allow selection of same series
-        conserieslist=[x for x in self._conserieslist if x != self.Seriesname]
-        newSeriesName=""
+        conseriesOld=self.Seriesname
+        conserieslist=[x for x in self._conserieslist if x != conseriesOld]
+        conseriesNew=""
         with wx.SingleChoiceDialog(None, "Pick a convention series to move it to", "Move a Convention", conserieslist) as dialog:
             if wx.ID_OK == dialog.ShowModal():
-                newSeriesName=dialog.GetStringSelection()
+                conseriesNew=dialog.GetStringSelection()
 
-        # Nothing selected -- abort
-        if newSeriesName == "":
+        # Abort the operation if nothing is selected
+        if conseriesNew == "":
             return
 
+        connameOld=self.Datasource.Rows[irowOld].Name
+        connameNew=connameOld
+        connameNewOld=connameOld
+        if IsMoveAndLink:
+            # Ask for the new name of the convention instance
+            connameNew=connameOld
+            ret=MessageBoxInput("Name for Con Instance in new series", "New name for con instance", connameOld)
+            if ret != "":
+                connameNew=ret.strip()
+
+            # Should a renamed link remain in the old convention series?  If no, newoldconname is ""
+            # In the rare case that the old name is retained unchanged, it must still be entered
+            ret=MessageBoxInput("Should a link remain in the old convention series?  If no, return the empty line", "Rename old con instance", connameOld)
+            connameNewOld=ret.strip()
+
         # Ask for confirmation
-        instanceName=self.Datasource.Rows[irow].Name
-        ret=wx.MessageBox(f"Move convention instance '{instanceName}' to new convention series '{newSeriesName}'?", 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
+        query=f"Move convention instance '{connameOld}' to new convention series '{conseriesNew}'"
+
+        if IsMoveAndLink:
+            if connameOld != connameNew:
+                query+=f"   Rename as '{connameNew}' in new con series"
+            if connameNewOld != connameOld:
+                if connameNewOld != "":
+                    query+=f"   and retain a link to it here as '{connameNewOld}'"
+                else:
+                    query+=f"   and remove it from '{conseriesOld}'"
+
+        ret=wx.MessageBox(query, 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
         if ret != wx.OK:
             return
 
-        # Move it
-        # Get list of cons in the move-to (new) series
-        csf=ConSeriesFrame(self._basedirectoryFTP, newSeriesName, conserieslist, show=False)
-        newconlist=[x.Name for x in csf.Datasource.Rows]
+        # We have enough information to do the move and have determined that it is safe to do.
+        # Get a list of con instances in the new con series
+        newConSeriesFrame=ConSeriesFrame(self._basedirectoryFTP, conseriesNew, conserieslist, show=False)
+        newSeriesInstanceNames=[x.Name for x in newConSeriesFrame.Datasource.Rows]
 
-        # The target con instance *directory* must not already exist.
-        newDirPath="/"+newSeriesName+"/"+instanceName
-        if len(self._basedirectoryFTP) > 0:
-            newDirPath=self._basedirectoryFTP+"/"+newDirPath
-        if FTP().PathExists(newDirPath):
-            Log(f"OnPopupChangeConSeries: newDirPath '{newDirPath}' already exists", isError=True)
-            wx.MessageBox(f"OnPopupChangeConSeries: newDirPath '{newDirPath}' already exists. Move can not proceed.", 'Warning', wx.OK|wx.ICON_WARNING)
-            return
-
-        # Find a location in the new con series list for this one to go to -- assume the list is in alphabetic order
-        # Note that this does not check for duplicate con instance names.  That needs to be fixed by hand.
-        loc=len(newconlist)
-        if len(newconlist) == 0:
-            loc=0
-        elif newSeriesName < newconlist[0]:
-            loc=0
+        # Find a location in the new con series where the new con instances will be placed.  Assume the new con series is in alphabetic order by con instance name
+        irowNew=len(newSeriesInstanceNames)
+        if len(newSeriesInstanceNames) == 0:
+            irowNew=0
+        elif connameNew < newSeriesInstanceNames[0]:
+            irowNew=0
         else:
-            for i in range(1, len(newconlist)):
-                if newSeriesName > newconlist[i]:
-                    loc=i
+            for i in range(1, len(newSeriesInstanceNames)):
+                if connameNew > newSeriesInstanceNames[i]:
+                    irowNew=i
                     break
 
         # Insert an empty row there and then copy the old con series data to the new row.
         # (Note that this is just copying the entry in the con series table, not the data it points to.)
-        csf._grid.InsertEmptyRows(loc, 1)
-        csf.Datasource.Rows[loc]=self.Datasource.Rows[irow]
+        # Note that we are editing Datasource and ignoring the grid.  This is OK as long as we don't later start playing with the grid or displaying the series.
+        newConSeriesFrame.Datasource.InsertEmptyRows(irowNew, 1)
+        for i in range(6):    # Copy the old row contents to the new row
+            newConSeriesFrame.Datasource.Rows[irowNew][i]=self.Datasource.Rows[irowOld][i]
 
-        oldDirPath = "/" + self.Seriesname + "/" + instanceName
-        UpdateFTPLog().LogText("Moving '"+instanceName+"' from '"+oldDirPath+"' to '"+newDirPath+"'")
+        oldDirPath = "/" + self.Seriesname + "/" + connameOld
+        if self._basedirectoryFTP != "":
+            oldDirPath=self._basedirectoryFTP+"/"+oldDirPath
 
-        # Copy the con instance directory from the old con series directory to the new con series directory
+        #------------- Now do the copying and renaming --------------
+        # Copy the con instance directory from the old con series directory to the new con series directory, possibly doing some renaming.
 
-        # Create the new con instance directory.
-        with ModalDialogManager(ProgressMessage2, f"Creating {newDirPath} and copying contents to it.", parent=self) as pm:
-            FTP().MKD(newDirPath)
+        # Create the new con instance directory and move the files.
+        dirpathNew="/"+conseriesNew+"/"+connameNew
+        with ModalDialogManager(ProgressMessage2, f"Creating {dirpathNew} and copying '{connameOld}' to it.", parent=self) as pm:
+            UpdateFTPLog().LogText(f"Moving '{connameOld}' from '{oldDirPath}' to '{dirpathNew}' and renaming it '{connameNew}'")
+
+            # The new con instance *directory* must not already exist.
+            if len(self._basedirectoryFTP) > 0:
+                dirpathNew=self._basedirectoryFTP+"/"+dirpathNew
+            if FTP().PathExists(dirpathNew):
+                Log(f"OnPopupChangeConSeries: newDirPath '{dirpathNew}' already exists", isError=True)
+                wx.MessageBox(f"OnPopupChangeConSeries: newDirPath '{dirpathNew}' already exists. Move can not proceed.", 'Warning', wx.OK|wx.ICON_WARNING)
+                return
+
+            FTP().MKD(dirpathNew)
 
             # Make a list of the files in the old con instance directory
-            if self._basedirectoryFTP:
-                oldDirPath=self._basedirectoryFTP+"/"+oldDirPath
             fileList=FTP().Nlst(oldDirPath)
 
             # Copy the contents of the old con instance directory to the new one
             for file in fileList:
                 pm.Update(f"Copying {file}")
-                if not FTP().CopyFile(oldDirPath, newDirPath, file):
-                    msg=f"OnPopupChangeConSeries: Failure copying {file} from {oldDirPath} to {newDirPath}\nThis will require hand cleanup."
+                if not FTP().CopyFile(oldDirPath, dirpathNew, file):
+                    msg=f"OnPopupChangeConSeries: Failure copying {file} from {oldDirPath} to {dirpathNew}\nThis will require hand cleanup."
                     Log(msg, isError=True)
                     wx.MessageBox(msg, 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
                     return
 
+            # If appropriate, rename the convention in both the old and new con series.
+            if not IsMoveAndLink:
+                # All we do is move the entry to the new series (which is complete). It's not renamed, and it's not retained in the old con series list
+                del self.Datasource.Rows[irowOld]
+
+                # Save the old and new con series. Don't upload the modified old series if uploading the new one failed
+                if newConSeriesFrame.UploadConSeries():
+                    self.UploadConSeries()
+                else:
+                    return
+
+                # Finally, delete the old directory
+                FTP().DeleteDir(oldDirPath)
+
+            # It's more complicated...
+            # Is the copied directory's name in the new con series list being changed?
+            if connameNew != connameOld:
+                # The con is being renamed in the new conseries
+                name, url, extra=self.ConNameInfoUnpack(connameNew)
+                self.Datasource.Rows[irowNew].Name=name
+                self.Datasource.Rows[irowNew].URL="index.html"      # The URL of a con instance local to the series is always this
+                self.Datasource.Rows[irowNew].Extra=extra
+# UnpackExtra()
+            # Is the copied directory's name in the old con series being changed?
+            if connameNewOld != connameOld:
+                # A link to the convention is being retained in the old series and needs to be renamed.
+                name, url, extra=self.ConNameInfoUnpack(connameNewOld)
+                self.Datasource.Rows[irowOld].Name=name
+                self.Datasource.Rows[irowOld].URL=f"../{conseriesNew}/{connameNew}/index.html"      # Reference to the new location
+                self.Datasource.Rows[irowOld].Extra=extra
+
+
             # Save the old and new con series. Don't upload the modified old series if uploading the new one failed
-            if csf.UploadConSeries():
-                # Remove the old link and upload
-                self._grid.DeleteRows(irow)
+            if newConSeriesFrame.UploadConSeries():
                 self.UploadConSeries()
             else:
                 return
 
-            # Finally, delete the old directory
-            FTP().DeleteDir(oldDirPath)
 
 
     # ------------------
