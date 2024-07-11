@@ -66,7 +66,7 @@ class Con(GridDataRowClass):
 
     # Get or set a value by name or column number
     #def GetVal(self, name: Union[str, int]) -> Union[str, int, FanzineDateRange]:
-    def __getitem__(self, index: str|int|slice) -> str|int|FanzineDateRange:        
+    def __getitem__(self, index: str|int) -> str|int|FanzineDateRange:
         # (Could use return eval("self."+name))
         if index == "Name" or index == 0:
             return self.Name
@@ -85,7 +85,7 @@ class Con(GridDataRowClass):
         raise IndexError
 
 
-    def __setitem__(self, index: str|int|slice, value: str|int|FanzineDateRange) -> None:        
+    def __setitem__(self, index: str|int, value: str|int|FanzineDateRange) -> None:
         # (Could use return eval("self."+name))
         if index == "Name" or index == 0:
             self.Name=value
