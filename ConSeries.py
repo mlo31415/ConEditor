@@ -97,6 +97,10 @@ class Con(GridDataRowClass):
             self.Extra=value
             return
         if index == "Dates" or index == 3:
+            if isinstance(value, FanzineDateRange):
+                self.Dates=FanzineDateRange()
+                self.Dates.Copy(value)
+                return
             self.Dates=FanzineDateRange().Match(value)
             return
         if index == "Locale" or index == 4:
