@@ -264,7 +264,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         # If there is no extra found and if name is of the form "xxx (yyy)", set name=xxx and extra=(yyy)
         if extra == "":
-            m=re.match("(.*)\((.*)\)$", name)
+            m=re.match(r"(.*)\((.*)\)$", name)
             if m is not None:
                 if len(m.groups(2)) > 0:
                     name=m.groups()[0]
