@@ -28,7 +28,7 @@ from FanzineIssueSpecPackage import FanzineDateRange
 
 #####################################################################################
 class ConSeriesFrame(GenConSeriesFrame):
-    def __init__(self, basedirFTP, conseriesname, conserieslist, show=True):
+    def __init__(self, basedirFTP: str, conseriesname: str, conserieslist: list[str], show: bool=True):
         GenConSeriesFrame.__init__(self, None)
 
         self._basedirectoryFTP: str=basedirFTP
