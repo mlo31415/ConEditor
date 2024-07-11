@@ -7,6 +7,7 @@ from Log import Log
 
 
 ####################################################################################
+# Note that the order of the cells in the row for a ConSeries row is fixed.
 class Con(GridDataRowClass):
     def __init__(self, Name="", Link="", Extra="", Locale="", Dates=None, GoHs="", URL=""):
         self._name: str=Name                  # Name including number designation
