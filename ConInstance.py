@@ -5,7 +5,6 @@ import os
 from HelpersPackage import Int0, Float0, RemoveAccents
 from WxDataGrid import GridDataSource, Color, GridDataRowClass, ColDefinition, ColDefinitionsList, IsEditable
 
-
 # An individual file to be listed under a convention
 # This is a single row
 class ConFile(GridDataRowClass):
@@ -208,7 +207,7 @@ class ConInstancePage(GridDataSource):
         self._colDefs: ColDefinitionsList=ColDefinitionsList([
             ColDefinition("Display Name", Width=75),
             ColDefinition("Source File Name", Width=100, IsEditable=IsEditable.Maybe),
-            ColDefinition("Site Name", Width=75),
+            ColDefinition("Site Name", Type="url", Width=75),
             ColDefinition("Pages", Type="int", IsEditable=IsEditable.Maybe),
             ColDefinition("Size (MB)", Type="float", IsEditable=IsEditable.Maybe),
             ColDefinition("Notes", Width=150)
