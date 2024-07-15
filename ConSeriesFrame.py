@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 import wx, wx._core
+from wx import ID_YES
 import wx.grid
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
@@ -975,27 +976,31 @@ class ConSeriesFrame(GenConSeriesFrame):
         if self._grid.clickedColumn in (self.Datasource.ColDefs.index("Name"), self.Datasource.ColDefs.index("Link")):
             irow=event.GetRow()
             url=self.Datasource[irow].URL
-            if url != "index.html":
-                if url.startswith("../"):
-                    url=url.removeprefix("../")
-                    name="???"
-                    if len(url.split("/")) > 1:
-                        url, name=url.split("/")[0:2]
-                    wxMessageBox(f"The convention '{self.Datasource[irow].Name}' is not located in convention series '{self.Seriesname}'.\n"
-                                 f"Edit instance '{name}' in convention series '{url}'.")
-                    return
-                wxMessageBox(f"Cannot edit {url} since it is not a conpubs directory.")
+            # Is this a link to a con instance in another series?
+            if url.startswith("../"):
+                url=url.removeprefix("../")
+                name="???"
+                if len(url.split("/")) > 1:
+                    url, name=url.split("/")[0:2]
+                wxMessageBox(f"The convention '{self.Datasource[irow].Name}' is not located in convention series '{self.Seriesname}'.\n"
+                             f"Edit instance '{name}' in convention series '{url}'.")
                 return
+            # We need the names of the previous and next con instance to edit or create the next and prev buttons.
             names=[None, self.Datasource[irow].Name, None]
             if irow > 0:
                 names[0]=self.Datasource[irow-1].Name
             if irow < self.Datasource.NumRows-1:
                 names[2]=self.Datasource[irow+1].Name
-            #x=self.Datasource.Rows[irow].Name
+
+            # If we double-click on a line that is not yet linked, allow the user to create one.
+            if url == "":
+                if wx.ID_YES != wxMessageBox(f"No page exists for this convention. Do you wish to create one?", style=wx.YES_NO):
+                    return
+                # We will create a new con instance and populate it from the row.
+
             self.EditConInstancePage(irow, names)
 
             self.RefreshWindow()
-            # Log("OnGridCellDoubleClick() ending")
 
 
     #-------------------
