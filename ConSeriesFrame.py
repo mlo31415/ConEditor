@@ -983,7 +983,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                 if len(url.split("/")) > 1:
                     url, name=url.split("/")[0:2]
                 wxMessageBox(f"The convention '{self.Datasource[irow].Name}' is not located in convention series '{self.Seriesname}'.\n"
-                             f"Edit instance '{name}' in convention series '{url}'.")
+                             f"Edit instance '{name}' in convention series '{unquote(url)}'.")
                 return
             # We need the names of the previous and next con instance to edit or create the next and prev buttons.
             names=[None, self.Datasource[irow].Name, None]
