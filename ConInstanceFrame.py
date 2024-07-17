@@ -33,7 +33,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         self._FTPbasedir=basedirFTP
         self._seriesname=seriesname
-        self.Conlink=conlink
+        self.Conlink=conlink        # The actual name of the con directory on conpubs
         self._prevConInstanceName=prevconname
         self._nextConInstanceName=nextconname
         self._credits=""

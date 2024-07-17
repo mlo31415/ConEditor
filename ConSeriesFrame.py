@@ -981,7 +981,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             if url == "":
                 if wx.ID_YES != wxMessageBox(f"No page exists for this convention. Do you wish to create one?", style=wx.YES_NO):
                     return
-                # We will create a new con instance and populate it from the row.
+                # EditConInstancePage() will create a new con instance and populate it from the row.
 
             self.EditConInstancePage(irow, names)
 
