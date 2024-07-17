@@ -574,20 +574,6 @@ class ConSeriesFrame(GenConSeriesFrame):
         self._grid.AllowCellEdit(irow, 0)   # The default is for the con's name not to be editable, but here we need to make it editable.
         self._grid.RefreshWxGridFromDatasource()
 
-    #------------------
-    def OnPopupEditConPage(self, event):     
-        irow=self._grid.clickedRow
-        # If the RMB is a click on a convention instance name, we edit that name
-        if "Name" in self.Datasource.ColHeaders:
-            col=self.Datasource.ColHeaders.index("Name")
-            names=[None, self.Datasource[irow][col], None]
-            if irow > 0:
-                names[0]=self.Datasource[irow-1][col]   # Name of previous convention
-            if irow < self.Datasource.NumRows - 1:
-                names[2]=self.Datasource[irow+1][col]   # Name of next convention
-            self.EditConInstancePage(irow, names)
-            #self._grid.Grid.SelectBlock(irow, col, irow, col)
-            # self.RefreshWindow()
 
     #------------------
     def OnPopupAllowEditCell(self, event):     
@@ -949,7 +935,6 @@ class ConSeriesFrame(GenConSeriesFrame):
             self.m_popupCreateNewConPage.Enabled=True
             if irow < self.Datasource.NumRows:
                 self.m_popupDeleteConPage.Enabled=True
-                self.m_popupEditConPage.Enabled=True
 
                 if len(self.Datasource.Rows[irow].URL) > 0:   # Only if there's a link in the cell
                     self.m_popupUnlink.Enabled=True

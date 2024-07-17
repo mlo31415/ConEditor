@@ -182,9 +182,6 @@ class GenConSeriesFrame ( wx.Dialog ):
 		self.m_popupRenameConInstancePage = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Rename Convention Instance Page", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_GridPopup.Append( self.m_popupRenameConInstancePage )
 
-		self.m_popupEditConPage = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Edit Convention Page", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_GridPopup.Append( self.m_popupEditConPage )
-
 		self.m_popupAllowEditCell = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Allow Cell Edit", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_GridPopup.Append( self.m_popupAllowEditCell )
 
@@ -224,7 +221,6 @@ class GenConSeriesFrame ( wx.Dialog ):
 		self.Bind( wx.EVT_MENU, self.OnPopupCreateNewConPage, id = self.m_popupCreateNewConPage.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupDeleteConPage, id = self.m_popupDeleteConPage.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupRenameConInstancePage, id = self.m_popupRenameConInstancePage.GetId() )
-		self.Bind( wx.EVT_MENU, self.OnPopupEditConPage, id = self.m_popupEditConPage.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupAllowEditCell, id = self.m_popupAllowEditCell.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupUnlink, id = self.m_popupUnlink.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupChangeConSeries, id = self.m_popupChangeConSeries.GetId() )
@@ -294,9 +290,6 @@ class GenConSeriesFrame ( wx.Dialog ):
 		event.Skip()
 
 	def OnPopupRenameConInstancePage( self, event ):
-		event.Skip()
-
-	def OnPopupEditConPage( self, event ):
 		event.Skip()
 
 	def OnPopupAllowEditCell( self, event ):
