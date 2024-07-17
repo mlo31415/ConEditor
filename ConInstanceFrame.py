@@ -201,11 +201,11 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             # We need to try to make the fn into a somewhat more useful display title.
             # Commonly, file names are prefixed by <year> <conseriesname> <con number/con year>, so we'll remove those if we find them.
             _, dname=os.path.split(fn)
-            m=re.match("\s*[0-9]{0,4}\s*"+seriesname+"\s*(\'?[0-9]+|[IVXL]+|)\s*(.+)$", dname, flags=re.IGNORECASE)
+            m=re.match(r"\s*[0-9]{0,4}\s*"+seriesname+r"\s*(\'?[0-9]+|[IVXL]+|)\s*(.+)$", dname, flags=re.IGNORECASE)
             if m is not None and len(m.groups()) == 2:
                 dname=m.groups()[1]
             # The conventions in the series may also have unique names rather than something like 'conseries 15', so we actually plug in the name
-            m=re.match("\s*[0-9]{0,4}\s*"+self.ConInstanceName+"\s*(.*)$", dname, flags=re.IGNORECASE)
+            m=re.match(r"\s*[0-9]{0,4}\s*"+self.Conlink+r"\s*(.*)$", dname, flags=re.IGNORECASE)
             if m is not None and len(m.groups()) == 1:
                 dname=m.groups()[0]
 
@@ -572,7 +572,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         if fanaccredits is None:
             LogError("DownloadConInstancePage(): Can't find <fanac-credits> tag")
             return False
-        m=re.match("^\s*Credits?:?\s*(?:Publications provided by )?(.*?)\s*(<br>)?\s*$", fanaccredits)  # Remove some debris that shows up on older pages.
+        m=re.match(r"^\s*Credits?:?\s*(?:Publications provided by )?(.*?)\s*(<br>)?\s*$", fanaccredits)  # Remove some debris that shows up on older pages.
         if m is not None:
             fanaccredits=m.group(1)
         self.tCredits.SetValue(fanaccredits)
