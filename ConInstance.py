@@ -268,6 +268,6 @@ class ConInstancePage(GridDataSource):
             return
         if index > len(self.Rows):
             index=len(self.Rows)
-        self.Rows=self.Rows[:index]+[ConFile() for i in range(num)]+self.Rows[index:]
+        self.Rows=self.Rows[:index]+[ConFile() for _ in range(num)]+self.Rows[index:]
 
 

@@ -171,7 +171,7 @@ class ConList(GridDataSource):
             return
         if index > len(self.Rows):
             index=len(self.Rows)
-        self.Rows=self.Rows[:index]+[Convention() for i in range(num)]+self.Rows[index:]
+        self.Rows=self.Rows[:index]+[Convention() for _ in range(num)]+self.Rows[index:]
 
 
 
