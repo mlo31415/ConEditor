@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import re
 import wx, wx._core
-from wx import ID_YES
 import wx.grid
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
