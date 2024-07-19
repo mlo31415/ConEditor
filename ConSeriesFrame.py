@@ -24,8 +24,6 @@ from FanzineIssueSpecPackage import FanzineDateRange
 
 
 
-
-
 #####################################################################################
 class ConSeriesFrame(GenConSeriesFrame):
     def __init__(self, basedirFTP: str, conseriesname: str, conserieslist: list[str], show: bool=True):
@@ -36,7 +34,6 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         self._fancydownloadfailed: bool=False       # If a download from Fancyclopedia was attempted, did it fail? (This will be used to generate the return code)
         self._signature: int=0
-        self._conserieslist=conserieslist
 
         self._isNewSeriesPage=False     # Must be overridden after class is instantiated if needed
 
@@ -53,6 +50,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             conseriesname=dlg.GetValue()
 
         self.Seriesname=conseriesname
+        self._conserieslist=conserieslist
         self._prevConInstanceName: str=""
         self._nextConInstanceName: str=""
 
@@ -605,9 +603,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         self._grid.OnGridEditorShown(event)
 
     #------------------
-    def EditConInstancePage(self, irow: int, instanceNames: [str, str, str]) -> None:
-
-        assert len(instanceNames[1]) > 0
+    def EditConInstancePage(self, irow: int) -> None:
 
         # We have three cases:
         # Case 1: edit a con that is on the list and that has an existing page. The URL is filled
@@ -625,8 +621,16 @@ class ConSeriesFrame(GenConSeriesFrame):
                 assert len(row.Name) > 0
                 case=1
 
+        # We need the names of the previous and next con instance to edit or create the next and prev buttons.
+        conname=self.Datasource[irow].Name
+        prevconname=""
+        if irow > 0:
+            prevconname=self.Datasource[irow-1].Name
+        nextconname=""
+        if irow < self.Datasource.NumRows-1:
+            nextconname=self.Datasource[irow+1].Name
 
-        with ModalDialogManager(ConInstanceDialogClass, self._basedirectoryFTP+"/"+self.Seriesname, self.Seriesname, instanceNames[1], instanceNames[0], instanceNames[2]) as dlg:
+        with ModalDialogManager(ConInstanceDialogClass, self._basedirectoryFTP+"/"+self.Seriesname, self.Seriesname, conname, prevconname, nextconname) as dlg:
 
             if case == 1 and len(dlg._returnMessage) > 0:
                 wx.MessageBox(dlg._returnMessage)
@@ -643,7 +647,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                 locale=None
                 if row.Locale is not None and len(row.Locale) > 0:
                     locale=row.Locale
-                description=instanceNames[1]
+                description=conname
                 if dates is not None and locale is not None:
                     description+=" was held "+dates+" in "+locale+"."
                 elif dates is not None:
@@ -661,8 +665,8 @@ class ConSeriesFrame(GenConSeriesFrame):
                         description+="  The GoH was "+gohs+"."
                 dlg.ConInstanceTopText=description
 
-            dlg.ConInstanceName=instanceNames[1]
-            dlg.ConInstanceFancyURL="fancyclopedia.org/"+WikiPagenameToWikiUrlname(instanceNames[1])
+            dlg.ConInstanceName=conname
+            dlg.ConInstanceFancyURL="fancyclopedia.org/"+WikiPagenameToWikiUrlname(conname)
 
             dlg.MarkAsSaved()
             dlg.RefreshWindow()
@@ -969,12 +973,6 @@ class ConSeriesFrame(GenConSeriesFrame):
                 wxMessageBox(f"The convention '{self.Datasource[irow].Name}' is not located in convention series '{self.Seriesname}'.\n"
                              f"Edit instance '{name}' in convention series '{unquote(url)}'.")
                 return
-            # We need the names of the previous and next con instance to edit or create the next and prev buttons.
-            names=[None, self.Datasource[irow].Name, None]
-            if irow > 0:
-                names[0]=self.Datasource[irow-1].Name
-            if irow < self.Datasource.NumRows-1:
-                names[2]=self.Datasource[irow+1].Name
 
             # If we double-click on a line that is not yet linked, allow the user to create one.
             if url == "":
@@ -982,7 +980,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                     return
                 # EditConInstancePage() will create a new con instance and populate it from the row.
 
-            self.EditConInstancePage(irow, names)
+            self.EditConInstancePage(irow)
 
             self.RefreshWindow()
 
@@ -1064,20 +1062,21 @@ class ConSeriesFrame(GenConSeriesFrame):
         if ret == wx.CANCEL:
             return
 
-        for irow in range(self.Datasource.NumRows):
-            # Do nothing in cases with complex names (e.g., extras or differing links)
-            if self.Datasource[irow].URL != "" and self.Datasource[irow].URL != "index.html":
-                Log(f"OnRegenerateConPages(): Skipping {self.Datasource[irow].Name} because of non-empty extra or URL, Name='{self.Datasource[irow].Name}'   Link='{self.Datasource[irow].URL}'  Extra='{self.Datasource[irow].Extra}'")
-                continue
+        with ModalDialogManager(ProgressMessage2, f"Regenerating all con pages in this con series", parent=self) as pm:
+            for irow in range(self.Datasource.NumRows):
+                # Do nothing in cases with complex names (e.g., extras or differing links)
+                if self.Datasource[irow].URL != "" and self.Datasource[irow].URL != "index.html":
+                    Log(f"OnRegenerateConPages(): Skipping {self.Datasource[irow].Name} because of non-empty extra or URL, Name='{self.Datasource[irow].Name}'   Link='{self.Datasource[irow].URL}'  Extra='{self.Datasource[irow].Extra}'")
+                    continue
 
-            prevname=None
-            nextname=None
-            if irow > 0:
-                prevname=self.Datasource[irow-1].Name
-            if irow < self.Datasource.NumRows-1:
-                nextname=self.Datasource[irow+1].Name
-            # We download the page, but don't actually open the dialog.  Then we upload the page which regenerates it.
-            self.DownloadThenUploadConInstancePage(f"{self._basedirectoryFTP}/{self.Seriesname}", self.Seriesname, self.Datasource[irow].Name, prevcon=prevname, nextcon=nextname)
+                prevname=None
+                nextname=None
+                if irow > 0:
+                    prevname=self.Datasource[irow-1].Name
+                if irow < self.Datasource.NumRows-1:
+                    nextname=self.Datasource[irow+1].Name
+                # We download the page, but don't actually open the dialog.  Then we upload the page which regenerates it.
+                self.DownloadThenUploadConInstancePage(f"{self._basedirectoryFTP}/{self.Seriesname}", self.Seriesname, self.Datasource[irow].Name, prevcon=prevname, nextcon=nextname, pm=pm)
 
 
     # ------------------
@@ -1092,7 +1091,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         if not FTP().BackupServerFile(f"/{seriespath}/{conlink}/index.html"):
             Log(f"UploadConSeries: Could not back up server file {seriespath}/{conlink}/index.html")
             return False
-        cif.UploadConInstancePage(pm=pm)
+        cif.UploadConInstancePage(pm=pm, UploadFiles=False)
 
 
     # ------------------
