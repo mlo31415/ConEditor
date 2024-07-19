@@ -38,7 +38,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         self._signature: int=0
         self._conserieslist=conserieslist
 
-        self._isNewSeriesPage=False     # Must be overridded after class is instantiated if needed
+        self._isNewSeriesPage=False     # Must be overridden after class is instantiated if needed
 
         # Set up the grid
         self._grid: DataGrid=DataGrid(self.gRowGrid)    # Old, New
