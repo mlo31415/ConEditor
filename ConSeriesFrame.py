@@ -568,7 +568,19 @@ class ConSeriesFrame(GenConSeriesFrame):
     def OnPopupCreateNewConPage(self, event):     
         irow=self._grid.clickedRow
         self._grid.Datasource.InsertEmptyRows(irow, 1)
-        self._grid.AllowCellEdit(irow, 0)   # The default is for the con's name not to be editable, but here we need to make it editable.
+        name=MessageBoxInput("Enter name of convention instance to be added.", title="Create a New Convention Instance", Parent=self)
+        if name == "":
+            return
+        # Check to make sure this instance name is not already present.
+        for row in self.Datasource.Rows:
+            if row.URL == name:
+                MessageBox(f"Convention instance {name} already exists in this convention series.")
+                return
+
+        # Add the new instance
+        self.Datasource.Rows[irow].Name=name
+        self.EditConInstancePage(irow, Create=True)
+
         self._grid.RefreshWxGridFromDatasource()
 
 
@@ -603,7 +615,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         self._grid.OnGridEditorShown(event)
 
     #------------------
-    def EditConInstancePage(self, irow: int) -> None:
+    def EditConInstancePage(self, irow: int, Create: bool=False) -> None:
 
         # We have three cases:
         # Case 1: edit a con that is on the list and that has an existing page. The URL is filled
@@ -630,7 +642,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         if irow < self.Datasource.NumRows-1:
             nextconname=self.Datasource[irow+1].Name
 
-        with ModalDialogManager(ConInstanceDialogClass, self._basedirectoryFTP+"/"+self.Seriesname, self.Seriesname, conname, prevconname, nextconname) as dlg:
+        with ModalDialogManager(ConInstanceDialogClass, self._basedirectoryFTP+"/"+self.Seriesname, self.Seriesname, conname, prevconname, nextconname, Create=Create) as dlg:
 
             if case == 1 and len(dlg._returnMessage) > 0:
                 wx.MessageBox(dlg._returnMessage)

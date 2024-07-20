@@ -23,7 +23,7 @@ from WxHelpers import OnCloseHandling, ModalDialogManager, ProgressMessage2
 #####################################################################################
 class ConInstanceDialogClass(GenConInstanceFrame):
 
-    def __init__(self, basedirFTP: str, seriesname: str, conname: str, prevconname: str= "", nextconname: str= "", pm=None):
+    def __init__(self, basedirFTP: str, seriesname: str, conname: str, prevconname: str= "", nextconname: str= "", Create: bool=False, pm=None):
         GenConInstanceFrame.__init__(self, None)
 
         self._grid: DataGrid=DataGrid(self.gRowGrid)
@@ -33,6 +33,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         self._FTPbasedir=basedirFTP
         self._seriesname=seriesname
+        self._prevConInstanceName=""
+        self._nextConInstanceName=""
         self.Conname=conname        # The actual name of the con directory on conpubs
         self._credits=""
 
@@ -52,9 +54,10 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         self.Datasource.SpecialTextColor=None
 
-        if not self.DownloadConInstancePage(pm=pm):
-            self._returnMessage=f"Unable to download ConInstance page {self._FTPbasedir}/{self.Conname}/index.html"
-            return
+        if not Create:
+            if not self.DownloadConInstancePage(pm=pm):
+                self._returnMessage=f"Unable to download ConInstance page {self._FTPbasedir}/{self.Conname}/index.html"
+                return
 
         # The supplied prev or next conname, if non-empty, overrides the downloaded value.
         if prevconname != "":
