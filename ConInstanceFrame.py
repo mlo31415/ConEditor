@@ -611,12 +611,12 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         pbutton, _=FindBracketedText2(body, "fanac-prevCon")
         if pbutton != "":
             pbutton,_=FindBracketedText2(pbutton, "button")
-            if pbutton != "":
+            if pbutton != "" and pbutton != "(first)":
                 self._prevConInstanceName=pbutton
         nbutton, _=FindBracketedText2(body, "fanac-nextCon")
         if nbutton != "":
             nbutton,_=FindBracketedText2(nbutton, "button")
-            if nbutton != "":
+            if nbutton != "" and nbutton != "(last)":
                 self._nextConInstanceName=nbutton
 
         # Now decode the lines
