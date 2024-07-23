@@ -327,6 +327,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         if pm is None:
             with ModalDialogManager(ProgressMessage2, f"Uploading /{self._seriesname}/{self.Conname}/index.html", parent=self) as pm:
                 return self.DoCIPUpload(file, pm, UploadFiles=UploadFiles)
+        else:
+            pm.Update(f"Uploading /{self._seriesname}/{self.Conname}/index.html")
 
         return self.DoCIPUpload(file, pm, UploadFiles=UploadFiles)
 
@@ -334,7 +336,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
     def DoCIPUpload(self, file: str, pm: ProgressMessage2=None, UploadFiles: bool=True) -> bool:
         if pm is not None:
-            pm.Update(f"DoCIPUpload: Preparing {self.Conname} to be uploaded")
+            Log(f"DoCIPUpload: Preparing {self.Conname} to be uploaded")
+            pm.Update(f"Preparing {self.Conname} to be uploaded")
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name is tagged with <fanac-instance>, the random text with "fanac-headertext"
         fancylink=FormatLink("https://fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.Conname), self.Conname)
