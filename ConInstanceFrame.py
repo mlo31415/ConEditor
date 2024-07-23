@@ -44,7 +44,9 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.conInstanceDeltaTracker=ConInstanceDeltaTracker()
 
         self._returnMessage=""  # Error message if download failed
-        self._uploaded=False    # Has this con instance been successfully uploaded? (This is needed to generate the return value from the dialog.)
+        self._uploaded=False    # Has this con instance been successfully uploaded since ut was initialized? (This is needed to generate the return value from the dialog.)
+        self._downloaded=False  # Has this con instance been successfully downloaded?
+        self._valid=False       # Is this a valid ConInstanceDialogClass?
 
         val=Settings().Get("ConInstanceFramePage:File list format", default=1)  # Default value is display as list
         self.radioBoxFileListFormat.SetSelection(val)
@@ -55,7 +57,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.Datasource.SpecialTextColor=None
 
         if not Create:
-            if not self.DownloadConInstancePage(pm=pm):
+            self._downloaded=self.DownloadConInstancePage(pm=pm)
+            if not self._downloaded:
                 self._returnMessage=f"Unable to download ConInstance page {self._FTPbasedir}/{self.Conname}/index.html"
                 return
 
@@ -64,7 +67,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             self._prevConInstanceName=prevconname
         if nextconname != "":
             self._nextConInstanceName=nextconname
-
+        self._valid=True
         self.SetEscapeId(wx.ID_CANCEL)
 
         self.MarkAsSaved()
@@ -264,10 +267,9 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     # This has been pulled out of the OnUploadConInstance() handler so it can also be called to auto update a series of pages
     def OnUploadConInstancePage(self) -> None:
 
-        self.UploadConInstancePage()
-
+        self.Uploaded=self.UploadConInstancePage()
         self.MarkAsSaved()
-        self.Uploaded=True
+
 
 
     def UploadConInstancePage(self, pm: ProgressMessage2=None, UploadFiles: bool=True) -> bool:

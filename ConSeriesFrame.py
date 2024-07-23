@@ -1096,7 +1096,8 @@ class ConSeriesFrame(GenConSeriesFrame):
     def DownloadThenUploadConInstancePage(self, seriespath: str, seriesname: str, conlink: str, prevcon: str="", nextcon: str="", pm=None):
         # Download toa ConInstanceDialogClass, but do not activate it.  Nothing happens visually othe rthan the ProgressMessage being updated.
         cif=ConInstanceDialogClass(seriespath, seriesname, conlink, prevcon, nextcon, pm=pm)
-        if not cif.Uploaded:
+        if not cif._valid:
+            Log(f"DownloadThenUploadConInstancePage(): cif not loaded.")
             return False
 
         # And upload it back
