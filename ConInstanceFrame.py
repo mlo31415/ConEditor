@@ -33,8 +33,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         self._FTPbasedir=basedirFTP
         self._seriesname=seriesname
-        self._prevConInstanceName=""
-        self._nextConInstanceName=""
+        self._prevConInstanceName=prevconname
+        self._nextConInstanceName=nextconname
         self.Conname=conname        # The actual name of the con directory on conpubs
         self._credits=""
 
@@ -62,11 +62,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 self._returnMessage=f"Unable to download ConInstance page {self._FTPbasedir}/{self.Conname}/index.html"
                 return
 
-        # The supplied prev or next conname, if non-empty, overrides the downloaded value.
-        if prevconname != "":
-            self._prevConInstanceName=prevconname
-        if nextconname != "":
-            self._nextConInstanceName=nextconname
         self._valid=True
         self.SetEscapeId(wx.ID_CANCEL)
 

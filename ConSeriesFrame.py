@@ -636,10 +636,10 @@ class ConSeriesFrame(GenConSeriesFrame):
         # We need the names of the previous and next con instance to edit or create the next and prev buttons.
         conname=self.Datasource[irow].Name
         prevconname=""
-        if irow > 0:
+        if irow > 0 and self.Datasource[irow-1].URL != "":  # If the previous con instance does not exist, the prev button will be nonfunctional
             prevconname=self.Datasource[irow-1].Name
         nextconname=""
-        if irow < self.Datasource.NumRows-1:
+        if irow+1 < self.Datasource.NumRows and self.Datasource[irow+1].URL != "":  # If the next con instance does not exist, the next button will be nonfunctional
             nextconname=self.Datasource[irow+1].Name
 
         with ModalDialogManager(ConInstanceDialogClass, self._basedirectoryFTP+"/"+self.Seriesname, self.Seriesname, conname, prevconname, nextconname, Create=Create) as dlg:
@@ -1081,11 +1081,11 @@ class ConSeriesFrame(GenConSeriesFrame):
                     Log(f"OnRegenerateConPages(): Skipping {self.Datasource[irow].Name} because of non-empty extra or URL, Name='{self.Datasource[irow].Name}'   Link='{self.Datasource[irow].URL}'  Extra='{self.Datasource[irow].Extra}'")
                     continue
 
-                prevname=None
-                nextname=None
-                if irow > 0:
+                prevname=""
+                nextname=""
+                if irow > 0 and self.Datasource[irow-1].URL != "":  # If the previous con instance does not exist, the prev button will be nonfunctional
                     prevname=self.Datasource[irow-1].Name
-                if irow < self.Datasource.NumRows-1:
+                if irow+1 < self.Datasource.NumRows and self.Datasource[irow+1].URL != "":  # If the next con instance does not exist, the next button will be nonfunctional
                     nextname=self.Datasource[irow+1].Name
                 # We download the page, but don't actually open the dialog.  Then we upload the page which regenerates it.
                 self.DownloadThenUploadConInstancePage(f"{self._basedirectoryFTP}/{self.Seriesname}", self.Seriesname, self.Datasource[irow].Name, prevcon=prevname, nextcon=nextname, pm=pm)
@@ -1104,6 +1104,10 @@ class ConSeriesFrame(GenConSeriesFrame):
         if not FTP().BackupServerFile(f"/{seriespath}/{conlink}/index.html"):
             Log(f"UploadConSeries: Could not back up server file {seriespath}/{conlink}/index.html")
             return False
+
+        # Override any value read from the server, since they will need to be updated.
+        self._prevConInstanceName=prevcon
+        self._nextConInstanceName=nextcon
         cif.UploadConInstancePage(pm=pm, UploadFiles=False)
 
 
