@@ -159,7 +159,8 @@ class ConSeriesFrame(GenConSeriesFrame):
     # Read a row from an HTML table and output a list of cell contents
     # The input is normally the text bounded by <tr>...</tr>
     # The cells are all the strings delimited by <delim>...</delim>
-    def ReadTableRow(self, row: str, delim="td") -> list[str]:
+    @staticmethod
+    def ReadTableRow(row: str, delim="td") -> list[str]:
         rest=row
         out=[]
         while True:
@@ -213,7 +214,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             Log(f"DecodeConSeriesHTML(): failed to find the <thead> tags in the body")
             return False
         # Find the column headings
-        headers=self.ReadTableRow(header, "th")
+        headers=ConSeriesFrame.ReadTableRow(header, "th")
 
         # Now read the rows
         rows=[]
@@ -249,7 +250,8 @@ class ConSeriesFrame(GenConSeriesFrame):
     # header is of the form <a href=xxxx>yyyy</a>zzzz
     # Generate the Name, URL and extra columns
     # Reversed by ConNameInfoPack()
-    def ConNameInfoUnpack(self, packed: str) -> (str, str, str):
+    @staticmethod
+    def ConNameInfoUnpack(packed: str) -> (str, str, str):
         name=packed
         url=""
         extra=""
@@ -277,7 +279,8 @@ class ConSeriesFrame(GenConSeriesFrame):
     #---------------------
     # Generate the contents of the Convention column from the Name, URL and extra columns
     # Reverse of ConNameInfoUnpack()
-    def ConNameInfoPack(self, name: str, url: str, extra: str) -> str:
+    @staticmethod
+    def ConNameInfoPack(name: str, url: str, extra: str) -> str:
         packed=""
         if url == "":
             packed+=f"{name}"
@@ -294,7 +297,8 @@ class ConSeriesFrame(GenConSeriesFrame):
     # ---------------------
     # Unpack extra: something like stuff (con name) stuff, and ignore some things that might look like con names but aren't. (E.g., (virtual))
     # Return first-stuff, con-name, later-stuff.  If no con-name, it's all in first-stuff
-    def UnpackExtra(self, extra: str) -> tuple[str, str, str]:
+    @staticmethod
+    def UnpackExtra(extra: str) -> tuple[str, str, str]:
         m=re.match(r"^([^()]*)(\(.*?\))?(.*)$", extra)
         if m is None:
             return "", "", ""
@@ -304,7 +308,6 @@ class ConSeriesFrame(GenConSeriesFrame):
                 return extra, "", ""
             return str(m.groups()[0]), g2, str(m.groups()[2])   # m.groups()[n] is some sort of generalized str
         return extra, "", ""    # No match -- just return
-
 
 
     #-------------------
@@ -367,7 +370,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                 newtable+="    <tr>\n"
 
                 # Generate the first column from the name, url and extra
-                newtable+=f"    <td>{self.ConNameInfoPack(row.Name, row.URL, row.Extra)}</td>\n"
+                newtable+=f"    <td>{ConSeriesFrame.ConNameInfoPack(row.Name, row.URL, row.Extra)}</td>\n"
 
                 # And the rest
                 if hasdates:
@@ -872,7 +875,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             # Is the copied directory's name in the new con series list being changed?
             if connameNew != connameOld:
                 # The con is being renamed in the new conseries
-                name, url, extra=self.ConNameInfoUnpack(connameNew)
+                name, url, extra=ConSeriesFrame.ConNameInfoUnpack(connameNew)
                 self.Datasource.Rows[irowNew].Name=name
                 self.Datasource.Rows[irowNew].URL="index.html"      # The URL of a con instance local to the series is always this
                 self.Datasource.Rows[irowNew].Extra=extra
@@ -880,7 +883,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             # Is the copied directory's name in the old con series being changed?
             if connameNewOld != connameOld:
                 # A link to the convention is being retained in the old series and needs to be renamed.
-                name, url, extra=self.ConNameInfoUnpack(connameNewOld)
+                name, url, extra=ConSeriesFrame.ConNameInfoUnpack(connameNewOld)
                 self.Datasource.Rows[irowOld].Name=name
                 self.Datasource.Rows[irowOld].URL=f"../{conseriesNew}/{connameNew}/index.html"      # Reference to the new location
                 self.Datasource.Rows[irowOld].Extra=extra
