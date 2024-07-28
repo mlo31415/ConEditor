@@ -151,7 +151,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
             self._grid.MakeTextLinesEditable()
             self.RefreshWindow()
-            pm.Update(f"{self.Seriesname} Loaded", delay=0.5)
+            pm.Update(f"{self.Seriesname} Loaded")
             return True
 
 
@@ -406,7 +406,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
             UpdateFTPLog.LogText("Uploaded ConSeries: "+self.Seriesname)
 
-            pm.Update(f"Upload succeeded: /{self.Seriesname}/index.html", delay=0.5)
+            pm.Update(f"Upload succeeded: /{self.Seriesname}/index.html")
             # Log("UploadConSeries: About to close progress message gadget")
         # Log("UploadConSeries: Finished uploading ConSeries")
 
