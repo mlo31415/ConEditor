@@ -670,7 +670,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 conf.TextLineText=row[1]
                 self.Datasource.Rows.append(conf)
 
-        pm.Update(self._FTPbasedir+"/"+self.Conname+"/index.html downloaded", delay=0.5)
+        pm.Update(self._FTPbasedir+"/"+self.Conname+"/index.html downloaded")
         return True
 
     # ------------------
