@@ -1106,8 +1106,8 @@ class ConSeriesFrame(GenConSeriesFrame):
             return False
 
         # Override any value read from the server, since they will need to be updated.
-        self._prevConInstanceName=prevcon
-        self._nextConInstanceName=nextcon
+        cif._prevConInstanceName=prevcon
+        cif._nextConInstanceName=nextcon
         cif.UploadConInstancePage(pm=pm, UploadFiles=False)
 
 
