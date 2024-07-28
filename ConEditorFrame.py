@@ -61,9 +61,9 @@ def main():
     Settings().Load("ConEditor settings.json")
 
     with open("FTP Credentials.json") as f:
-        UpdateFTPLog().Init(json.loads(f.read())["ID"])
+        UpdateFTPLog.Init(json.loads(f.read())["ID"], "/updatelog.txt")
 
-    UpdateFTPLog().LogText("-----------------------------------------------------------------------\nConEditor starting.")
+    UpdateFTPLog.LogText("-----------------------------------------------------------------------\nConEditor starting.")
     LogFlush()
 
     app=wx.App(False)
@@ -332,7 +332,7 @@ class ConEditorFrame(GenConEditorFrame):
                 Log("Upload of /index.html failed")
                 wx.MessageBox("Upload of /index.html failed")
 
-            UpdateFTPLog().LogText("Uploaded Main convention list")
+            UpdateFTPLog.LogText("Uploaded Main convention list")
             pm.Update("Upload succeeded.", delay=0.5)
 
         self.MarkAsSaved()

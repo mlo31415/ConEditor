@@ -103,17 +103,28 @@ class ConInstanceDeltaTracker:
 
 class UpdateFTPLog:
     g_ID: str|None =None
+    g_Logfilename: str|None=None
 
-    def Init(self, id: str):
+    @staticmethod
+    def Init(id: str, logfilename: str) -> None:
         UpdateFTPLog.g_ID=id
-        pass
+        UpdateFTPLog.g_Logfilename=logfilename
 
-    def Log(self, series: str, con: str = "", deltas: ConInstanceDeltaTracker|None = None):
-        lines="Uploaded ConInstance: "+series+":"+con+"   "+"["+UpdateFTPLog.g_ID+"  "+datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST]\n"
+    @staticmethod
+    def Tagstring() -> str:
+        return f"[{FTP().GetEditor()}  {datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")} EST]"
+
+
+    @staticmethod
+    def LogDeltas(series: str, con: str = "", deltas: ConInstanceDeltaTracker|None = None):
+        lines=f"Uploaded ConInstance: {series}:{con}   {UpdateFTPLog.Tagstring()}\n"
+
         if deltas is not None and deltas.Num > 0:
-            lines+="^^deltas by "+FTP().GetEditor()+":\n"+str(deltas)+"\n"
-        FTP().AppendString("/updatelog.txt", lines)
-        pass
+            lines+=f"^^deltas by {FTP().GetEditor()}:\n{deltas}\n"
 
-    def LogText(self, txt: str):
-        FTP().AppendString("/updatelog.txt", txt+"   ["+UpdateFTPLog.g_ID+"  "+FTP().GetEditor()+"  "+datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST]\n")
+        FTP().AppendString(UpdateFTPLog.g_Logfilename, lines)
+
+
+    @staticmethod
+    def LogText(txt: str):
+        FTP().AppendString(UpdateFTPLog.g_Logfilename, f"{txt} {UpdateFTPLog.Tagstring()}\n")

@@ -404,7 +404,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                 wx.MessageBox("Upload failed")
                 return False
 
-            UpdateFTPLog().LogText("Uploaded ConSeries: "+self.Seriesname)
+            UpdateFTPLog.LogText("Uploaded ConSeries: "+self.Seriesname)
 
             pm.Update(f"Upload succeeded: /{self.Seriesname}/index.html", delay=0.5)
             # Log("UploadConSeries: About to close progress message gadget")
@@ -833,7 +833,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         # Create the new con instance directory and move the files.
         dirpathNew="/"+conseriesNew+"/"+connameNew
         with ModalDialogManager(ProgressMessage2, f"Creating {dirpathNew} and copying '{connameOld}' to it.", parent=self) as pm:
-            UpdateFTPLog().LogText(f"Moving '{connameOld}' from '{oldDirPath}' to '{dirpathNew}' and renaming it '{connameNew}'")
+            UpdateFTPLog.LogText(f"Moving '{connameOld}' from '{oldDirPath}' to '{dirpathNew}' and renaming it '{connameNew}'")
 
             # The new con instance *directory* must not already exist.
             if len(self._basedirectoryFTP) > 0:

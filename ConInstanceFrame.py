@@ -496,7 +496,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 else:
                     Log("delta-UNRECOGNIZED: "+str(delta))
 
-            UpdateFTPLog().Log(self._seriesname, self.Conname, self.conInstanceDeltaTracker)
+            UpdateFTPLog.LogDeltas(self._seriesname, self.Conname, self.conInstanceDeltaTracker)
 
             self.conInstanceDeltaTracker=ConInstanceDeltaTracker()  # The upload is complete. Start tracking changes afresh
 
