@@ -51,8 +51,6 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         self.Seriesname=conseriesname
         self._conserieslist=conserieslist
-        self._prevConInstanceName: str=""
-        self._nextConInstanceName: str=""
 
         val=Settings().Get("ConSeriesFramePage:Show empty", default=0)      # Default is to show empty slots
         self.m_radioBoxShowEmpty.SetSelection(val)
@@ -638,13 +636,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         # We need the names of the previous and next con instance to edit or create the next and prev buttons.
         conname=self.Datasource[irow].Name
-        prevconname=""
-        if irow > 0 and self.Datasource[irow-1].URL != "":  # If the previous con instance does not exist, the prev button will be nonfunctional
-            prevconname=self.Datasource[irow-1].Name
-        nextconname=""
-        if irow+1 < self.Datasource.NumRows and self.Datasource[irow+1].URL != "":  # If the next con instance does not exist, the next button will be nonfunctional
-            nextconname=self.Datasource[irow+1].Name
-
+        prevconname, nextconname=self.GetPrevNext(conname)
         with ModalDialogManager(ConInstanceDialogClass, self._basedirectoryFTP+"/"+self.Seriesname, self.Seriesname, conname, prevconname, nextconname, Create=Create) as dlg:
 
             if case == 1 and len(dlg._returnMessage) > 0:
@@ -724,6 +716,32 @@ class ConSeriesFrame(GenConSeriesFrame):
         event.Skip()
 
 
+    # Scan the series for the next and prev instance names
+    def GetPrevNext(self, current: str|int) -> tuple[str|None, str|None]:
+        # If a string is supplied, find instancename in series
+        if isinstance(current, str):
+            irow=-1
+            for i, row in enumerate(self.Datasource.Rows):
+                if row.Name == current:
+                    irow=i
+                    break
+            if irow == -1:
+                return None, None
+        else:
+            #OK, a row index has been supplied
+            irow=current
+
+        prev=next=""
+        if irow > 0 and self.Datasource[irow-1].URL != "":  # If the previous con instance does not exist, the prev button will be nonfunctional
+            prev=self.Datasource.Rows[irow-1].Name
+        if irow+1 < self.Datasource.NumRows and self.Datasource[irow+1].URL != "":  # If the next con instance does not exist, the next button will be nonfunctional
+            next=self.Datasource.Rows[irow+1].Name
+
+        return prev, next
+
+
+
+
     def RenameConInstancePage(self, oldname: str, newname: str) -> None:
 
         if len(oldname) > 0:
@@ -737,9 +755,14 @@ class ConSeriesFrame(GenConSeriesFrame):
             pm.Update(f"Refreshing '{newname}'")
             self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname, newname, pm=pm)
 
+            prev, next=self.GetPrevNext(oldname)
+            if prev is None or next is None:
+                Log(f"RenameConInstancePage() can't find {oldname} in Datasource.Rows")
+                return
+
             # Now do the same for the previous and next pages to update the inter-page links.
-            self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname, self._prevConInstanceName, pm=pm)
-            self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname, self._nextConInstanceName, pm=pm)
+            self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname, prev, pm=pm)
+            self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname, next, pm=pm)
 
 
 
@@ -1084,12 +1107,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                     Log(f"OnRegenerateConPages(): Skipping {self.Datasource[irow].Name} because of non-empty extra or URL, Name='{self.Datasource[irow].Name}'   Link='{self.Datasource[irow].URL}'  Extra='{self.Datasource[irow].Extra}'")
                     continue
 
-                prevname=""
-                nextname=""
-                if irow > 0 and self.Datasource[irow-1].URL != "":  # If the previous con instance does not exist, the prev button will be nonfunctional
-                    prevname=self.Datasource[irow-1].Name
-                if irow+1 < self.Datasource.NumRows and self.Datasource[irow+1].URL != "":  # If the next con instance does not exist, the next button will be nonfunctional
-                    nextname=self.Datasource[irow+1].Name
+                prevname, nextname=self.GetPrevNext(irow)
                 # We download the page, but don't actually open the dialog.  Then we upload the page which regenerates it.
                 self.DownloadThenUploadConInstancePage(f"{self._basedirectoryFTP}/{self.Seriesname}", self.Seriesname, self.Datasource[irow].Name, prevcon=prevname, nextcon=nextname, pm=pm)
 
