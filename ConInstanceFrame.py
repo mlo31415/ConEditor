@@ -462,17 +462,17 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             for delta in self.conInstanceDeltaTracker.Deltas:
                 if delta.Verb == "add":
                     if pm is not None:
-                        pm.Update("Adding "+delta.Con.SourcePathname+" as "+delta.Con.SiteFilename)
-                    Log("delta-ADD: "+delta.Con.SourcePathname+" as "+delta.Con.SiteFilename)
+                        pm.Update(f"Adding {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
+                    Log(f"delta-ADD: {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
                     metadata={
-                        '/Title': self.Conname+": "+delta.Con.DisplayTitle.strip().removesuffix(".pdf").removesuffix(".PDF")
+                        '/Title': f'{self.Conname}: {delta.Con.DisplayTitle.strip().removesuffix(".pdf").removesuffix(".PDF")}'
                     }
                     AddMissingMetadata(delta.Con.SourcePathname, metadata)
                     FTP().PutFile(delta.Con.SourcePathname, delta.Con.SiteFilename)
                 elif delta.Verb == "rename":
                     if pm is not None:
-                        pm.Update("Renaming "+delta.Oldname+" to "+delta.Con.SiteFilename)
-                    Log("delta-RENAME: "+delta.Oldname+" to "+delta.Con.SiteFilename)
+                        pm.Update(f"Renaming {delta.Oldname} to {delta.Con.SiteFilename}")
+                    Log(f"delta-RENAME: {delta.Oldname} to {delta.Con.SiteFilename}")
                     if len(delta.Oldname.strip()) == 0:
                         Log("***Renaming an blank name can't be right! Ignored", isError=True)
                         continue
@@ -480,21 +480,21 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 elif delta.Verb == "delete":
                     if not delta.Con.IsTextRow and not delta.Con.IsLinkRow:
                         if pm is not None:
-                            pm.Update("Deleting "+delta.Con.SiteFilename)
-                        Log("delta-DELETE: "+delta.Con.SiteFilename)
+                            pm.Update(f"Deleting {delta.Con.SiteFilename}")
+                        Log(f"delta-DELETE: {delta.Con.SiteFilename}")
                         if len(delta.Con.SiteFilename.strip()) > 0:
                             FTP().DeleteFile(delta.Con.SiteFilename)
                 elif delta.Verb == "replace":
                     if pm is not None:
                         pm.Update(f"Replacing {delta.Oldname} with new/updated file")
-                    Log("delta-REPLACE: "+delta.Con.SourcePathname+" <-- "+delta.Oldname)
-                    Log("   delta-DELETE: "+delta.Con.SiteFilename)
+                    Log(f"delta-REPLACE: {delta.Con.SourcePathname} <-- {delta.Oldname}")
+                    Log(f"   delta-DELETE: {delta.Con.SiteFilename}")
                     if len(delta.Con.SiteFilename.strip()) > 0:
                         FTP().DeleteFile(delta.Con.SiteFilename)
-                    Log("   delta-ADD: "+delta.Con.SourcePathname+" as "+delta.Con.SiteFilename)
+                    Log(f"   delta-ADD: {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
                     FTP().PutFile(delta.Con.SourcePathname, delta.Con.SiteFilename)
                 else:
-                    Log("delta-UNRECOGNIZED: "+str(delta))
+                    Log(f"delta-UNRECOGNIZED: {delta}")
 
             UpdateFTPLog.LogDeltas(self._seriesname, self.Conname, self.conInstanceDeltaTracker)
 
@@ -527,7 +527,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 return False
             ret=self.DoCIPDownload(pm=pm)
 
-        self.Title="Editing "+self.Conname
+        self.Title=f"Editing {self.Conname}"
         self._grid.MakeTextLinesEditable()
         # Log("DownloadConInstancePage() exit.")
         return ret
@@ -550,7 +550,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         file=FTP().GetFileAsString(f"{self._FTPbasedir}/{self.Conname}", "index.html")
         if file is None:
-            LogError("DownloadConInstancePage: "+self._FTPbasedir+"/"+self.Conname+"/index.html does not exist -- create a new file and upload it")
+            LogError(f"DownloadConInstancePage: {self._FTPbasedir}/{self.Conname}/index.html does not exist -- create a new file and upload it")
             # wx.MessageBox(self._FTPbasedir+"/"+self._coninstancename+"/index.html does not exist -- create a new file and upload it")
             return False  # Just return with the ConInstance page empty
 
@@ -670,7 +670,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 conf.TextLineText=row[1]
                 self.Datasource.Rows.append(conf)
 
-        pm.Update(self._FTPbasedir+"/"+self.Conname+"/index.html downloaded")
+        pm.Update(f"{self._FTPbasedir}/{self.Conname}/index.html downloaded")
         return True
 
     # ------------------
@@ -886,7 +886,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         if self.Datasource.Rows[row].IsLinkRow and col == hrefCol:
             # We do some fiddling with the incoming URLs
             if not self.Datasource.Rows[row].SiteFilename.lower().startswith("http"):
-                self.Datasource[row][col]="https://"+self.Datasource.Rows[row].SiteFilename
+                self.Datasource[row][col]=f"https://{self.Datasource.Rows[row].SiteFilename}"
         # Log("OnGridCellChanged(): About to refresh #2")
         self.RefreshWindow()
 
@@ -900,7 +900,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
     # ------------------
     def OnTextConInstanceNameKeyUp(self, event):
-        self.ConInstanceFancyURL="fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.tConInstanceName.GetValue().strip())
+        self.ConInstanceFancyURL=f"fancyclopedia.org/{WikiPagenameToWikiUrlname(self.tConInstanceName.GetValue().strip())}"
         self.RefreshWindow(DontRefreshGrid=True)
 
     # ------------------
