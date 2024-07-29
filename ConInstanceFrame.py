@@ -647,6 +647,14 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
                 # It appears to be an ordinary file like
                 conf.DisplayTitle=text
+                # There are some cases of ugliness -- old errors -- which need to be detected and removed
+                # The only one known so far as &%23x27;  The x23 needs to be turned into a # and the resulting &#27x; to a '
+                # It may make sense to generalize on the pattern...or it may not.
+                m=re.match(r"(.*)&%([0-9]+)x([0-9]+);(.*)", href)
+                if m is not None:
+                    if m.groups()[1] == "23" and m.groups()[2] == "27":
+                        href=m.groups()[0]+"'"+m.groups()[3]
+
                 conf.SiteFilename=href
 
                 if len(rest.strip()) > 0:
