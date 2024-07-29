@@ -18,9 +18,9 @@ class Delta:
     Oldname: str=""
 
     def __str__(self) -> str:
-        s=self.Verb+": "+str(self.Con)
+        s=f"{self.Verb}: {self.Con}"
         if self.Oldname is not None and len(self.Oldname) > 0:
-            s+=" oldname="+self.Oldname
+            s+=f" oldname={self.Oldname}"
         return s
 
 
@@ -39,7 +39,7 @@ class ConInstanceDeltaTracker:
             return ""
         s=""
         for d in self._deltas:
-            s+=">>"+str(d)+"\n"
+            s+=f">>{d}\n"
         return s
 
     def Add(self, con: ConFile) -> None:
