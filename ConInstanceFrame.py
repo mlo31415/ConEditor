@@ -643,7 +643,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 # Strategy is to first remove all view=Fit&, then any #view=Fit
                 while "view=fit" in href.lower():
                     href=re.sub("view=fit&", "", href, count=99, flags=re.IGNORECASE)
-                    href=re.sub("#view=fit", "", href, count=1, flags=re.IGNORECASE)
+                    href=re.sub("#view=fit", "", href, count=1, flags=re.IGNORECASE)    # Note that if the view=Fit was followed by &anything, it would have been deleted in the previous line
 
                 # It appears to be an ordinary file like
                 conf.DisplayTitle=text
