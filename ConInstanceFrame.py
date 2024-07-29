@@ -335,7 +335,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             pm.Update(f"Preparing {self.Conname} to be uploaded")
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name is tagged with <fanac-instance>, the random text with "fanac-headertext"
-        fancylink=FormatLink("https://fancyclopedia.org/"+WikiPagenameToWikiUrlname(self.Conname), self.Conname)
+        fancylink=FormatLink(f"https://fancyclopedia.org/{WikiPagenameToWikiUrlname(self.Conname)}", self.Conname)
         file=SubstituteHTML(file, "title", self.Conname)
         file=SubstituteHTML(file, "fanac-instance", fancylink)
         file=SubstituteHTML(file, "fanac-stuff", self.ConInstanceTopText)
@@ -389,21 +389,21 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 newtable+="    <tr>\n"
                 # Display title column
                 if row.IsTextRow:
-                    newtable+='      <td colspan="3">'+row.SourceFilename+" "+row.SiteFilename+" "+row.DisplayTitle+" "+row.Notes+'</td>\n'
+                    newtable+=f'      <td colspan="3">{row.SourceFilename} {row.SiteFilename} {row.DisplayTitle} {row.Notes}</td>\n'
                 elif row.IsLinkRow:
-                    newtable+='      <td colspan="3">'+FormatLink(row.SiteFilename, row.DisplayTitle)+'</td>\n'
+                    newtable+=f'      <td colspan="3">{FormatLink(row.SiteFilename, row.DisplayTitle)}</td>\n'
                 else:  # Ordinary row
                     # The document title/link column
                     s=MaybeSuppressPDFExtension(row.DisplayTitle, showExtensions)
-                    newtable+='      <td>'+FormatLink(row.SiteFilename, s)+'</td>\n'
+                    newtable+=f'      <td>{FormatLink(row.SiteFilename, s)}</td>\n'
 
                     # This is the size & page count column
-                    newtable+='      <td>'+FormatSizes(row)+'</td>\n'
+                    newtable+=f'      <td>{FormatSizes(row)}</td>\n'
 
                     # Notes column
                     info='      <td> </td>\n'
                     if len(row.Notes) > 0:
-                        info='      <td>'+str(row.Notes)+'</td>\n'
+                        info=f'      <td>{row.Notes}</td>\n'
                     newtable+=info
 
                 newtable+="    </tr>\n"
@@ -414,10 +414,10 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             newtable='<ul  id="conpagetable">\n'
             for row in self.Datasource.Rows:
                 if row.IsTextRow:
-                    text=row.SourceFilename+" "+row.SiteFilename+" "+row.DisplayTitle+" "+row.Notes
-                    newtable+='    </ul><b>'+text.strip()+'</b><ul id="conpagetable">\n'
+                    text=f"{row.SourceFilename} {row.SiteFilename} {row.DisplayTitle} {row.Notes}"
+                    newtable+=f'    </ul><b>{text.strip()}</b><ul id="conpagetable">\n'
                 elif row.IsLinkRow:
-                    newtable+='    <li id="conpagetable">'+FormatLink(row.SiteFilename, row.DisplayTitle)+"</li>\n"
+                    newtable+=f'    <li id="conpagetable">{FormatLink(row.SiteFilename, row.DisplayTitle)}</li>\n'
                 else:
                     s=MaybeSuppressPDFExtension(row.DisplayTitle, showExtensions)
                     newtable+='    <li id="conpagetable">'+FormatLink(row.SiteFilename, s)
@@ -429,7 +429,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
                     # Notes
                     if len(row.Notes) > 0:
-                        newtable+="&nbsp;&nbsp;("+str(row.Notes)+")"
+                        newtable+=f"&nbsp;&nbsp;({row.Notes})"
                     newtable+="</li>\n"
 
             newtable+="  </ul>\n"
@@ -451,13 +451,13 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             nextHTML=f"<button onclick=window.location.href='{url}'>{self._nextConInstanceName}</button>"
         file=SubstituteHTML(file, "fanac-nextCon", nextHTML)
 
-        if not FTP().PutFileAsString("/"+self._seriesname+"/"+self.Conname, "index.html", file, create=True):
-            Log("Upload failed: /"+self._seriesname+"/"+self.Conname+"/index.html")
-            wx.MessageBox("OnUploadConInstancePage: Upload failed: /"+self._seriesname+"/"+self.Conname+"/index.html")
+        if not FTP().PutFileAsString(f"/{self._seriesname}/{self.Conname}", "index.html", file, create=True):
+            Log(f"Upload failed: /{self._seriesname}/{self.Conname}/index.html")
+            wx.MessageBox(f"OnUploadConInstancePage: Upload failed: /{self._seriesname}/{self.Conname}/index.html")
             return False
 
         if UploadFiles:
-            wd="/"+self._seriesname+"/"+self.Conname
+            wd=f"/{self._seriesname}/{self.Conname}"
             FTP().CWD(wd)
             for delta in self.conInstanceDeltaTracker.Deltas:
                 if delta.Verb == "add":
