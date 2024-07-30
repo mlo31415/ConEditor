@@ -717,20 +717,17 @@ class ConSeriesFrame(GenConSeriesFrame):
 
 
     # Scan the series for the next and prev instance names
-    def GetPrevNext(self, current: str|int) -> tuple[str|None, str|None]:
-        # If a string is supplied, find instancename in series
-        if isinstance(current, str):
-            irow=-1
-            for i, row in enumerate(self.Datasource.Rows):
-                if row.Name == current:
-                    irow=i
-                    break
-            if irow == -1:
-                return None, None
-        else:
-            #OK, a row index has been supplied
-            irow=current
+    def GetPrevNext(self, name: str) -> tuple[str|None, str|None]:
+        # Find the name's index in the con series
+        irow=-1
+        for i, row in enumerate(self.Datasource.Rows):
+            if row.Name == name:
+                irow=i
+                break
+        if irow == -1:
+            return None, None
 
+        # Using that, fine the previous and next names
         prev=next=""
         if irow > 0 and self.Datasource[irow-1].URL != "":  # If the previous con instance does not exist, the prev button will be nonfunctional
             prev=self.Datasource.Rows[irow-1].Name
@@ -1107,7 +1104,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                     Log(f"OnRegenerateConPages(): Skipping {self.Datasource[irow].Name} because of non-empty extra or URL, Name='{self.Datasource[irow].Name}'   Link='{self.Datasource[irow].URL}'  Extra='{self.Datasource[irow].Extra}'")
                     continue
 
-                prevname, nextname=self.GetPrevNext(irow)
+                prevname, nextname=self.GetPrevNext(self.Datasource[irow].Name)
                 # We download the page, but don't actually open the dialog.  Then we upload the page which regenerates it.
                 self.DownloadThenUploadConInstancePage(f"{self._basedirectoryFTP}/{self.Seriesname}", self.Seriesname, self.Datasource[irow].Name, prevcon=prevname, nextcon=nextname, pm=pm)
 
