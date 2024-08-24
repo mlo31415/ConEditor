@@ -322,9 +322,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         if pm is None:
             with ModalDialogManager(ProgressMessage2, f"Uploading /{self._seriesname}/{self.Conname}/index.html", parent=self) as pm:
                 return self.DoCIPUpload(file, pm, UploadFiles=UploadFiles)
-        else:
-            pm.Update(f"Uploading /{self._seriesname}/{self.Conname}/index.html")
 
+        pm.Update(f"Uploading /{self._seriesname}/{self.Conname}/index.html")
         return self.DoCIPUpload(file, pm, UploadFiles=UploadFiles)
 
 
@@ -437,19 +436,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         file=SubstituteHTML(file, "fanac-table", newtable)
 
         # Update the prev- and next-con nav buttons
-        prevHTML="<button onclick=''>(first)</button>"
-        if self._prevConInstanceName is not None:
-            url=f"https://www.fanac.org/conpubs/{self._seriesname}/{self._prevConInstanceName}/index.html"
-            url=url.replace(" ", "%20")
-            prevHTML=f"<button onclick=window.location.href='{url}'>{self._prevConInstanceName}</button>"
-        file=SubstituteHTML(file, "fanac-prevCon", prevHTML)
-
-        nextHTML="<button onclick=''>(last)</button>"
-        if self._nextConInstanceName is not None:
-            url=f"https://www.fanac.org/conpubs/{self._seriesname}/{self._nextConInstanceName}/index.html"
-            url=url.replace(" ", "%20")
-            nextHTML=f"<button onclick=window.location.href='{url}'>{self._nextConInstanceName}</button>"
-        file=SubstituteHTML(file, "fanac-nextCon", nextHTML)
+        file=self.UpdateButton(file, "fanac-prevCon", self._seriesname, self._prevConInstanceName)
+        file=self.UpdateButton(file, "fanac-nextCon", self._seriesname, self._nextConInstanceName)
 
         if not FTP().PutFileAsString(f"/{self._seriesname}/{self.Conname}", "index.html", file, create=True):
             Log(f"Upload failed: /{self._seriesname}/{self.Conname}/index.html")
@@ -504,6 +492,19 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             pm.Update(f"Upload succeeded: /{self._seriesname}/{self.Conname}/index.html", delay=0.5)
         return True
 
+    def UpdateButton(self, file: str, target: str, series: str,  URLname: str) -> str:
+
+        if URLname == "first" or URLname == "last" or URLname == "":
+            if URLname == "":
+                URLname="first" if "prev" in target else "last"
+            html=f"<button>{URLname}</button>"
+        else:
+            url=f"https://www.fanac.org/conpubs/{series}/{URLname}/index.html"
+            url=url.replace(" ", "%20")
+            html=f"<button onclick=window.location.href='{url}'>{URLname}</button>"
+
+        file=SubstituteHTML(file, target, html)
+        return file
 
     #------------------
     # Download a ConInstance
