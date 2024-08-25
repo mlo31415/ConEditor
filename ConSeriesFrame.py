@@ -977,9 +977,9 @@ class ConSeriesFrame(GenConSeriesFrame):
             if irow < self.Datasource.NumRows:
                 self.m_popupDeleteConPage.Enabled=True
 
-                if len(self.Datasource.Rows[irow].URL) > 0:   # Only if there's a link in the cell
+                if len(self.Datasource.Rows[irow].URL) > 0:   # Only if there's a link in the row
                     self.m_popupUnlink.Enabled=True
-                if len(self.Datasource.Rows[irow].URL) == 0:   # Only if there's NO link in the cell
+                if len(self.Datasource.Rows[irow].URL) == 0:   # Only if there's NO link in the row
                     self.m_popupLinkToOtherConventionInstance.Enabled=True
 
         if (icol == 0 or icol == 1) and irow < self.Datasource.NumRows:
@@ -1114,8 +1114,10 @@ class ConSeriesFrame(GenConSeriesFrame):
 
     # ------------------
     # Download a con instance and then immediately re-upload it.  This will regenerate the page using the latest template and processing.
+    # It will also update the next/prev buttons at the bottom.
     def DownloadThenUploadConInstancePage(self, seriespath: str, seriesname: str, conlink: str, prevcon: str="", nextcon: str="", pm=None):
-        # Download toa ConInstanceDialogClass, but do not activate it.  Nothing happens visually othe rthan the ProgressMessage being updated.
+
+        # Download the con instance page to a ConInstanceDialogClass, but do not show the dialog.  Nothing happens visually other than the ProgressMessage being updated.
         cif=ConInstanceDialogClass(seriespath, seriesname, conlink, prevcon, nextcon, pm=pm)
         if not cif._valid:
             Log(f"DownloadThenUploadConInstancePage(): cif not loaded.")
