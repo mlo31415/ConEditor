@@ -64,6 +64,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         self.MarkAsSaved()
         self.RefreshWindow()
+        FTP().LoggingOff()
         self.Show(show)
 
 
