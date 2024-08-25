@@ -9,7 +9,7 @@ from datetime import datetime
 
 from GenConInstanceFrame import GenConInstanceFrame
 from WxDataGrid import DataGrid, Color, IsEditable
-from ConInstance import ConInstancePage, ConFile
+from ConInstance import ConInstanceDatasource, ConInstanceRow
 from ConInstanceDeltaTracker import ConInstanceDeltaTracker, UpdateFTPLog
 from FTP import FTP
 from Settings import Settings
@@ -27,7 +27,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         GenConInstanceFrame.__init__(self, None)
 
         self._grid: DataGrid=DataGrid(self.gRowGrid)
-        self.Datasource=ConInstancePage()
+        self.Datasource=ConInstanceDatasource()
 
         self._grid.HideRowLabels()
 
@@ -73,10 +73,10 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
 
     @property
-    def Datasource(self) -> ConInstancePage:
+    def Datasource(self) -> ConInstanceDatasource:
         return self._Datasource
     @Datasource.setter
-    def Datasource(self, val: ConInstancePage):
+    def Datasource(self, val: ConInstanceDatasource):
         self._Datasource=val
         self._grid.Datasource=val
 
@@ -208,7 +208,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 dname=m.groups()[0]
 
             if replacerow is None:
-                conf=ConFile()       # This is a new row
+                conf=ConInstanceRow()       # This is a new row
             else:
                 conf=self.Datasource.Rows[replacerow]       # Update an existing row
 
@@ -351,7 +351,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         if len(self.Credits.strip()) > 0:
             file=SubstituteHTML(file, "fanac-credits", self.Credits.strip())
 
-        def FormatSizes(row: ConFile) -> str:
+        def FormatSizes(row: ConInstanceRow) -> str:
             info=""
             if row.Size > 0 or row.Pages > 0:
                 info="<small>("
@@ -510,7 +510,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     # Download a ConInstance
     def DownloadConInstancePage(self, pm=None) -> bool:
         # Clear out any old information
-        self.Datasource=ConInstancePage()
+        self.Datasource=ConInstanceDatasource()
 
         # Read the existing CIP
         # We have two versions, one in which DownloadConInstancePage() is called with a ProgressMessage already showing and one where it must create it
@@ -619,7 +619,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         for row in rows:
             if row[0] == "li":
                 Log(f"\n{row[1]=}")
-                conf=ConFile()
+                conf=ConInstanceRow()
                 # We're looking for an <a></a> followed by <small>/</small>
                 a, rest=FindBracketedText2(row[1], "a", includeBrackets=True)
                 Log(f"{a=}   {rest=}")
@@ -674,7 +674,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 self.Datasource.Rows.append(conf)
 
             elif row[0] == "b":
-                conf=ConFile()
+                conf=ConInstanceRow()
                 conf.IsTextRow=True
                 conf.TextLineText=row[1]
                 self.Datasource.Rows.append(conf)

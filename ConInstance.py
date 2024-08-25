@@ -7,7 +7,7 @@ from WxDataGrid import GridDataSource, Color, GridDataRowClass, ColDefinition, C
 
 # An individual file to be listed under a convention
 # This is a single row
-class ConFile(GridDataRowClass):
+class ConInstanceRow(GridDataRowClass):
     def __init__(self):
         self._displayTitle: str=""      # The name as shown to the world on the website
         self._notes: str=""             # The free-format description
@@ -41,9 +41,9 @@ class ConFile(GridDataRowClass):
 
         return s
 
-    # Make a deep copy of a ConFile
-    def Copy(self) -> ConFile:      
-        cf=ConFile()
+    # Make a deep copy of a ConInstanceRow
+    def Copy(self) -> ConInstanceRow:
+        cf=ConInstanceRow()
         cf._displayTitle=self._displayTitle
         cf._notes=self._notes
         cf._localfilename=self._localfilename
@@ -200,7 +200,7 @@ class ConFile(GridDataRowClass):
 #####################################################################################################
 #####################################################################################################
 # The Datasource for a ConInstanceDialogClass
-class ConInstancePage(GridDataSource):
+class ConInstanceDatasource(GridDataSource):
 
     def __init__(self):
         GridDataSource.__init__(self)
@@ -212,8 +212,8 @@ class ConInstancePage(GridDataSource):
             ColDefinition("Size (MB)", Type="float", IsEditable=IsEditable.Maybe),
             ColDefinition("Notes", Width=150)
         ])
-        self._element=ConFile
-        self._conFileList: list[ConFile]=[]  # This supplies the Rows property that GridDataSource needs
+        self._element=ConInstanceRow
+        self._coninstanceRows: list[ConInstanceRow]=[]  # This supplies the Rows property that GridDataSource needs
         self._name: str=""
         self._specialTextColor: Color|bool|None =True
 
@@ -221,15 +221,15 @@ class ConInstancePage(GridDataSource):
 
     def Signature(self) -> int:        
         s=self._colDefs.Signature()+hash(self._name.strip())+hash(self._specialTextColor)
-        return s+sum([x.Signature()*(i+1) for i, x in enumerate(self._conFileList)])
+        return s+sum([x.Signature()*(i+1) for i, x in enumerate(self._coninstanceRows)])
 
 
     @property        
     def Rows(self) -> list:
-        return self._conFileList
+        return self._coninstanceRows
     @Rows.setter
     def Rows(self, rows: list) -> None:        
-        self._conFileList=rows
+        self._coninstanceRows=rows
 
     @property        
     def ColDefs(self) -> ColDefinitionsList:
@@ -248,13 +248,13 @@ class ConInstancePage(GridDataSource):
 
     @property        
     def NumRows(self) -> int:
-        return len(self._conFileList)
+        return len(self._coninstanceRows)
 
-    def __getitem__(self, index) -> ConFile:        
-        return self._conFileList[index]
+    def __getitem__(self, index) -> ConInstanceRow:
+        return self._coninstanceRows[index]
 
-    def __setitem__(self, index, value: ConFile) -> None:        
-        self._conFileList[index]=value
+    def __setitem__(self, index, value: ConInstanceRow) -> None:
+        self._coninstanceRows[index]=value
 
     @property        
     def SpecialTextColor(self) -> Color|None:
@@ -268,6 +268,6 @@ class ConInstancePage(GridDataSource):
             return
         if index > len(self.Rows):
             index=len(self.Rows)
-        self.Rows=self.Rows[:index]+[ConFile() for _ in range(num)]+self.Rows[index:]
+        self.Rows=self.Rows[:index]+[ConInstanceRow() for _ in range(num)]+self.Rows[index:]
 
 

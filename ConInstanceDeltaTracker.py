@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 
-from ConInstance import ConFile
+from ConInstance import ConInstanceRow
 from FTP import FTP
 
 # These classes track changes to the list of files for a particular Con Instance
@@ -14,7 +14,7 @@ from FTP import FTP
 @dataclass
 class Delta:
     Verb: str
-    Con: ConFile
+    Con: ConInstanceRow
     Oldname: str=""
 
     def __str__(self) -> str:
@@ -42,10 +42,10 @@ class ConInstanceDeltaTracker:
             s+=f">>{d}\n"
         return s
 
-    def Add(self, con: ConFile) -> None:
+    def Add(self, con: ConInstanceRow) -> None:
         self._deltas.append(Delta("add", con, ""))
 
-    def Delete(self, con: ConFile) -> None:
+    def Delete(self, con: ConInstanceRow) -> None:
         # If the item being deleted was just added, simply remove the add from the deltas list
         for i, item in enumerate(self._deltas):
             if item.Verb == "add":
@@ -56,7 +56,7 @@ class ConInstanceDeltaTracker:
         self._deltas.append(Delta("delete", con, ""))
 
     # Change the name of a file on the website site
-    def Rename(self, con: ConFile, oldname: str) -> None:
+    def Rename(self, con: ConInstanceRow, oldname: str) -> None:
         # First check to see if this is a rename of a rename.  If it is, merge them by updating the existing rename.
         for i, item in enumerate(self._deltas):
             if item.Verb == "rename":
@@ -73,7 +73,7 @@ class ConInstanceDeltaTracker:
         self._deltas.append(Delta("rename", con, oldname))
 
     # We want to replace one file with another
-    def Replace(self, con: ConFile, oldname: str):
+    def Replace(self, con: ConInstanceRow, oldname: str):
         # Check to see if the replacement is in a row yet to be uploaded or a row which has been renamed.
         for i, item in enumerate(self._deltas):
             if item.Verb == "rename":
