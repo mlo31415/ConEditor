@@ -199,7 +199,7 @@ class ConFile(GridDataRowClass):
 
 #####################################################################################################
 #####################################################################################################
-
+# The Datasource for a ConInstanceDialogClass
 class ConInstancePage(GridDataSource):
 
     def __init__(self):
