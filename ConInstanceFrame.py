@@ -516,15 +516,15 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         # We have two versions, one in which DownloadConInstancePage() is called with a ProgressMessage already showing and one where it must create it
         ret=False
         if pm is None:
-            with (ModalDialogManager(ProgressMessage2, f"Downloading {self._FTPbasedir}/{self.Conname}/index.html", parent=self) as pm):
+            with (ModalDialogManager(ProgressMessage2, f"Downloading '{self._FTPbasedir}/{self.Conname}/index.html'", parent=self) as pm):
                 if not FTP().FileExists(f"{self._FTPbasedir}/{self.Conname}/index.html"):
-                    LogError(f"DownloadConInstancePage(): {self._FTPbasedir}/{self.Conname}/index.html not found")
+                    LogError(f"DownloadConInstancePage(): '{self._FTPbasedir}/{self.Conname}/index.html' not found")
                     return False
                 ret=self.DoCIPDownload(pm=pm)
         else:
             pm.Update(f"Downloading {self._FTPbasedir}/{self.Conname}/index.html")
             if not FTP().FileExists(f"{self._FTPbasedir}/{self.Conname}/index.html"):
-                LogError(f"DownloadConInstancePage(): {self._FTPbasedir}/{self.Conname}/index.html not found")
+                LogError(f"DownloadConInstancePage(): '{self._FTPbasedir}/{self.Conname}/index.html' not found")
                 return False
             ret=self.DoCIPDownload(pm=pm)
 
@@ -551,7 +551,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         file=FTP().GetFileAsString(f"{self._FTPbasedir}/{self.Conname}", "index.html")
         if file is None:
-            LogError(f"DownloadConInstancePage: {self._FTPbasedir}/{self.Conname}/index.html does not exist -- create a new file and upload it")
+            LogError(f"DownloadConInstancePage: '{self._FTPbasedir}/{self.Conname}/index.html' does not exist -- create a new file and upload it")
             # wx.MessageBox(self._FTPbasedir+"/"+self._coninstancename+"/index.html does not exist -- create a new file and upload it")
             return False  # Just return with the ConInstance page empty
 

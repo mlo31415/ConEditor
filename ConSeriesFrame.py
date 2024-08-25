@@ -709,6 +709,8 @@ class ConSeriesFrame(GenConSeriesFrame):
         if newname is None or newname == "":
             return  # Bail out if no input  provided
         self.RenameConInstancePage(self.Datasource.Rows[irow].Name, newname)
+
+        Log(f"OnPopupRenameConInstancePage(row[{irow}] to '{newname}')")
         self.Datasource.Rows[irow].Name=newname
         self.Datasource.Rows[irow].URL=newname
         self._grid.RefreshWxGridFromDatasource()
