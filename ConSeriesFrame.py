@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 import re
-import wx, wx._core
-import wx.grid
+import wx, wx.grid
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
 from urllib.parse import unquote
@@ -12,6 +11,7 @@ from GenConSeriesFrame import GenConSeriesFrame
 from FTP import FTP
 from ConInstanceDeltaTracker import UpdateFTPLog
 from ConSeries import ConSeries, Con
+from ConInstance import ConInstance
 from WxDataGrid import DataGrid, IsEditable
 from ConInstanceFrame import ConInstanceDialogClass
 from Settings import Settings
@@ -19,7 +19,7 @@ from Settings import Settings
 from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText2, WikiPagenameToWikiUrlname, UnformatLinks, RemoveAllHTMLTags, RemoveAccents
 from HelpersPackage import FindIndexOfStringInList, PyiResourcePath, MessageBox
 from WxHelpers import ModalDialogManager, ProgressMessage2, OnCloseHandling, MessageBoxInput, wxMessageDialogInput, wxMessageBox
-from Log import Log
+from Log import Log, LogError
 from FanzineIssueSpecPackage import FanzineDateRange
 
 
@@ -585,6 +585,8 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         self._grid.RefreshWxGridFromDatasource()
 
+        self.RegenerateAdjacentConInstancePages(irow)
+
 
     #------------------
     def OnPopupAllowEditCell(self, event):     
@@ -624,7 +626,6 @@ class ConSeriesFrame(GenConSeriesFrame):
         # Case 2: edit a con that is on the list but with no existing page. The URL is blank
         # Case 3: edit a blank line. No name, no URL
 
-        case=0
         if irow >= self.Datasource.NumRows:
             case=3
         else:
@@ -640,12 +641,12 @@ class ConSeriesFrame(GenConSeriesFrame):
         prevconname, nextconname=self.GetPrevNext(conname)
         with ModalDialogManager(ConInstanceDialogClass, self._basedirectoryFTP+"/"+self.Seriesname, self.Seriesname, conname, prevconname, nextconname, Create=Create) as dlg:
 
-            if case == 1 and len(dlg._returnMessage) > 0:
-                wx.MessageBox(dlg._returnMessage)
+            if case == 1 and len(dlg.ReturnMessage) > 0:
+                wx.MessageBox(dlg.ReturnMessage)
                 dlg.Destroy()
                 return
 
-            # Log("ModalDialogManager(ConInstanceDialogClass() started")
+            # Log("ModalDialogManager(ConInstanceDialogClass()) started")
             # Construct a description of the convention from the information in the con series entry, if any.
             if irow < self.Datasource.NumRows and len(dlg.ConInstanceTopText.strip()) == 0:
                 row=self.Datasource.Rows[irow]
@@ -709,13 +710,15 @@ class ConSeriesFrame(GenConSeriesFrame):
         newname=newname.strip()
         if newname is None or newname == "":
             return  # Bail out if no input  provided
-        self.RenameConInstancePage(self.Datasource.Rows[irow].Name, newname)
 
         Log(f"OnPopupRenameConInstancePage(row[{irow}] to '{newname}')")
+        self.RenameConInstancePage(irow, newname)
         self.Datasource.Rows[irow].Name=newname
-        self.Datasource.Rows[irow].URL=newname
         self._grid.RefreshWxGridFromDatasource()
         self.RefreshWindow()
+
+        self.RegenerateAdjacentConInstancePages(irow)
+
         event.Skip()
 
 
@@ -742,18 +745,23 @@ class ConSeriesFrame(GenConSeriesFrame):
 
 
 
-    def RenameConInstancePage(self, oldname: str, newname: str) -> None:
+    def RenameConInstancePage(self, irow: int, newname: str) -> None:
+
+        oldname=self.Datasource.Rows[irow].Name
 
         if len(oldname) > 0:
             if oldname[0:1] == ".." or oldname[0:2] == "/..":
                 Log(f"UploadConSeries(): The old directory name '{oldname}' is not in this directory, so we will not attempt to rename it.")
 
-        with ModalDialogManager(ProgressMessage2, f"Renaming Con instance {oldname} as {newname} on server", parent=self) as pm:
+        with ModalDialogManager(ProgressMessage2, f"Renaming Con instance '{oldname}' as '{newname}' on server", parent=self) as pm:
             FTP().Rename(oldname, newname)
 
             # Download and then Upload the Con instance page to update its new name.
             pm.Update(f"Refreshing '{newname}'")
-            self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname, newname, pm=pm)
+            next, prev=self.GetPrevAndNext(irow)
+
+            Log(f"RegenerateAdjacentConInstancePages '{prev}' and '{next}'")
+            self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname, newname, prev, next, pm=pm)
 
             prev, next=self.GetPrevNext(oldname)
             if prev is None or next is None:
@@ -761,12 +769,9 @@ class ConSeriesFrame(GenConSeriesFrame):
                 return
 
             # Now do the same for the previous and next pages to update the inter-page links.
-            self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname, prev, pm=pm)
-            self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname, next, pm=pm)
+            self.RegenerateAdjacentConInstancePages(irow)
 
-
-
-#------------------
+    #------------------
     # Take an existing con instance and move it to a new con series.  This can either be a simple move or a move-and-link
     # We allow convention xxx in series XXX to be moved to aseries YYY with new name yyy, and the entry in XXX being deleted or renamed with a link to the new location
     def OnPopupChangeConSeries(self, event):      
@@ -983,9 +988,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                     self.m_popupLinkToOtherConventionInstance.Enabled=True
 
         if (icol == 0 or icol == 1) and irow < self.Datasource.NumRows:
-            if self.Datasource.Rows[irow].Name == self.Datasource.Rows[irow].URL:   # If the name points to a url which is different, this RMB woun't be useful.
-                self.m_popupRenameConInstancePage.Enabled=True      # We only allow renaming if click is on cols 0 or 1
-
+            self.m_popupRenameConInstancePage.Enabled=True      # We only allow renaming if click is on cols 0 or 1
 
         if irow < self.Datasource.NumRows and self.Datasource.Rows[irow].URL is not None and self.Datasource.Rows[irow].URL != "":
             self.m_popupChangeConSeries.Enabled=True    # Enable only for rows that exist and point to a con instance
@@ -1057,7 +1060,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                     newVal=self._grid.Grid.GetCellValue(irow, icol)
                     oldVal=self._Datasource[irow][icol]
                     if newVal != oldVal:
-                        self.RenameConInstancePage(oldVal, newVal)
+                        self.RenameConInstancePage(irow, newVal)
                     self.UpdateNeedsSavingFlag()
                     return
 
@@ -1112,26 +1115,61 @@ class ConSeriesFrame(GenConSeriesFrame):
                 self.DownloadThenUploadConInstancePage(f"{self._basedirectoryFTP}/{self.Seriesname}", self.Seriesname, self.Datasource[irow].Name, prevcon=prevname, nextcon=nextname, pm=pm)
 
 
+    def GetPrevAndNext(self, irow: int) -> tuple[str, str]:
+        prev=""
+        if irow > 0:
+            prev=self.Datasource.Rows[irow-1].Name
+        next=""
+        if irow < self.Datasource.NumRows-1:
+            next=self.Datasource.Rows[irow+1].Name
+        return next, prev
+
+
+    # ------------------
+    # When a page gets added, deleted, or renamed, the adjacent pages need to be regenerated to update the next/prev buttons
+    def RegenerateAdjacentConInstancePages(self, irow: int, pm=None):
+
+        next, prev=self.GetPrevAndNext(irow)
+
+        Log(f"RegenerateAdjacentConInstancePages '{prev}' and '{next}'")
+
+        if pm is None:
+            with ModalDialogManager(ProgressMessage2, "Regenerating adjacent con instance pages", parent=self) as pm:
+                # Now do the same for the previous and next pages to update the inter-page links.
+                self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname, self.Datasource[irow].Name, prev, pm=pm)
+                self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname, self.Datasource[irow].Name, next, pm=pm)
+                return
+
+        # Now do the same for the previous and next pages to update the inter-page links.
+        self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname, self.Datasource[irow].Name, prev, pm=pm)
+        self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname, self.Datasource[irow].Name, next, pm=pm)
+
+
+
+
     # ------------------
     # Download a con instance and then immediately re-upload it.  This will regenerate the page using the latest template and processing.
     # It will also update the next/prev buttons at the bottom.
-    def DownloadThenUploadConInstancePage(self, seriespath: str, seriesname: str, conlink: str, prevcon: str="", nextcon: str="", pm=None):
+    def DownloadThenUploadConInstancePage(self, seriespath: str, seriesname: str, conname: str, prevcon: str="", nextcon: str="", pm=None):
 
-        # Download the con instance page to a ConInstanceDialogClass, but do not show the dialog.  Nothing happens visually other than the ProgressMessage being updated.
-        cif=ConInstanceDialogClass(seriespath, seriesname, conlink, prevcon, nextcon, pm=pm)
-        if not cif._valid:
-            Log(f"DownloadThenUploadConInstancePage(): cif not loaded.")
+        # Download a con instance page
+        cip=ConInstance(self._basedirectoryFTP, seriesname, conname)
+        if not cip.Download():
+            LogError(f"DownloadThenUploadConInstancePage(): Download of '{conname}' failed.")
             return False
 
         # And upload it back
-        if not FTP().BackupServerFile(f"/{seriespath}/{conlink}/index.html"):
-            Log(f"UploadConSeries: Could not back up server file {seriespath}/{conlink}/index.html")
+        if not FTP().BackupServerFile(f"/{seriespath}/{conname}/index.html"):
+            Log(f"UploadConSeries: Could not back up server file {seriespath}/{conname}/index.html")
             return False
 
         # Override any value read from the server, since they will need to be updated.
-        cif._prevConInstanceName=prevcon
-        cif._nextConInstanceName=nextcon
-        cif.UploadConInstancePage(pm=pm, UploadFiles=False)
+        cip._prevConInstanceName=prevcon
+        cip._nextConInstanceName=nextcon
+
+        if not cip.Upload():
+            LogError(f"DownloadThenUploadConInstancePage(): Upload of '{conname}' failed.")
+            return False
 
 
     # ------------------

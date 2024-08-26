@@ -14,7 +14,6 @@ from ConInstanceDeltaTracker import UpdateFTPLog
 from FTP import FTP
 from Settings import Settings
 
-
 from HelpersPackage import SubstituteHTML, FindBracketedText2, FormatLink, Int, MessageBox, PyiResourcePath, FindLinkInString
 from WxHelpers import ModalDialogManager, OnCloseHandling, ProgressMessage2
 from Log import LogOpen, Log, LogFlush, LogSetTimestamping

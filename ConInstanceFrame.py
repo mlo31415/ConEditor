@@ -2,20 +2,17 @@ from __future__ import annotations
 
 import wx
 import os
-import sys
+
 import re
-# import inspect
-from datetime import datetime
 
 from GenConInstanceFrame import GenConInstanceFrame
 from WxDataGrid import DataGrid, Color, IsEditable
-from ConInstance import ConInstanceDatasource, ConInstanceRow
+from ConInstance import ConInstanceDatasource, ConInstanceRow, ConInstance
 from ConInstanceDeltaTracker import ConInstanceDeltaTracker, UpdateFTPLog
 from FTP import FTP
 from Settings import Settings
 from Log import Log, LogError
-from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText2, WikiPagenameToWikiUrlname, Int0, Float0, ExtensionMatches, PyiResourcePath
-from HelpersPackage import FindNextBracketedText, FindLinkInString
+from HelpersPackage import WikiPagenameToWikiUrlname, ExtensionMatches
 from PDFHelpers import GetPdfPageCount, AddMissingMetadata
 from WxHelpers import OnCloseHandling, ModalDialogManager, ProgressMessage2
 
@@ -33,8 +30,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         self._FTPbasedir=basedirFTP
         self._seriesname=seriesname
-        self._prevConInstanceName=prevconname
-        self._nextConInstanceName=nextconname
         self.Conname=conname        # The actual name of the con directory on conpubs
         self._credits=""
 
@@ -55,6 +50,10 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             if not self._downloaded:
                 self._returnMessage=f"Unable to download ConInstance page {self._FTPbasedir}/{self.Conname}/index.html"
                 return
+
+        #  Override any existing prev/next with the current prev/next
+        self._prevConInstanceName=prevconname
+        self._nextConInstanceName=nextconname
 
         self._valid=True
         self.SetEscapeId(wx.ID_CANCEL)
@@ -125,11 +124,14 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     @property
     def Conname(self) -> str:
         return self._conlink.strip()
-
     @Conname.setter
     def Conname(self, val: str) -> None:
         self._conlink=val
 
+    # ----------------------------------------------
+    @property
+    def ReturnMessage(self) -> str:
+        return self._returnMessage.strip()
 
     # ----------------------------------------------
     @property
@@ -300,179 +302,89 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             wx.MessageBox("Malformed row found")
             return False
 
-
-        # Read in the template
-        try:
-            Log(f"sys.path[0]=  {sys.path[0]}")
-            Log(f"sys.argv[0]=  {sys.argv[0]}")
-            Log(f"{os.path.join(sys.path[0], 'Template-ConPage.html')=}")
-            with open(PyiResourcePath("Template-ConPage.html")) as f:
-                file=f.read()
-        except:
-            wx.MessageBox("Can't read 'Template-ConPage.html'")
-            Log("Can't read 'Template-ConPage.html'")
-            return False
+        # If there are missing page counts for pdfs, try to get them. (This can eventually be eliminated as there will be no pre-V7 files on the server.)
+        self.FillInMissingPDFPageCounts()
 
         if pm is None:
             with ModalDialogManager(ProgressMessage2, f"Uploading /{self._seriesname}/{self.Conname}/index.html", parent=self) as pm:
-                return self.DoCIPUpload(file, pm, UploadFiles=UploadFiles)
+                return self.DoConInstanceUpload(pm, UploadFiles=UploadFiles)
 
         pm.Update(f"Uploading /{self._seriesname}/{self.Conname}/index.html")
-        return self.DoCIPUpload(file, pm, UploadFiles=UploadFiles)
+        return self.DoConInstanceUpload(pm, UploadFiles=UploadFiles)
 
 
 
-    def DoCIPUpload(self, file: str, pm: ProgressMessage2=None, UploadFiles: bool=True) -> bool:
+    def DoConInstanceUpload(self, pm: ProgressMessage2=None, UploadFiles: bool=True) -> bool:
         if pm is not None:
             Log(f"DoCIPUpload: Preparing {self.Conname} to be uploaded")
             pm.Update(f"Preparing {self.Conname} to be uploaded")
-        # We want to do substitutions, replacing whatever is there now with the new data
-        # The con's name is tagged with <fanac-instance>, the random text with "fanac-headertext"
-        fancylink=FormatLink(f"https://fancyclopedia.org/{WikiPagenameToWikiUrlname(self.Conname)}", self.Conname)
-        file=SubstituteHTML(file, "title", self.Conname)
-        file=SubstituteHTML(file, "fanac-instance", fancylink)
-        file=SubstituteHTML(file, "fanac-stuff", self.ConInstanceTopText)
 
-        # Fill in the top buttons
-        s=f"<button onclick=\"window.location.href='https://fancyclopedia.org/{WikiPagenameToWikiUrlname(self.Conname)}'\"> Fancyclopedia 3 </button>&nbsp;&nbsp;"
-        s+=f"<button onclick=\"window.location.href='../index.html'\">All {self._seriesname}s</button>"
-        file=SubstituteHTML(file, "fanac-topbuttons", s)
 
-        # If there are missing page counts for pdfs, try to gett hem. (This can eventually be eliminated as there will be no pre-V7 files on the server.)
-        self.FillInMissingPDFPageCounts()
+        ci=ConInstance(self._FTPbasedir, self._seriesname, self.Conname)
 
-        file=SubstituteHTML(file, "fanac-date", datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST")
-        if len(self.Credits.strip()) > 0:
-            file=SubstituteHTML(file, "fanac-credits", self.Credits.strip())
+        pm.Update(f"{self._FTPbasedir}/{self.Conname}/index.html downloaded")
 
-        def FormatSizes(row: ConInstanceRow) -> str:
-            info=""
-            if row.Size > 0 or row.Pages > 0:
-                info="<small>("
-                if row.Size > 0:
-                    info+="{:,.1f}".format(row.Size)+'&nbsp;MB'
-                if row.Pages > 0:
-                    if row.Size > 0:
-                        info+="; "
-                    info+=str(row.Pages)+" pp"
-                info+=")</small>"
-            return info
+        ci._toptext=self.topText.GetValue()
+        ci._credits=self.tCredits.GetValue()
+        ci._prevConInstanceName=self._prevConInstanceName
+        ci._nextConInstanceName=self._nextConInstanceName
+        ci._coninstanceRows=self._Datasource.Rows
 
-        showExtensions=self.radioBoxShowExtensions.GetSelection() != 0
-
-        def MaybeSuppressPDFExtension(fn: str, suppress: bool) -> str:
-            if suppress:
-                parts=os.path.splitext(row.DisplayTitle)
-                if parts[1].lower() in [".pdf", ".jpg", ".png", ".doc", ".docx"]:
-                    fn=parts[0]
-            return fn
-
-            # Now construct the table which we'll then substitute.
-            newtable='<table class="table"  id="conpagetable">\n'
-            newtable+="  <thead>\n"
-            newtable+="    <tr>\n"
-            newtable+='      <th scope="col">Document</th>\n'
-            newtable+='      <th scope="col">Size</th>\n'
-            newtable+='      <th scope="col">Notes</th>\n'
-            newtable+='    </tr>\n'
-            newtable+='  </thead>\n'
-            newtable+='  <tbody>\n'
-            for i, row in enumerate(self.Datasource.Rows):
-                newtable+="    <tr>\n"
-                # Display title column
-                if row.IsTextRow:
-                    newtable+=f'      <td colspan="3">{row.SourceFilename} {row.SiteFilename} {row.DisplayTitle} {row.Notes}</td>\n'
-                elif row.IsLinkRow:
-                    newtable+=f'      <td colspan="3">{FormatLink(row.SiteFilename, row.DisplayTitle)}</td>\n'
-                else:  # Ordinary row
-                    # The document title/link column
-                    s=MaybeSuppressPDFExtension(row.DisplayTitle, showExtensions)
-                    newtable+=f'      <td>{FormatLink(row.SiteFilename, s)}</td>\n'
-
-                    # This is the size & page count column
-                    newtable+=f'      <td>{FormatSizes(row)}</td>\n'
-
-                    # Notes column
-                    info='      <td> </td>\n'
-                    if len(row.Notes) > 0:
-                        info=f'      <td>{row.Notes}</td>\n'
-                    newtable+=info
-
-                newtable+="    </tr>\n"
-            newtable+="    </tbody>\n"
-            newtable+="  </table>\n"
-        file=SubstituteHTML(file, "fanac-table", newtable)
-
-        # Update the prev- and next-con nav buttons
-        file=self.UpdateButton(file, "fanac-prevCon", self._seriesname, self._prevConInstanceName)
-        file=self.UpdateButton(file, "fanac-nextCon", self._seriesname, self._nextConInstanceName)
-
-        if not FTP().PutFileAsString(f"/{self._seriesname}/{self.Conname}", "index.html", file, create=True):
-            Log(f"Upload failed: /{self._seriesname}/{self.Conname}/index.html")
-            wx.MessageBox(f"OnUploadConInstancePage: Upload failed: /{self._seriesname}/{self.Conname}/index.html")
+        if not ci.Upload():
             return False
 
         if UploadFiles:
-            wd=f"/{self._seriesname}/{self.Conname}"
-            FTP().CWD(wd)
-            for delta in self.conInstanceDeltaTracker.Deltas:
-                if delta.Verb == "add":
-                    if pm is not None:
-                        pm.Update(f"Adding {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
-                    Log(f"delta-ADD: {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
-                    metadata={
-                        '/Title': f'{self.Conname}: {delta.Con.DisplayTitle.strip().removesuffix(".pdf").removesuffix(".PDF")}'
-                    }
-                    AddMissingMetadata(delta.Con.SourcePathname, metadata)
-                    FTP().PutFile(delta.Con.SourcePathname, delta.Con.SiteFilename)
-                elif delta.Verb == "rename":
-                    if pm is not None:
-                        pm.Update(f"Renaming {delta.Oldname} to {delta.Con.SiteFilename}")
-                    Log(f"delta-RENAME: {delta.Oldname} to {delta.Con.SiteFilename}")
-                    if len(delta.Oldname.strip()) == 0:
-                        Log("***Renaming an blank name can't be right! Ignored", isError=True)
-                        continue
-                    FTP().Rename(delta.Oldname, delta.Con.SiteFilename)
-                elif delta.Verb == "delete":
-                    if not delta.Con.IsTextRow and not delta.Con.IsLinkRow:
-                        if pm is not None:
-                            pm.Update(f"Deleting {delta.Con.SiteFilename}")
-                        Log(f"delta-DELETE: {delta.Con.SiteFilename}")
-                        if len(delta.Con.SiteFilename.strip()) > 0:
-                            FTP().DeleteFile(delta.Con.SiteFilename)
-                elif delta.Verb == "replace":
-                    if pm is not None:
-                        pm.Update(f"Replacing {delta.Oldname} with new/updated file")
-                    Log(f"delta-REPLACE: {delta.Con.SourcePathname} <-- {delta.Oldname}")
-                    Log(f"   delta-DELETE: {delta.Con.SiteFilename}")
-                    if len(delta.Con.SiteFilename.strip()) > 0:
-                        FTP().DeleteFile(delta.Con.SiteFilename)
-                    Log(f"   delta-ADD: {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
-                    FTP().PutFile(delta.Con.SourcePathname, delta.Con.SiteFilename)
-                else:
-                    Log(f"delta-UNRECOGNIZED: {delta}")
-
-            UpdateFTPLog.LogDeltas(self._seriesname, self.Conname, self.conInstanceDeltaTracker)
-
-            self.conInstanceDeltaTracker=ConInstanceDeltaTracker()  # The upload is complete. Start tracking changes afresh
+            self.UploadConInstanceFiles(pm)
 
         if pm is not None:
             pm.Update(f"Upload succeeded: /{self._seriesname}/{self.Conname}/index.html", delay=0.5)
         return True
 
-    def UpdateButton(self, file: str, target: str, series: str,  URLname: str) -> str:
 
-        if URLname == "first" or URLname == "last" or URLname == "":
-            if URLname == "":
-                URLname="first" if "prev" in target else "last"
-            html=f"<button>{URLname}</button>"
-        else:
-            url=f"https://www.fanac.org/conpubs/{series}/{URLname}/index.html"
-            url=url.replace(" ", "%20")
-            html=f"<button onclick=window.location.href='{url}'>{URLname}</button>"
+    def UploadConInstanceFiles(self, pm):
+        wd=f"/{self._seriesname}/{self.Conname}"
+        FTP().CWD(wd)
+        for delta in self.conInstanceDeltaTracker.Deltas:
+            if delta.Verb == "add":
+                if pm is not None:
+                    pm.Update(f"Adding {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
+                Log(f"delta-ADD: {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
+                metadata={
+                    '/Title': f'{self.Conname}: {delta.Con.DisplayTitle.strip().removesuffix(".pdf").removesuffix(".PDF")}'
+                }
+                AddMissingMetadata(delta.Con.SourcePathname, metadata)
+                FTP().PutFile(delta.Con.SourcePathname, delta.Con.SiteFilename)
+            elif delta.Verb == "rename":
+                if pm is not None:
+                    pm.Update(f"Renaming {delta.Oldname} to {delta.Con.SiteFilename}")
+                Log(f"delta-RENAME: {delta.Oldname} to {delta.Con.SiteFilename}")
+                if len(delta.Oldname.strip()) == 0:
+                    Log("***Renaming an blank name can't be right! Ignored", isError=True)
+                    continue
+                FTP().Rename(delta.Oldname, delta.Con.SiteFilename)
+            elif delta.Verb == "delete":
+                if not delta.Con.IsTextRow and not delta.Con.IsLinkRow:
+                    if pm is not None:
+                        pm.Update(f"Deleting {delta.Con.SiteFilename}")
+                    Log(f"delta-DELETE: {delta.Con.SiteFilename}")
+                    if len(delta.Con.SiteFilename.strip()) > 0:
+                        FTP().DeleteFile(delta.Con.SiteFilename)
+            elif delta.Verb == "replace":
+                if pm is not None:
+                    pm.Update(f"Replacing {delta.Oldname} with new/updated file")
+                Log(f"delta-REPLACE: {delta.Con.SourcePathname} <-- {delta.Oldname}")
+                Log(f"   delta-DELETE: {delta.Con.SiteFilename}")
+                if len(delta.Con.SiteFilename.strip()) > 0:
+                    FTP().DeleteFile(delta.Con.SiteFilename)
+                Log(f"   delta-ADD: {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
+                FTP().PutFile(delta.Con.SourcePathname, delta.Con.SiteFilename)
+            else:
+                Log(f"delta-UNRECOGNIZED: {delta}")
 
-        file=SubstituteHTML(file, target, html)
-        return file
+            UpdateFTPLog.LogDeltas(self._seriesname, self.Conname, self.conInstanceDeltaTracker)
+
+            self.conInstanceDeltaTracker=ConInstanceDeltaTracker()  # The upload is complete. Start tracking changes afresh
+
 
     #------------------
     # Download a ConInstance
@@ -482,19 +394,18 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         # Read the existing CIP
         # We have two versions, one in which DownloadConInstancePage() is called with a ProgressMessage already showing and one where it must create it
-        ret=False
         if pm is None:
             with (ModalDialogManager(ProgressMessage2, f"Downloading '{self._FTPbasedir}/{self.Conname}/index.html'", parent=self) as pm):
                 if not FTP().FileExists(f"{self._FTPbasedir}/{self.Conname}/index.html"):
                     LogError(f"DownloadConInstancePage(): '{self._FTPbasedir}/{self.Conname}/index.html' not found")
                     return False
-                ret=self.DoCIPDownload(pm=pm)
+                ret=self.DoConInstanceDownload(pm=pm)
         else:
             pm.Update(f"Downloading {self._FTPbasedir}/{self.Conname}/index.html")
             if not FTP().FileExists(f"{self._FTPbasedir}/{self.Conname}/index.html"):
                 LogError(f"DownloadConInstancePage(): '{self._FTPbasedir}/{self.Conname}/index.html' not found")
                 return False
-            ret=self.DoCIPDownload(pm=pm)
+            ret=self.DoConInstanceDownload(pm=pm)
 
         self.Title=f"Editing {self.Conname}"
         self._grid.MakeTextLinesEditable()
@@ -503,152 +414,23 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
 
     # ----------------------------------------------
-    def DoCIPDownload(self, pm: ProgressMessage2) -> bool:
+    def DoConInstanceDownload(self, pm: ProgressMessage2) -> bool:
 
-        def ValidLocalLink(link: str) -> bool:    # Made a method because it might be reused
-            if link is None or link == "":
-                return False
-            if link[0] == ".":
-                return False
-            if "/" in link:
-                return False
-            return True
+        ci=ConInstance(self._FTPbasedir, self._seriesname, self.Conname)
 
-        if not ValidLocalLink(self.Conname):
+        if not ci.Download():
             return False
-
-        file=FTP().GetFileAsString(f"{self._FTPbasedir}/{self.Conname}", "index.html")
-        if file is None:
-            LogError(f"DownloadConInstancePage: '{self._FTPbasedir}/{self.Conname}/index.html' does not exist -- create a new file and upload it")
-            # wx.MessageBox(self._FTPbasedir+"/"+self._coninstancename+"/index.html does not exist -- create a new file and upload it")
-            return False  # Just return with the ConInstance page empty
-
-        file=file.replace("/n", "")  # I don't know where these are coming from, but they don't belong there!
-
-        body, _=FindBracketedText2(file, "body", caseInsensitive=True)
-        if body is None:
-            LogError("DownloadConInstancePage(): Can't find <body> tag")
-            return False
-
-        fanacInstance, _=FindBracketedText2(body, "fanac-instance", caseInsensitive=True)
-        if fanacInstance is None:
-            LogError("DownloadConInstancePage(): Can't find <fanac-instance> tag")
-            return False
-
-        topButtons, _=FindBracketedText2(body, "fanac-topButtons", caseInsensitive=True)
-        if topButtons is None:
-            LogError("DownloadConInstancePage(): Can't find <fanac-topButtons> tag")
-            return False
-
-        fanacstuff, _=FindBracketedText2(body, "fanac-stuff", caseInsensitive=True)
-        if fanacstuff is None:
-            LogError("DownloadConInstancePage(): Can't find <fanac-stuff> tag")
-            return False
-        self.topText.SetValue(fanacstuff)
-
-        fanaccredits, _=FindBracketedText2(body, "fanac-credits", caseInsensitive=True)
-        if fanaccredits is None:
-            LogError("DownloadConInstancePage(): Can't find <fanac-credits> tag")
-            return False
-        m=re.match(r"^\s*Credits?:?\s*(?:Publications provided by )?(.*?)\s*(<br>)?\s*$", fanaccredits)  # Remove some debris that shows up on older pages.
-        if m is not None:
-            fanaccredits=m.group(1)
-        self.tCredits.SetValue(fanaccredits)
-
-        rows: list[tuple[str, str]]=[]
-        ulists, _=FindBracketedText2(body, "fanac-table", caseInsensitive=True)
-
-        # The ulists are a series of ulist items, each ulist is a series of <li></li> items
-        # The tags usually have ' id="conpagetable"' which can be ignored
-        remainder=ulists.replace(' id="conpagetable"', "")
-        while True:
-            lead, tag, contents, remainder=FindNextBracketedText(remainder)
-            if tag == "":
-                break
-            Log(f"*** {tag=}  {contents=}")
-            if tag == "ul":
-                remainder=lead+contents+remainder  # If we encounter a <ul>...</ul> tag, we edit it out, keeping what's outside it and what's inside it
-                continue
-            rows.append((tag, contents))
-
-        # Get the next and previous conventions from the buttons at the bottom
-        pbutton, _=FindBracketedText2(body, "fanac-prevCon")
-        if pbutton != "":
-            pbutton,_=FindBracketedText2(pbutton, "button")
-            if pbutton != "" and pbutton != "(first)":
-                self._prevConInstanceName=pbutton
-        nbutton, _=FindBracketedText2(body, "fanac-nextCon")
-        if nbutton != "":
-            nbutton,_=FindBracketedText2(nbutton, "button")
-            if nbutton != "" and nbutton != "(last)":
-                self._nextConInstanceName=nbutton
-
-        # Now decode the lines
-        for row in rows:
-            if row[0] == "li":
-                Log(f"\n{row[1]=}")
-                conf=ConInstanceRow()
-                # We're looking for an <a></a> followed by <small>/</small>
-                a, rest=FindBracketedText2(row[1], "a", includeBrackets=True)
-                Log(f"{a=}   {rest=}")
-                if a == "":
-                    LogError(f"DownloadConInstancePage(): Can't find <a> tag in {row}")
-                    return False
-                _, href, text, _=FindLinkInString(a)
-                if href == "":
-                    LogError(f"DownloadConInstancePage(): Can't find href= in <a> tag in {row}")
-                    return False
-                # if href is a foreign link, then this is a link line
-                if "/" in href:
-                    conf.DisplayTitle=text
-                    conf.SiteFilename=href
-                    conf.IsLinkRow=True
-                    self.Datasource.Rows.append(conf)
-                    continue
-                # Strip any view-Fit specs from the end of the URL.  There may be more than one.
-                # They may be of the form
-                #       #view=Fit
-                #       #xxx=yyy&view-Fit
-                # Strategy is to first remove all view=Fit&, then any #view=Fit
-                while "view=fit" in href.lower():
-                    href=re.sub("view=fit&", "", href, count=99, flags=re.IGNORECASE)
-                    href=re.sub("#view=fit", "", href, count=1, flags=re.IGNORECASE)    # Note that if the view=Fit was followed by &anything, it would have been deleted in the previous line
-
-                # It appears to be an ordinary file like
-                conf.DisplayTitle=text
-                # There are some cases of ugliness -- old errors -- which need to be detected and removed
-                # The only one known so far as &%23x27;  The x23 needs to be turned into a # and the resulting &#27x; to a '
-                # It may make sense to generalize on the pattern...or it may not.
-                m=re.match(r"(.*)&%([0-9]+)x([0-9]+);(.*)", href)
-                if m is not None:
-                    if m.groups()[1] == "23" and m.groups()[2] == "27":
-                        href=m.groups()[0]+"'"+m.groups()[3]
-
-                conf.SiteFilename=href
-
-                if len(rest.strip()) > 0:
-                    small, _=FindBracketedText2(rest, "small")
-                    if small == "":
-                        LogError(f"DownloadConInstancePage(): Can't find <small> tag in {rest}")
-                        return False
-                    small=small.replace("&nbsp;", " ")
-                    m=re.match(".*?([0-9.]+) MB", small, re.IGNORECASE)
-                    if m is not None:
-                        conf.Size=Float0(m.group(1))
-                    m=re.match(".*?([0-9]+) pp", small, re.IGNORECASE)
-                    if m is not None:
-                        conf.Pages=Int0(m.group(1))
-
-                self.Datasource.Rows.append(conf)
-
-            elif row[0] == "b":
-                conf=ConInstanceRow()
-                conf.IsTextRow=True
-                conf.TextLineText=row[1]
-                self.Datasource.Rows.append(conf)
 
         pm.Update(f"{self._FTPbasedir}/{self.Conname}/index.html downloaded")
+
+        self.topText.SetValue(ci._toptext)
+        self.tCredits.SetValue(ci._credits)
+        self._prevConInstanceName=ci._prevConInstanceName
+        self._nextConInstanceName=ci._nextConInstanceName
+        self._Datasource.Rows=ci._coninstanceRows
+
         return True
+
 
     # ------------------
     def OnGridCellRightClick(self, event):
@@ -891,14 +673,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     # ------------------
     def OnTextConInstanceCredits(self, event):
         self.RefreshWindow(DontRefreshGrid=True)
-
-    # ------------------
-    def OnRadioFileListFormat(self, event):
-        Settings().Put("ConInstanceFramePage:File list format", self.radioBoxFileListFormat.GetSelection())
-
-    # ------------------
-    def OnRadioShowExtensions(self, event):
-        Settings().Put("ConInstanceFramePage:Show Extensions", self.radioBoxShowExtensions.GetSelection())
 
     #------------------
     def RefreshWindow(self, DontRefreshGrid: bool=False) -> None:
