@@ -48,12 +48,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self._downloaded=False  # Has this con instance been successfully downloaded?
         self._valid=False       # Is this a valid ConInstanceDialogClass?
 
-        val=Settings().Get("ConInstanceFramePage:File list format", default=1)  # Default value is display as list
-        self.radioBoxFileListFormat.SetSelection(val)
-
-        val=Settings().Get("ConInstanceFramePage:Show Extensions", default=1)   # Default value is do not show extensions
-        self.radioBoxShowExtensions.SetSelection(val)
-
         self.Datasource.SpecialTextColor=None
 
         if not Create:
@@ -373,7 +367,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     fn=parts[0]
             return fn
 
-        if self.radioBoxFileListFormat.GetSelection() == 0:  # Are we to output a table?
             # Now construct the table which we'll then substitute.
             newtable='<table class="table"  id="conpagetable">\n'
             newtable+="  <thead>\n"
@@ -408,31 +401,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 newtable+="    </tr>\n"
             newtable+="    </tbody>\n"
             newtable+="  </table>\n"
-        else:  # Output a list
-            # Construct a list which we'll then substitute.
-            newtable='<ul  id="conpagetable">\n'
-            for row in self.Datasource.Rows:
-                if row.IsTextRow:
-                    text=f"{row.SourceFilename} {row.SiteFilename} {row.DisplayTitle} {row.Notes}"
-                    newtable+=f'    </ul><b>{text.strip()}</b><ul id="conpagetable">\n'
-                elif row.IsLinkRow:
-                    newtable+=f'    <li id="conpagetable">{FormatLink(row.SiteFilename, row.DisplayTitle)}</li>\n'
-                else:
-                    s=MaybeSuppressPDFExtension(row.DisplayTitle, showExtensions)
-                    newtable+='    <li id="conpagetable">'+FormatLink(row.SiteFilename, s)
-
-                    val=FormatSizes(row)
-                    if len(val) > 0:
-                        newtable+='&nbsp;&nbsp;'+val
-                    newtable+='\n'
-
-                    # Notes
-                    if len(row.Notes) > 0:
-                        newtable+=f"&nbsp;&nbsp;({row.Notes})"
-                    newtable+="</li>\n"
-
-            newtable+="  </ul>\n"
-
         file=SubstituteHTML(file, "fanac-table", newtable)
 
         # Update the prev- and next-con nav buttons
