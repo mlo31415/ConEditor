@@ -28,8 +28,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         self._grid.HideRowLabels()
 
-        self._FTPbasedir=basedirFTP
-        self._seriesname=seriesname
+        self._FTPbasedir=basedirFTP # The root of the convention's files, e.g., "/seriesName"
+        self._seriesname=seriesname # The name of the series
         self.Conname=conname        # The actual name of the con directory on conpubs
         self._credits=""
 
