@@ -248,7 +248,7 @@ class ConInstance:
         if not ValidLocalLink(self._conname):
             return False
 
-        file=FTP().GetFileAsString(f"{self._FTPbasedir}/{self._seriesname}/{self._conname}", "index.html")
+        file=FTP().GetFileAsString(f"{self._FTPbasedir}/{self._conname}", "index.html")
         if file is None:
             LogError(f"DownloadConInstancePage: '{self._FTPbasedir}/{self._conname}/index.html' does not exist -- create a new file and upload it")
             # wx.MessageBox(self._FTPbasedir+"/"+self._coninstancename+"/index.html does not exist -- create a new file and upload it")
