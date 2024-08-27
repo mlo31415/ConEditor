@@ -328,7 +328,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         ci.Credits=self.tCredits.GetValue()
         ci.PrevConInstanceName=self._prevConInstanceName
         ci.NextConInstanceName=self._nextConInstanceName
-        ci._coninstanceRows=self._Datasource.Rows
+        ci.ConInstanceRows=self._Datasource.Rows
 
         if not ci.Upload():
             return False
@@ -427,7 +427,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.tCredits.SetValue(ci.Credits)
         self._prevConInstanceName=ci.PrevConInstanceName
         self._nextConInstanceName=ci.NextConInstanceName
-        self._Datasource.Rows=ci._coninstanceRows
+        self._Datasource.Rows=ci.ConInstanceRows
 
         return True
 

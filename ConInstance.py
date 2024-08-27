@@ -230,7 +230,7 @@ class ConInstance:
 
         self.Credits: str=""
         self.Toptext: str=""
-        self._coninstanceRows: list[ConInstanceRow]=[]
+        self.ConInstanceRows: list[ConInstanceRow]=[]
 
 
  # ----------------------------------------------
@@ -334,7 +334,7 @@ class ConInstance:
                     conf.DisplayTitle=text
                     conf.SiteFilename=href
                     conf.IsLinkRow=True
-                    self._coninstanceRows.append(conf)
+                    self.ConInstanceRows.append(conf)
                     continue
                 # Strip any view-Fit specs from the end of the URL.  There may be more than one.
                 # They may be of the form
@@ -370,13 +370,13 @@ class ConInstance:
                     if m is not None:
                         conf.Pages=Int0(m.group(1))
 
-                self._coninstanceRows.append(conf)
+                self.ConInstanceRows.append(conf)
 
             elif row[0] == "b":
                 conf=ConInstanceRow()
                 conf.IsTextRow=True
                 conf.TextLineText=row[1]
-                self._coninstanceRows.append(conf)
+                self.ConInstanceRows.append(conf)
 
         return True
 
@@ -442,7 +442,7 @@ class ConInstance:
         newtable+='    </tr>\n'
         newtable+='  </thead>\n'
         newtable+='  <tbody>\n'
-        for i, row in enumerate(self._coninstanceRows):
+        for i, row in enumerate(self.ConInstanceRows):
             newtable+="    <tr>\n"
             # Display title column
             if row.IsTextRow:
