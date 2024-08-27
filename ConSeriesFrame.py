@@ -1152,7 +1152,7 @@ class ConSeriesFrame(GenConSeriesFrame):
     # ------------------
     # Download a con instance and then immediately re-upload it.  This will regenerate the page using the latest template and processing.
     # It will also update the next/prev buttons at the bottom.
-    def DownloadThenUploadConInstancePage(self, seriespath: str, seriesname: str, conname: str, prevcon: str="", nextcon: str="", pm=None):
+    def DownloadThenUploadConInstancePage(self, seriespath: str, seriesname: str, conname: str, prevcon: str="", nextcon: str="", pm=None) -> bool:
 
         # Download a con instance page
         ci=ConInstance(self._basedirectoryFTP, seriesname, conname)
@@ -1172,6 +1172,8 @@ class ConSeriesFrame(GenConSeriesFrame):
         if not ci.Upload():
             LogError(f"DownloadThenUploadConInstancePage(): Upload of '{conname}' failed.")
             return False
+
+        return True
 
 
     # ------------------
