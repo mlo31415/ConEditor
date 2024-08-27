@@ -1155,8 +1155,8 @@ class ConSeriesFrame(GenConSeriesFrame):
     def DownloadThenUploadConInstancePage(self, seriespath: str, seriesname: str, conname: str, prevcon: str="", nextcon: str="", pm=None):
 
         # Download a con instance page
-        cip=ConInstance(self._basedirectoryFTP, seriesname, conname)
-        if not cip.Download():
+        ci=ConInstance(self._basedirectoryFTP, seriesname, conname)
+        if not ci.Download():
             LogError(f"DownloadThenUploadConInstancePage(): Download of '{conname}' failed.")
             return False
 
@@ -1166,10 +1166,10 @@ class ConSeriesFrame(GenConSeriesFrame):
             return False
 
         # Override any value read from the server, since they will need to be updated.
-        cip.PrevConInstanceName=prevcon
-        cip.NextConInstanceName=nextcon
+        ci.PrevConInstanceName=prevcon
+        ci.NextConInstanceName=nextcon
 
-        if not cip.Upload():
+        if not ci.Upload():
             LogError(f"DownloadThenUploadConInstancePage(): Upload of '{conname}' failed.")
             return False
 
