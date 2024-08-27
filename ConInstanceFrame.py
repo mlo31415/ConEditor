@@ -324,8 +324,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         pm.Update(f"{self._FTPbasedir}/{self.Conname}/index.html downloaded")
 
-        ci._toptext=self.topText.GetValue()
-        ci._credits=self.tCredits.GetValue()
+        ci.Toptext=self.topText.GetValue()
+        ci.Credits=self.tCredits.GetValue()
         ci.PrevConInstanceName=self._prevConInstanceName
         ci.NextConInstanceName=self._nextConInstanceName
         ci._coninstanceRows=self._Datasource.Rows
@@ -423,8 +423,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         pm.Update(f"{self._FTPbasedir}/{self.Conname}/index.html downloaded")
 
-        self.topText.SetValue(ci._toptext)
-        self.tCredits.SetValue(ci._credits)
+        self.topText.SetValue(ci.Toptext)
+        self.tCredits.SetValue(ci.Credits)
         self._prevConInstanceName=ci.PrevConInstanceName
         self._nextConInstanceName=ci.NextConInstanceName
         self._Datasource.Rows=ci._coninstanceRows

@@ -228,8 +228,8 @@ class ConInstance:
         self.PrevConInstanceName: str=""
         self.NextConInstanceName: str=""
 
-        self._credits: str=""
-        self._toptext: str=""
+        self.Credits: str=""
+        self.Toptext: str=""
         self._coninstanceRows: list[ConInstanceRow]=[]
 
 
@@ -275,7 +275,7 @@ class ConInstance:
         if fanacstuff is None:
             LogError("DownloadConInstancePage(): Can't find <fanac-stuff> tag")
             return False
-        self._toptext=fanacstuff
+        self.Toptext=fanacstuff
 
         fanaccredits, _=FindBracketedText2(body, "fanac-credits", caseInsensitive=True)
         if fanaccredits is None:
@@ -284,7 +284,7 @@ class ConInstance:
         m=re.match(r"^\s*Credits?:?\s*(?:Publications provided by )?(.*?)\s*(<br>)?\s*$", fanaccredits)  # Remove some debris that shows up on older pages.
         if m is not None:
             fanaccredits=m.group(1)
-        self._credits=fanaccredits
+        self.Credits=fanaccredits
 
         rows: list[tuple[str, str]]=[]
         ulists, _=FindBracketedText2(body, "fanac-table", caseInsensitive=True)
@@ -400,7 +400,7 @@ class ConInstance:
         fancylink=FormatLink(f"https://fancyclopedia.org/{WikiPagenameToWikiUrlname(self._conname)}", self._conname)
         file=SubstituteHTML(file, "title", self._conname)
         file=SubstituteHTML(file, "fanac-instance", fancylink)
-        file=SubstituteHTML(file, "fanac-stuff", self._toptext)
+        file=SubstituteHTML(file, "fanac-stuff", self.Toptext)
 
         # Fill in the top buttons
         s=f"<button onclick=\"window.location.href='https://fancyclopedia.org/{WikiPagenameToWikiUrlname(self._conname)}'\"> Fancyclopedia 3 </button>&nbsp;&nbsp;"
@@ -409,8 +409,8 @@ class ConInstance:
 
 
         file=SubstituteHTML(file, "fanac-date", datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST")
-        if len(self._credits.strip()) > 0:
-            file=SubstituteHTML(file, "fanac-credits", self._credits.strip())
+        if len(self.Credits.strip()) > 0:
+            file=SubstituteHTML(file, "fanac-credits", self.Credits.strip())
 
         def FormatSizes(row: ConInstanceRow) -> str:
             info=""
