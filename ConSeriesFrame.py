@@ -1103,6 +1103,8 @@ class ConSeriesFrame(GenConSeriesFrame):
         if ret == wx.CANCEL:
             return
 
+        Log(f"OnRegenerateConPages() called")
+
         with ModalDialogManager(ProgressMessage2, f"Regenerating all con pages in this con series", parent=self) as pm:
             for irow in range(self.Datasource.NumRows):
                 # Do nothing in cases with complex names (e.g., extras or differing links)
