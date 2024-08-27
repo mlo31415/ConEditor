@@ -1166,8 +1166,8 @@ class ConSeriesFrame(GenConSeriesFrame):
             return False
 
         # Override any value read from the server, since they will need to be updated.
-        cip._prevConInstanceName=prevcon
-        cip._nextConInstanceName=nextcon
+        cip.PrevConInstanceName=prevcon
+        cip.NextConInstanceName=nextcon
 
         if not cip.Upload():
             LogError(f"DownloadThenUploadConInstancePage(): Upload of '{conname}' failed.")

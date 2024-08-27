@@ -326,8 +326,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         ci._toptext=self.topText.GetValue()
         ci._credits=self.tCredits.GetValue()
-        ci._prevConInstanceName=self._prevConInstanceName
-        ci._nextConInstanceName=self._nextConInstanceName
+        ci.PrevConInstanceName=self._prevConInstanceName
+        ci.NextConInstanceName=self._nextConInstanceName
         ci._coninstanceRows=self._Datasource.Rows
 
         if not ci.Upload():
@@ -425,8 +425,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         self.topText.SetValue(ci._toptext)
         self.tCredits.SetValue(ci._credits)
-        self._prevConInstanceName=ci._prevConInstanceName
-        self._nextConInstanceName=ci._nextConInstanceName
+        self._prevConInstanceName=ci.PrevConInstanceName
+        self._nextConInstanceName=ci.NextConInstanceName
         self._Datasource.Rows=ci._coninstanceRows
 
         return True

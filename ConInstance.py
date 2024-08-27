@@ -223,10 +223,10 @@ class ConInstance:
         self._seriesname: str=seriesname
         self._conname: str=conname
 
-        self._FTPbasedir: str=basedir
+        self.FTPSeriesRootPath: str=basedir
 
-        self._prevConInstanceName: str=""
-        self._nextConInstanceName: str=""
+        self.PrevConInstanceName: str=""
+        self.NextConInstanceName: str=""
 
         self._credits: str=""
         self._toptext: str=""
@@ -248,10 +248,10 @@ class ConInstance:
         if not ValidLocalLink(self._conname):
             return False
 
-        file=FTP().GetFileAsString(f"{self._FTPbasedir}/{self._conname}", "index.html")
+        file=FTP().GetFileAsString(f"{self.FTPSeriesRootPath}/{self._conname}", "index.html")
         if file is None:
-            LogError(f"DownloadConInstancePage: '{self._FTPbasedir}/{self._conname}/index.html' does not exist -- create a new file and upload it")
-            # wx.MessageBox(self._FTPbasedir+"/"+self._coninstancename+"/index.html does not exist -- create a new file and upload it")
+            LogError(f"DownloadConInstancePage: '{self.FTPSeriesRootPath}/{self._conname}/index.html' does not exist -- create a new file and upload it")
+            # wx.MessageBox(self.FTPSeriesRootPath+"/"+self._coninstancename+"/index.html does not exist -- create a new file and upload it")
             return False  # Just return with the ConInstance page empty
 
         file=file.replace("/n", "")  # I don't know where these are coming from, but they don't belong there!
@@ -307,12 +307,12 @@ class ConInstance:
         if pbutton != "":
             pbutton,_=FindBracketedText2(pbutton, "button")
             if pbutton != "" and pbutton != "(first)":
-                self._prevConInstanceName=pbutton
+                self.PrevConInstanceName=pbutton
         nbutton, _=FindBracketedText2(body, "fanac-nextCon")
         if nbutton != "":
             nbutton,_=FindBracketedText2(nbutton, "button")
             if nbutton != "" and nbutton != "(last)":
-                self._nextConInstanceName=nbutton
+                self.NextConInstanceName=nbutton
 
         # Now decode the lines
         for row in rows:
@@ -348,7 +348,7 @@ class ConInstance:
                 # It appears to be an ordinary file like
                 conf.DisplayTitle=text
                 # There are some cases of ugliness -- old errors -- which need to be detected and removed
-                # The only one known so far as &%23x27;  The x23 needs to be turned into a # and the resulting &#27x; to a '
+                # The only one known so far as &%23x27;  The x23 needs to be turned into a # and the resulting &#27x; to a quote
                 # It may make sense to generalize on the pattern...or it may not.
                 m=re.match(r"(.*)&%([0-9]+)x([0-9]+);(.*)", href)
                 if m is not None:
@@ -469,9 +469,21 @@ class ConInstance:
 
         file=SubstituteHTML(file, "fanac-table", newtable)
 
+        def UpdateButton(file: str, target: str, series: str, URLname: str) -> str:
+            if URLname == "first" or URLname == "last" or URLname == "":
+                if URLname == "":
+                    URLname="first" if "prev" in target else "last"
+                html=f"<button>{URLname}</button>"
+            else:
+                url=f"https://www.fanac.org/conpubs/{series}/{URLname}/index.html"
+                url=url.replace(" ", "%20")
+                html=f"<button onclick=window.location.href='{url}'>{URLname}</button>"
+
+            return SubstituteHTML(file, target, html)
+
         # Update the prev- and next-con nav buttons
-        file=self.UpdateButton(file, "fanac-prevCon", self._seriesname, self._prevConInstanceName)
-        file=self.UpdateButton(file, "fanac-nextCon", self._seriesname, self._nextConInstanceName)
+        file=UpdateButton(file, "fanac-prevCon", self._seriesname, self.PrevConInstanceName)
+        file=UpdateButton(file, "fanac-nextCon", self._seriesname, self.NextConInstanceName)
 
         if not FTP().PutFileAsString(f"/{self._seriesname}/{self._conname}", "index.html", file, create=True):
             Log(f"Upload failed: /{self._seriesname}/{self._conname}/index.html")
@@ -480,20 +492,6 @@ class ConInstance:
 
         return True
 
-
-    def UpdateButton(self, file: str, target: str, series: str,  URLname: str) -> str:
-
-        if URLname == "first" or URLname == "last" or URLname == "":
-            if URLname == "":
-                URLname="first" if "prev" in target else "last"
-            html=f"<button>{URLname}</button>"
-        else:
-            url=f"https://www.fanac.org/conpubs/{series}/{URLname}/index.html"
-            url=url.replace(" ", "%20")
-            html=f"<button onclick=window.location.href='{url}'>{URLname}</button>"
-
-        file=SubstituteHTML(file, target, html)
-        return file
 
 
 #####################################################################################################
