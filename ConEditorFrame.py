@@ -143,30 +143,30 @@ class ConList(GridDataSource):
         return self.__hash__()
 
     @property
-    def ColDefs(self) -> ColDefinitionsList:         # ConList(GridDataSource)
+    def ColDefs(self) -> ColDefinitionsList:
         return self._colDefs
 
     @property
-    def NumRows(self) -> int:         # ConList(GridDataSource)
+    def NumRows(self) -> int:
         return len(self._conlist)
 
-    def __getitem__(self, index: int) -> Convention:         # ConList(GridDataSource)
+    def __getitem__(self, index: int) -> Convention:
         assert index != -1
         return self.Rows[index]
 
-    def __setitem__(self, index: int, val: Convention) -> None:         # ConList(GridDataSource)
+    def __setitem__(self, index: int, val: Convention) -> None:
         assert index != -1
         self.Rows[index]=val
 
     @property
-    def Rows(self) -> list:         # ConList(GridDataSource)
+    def Rows(self) -> list:
         return self._conlist
     @Rows.setter
     def Rows(self, rows: list) -> None:
         self._conlist=rows
 
 
-    def InsertEmptyRows(self, index: int, num: int=1) -> None:         # ConList(GridDataSource)
+    def InsertEmptyRows(self, index: int, num: int=1) -> None:
         if num <= 0:
             return
         if index > len(self.Rows):
