@@ -85,11 +85,12 @@ class Convention(GridDataRowClass):
         self.Name=Name
         self.URL=URL
 
-
-    def Signature(self) -> int:     
+    def __hash__(self) -> int:
         s=hash(self._name.strip()+self._URL.strip())
         Log(f"Convention(GridDataRowClass).Signature {s=}")
         return s
+    def Signature(self) -> int:
+        return self.__hash__()
 
     # Get or set a value by name or column number
     def __getitem__(self, index: str|int|slice) -> str|int:     
@@ -137,9 +138,10 @@ class ConList(GridDataSource):
 
 
 
-    def Signature(self) -> int:         # ConList(GridDataSource)
-        s=sum([hash(x)*(i+1) for i, x in enumerate(self._conlist)])
-        return s
+    def __hash__(self) -> int:
+        return sum([hash(x)*(i+1) for i, x in enumerate(self._conlist)])+hash(self._colDefs)
+    def Signature(self) -> int:
+        return self.__hash__()
 
     @property
     def ColDefs(self) -> ColDefinitionsList:         # ConList(GridDataSource)
@@ -213,9 +215,11 @@ class ConEditorFrame(GenConEditorFrame):
 
     # ----------------------------------------------
     # Used to determine if anything has been updated
-    def Signature(self) -> int:        
+    def __hash__(self) -> int:
         s=self.Datasource.Signature()+hash(self.m_textCtrlTopText.GetValue().strip())
         return s
+    def Signature(self) -> int:
+        return self.__hash__()
 
 
     def MarkAsSaved(self):        

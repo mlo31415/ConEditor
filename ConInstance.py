@@ -63,7 +63,7 @@ class ConInstanceRow(GridDataRowClass):
         cf._pages=self._pages
         return cf
 
-    def Signature(self) -> int:      
+    def __hash__(self) -> int:
         tot=hash(self._displayTitle.strip()+self._notes.strip()+self._localfilename.strip()+self._localpathname.strip()+self._sitefilename.strip())
         return tot+hash(self._size)+hash(self._isText)+Int0(self.Pages)
 
@@ -516,10 +516,11 @@ class ConInstanceDatasource(GridDataSource):
 
 
 
-    def Signature(self) -> int:        
+    def __hash__(self) -> int:
         s=self._colDefs.Signature()+hash(self._name.strip())+hash(self._specialTextColor)
         return s+sum([x.Signature()*(i+1) for i, x in enumerate(self._coninstanceRows)])
-
+    def Signature(self) -> int:
+        return self.__hash__()
 
     @property        
     def Rows(self) -> list:
