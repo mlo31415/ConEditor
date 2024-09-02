@@ -78,9 +78,11 @@ class ConSeriesFrame(GenConSeriesFrame):
 
     # ----------------------------------------------
     # Used to determine if anything has been updated
-    def Signature(self) -> int:     
+    def __hash__(self) -> int:
         stuff=self.Seriesname.strip()+self.TextFancyURL.strip()+self.TextComments.strip()+self._basedirectoryFTP.strip()
-        return hash(stuff)+self.Datasource.Signature()
+        return hash(stuff)+self.Datasource.Signature()+hash(self.m_radioBoxShowEmpty)
+    def Signature(self) -> int:
+        return self.__hash__()
 
     def MarkAsSaved(self):     
         self._signature=self.Signature()

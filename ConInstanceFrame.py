@@ -76,12 +76,15 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
     # ----------------------------------------------
     # Used to determine if anything has been updated
-    def Signature(self) -> int:
+    def __hash__(self) -> int:
         stuff=self.ConInstanceName.strip()+self.ConInstanceTopText.strip()+self.ConInstanceFancyURL.strip()+self.Credits.strip()
         return hash(stuff)+self.Datasource.Signature()
+    def Signature(self) -> int:
+        return self.__hash__()
 
     def MarkAsSaved(self):
         self._signature=self.Signature()
+
 
     def NeedsSaving(self) -> bool:
         return self._signature != self.Signature()
@@ -227,10 +230,11 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.RefreshWindow()
         return
 
-
     # ----------------------------------------------
     def OnUploadConInstance(self, event):
-        self.OnUploadConInstancePage()
+        self.Uploaded=self.UploadConInstancePage()
+        self.MarkAsSaved()
+        self.RefreshWindow()
 
     # ----------------------------------------------
     def OnClose(self, event):
@@ -254,18 +258,9 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                             self.Datasource.Rows[i]=row
 
 
-    # ----------------------------------------------
-    # This has been pulled out of the OnUploadConInstance() handler so it can also be called to auto update a series of pages
-    def OnUploadConInstancePage(self) -> None:
-
-        self.Uploaded=self.UploadConInstancePage()
-        self.MarkAsSaved()
-
-
-
     def UploadConInstancePage(self, pm: ProgressMessage2=None, UploadFiles: bool=True) -> bool:
         if pm is not None:
-            pm.Update(f"Updating {self.Conname}/index.html")
+           pm.Update(f"Updating {self.Conname}/index.html")
 
         # Delete any trailing empty rows.
         # Empty rows anywhere are as error, but we only silently drop trailing blank rows. Note that a blank text row is not an empty row.

@@ -18,9 +18,10 @@ class Con(GridDataRowClass):
         self._gohs: str=GoHs                  # A list of the con's GoHs
         self._URL: str=URL                   # The URL of the individual con page, if any
 
-    def Signature(self) -> int:        
+    def __hash__(self) -> int:
         return hash(self._name)+hash(self._locale)+hash(self._dates)+hash(self._gohs)+hash(self._URL)
-
+    def Signature(self) -> int:
+        return self.__hash__()
 
     @property
     def Name(self) -> str:        
@@ -146,8 +147,10 @@ class ConSeries(GridDataSource):
     def __setitem__(self, index: int, val: Con):        
         self._series[index]=val
 
-    def Signature(self) -> int:        
+    def __hash__(self) -> int:
         return hash(self._name)+sum([x.Signature()*(i+1) for i, x in enumerate(self.Rows)])
+    def Signature(self) -> int:
+        return self.__hash__()
 
     @property
     def NumRows(self) -> int:        
