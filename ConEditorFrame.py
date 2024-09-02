@@ -87,7 +87,6 @@ class Convention(GridDataRowClass):
 
     def __hash__(self) -> int:
         s=hash(self._name.strip()+self._URL.strip())
-        Log(f"Convention(GridDataRowClass).Signature {s=}")
         return s
     def Signature(self) -> int:
         return self.__hash__()
