@@ -472,7 +472,7 @@ class ConInstance:
 
         # Make a backup of the existing index file
         if not FTP().BackupServerFile(f"/{self._seriesname}/{self._conname}/index.html"):
-            Log(f"DownloadThenUploadConInstancePage(): Could not back up server file {self._seriespath}/{self._conname}/index.html")
+            Log(f"DownloadThenUploadConInstancePage(): Could not back up server file {self._seriesname}/{self._conname}/index.html")
             return False
 
         if not FTP().PutFileAsString(f"/{self._seriesname}/{self._conname}", "index.html", file, create=True):
