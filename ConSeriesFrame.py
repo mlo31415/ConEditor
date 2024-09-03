@@ -1150,7 +1150,7 @@ class ConSeriesFrame(GenConSeriesFrame):
     def DownloadThenUploadConInstancePage(self, seriespath: str, seriesname: str, conname: str, prevcon: str="", nextcon: str="", pm=None) -> bool:
 
         # Download a con instance page
-        ci=ConInstance(self._basedirectoryFTP, seriesname, conname)
+        ci=ConInstance(f"{self._basedirectoryFTP}/{seriesname}", seriesname, conname)
         if not ci.Download():
             LogError(f"DownloadThenUploadConInstancePage(): Download of '{conname}' failed.")
             return False
