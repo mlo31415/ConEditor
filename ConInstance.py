@@ -425,46 +425,31 @@ class ConInstance:
                 info+=")</small>"
             return info
 
-        def MaybeSuppressPDFExtension(fn: str, suppress: bool) -> str:
-            if suppress:
+        # Now construct the table which we'll then substitute.
+        newtable='<ul id="conpagetable">\n'
+        for i, row in enumerate(self.ConInstanceRows):
+            if row.IsTextRow:
+                text=f"{row.SourceFilename} {row.SiteFilename} {row.DisplayTitle} {row.Notes}"
+                newtable+=f'    </ul><b>{text.strip()}</b><ul id="conpagetable">\n'
+            elif row.IsLinkRow:
+                newtable+=f'    <li id="conpagetable">{FormatLink(row.SiteFilename, row.DisplayTitle)}</li>\n'
+            else:
+                s=row.DisplayTitle
                 parts=os.path.splitext(row.DisplayTitle)
                 if parts[1].lower() in [".pdf", ".jpg", ".png", ".doc", ".docx"]:
-                    fn=parts[0]
-            return fn
+                    s=parts[0]
+                newtable+='    <li id="conpagetable">'+FormatLink(row.SiteFilename, s)
 
-        # Now construct the table which we'll then substitute.
-        newtable='<table class="table"  id="conpagetable">\n'
-        newtable+="  <thead>\n"
-        newtable+="    <tr>\n"
-        newtable+='      <th scope="col">Document</th>\n'
-        newtable+='      <th scope="col">Size</th>\n'
-        newtable+='      <th scope="col">Notes</th>\n'
-        newtable+='    </tr>\n'
-        newtable+='  </thead>\n'
-        newtable+='  <tbody>\n'
-        for i, row in enumerate(self.ConInstanceRows):
-            newtable+="    <tr>\n"
-            # Display title column
-            if row.IsTextRow:
-                newtable+=f'      <td colspan="3">{row.SourceFilename} {row.SiteFilename} {row.DisplayTitle} {row.Notes}</td>\n'
-            elif row.IsLinkRow:
-                newtable+=f'      <td colspan="3">{FormatLink(row.SiteFilename, row.DisplayTitle)}</td>\n'
-            else:  # Ordinary row
-                # The document title/link column
-                s=MaybeSuppressPDFExtension(row.DisplayTitle, False)
-                newtable+=f'      <td>{FormatLink(row.SiteFilename, s)}</td>\n'
+                val=FormatSizes(row)
+                if len(val) > 0:
+                    newtable+='&nbsp;&nbsp;'+val
+                newtable+='\n'
 
-                # This is the size & page count column
-                newtable+=f'      <td>{FormatSizes(row)}</td>\n'
-
-                # Notes column
-                info='      <td> </td>\n'
+                # Notes
                 if len(row.Notes) > 0:
-                    info=f'      <td>{row.Notes}</td>\n'
-                newtable+=info
-
-            newtable+="    </tr>\n"
-        newtable+="    </tbody>\n"
+                    newtable+=f"&nbsp;&nbsp;({row.Notes})"
+                newtable+="</li>\n"
+        newtable+="</ul>\n"
         newtable+="  </table>\n"
 
         file=SubstituteHTML(file, "fanac-table", newtable)
