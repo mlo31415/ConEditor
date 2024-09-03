@@ -727,7 +727,7 @@ class ConSeriesFrame(GenConSeriesFrame):
     # Scan the series for the next and prev instance names
     def GetPrevNext(self, thisrow: str|int) -> tuple[str|None, str|None]:
         if isinstance(thisrow, str):
-            # Find the thisrow's index in the con series
+            # Find if thisrow is a string, find thisrow's index in the con series
             irow=-1
             for i, row in enumerate(self.Datasource.Rows):
                 if row.Name == thisrow:
@@ -738,12 +738,18 @@ class ConSeriesFrame(GenConSeriesFrame):
         else:
             irow=thisrow
 
-        # Using that, fine the previous and next names
+        # Using that, find the previous and next names
         prev=next=""
-        if irow > 0 and self.Datasource[irow-1].URL != "":  # If the previous con instance does not exist, the prev button will be nonfunctional
-            prev=self.Datasource.Rows[irow-1].Name
-        if irow+1 < self.Datasource.NumRows and self.Datasource[irow+1].URL != "":  # If the next con instance does not exist, the next button will be nonfunctional
-            next=self.Datasource.Rows[irow+1].Name
+        if irow > 0:
+            for i in range(irow-1, -1, -1):
+                if self.Datasource[i].URL != "":  # If the previous con instance does not exist, the prev button will be nonfunctional
+                    prev=self.Datasource.Rows[i].Name
+                    break
+        if irow+1 < self.Datasource.NumRows:
+            for i in range(irow+1, self.Datasource.NumRows):
+                if self.Datasource[i].URL != "":  # If the next con instance does not exist, the next button will be nonfunctional
+                    next=self.Datasource.Rows[i].Name
+                    break
 
         return prev, next
 
