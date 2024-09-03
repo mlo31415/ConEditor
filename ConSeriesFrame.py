@@ -725,15 +725,18 @@ class ConSeriesFrame(GenConSeriesFrame):
 
 
     # Scan the series for the next and prev instance names
-    def GetPrevNext(self, name: str) -> tuple[str|None, str|None]:
-        # Find the name's index in the con series
-        irow=-1
-        for i, row in enumerate(self.Datasource.Rows):
-            if row.Name == name:
-                irow=i
-                break
-        if irow == -1:
-            return None, None
+    def GetPrevNext(self, thisrow: str|int) -> tuple[str|None, str|None]:
+        if isinstance(thisrow, str):
+            # Find the thisrow's index in the con series
+            irow=-1
+            for i, row in enumerate(self.Datasource.Rows):
+                if row.Name == thisrow:
+                    irow=i
+                    break
+            if irow == -1:
+                return None, None
+        else:
+            irow=thisrow
 
         # Using that, fine the previous and next names
         prev=next=""
@@ -760,7 +763,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
             # Download and then Upload the Con instance page to update its new name.
             pm.Update(f"Refreshing '{newname}'")
-            next, prev=self.GetPrevAndNext(irow)
+            next, prev=self.GetPrevNext(irow)
 
             Log(f"RegenerateAdjacentConInstancePages '{prev}' and '{next}'")
             self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname, newname, prev, next, pm=pm)
@@ -1119,21 +1122,11 @@ class ConSeriesFrame(GenConSeriesFrame):
                 self.DownloadThenUploadConInstancePage(f"{self._basedirectoryFTP}/{self.Seriesname}", self.Seriesname, self.Datasource[irow].Name, prevcon=prevname, nextcon=nextname, pm=pm)
 
 
-    def GetPrevAndNext(self, irow: int) -> tuple[str, str]:
-        prev=""
-        if irow > 0:
-            prev=self.Datasource.Rows[irow-1].Name
-        next=""
-        if irow < self.Datasource.NumRows-1:
-            next=self.Datasource.Rows[irow+1].Name
-        return next, prev
-
-
     # ------------------
     # When a page gets added, deleted, or renamed, the adjacent pages need to be regenerated to update the next/prev buttons
     def RegenerateAdjacentConInstancePages(self, irow: int, pm=None):
 
-        next, prev=self.GetPrevAndNext(irow)
+        next, prev=self.GetPrevNext(irow)
 
         Log(f"RegenerateAdjacentConInstancePages '{prev}' and '{next}'")
 
