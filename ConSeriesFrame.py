@@ -1006,7 +1006,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         if self._grid.clickedRow >= self.Datasource.NumRows:
             return      # Double-clicking below the bottom means nothing
 
-        # We edit on a double-click to either the Name or Link cell
+        # We edit on a double-click to either the Name cell or the Link cell
         if self._grid.clickedColumn in (self.Datasource.ColDefs.index("Name"), self.Datasource.ColDefs.index("Link")):
             irow=event.GetRow()
             url=self.Datasource[irow].URL
