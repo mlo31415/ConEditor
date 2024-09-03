@@ -45,11 +45,10 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         self.Datasource.SpecialTextColor=None
 
-        if not Create:
-            self._downloaded=self.DownloadConInstancePage(pm=pm)
-            if not self._downloaded:
-                self._returnMessage=f"Unable to download ConInstance page {self._FTPbasedir}/{self.Conname}/index.html"
-                return
+        self._downloaded=self.DownloadConInstancePage(pm=pm)
+        if not Create and not self._downloaded:
+            self._returnMessage=f"Unable to download ConInstance page {self._FTPbasedir}/{self.Conname}/index.html"
+            return
 
         #  Override any existing prev/next with the current prev/next
         self.PrevConInstanceName=prevconname
