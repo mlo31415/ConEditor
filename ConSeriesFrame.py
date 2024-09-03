@@ -1026,7 +1026,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                     return
                 # EditConInstancePage() will create a new con instance and populate it from the row.
 
-            self.EditConInstancePage(irow)
+            self.EditConInstancePage(irow, Create=True)
 
             self.RefreshWindow()
 
