@@ -296,7 +296,7 @@ class ConInstance:
             lead, tag, contents, remainder=FindNextBracketedText(remainder)
             if tag == "":
                 break
-            Log(f"*** {tag=}  {contents=}")
+            #Log(f"*** {tag=}  {contents=}")
             if tag == "ul":
                 remainder=lead+contents+remainder  # If we encounter a <ul>...</ul> tag, we edit it out, keeping what's outside it and what's inside it
                 continue
@@ -317,11 +317,11 @@ class ConInstance:
         # Now decode the lines
         for row in rows:
             if row[0] == "li":
-                Log(f"\n{row[1]=}")
+                #Log(f"\n{row[1]=}")
                 conf=ConInstanceRow()
                 # We're looking for an <a></a> followed by <small>/</small>
                 a, rest=FindBracketedText2(row[1], "a", includeBrackets=True)
-                Log(f"{a=}   {rest=}")
+                #Log(f"{a=}   {rest=}")
                 if a == "":
                     LogError(f"DownloadConInstancePage(): Can't find <a> tag in {row}")
                     return False
