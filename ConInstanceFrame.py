@@ -52,8 +52,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 return
 
         #  Override any existing prev/next with the current prev/next
-        self._prevConInstanceName=prevconname
-        self._nextConInstanceName=nextconname
+        self.PrevConInstanceName=prevconname
+        self.NextConInstanceName=nextconname
 
         self._valid=True
         self.SetEscapeId(wx.ID_CANCEL)
@@ -321,8 +321,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         ci.Toptext=self.topText.GetValue()
         ci.Credits=self.tCredits.GetValue()
-        ci.PrevConInstanceName=self._prevConInstanceName
-        ci.NextConInstanceName=self._nextConInstanceName
+        ci.PrevConInstanceName=self.PrevConInstanceName
+        ci.NextConInstanceName=self.NextConInstanceName
         ci.ConInstanceRows=self._Datasource.Rows
 
         if not ci.Upload():
@@ -420,8 +420,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         self.topText.SetValue(ci.Toptext)
         self.tCredits.SetValue(ci.Credits)
-        self._prevConInstanceName=ci.PrevConInstanceName
-        self._nextConInstanceName=ci.NextConInstanceName
+        self.PrevConInstanceName=ci.PrevConInstanceName
+        self.NextConInstanceName=ci.NextConInstanceName
         self._Datasource.Rows=ci.ConInstanceRows
 
         return True
