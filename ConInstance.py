@@ -470,6 +470,11 @@ class ConInstance:
         file=UpdateButton(file, "fanac-prevCon", self._seriesname, self.PrevConInstanceName)
         file=UpdateButton(file, "fanac-nextCon", self._seriesname, self.NextConInstanceName)
 
+        # Make a backup of the existing index file
+        if not FTP().BackupServerFile(f"/{self._seriesname}/{self._conname}/index.html"):
+            Log(f"DownloadThenUploadConInstancePage(): Could not back up server file {self._seriespath}/{self._conname}/index.html")
+            return False
+
         if not FTP().PutFileAsString(f"/{self._seriesname}/{self._conname}", "index.html", file, create=True):
             Log(f"Upload failed: /{self._seriesname}/{self._conname}/index.html")
             MessageBox(f"OnUploadConInstancePage: Upload failed: /{self._seriesname}/{self._conname}/index.html")

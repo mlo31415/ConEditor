@@ -1156,10 +1156,6 @@ class ConSeriesFrame(GenConSeriesFrame):
             return False
 
         # And upload it back
-        if not FTP().BackupServerFile(f"/{seriespath}/{conname}/index.html"):
-            Log(f"UploadConSeries: Could not back up server file {seriespath}/{conname}/index.html")
-            return False
-
         # Override any value read from the server, since they will need to be updated.
         ci.PrevConInstanceName=prevcon
         ci.NextConInstanceName=nextcon
