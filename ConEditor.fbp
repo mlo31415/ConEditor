@@ -1330,7 +1330,7 @@
                 </object>
             </object>
         </object>
-        <object class="Dialog" expanded="0">
+        <object class="Dialog" expanded="1">
             <property name="aui_managed">0</property>
             <property name="aui_manager_style">wxAUI_MGR_DEFAULT</property>
             <property name="bg"></property>
@@ -2552,7 +2552,7 @@
             <property name="name">GenConEditorFrame</property>
             <property name="pos"></property>
             <property name="size">498,569</property>
-            <property name="style">wxDEFAULT_FRAME_STYLE</property>
+            <property name="style">wxDEFAULT_FRAME_STYLE|wxRESIZE_BORDER</property>
             <property name="subclass">; ; forward_declare</property>
             <property name="title">Fanac.org Convention Editor</property>
             <property name="tooltip"></property>
