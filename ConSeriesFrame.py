@@ -17,7 +17,7 @@ from ConInstanceFrame import ConInstanceDialogClass
 from Settings import Settings
 
 from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText2, WikiPagenameToWikiUrlname, UnformatLinks, RemoveAllHTMLTags, RemoveAccents
-from HelpersPackage import FindIndexOfStringInList, PyiResourcePath, MessageBox
+from HelpersPackage import FindIndexOfStringInList, PyiResourcePath, MessageBox, InsertHTMLUsingFanacComments
 from WxHelpers import ModalDialogManager, ProgressMessage2, OnCloseHandling, MessageBoxInput, wxMessageDialogInput, wxMessageBox
 from Log import Log, LogError
 from FanzineIssueSpecPackage import FanzineDateRange
@@ -343,6 +343,8 @@ class ConSeriesFrame(GenConSeriesFrame):
             # The con's name is tagged with <fanac-instance>, the random text with "fanac-headertext"
             link=FormatLink(f"https://fancyclopedia.org/{WikiPagenameToWikiUrlname(self.Seriesname)}", self.Seriesname)
             file=SubstituteHTML(file, "title", self.Seriesname)
+            file=file.replace("fanac-meta-description", f"{self.Seriesname}")
+            file=file.replace("fanac-meta-keywords", f"{self.Seriesname}")
             file=SubstituteHTML(file, "fanac-instance", link)
             file=SubstituteHTML(file, "fanac-headertext", self.TextComments)
 

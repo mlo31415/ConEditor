@@ -6,7 +6,7 @@ import sys
 
 from datetime import datetime
 
-from HelpersPackage import Int0, Float0, RemoveAccents, PyiResourcePath, MessageBox
+from HelpersPackage import Int0, Float0, RemoveAccents, PyiResourcePath, MessageBox, InsertHTMLUsingFanacComments
 from HelpersPackage import FindBracketedText2, FindNextBracketedText, FindLinkInString, FormatLink, SubstituteHTML, WikiPagenameToWikiUrlname
 from WxDataGrid import GridDataSource, Color, GridDataRowClass, ColDefinition, ColDefinitionsList, IsEditable
 from FTP import FTP
@@ -399,6 +399,8 @@ class ConInstance:
         # The con's name is tagged with <fanac-instance>, the random text with "fanac-headertext"
         fancylink=FormatLink(f"https://fancyclopedia.org/{WikiPagenameToWikiUrlname(self._conname)}", self._conname)
         file=SubstituteHTML(file, "title", self._conname)
+        file=file.replace("fanac-meta-description", f"{self._conname} {self._seriesname} {self.Toptext}")
+        file=file.replace("fanac-meta-keywords", f"{self._conname} {self._seriesname} {self.Toptext}")
         file=SubstituteHTML(file, "fanac-instance", fancylink)
         file=SubstituteHTML(file, "fanac-stuff", self.Toptext)
 
