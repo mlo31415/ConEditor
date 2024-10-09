@@ -199,8 +199,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             return False
         self.TextFancyURL=RemoveAccents(m.groups()[0])
 
-        # Comments do not seem to have been used
-        self.TextComments=""
+        self.TextComments, _=FindBracketedText2(rest, "fanac-headertext", caseInsensitive=True)
 
         # There should only be one table and that contains the list of con instances
         table, _=FindBracketedText2(rest, "fanac-table", caseInsensitive=True)
