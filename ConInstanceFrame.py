@@ -437,6 +437,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         flag=False
         if row < self.Datasource.NumRows:
             flag=self.Datasource.Rows[row].IsTextRow
+
         self.m_popupNewsletter.Enabled=flag
         self.m_popupMiscellaneous.Enabled=flag
         self.m_popupPublications.Enabled=flag
