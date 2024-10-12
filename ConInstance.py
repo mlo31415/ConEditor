@@ -75,7 +75,6 @@ class ConInstanceRow(GridDataRowClass):
         LogError("Call to ConInstanceRow().DelCol which should never happen.")
         assert False
 
-
     @property
     def DisplayTitle(self) -> str:      
         return self._displayTitle
@@ -513,6 +512,11 @@ class ConInstanceDatasource(GridDataSource):
         return s+sum([x.Signature()*(i+1) for i, x in enumerate(self._coninstanceRows)])
     def Signature(self) -> int:
         return self.__hash__()
+
+
+    @property
+    def CanMoveColumns(self) -> bool:
+        return False    # We don't allow moving columns
 
     @property        
     def Rows(self) -> list:
