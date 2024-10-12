@@ -67,7 +67,7 @@ class Con(GridDataRowClass):
         self._URL=val
 
     # Get or set a value by name or column number
-    #def GetVal(self, name: Union[str, int]) -> Union[str, int, FanzineDateRange]:
+    #def GetVal(self, name: str|int) -> str|int|FanzineDateRange:
     def __getitem__(self, index: str|int) -> str|int|FanzineDateRange:
         # (Could use return eval("self."+name))
         if index == "Name" or index == 0:
