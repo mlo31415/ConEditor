@@ -504,7 +504,7 @@ class ConInstanceDatasource(GridDataSource):
         self._element=ConInstanceRow
         self._coninstanceRows: list[ConInstanceRow]=[]  # This supplies the Rows property that GridDataSource needs
         self._name: str=""
-        self._specialTextColor: Color|bool|None =True
+        self._specialTextColor: Color|None=None
 
 
 
