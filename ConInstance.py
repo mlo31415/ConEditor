@@ -6,7 +6,7 @@ import sys
 
 from datetime import datetime
 
-from HelpersPackage import Int0, Float0, RemoveAccents, PyiResourcePath, MessageBox, InsertHTMLUsingFanacComments
+from HelpersPackage import Int0, Float0, RemoveAccents, PyiResourcePath, MessageBox
 from HelpersPackage import FindBracketedText2, FindNextBracketedText, FindLinkInString, FormatLink, SubstituteHTML, WikiPagenameToWikiUrlname
 from WxDataGrid import GridDataSource, Color, GridDataRowClass, ColDefinition, ColDefinitionsList, IsEditable
 from FTP import FTP
