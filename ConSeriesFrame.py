@@ -562,7 +562,7 @@ class ConSeriesFrame(GenConSeriesFrame):
     #------------------
     def RefreshWindow(self, StartRow: int=-1, EndRow: int=-1, StartCol: int=-1, EndCol: int=-1) -> None:
         # Log(f"RefreshWindow: Called: Refreshing {self.Seriesname}")
-        self._grid.RefreshWxGridFromDatasource(StartRow, EndRow, StartCol, EndCol)
+        self._grid.RefreshWxGridFromDatasource(StartRow=StartRow, EndRow=EndRow, StartCol=StartCol, EndCol=EndCol)
         # Log(f"RefreshWindow: RefreshWxGridFromDatasource() finished")
         self.UpdateNeedsSavingFlag()
         self.bUploadConSeries.Enabled=len(self.Seriesname) > 0
