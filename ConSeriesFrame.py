@@ -17,7 +17,7 @@ from ConInstanceFrame import ConInstanceDialogClass
 from Settings import Settings
 
 from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText2, WikiPagenameToWikiUrlname, UnformatLinks, RemoveAllHTMLTags, RemoveAccents
-from HelpersPackage import FindIndexOfStringInList, PyiResourcePath, MessageBox, InsertHTMLUsingFanacComments
+from HelpersPackage import FindIndexOfStringInList, PyiResourcePath, MessageBox
 from WxHelpers import ModalDialogManager, ProgressMessage2, OnCloseHandling, MessageBoxInput, wxMessageDialogInput, wxMessageBox
 from Log import Log, LogError
 from FanzineIssueSpecPackage import FanzineDateRange
