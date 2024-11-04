@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from WxDataGrid import GridDataSource, GridDataRowClass, ColDefinition, ColDefinitionsList, IsEditable
 from HelpersPackage import RemoveAccents
-from FanzineIssueSpecPackage import FanzineDateRange
+from FanzineDateTime import FanzineDateRange
 from Log import Log
 
 

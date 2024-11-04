@@ -20,7 +20,7 @@ from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText2, WikiP
 from HelpersPackage import FindIndexOfStringInList, PyiResourcePath, MessageBox
 from WxHelpers import ModalDialogManager, ProgressMessage2, OnCloseHandling, MessageBoxInput, wxMessageDialogInput, wxMessageBox
 from Log import Log, LogError
-from FanzineIssueSpecPackage import FanzineDateRange
+from FanzineDateTime import FanzineDateRange
 
 
 
