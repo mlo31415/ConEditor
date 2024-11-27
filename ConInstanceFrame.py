@@ -621,18 +621,22 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             originalfname=self.Datasource[row][col]
             _, oext=os.path.splitext(originalfname)
             self._grid.OnGridCellChanged(event)
-            newfname=self.Datasource[row][col]
-            # If we don't allow extensions to be edited (the default), restore the old extension before proceeding.
-            if not self.m_checkBoxAllowEditExtentions.IsChecked():
-                newname, _=os.path.splitext(newfname)
-                newfname=newname+oext
-                self.Datasource[row][col]=newfname
-                # Log("OnGridCellChanged(): About to refresh #1")
-                self.RefreshWindow()
 
-            if originalfname != newfname:
-                self.conInstanceDeltaTracker.Rename(self.Datasource.Rows[row], originalfname)
-            return
+            # If this is a Link line, then Site Name is the foreign URL and user has full control over it.
+            # Everything else needs to run through some checks
+            if not self.Datasource[row].IsLinkRow:
+                newfname=self.Datasource[row][col]
+                # If we don't allow extensions to be edited (the default), restore the old extension before proceeding.
+                if not self.m_checkBoxAllowEditExtentions.IsChecked():
+                    newname, _=os.path.splitext(newfname)
+                    newfname=newname+oext
+                    self.Datasource[row][col]=newfname
+                    # Log("OnGridCellChanged(): About to refresh #1")
+                    self.RefreshWindow()
+
+                if originalfname != newfname:
+                    self.conInstanceDeltaTracker.Rename(self.Datasource.Rows[row], originalfname)
+                return
 
         # All other columns
         self._grid.OnGridCellChanged(event)
