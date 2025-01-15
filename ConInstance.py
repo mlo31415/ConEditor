@@ -439,7 +439,7 @@ class ConInstance:
                 parts=os.path.splitext(row.DisplayTitle)
                 if parts[1].lower() in [".pdf", ".jpg", ".png", ".doc", ".docx"]:
                     s=parts[0]
-                newtable+='    <li id="conpagetable">'+FormatLink(row.SiteFilename, s)
+                newtable+='    <li id="conpagetable">'+FormatLink(row.SiteFilename, s.strip())
 
                 val=FormatSizes(row)
                 if len(val) > 0:
