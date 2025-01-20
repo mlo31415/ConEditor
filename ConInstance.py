@@ -6,7 +6,7 @@ import sys
 
 from datetime import datetime
 
-from HelpersPackage import Int0, Float0, RemoveAccents, PyiResourcePath, MessageBox
+from HelpersPackage import Int0, Float0, RemoveAccents, PyiResourcePath, MessageBox, RemoveHTMLishWhitespace
 from HelpersPackage import FindBracketedText2, FindNextBracketedText, FindLinkInString, FormatLink, SubstituteHTML, WikiPagenameToWikiUrlname
 from WxDataGrid import GridDataSource, Color, GridDataRowClass, ColDefinition, ColDefinitionsList, IsEditable
 from FTP import FTP
@@ -357,7 +357,7 @@ class ConInstance:
                 conf.SiteFilename=href
 
                 if len(rest.strip()) > 0:
-                    small, _=FindBracketedText2(rest, "small")
+                    small, notes=FindBracketedText2(rest, "small")
                     if small == "":
                         LogError(f"DownloadConInstancePage(): Can't find <small> tag in {rest}")
                         return False
@@ -368,6 +368,10 @@ class ConInstance:
                     m=re.match(".*?([0-9]+) pp", small, re.IGNORECASE)
                     if m is not None:
                         conf.Pages=Int0(m.group(1))
+
+                    # Get the notes, if any.  Remove surrounding whitespace and parens.
+                    notes=RemoveHTMLishWhitespace(notes).strip().removeprefix("(").removesuffix(")")
+                    conf.Notes=notes
 
                 self.ConInstanceRows.append(conf)
 
