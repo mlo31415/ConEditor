@@ -370,6 +370,10 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 Log(f"   delta-DELETE: {delta.Con.SiteFilename}")
                 if len(delta.Con.SiteFilename.strip()) > 0:
                     FTP().DeleteFile(delta.Con.SiteFilename)
+                metadata={
+                    '/Title': f'{self.Conname}: {delta.Con.DisplayTitle.strip().removesuffix(".pdf").removesuffix(".PDF")}'
+                }
+                AddMissingMetadata(delta.Con.SourcePathname, metadata)
                 Log(f"   delta-ADD: {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
                 FTP().PutFile(delta.Con.SourcePathname, delta.Con.SiteFilename)
             else:
