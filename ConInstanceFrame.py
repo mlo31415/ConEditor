@@ -437,16 +437,11 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         row=event.GetRow()
         self._PopupInsertTextRow_RowNumber=row
 
-        # Suppress the options used when double-clicking on an empty line's column 0
-        flag=False
-        if row < self.Datasource.NumRows:
-            flag=self.Datasource.Rows[row].IsTextRow
-
-        self.m_popupNewsletter.Enabled=flag
-        self.m_popupMiscellaneous.Enabled=flag
-        self.m_popupPublications.Enabled=flag
-        self.m_popupConventionReports.Enabled=flag
-        self.m_popupPhotosAndVideo.Enabled=flag
+        self.m_popupNewsletter.Enabled=True
+        self.m_popupMiscellaneous.Enabled=True
+        self.m_popupPublications.Enabled=True
+        self.m_popupConventionReports.Enabled=True
+        self.m_popupPhotosAndVideo.Enabled=True
 
         self.m_popupAddFiles.Enabled=True
         self.m_popupInsertText.Enabled=True
@@ -507,26 +502,31 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.PopupMenu(self.m_GridPopup, pos=self.gRowGrid.Position+event.Position)
 
     def OnPopupPublications(self, event):
+        self.InsertTextRow()
         self.Datasource.Rows[self._PopupInsertTextRow_RowNumber][0]="Publications"
         # Log("OnPopupPublications(): About to refresh")
         self.RefreshWindow()
 
     def OnPopuplMiscellaneous(self, event):
+        self.InsertTextRow()
         self.Datasource.Rows[self._PopupInsertTextRow_RowNumber][0]="Miscellaneous"
-        # Log("OnPopuplMiscellaneous(): About to refresh")
+        # Log("OnPopupMiscellaneous(): About to refresh")
         self.RefreshWindow()
 
     def OnPopupNewsletter(self, event):
+        self.InsertTextRow()
         self.Datasource.Rows[self._PopupInsertTextRow_RowNumber][0]="Newsletter"
         # Log("OnPopupNewsletter(): About to refresh")
         self.RefreshWindow()
 
     def OnPopupPhotosAndVideo(self, event):
+        self.InsertTextRow()
         self.Datasource.Rows[self._PopupInsertTextRow_RowNumber][0]="Photos and Videos"
         # Log("OnPopupPhotosAndVideo(): About to refresh")
         self.RefreshWindow()
 
     def OnPopupConventionReports(self, event):
+        self.InsertTextRow()
         self.Datasource.Rows[self._PopupInsertTextRow_RowNumber][0]="Convention Reports"
         # Log("OnPopupConventionReports(): About to refresh")
         self.RefreshWindow()
@@ -552,17 +552,20 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
     # ------------------
     def OnPopupInsertText(self, event):
+        self.InsertTextRow()
+        # Log("OnPopupInsertText(): About to refresh")
+        self.RefreshWindow()
+
+    #--------------------
+    def InsertTextRow(self):
         irow=self._grid.clickedRow
         if irow > self.Datasource.NumRows:
-            self._grid.ExpandDataSourceToInclude(irow, 0)   # If we're inserting past the end of the datasource, insert empty rows as necessary to fill in between
-        self._grid.InsertEmptyRows(irow, 1)     # Insert the new empty row
+            self._grid.ExpandDataSourceToInclude(irow, 0)  # If we're inserting past the end of the datasource, insert empty rows as necessary to fill in between
+        self._grid.InsertEmptyRows(irow, 1)  # Insert the new empty row
         self.Datasource.Rows[irow].IsTextRow=True
         self._grid.Grid.SetCellSize(irow, 0, 1, self._grid.NumCols)
         for icol in range(self._grid.NumCols):
             self._grid.AllowCellEdit(irow, icol)
-
-        # Log("OnPopupInsertText(): About to refresh")
-        self.RefreshWindow()
 
     # ------------------
     def OnPopupInsertLink(self, event):
