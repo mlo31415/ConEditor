@@ -931,8 +931,6 @@ class ConSeriesFrame(GenConSeriesFrame):
             # Save the old and new con series. Don't upload the modified old series if uploading the new one failed
             if newConSeriesFrame.UploadConSeries():
                 self.UploadConSeries()
-            else:
-                return
 
 
 
