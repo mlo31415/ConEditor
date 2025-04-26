@@ -903,10 +903,10 @@ class ConSeriesFrame(GenConSeriesFrame):
                 del self.Datasource.Rows[irowOld]
 
                 # Save the old and new con series. Don't upload the modified old series if uploading the new one failed
-                if newConSeriesFrame.UploadConSeries():
-                    self.UploadConSeries()
-                else:
+                if not newConSeriesFrame.UploadConSeries():
                     return
+
+                self.UploadConSeries()
 
                 # Finally, delete the old directory
                 FTP().DeleteDir(oldDirPath)
