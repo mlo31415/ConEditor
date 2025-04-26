@@ -906,10 +906,9 @@ class ConSeriesFrame(GenConSeriesFrame):
                 if not newConSeriesFrame.UploadConSeries():
                     return
 
-                self.UploadConSeries()
-
-                # Finally, delete the old directory
-                FTP().DeleteDir(oldDirPath)
+                if self.UploadConSeries():
+                    # Finally, delete the old directory
+                    FTP().DeleteDir(oldDirPath)
 
             # It's more complicated...
             # Is the copied directory's name in the new con series list being changed?
