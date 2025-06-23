@@ -1066,10 +1066,14 @@ class ConSeriesFrame(GenConSeriesFrame):
             iLinkCol=self.Datasource.ColDefs.index("Link")
             if iLinkCol != -1 and self.Datasource.Rows[iLinkCol].URL != "":
                 if irow < self._Datasource.NumRows:
-                    newVal=self._grid.Grid.GetCellValue(irow, icol)
-                    oldVal=self._Datasource[irow][icol]
+                    newVal=self._grid.Grid.GetCellValue(irow, icol).strip()
+                    oldVal=self._Datasource[irow][icol].strip()
                     if newVal != oldVal:
-                        self.RenameConInstancePage(irow, newVal)
+                        if len(oldVal) > 0:
+                            self.RenameConInstancePage(irow, newVal)
+                        else:
+                            val=self._grid.Grid.GetCellValue(irow, icol)
+                            self._grid.GridCellChangeProcessing(irow, icol, val)
                     self.UpdateNeedsSavingFlag()
                     return
 
