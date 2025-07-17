@@ -531,6 +531,11 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         # Log("OnPopupConventionReports(): About to refresh")
         self.RefreshWindow()
 
+    def OnPopupWSFSstuff(self, event):
+        self.InsertTextRow()
+        self.Datasource.Rows[self._PopupInsertTextRow_RowNumber][0]="WSFS, Hugos, Site Selection"
+        self.RefreshWindow()
+
     # -------------------
     def OnKeyDown(self, event):
         self._grid.OnKeyDown(event)

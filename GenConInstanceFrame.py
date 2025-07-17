@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ###########################################################################
-## Python code generated with wxFormBuilder (version 3.10.1-0-g8feb16b3)
+## Python code generated with wxFormBuilder (version 4.2.1-0-g80c4cb6)
 ## http://www.wxformbuilder.org/
 ##
 ## PLEASE DO *NOT* EDIT THIS FILE!
@@ -176,6 +176,9 @@ class GenConInstanceFrame ( wx.Dialog ):
 		self.m_popupConventionReports = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"+Convention Reports", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_GridPopup.Append( self.m_popupConventionReports )
 
+		self.m_popupWSFSstuff = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"+WSFS, Hugos, Site Selection", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_GridPopup.Append( self.m_popupWSFSstuff )
+
 		self.Bind( wx.EVT_RIGHT_DOWN, self.GenConInstanceFrameOnContextMenu )
 
 
@@ -210,6 +213,7 @@ class GenConInstanceFrame ( wx.Dialog ):
 		self.Bind( wx.EVT_MENU, self.OnPopupNewsletter, id = self.m_popupNewsletter.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupPhotosAndVideo, id = self.m_popupPhotosAndVideo.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupConventionReports, id = self.m_popupConventionReports.GetId() )
+		self.Bind( wx.EVT_MENU, self.OnPopupWSFSstuff, id = self.m_popupWSFSstuff.GetId() )
 
 	def __del__( self ):
 		pass
@@ -296,6 +300,9 @@ class GenConInstanceFrame ( wx.Dialog ):
 		event.Skip()
 
 	def OnPopupConventionReports( self, event ):
+		event.Skip()
+
+	def OnPopupWSFSstuff( self, event ):
 		event.Skip()
 
 	def gRowGridOnContextMenu( self, event ):
