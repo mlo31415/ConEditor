@@ -25,7 +25,7 @@ class Con(GridDataRowClass):
 
     @property
     def Name(self) -> str:        
-        return self._name
+        return self._name.strip()
     @Name.setter
     def Name(self, val: str):
         self._name=RemoveAccents(val)
