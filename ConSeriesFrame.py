@@ -10,6 +10,7 @@ from datetime import datetime
 from GenConSeriesFrame import GenConSeriesFrame
 from FTP import FTP
 from ConInstanceDeltaTracker import UpdateFTPLog
+from ConEditorHelpers import FetchConSeriesFromFancy
 from ConSeries import ConSeries, Con
 from ConInstance import ConInstance
 from WxDataGrid import DataGrid, IsEditable
@@ -428,112 +429,18 @@ class ConSeriesFrame(GenConSeriesFrame):
 
     #--------------------------------------------
     # Given the name of the ConSeries, go to fancy 3 and fetch the con series information and fill in a con seres from it.
-    def FetchConSeriesFromFancy(self, name, retry: bool=False) -> bool:     
-        if name is None or name == "":
-            return False
+    def FetchConSeriesFromFancy(self, name, retry: bool=False) -> bool:
 
-        wait=wx.BusyCursor()    # The busy cursor will show until wait is destroyed
-        pageurl="https://fancyclopedia.org/"+WikiPagenameToWikiUrlname(name)
-        try:
-            response=urlopen(pageurl)
-        except:
-            del wait  # End the wait cursor
-            Log("FetchConSeriesFromFancy: Got exception when trying to open "+pageurl)
-            if not retry:
-                dlg=wx.TextEntryDialog(None, "Load failed. Enter a different name and press OK to retry.", "Try a different name?", value=name)
-                if dlg.ShowModal() == wx.CANCEL or len(dlg.GetValue().strip()) == 0:
-                    return False
-                response=dlg.GetValue()
-                return self.FetchConSeriesFromFancy(response)
+        name, cons=FetchConSeriesFromFancy(name, retry=retry)
+
+        if name is None or name == "" or cons is None or len(cons) == 0:
             self._fancydownloadfailed=True
             return False
 
-        html=response.read()
-        soup=BeautifulSoup(html, 'html.parser')
-        del wait  # End the wait cursor
-
-        tables=soup.find_all("table", class_="wikitable mw-collapsible")
-        if tables is None or len(tables) == 0:
-            msg="fCan't find a table in Fancy 3 page {pageurl}.  Is it possible that its name on Fancy 3 is different?"
-            Log(msg)
-            self._fancydownloadfailed=True
-            wx.MessageBox(msg)
-            return False
-
-        bsrows=tables[0].find_all("tr")
-        headers=[]
-        rows=[]
-        for bsrow in bsrows:
-            if len(headers) == 0:       # Save the header row separately
-                heads=bsrow.find_all("th")
-                if len(heads) > 0:
-                    for head in heads:
-                        headers.append(head.contents[0])
-                    headers=[RemoveAllHTMLTags(UnformatLinks(str(h))).strip() for h in headers]
-                    continue
-
-            # Ordinary row
-            cols=bsrow.find_all("td")
-            row=[]
-            print("")
-            if len(cols) > 0:
-                for col in cols:
-                    row.append(RemoveAllHTMLTags(UnformatLinks(str(col))).strip())
-            if len(row) > 0:
-                rows.append(row)
-
-        # Did we find anything?
-        if len(headers) == 0 or len(rows) == 0:
-            Log(f"FetchConSeriesFromFancy: Can't interpret Fancy 3 page '{pageurl}'")
-            self._fancydownloadfailed=True
-            wx.MessageBox(f"Can't interpret Fancy 3 page '{pageurl}'")
-            return False
-
-        # OK. We have the data.  Now fill in the ConSeries object
-        # First, figure out which columns are which
-        nname=FindIndexOfStringInList(headers, "Convention")
-        if nname is None:
-            nname=FindIndexOfStringInList(headers, "Name")
-        ndate=FindIndexOfStringInList(headers, "Dates")
-        if ndate is None:
-            ndate=FindIndexOfStringInList(headers, "Date")
-
-        nloc=FindIndexOfStringInList(headers, "Location")
-        if nloc is None:
-            nloc=FindIndexOfStringInList(headers, "Site, Location")
-        if nloc is None:
-            nloc=FindIndexOfStringInList(headers, "Site, City")
-        if nloc is None:
-            nloc=FindIndexOfStringInList(headers, "Site")
-        if nloc is None:
-            nloc=FindIndexOfStringInList(headers, "Place")
-
-        ngoh=FindIndexOfStringInList(headers, "GoHs")
-        if ngoh is None:
-            ngoh=FindIndexOfStringInList(headers, "GoH")
-        if ngoh is None:
-            ngoh=FindIndexOfStringInList(headers, "Guests of Honor")
-        if ngoh is None:
-            ngoh=FindIndexOfStringInList(headers, "Guests of Honour")
-        if ngoh is None:
-            ngoh=FindIndexOfStringInList(headers, "Guests")
-
-        for row in rows:
-            if len(row) != len(headers):    # Merged cells which usually signal a skipped convention.  Ignore them.
-                continue
-            con=Con()
-            if nname is not None:
-                con.Name=row[nname]
-            if ndate is not None:
-                con.Dates=FanzineDateRange().Match(row[ndate])
-            if nloc is not None:
-                con.Locale=row[nloc]
-            if ngoh is not None:
-                con.GoHs=row[ngoh]
-
-            self.Datasource.Rows.append(con)
-        self.Seriesname=name
         self._fancydownloadfailed=False
+        self.Datasource.Rows=cons
+        self.Seriesname=name
+
         self.RefreshWindow()
         return True
 
@@ -576,19 +483,28 @@ class ConSeriesFrame(GenConSeriesFrame):
         name=MessageBoxInput("Enter name of convention instance to be added.", title="Create a New Convention Instance", Parent=self)
         if name == "":
             return
+
         # Check to make sure this instance name is not already present.
         for row in self.Datasource.Rows:
             if row.URL == name:
                 MessageBox(f"Convention instance {name} already exists in this convention series.")
                 return
 
-        # Add the new instance
-        self.Datasource.Rows[irow].Name=name
-        self.EditConInstancePage(irow, Create=True)
+        # Go to Fancyclopedia to see if this new convention instance already exists there.
+        _, cons=FetchConSeriesFromFancy(self.Seriesname, retry=True)
 
-        self._grid.RefreshWxGridFromDatasource()
+        # Run through the cons list to see if there's a match for name.
+        for con in cons:
+            if con.Name == name:
+                # Add the new instance
+                self.Datasource.Rows[irow]=con
+                self.EditConInstancePage(irow, Create=True)
 
-        self.RegenerateAdjacentConInstancePages(irow)
+                self._grid.RefreshWxGridFromDatasource()
+
+                self.RegenerateAdjacentConInstancePages(irow)
+
+        return
 
 
     #------------------
