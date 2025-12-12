@@ -250,7 +250,7 @@ class ConSeriesFrame(GenConSeriesFrame):
     # Generate the Name, URL and extra columns
     # Reversed by ConNameInfoPack()
     @staticmethod
-    def ConNameInfoUnpack(packed: str) -> (str, str, str):
+    def ConNameInfoUnpack(packed: str) -> tuple[str, str, str]:
         name=packed
         url=""
         extra=""
