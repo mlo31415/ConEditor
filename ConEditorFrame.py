@@ -254,7 +254,7 @@ class ConEditorFrame(GenConEditorFrame):
         table, rest=FindBracketedText2(file, "fanac-table", caseInsensitive=True)
         tbody, _=FindBracketedText2(table, "tbody", caseInsensitive=True)
         
-        rows:[Convention]=[]
+        rows:list[Convention]=[]
         while True:
             tr, tbody=FindBracketedText2(tbody, "tr", caseInsensitive=True)
             if tr == "":
