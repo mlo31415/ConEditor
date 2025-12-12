@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from bs4 import BeautifulSoup
 import wx, wx.grid
-from urllib.request import urlopen
 import requests
 
 from ConSeries import Con
