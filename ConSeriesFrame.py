@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import re
 import wx, wx.grid
-from bs4 import BeautifulSoup
-from urllib.request import urlopen
 from urllib.parse import unquote
 from datetime import datetime
 
@@ -17,8 +15,8 @@ from WxDataGrid import DataGrid, IsEditable
 from ConInstanceFrame import ConInstanceDialogClass
 from Settings import Settings
 
-from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText2, WikiPagenameToWikiUrlname, UnformatLinks, RemoveAllHTMLTags, RemoveAccents
-from HelpersPackage import FindIndexOfStringInList, PyiResourcePath, MessageBox
+from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText2, WikiPagenameToWikiUrlname, RemoveAccents
+from HelpersPackage import PyiResourcePath, MessageBox
 from WxHelpers import ModalDialogManager, ProgressMessage2, OnCloseHandling, MessageBoxInput, wxMessageDialogInput, wxMessageBox
 from Log import Log, LogError
 from FanzineDateTime import FanzineDateRange
