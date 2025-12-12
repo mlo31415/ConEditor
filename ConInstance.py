@@ -536,7 +536,7 @@ class ConInstanceDatasource(GridDataSource):
         return self._colDefs
 
     @property
-    def TextAndHrefCols(self) -> (int, int):
+    def TextAndHrefCols(self) -> tuple[int, int]:
         return self.ColHeaderIndex("Display Name"), self.ColHeaderIndex("Site Name")    # These are the cols to be used for link text and href
 
     @property        
