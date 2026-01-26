@@ -21,7 +21,7 @@ def FetchConSeriesFromFancy(name, retry: bool = False) -> tuple[None|str, None|l
     try:
         response=requests.get(pageurl)
         #response=urlopen(pageurl)
-    except Exception as e:
+    except Exception:
         del wait  # End the wait cursor
         Log("FetchConSeriesFromFancy: Got exception when trying to open "+pageurl)
         if not retry:
