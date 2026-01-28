@@ -100,11 +100,14 @@ class Convention(GridDataRowClass):
 
     def __setitem__(self, nameOrCol: str|int|slice, value: ColDefinition|str) -> None:
         # (Could use return eval("self."+name))
+        if isinstance(value, slice):
+            raise KeyError(f"Convention.SetVal didn't really mean to allow slices")
+        if isinstance(value, ColDefinition):
+            value=value.Name
         if nameOrCol == "Convention" or nameOrCol == 0:
             self._name=value
             return
-        print("Convention.SetVal can't interpret '"+str(nameOrCol)+"'")
-        raise KeyError
+        raise KeyError(f"Convention.SetVal can't interpret '{nameOrCol}'")
 
     @property
     def Name(self) -> str:     
@@ -123,6 +126,7 @@ class Convention(GridDataRowClass):
     @property
     def IsEmptyRow(self) -> bool:
         return self._name != "" or self._URL != ""
+
 
 
 class ConList(GridDataSource):
