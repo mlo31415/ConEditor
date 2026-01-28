@@ -67,6 +67,8 @@ class ConInstanceRow(GridDataRowClass):
         tot=hash(self._displayTitle.strip()+self._notes.strip()+self._localfilename.strip()+self._localpathname.strip()+self._sitefilename.strip())
         return tot+hash(self._size)+hash(self._isText)+Int0(self.Pages)
 
+    def Signature(self) -> int:
+        return self.__hash__()
 
 
     def append(self, val) -> None:
