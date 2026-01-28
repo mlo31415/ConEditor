@@ -81,7 +81,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     def Signature(self) -> int:
         return self.__hash__()
 
-    def MarkAsSaved(self):
+    def MarkAsSaved(self) -> None:
         self._signature=self.Signature()
 
 
