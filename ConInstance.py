@@ -16,7 +16,7 @@ from Log import Log, LogError
 # This is a single row
 class ConInstanceRow(GridDataRowClass):
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._displayTitle: str=""      # The name as shown to the world on the website
         self._notes: str=""             # The free-format description
         self._localfilename: str=""     # The filename of the source file
@@ -28,7 +28,7 @@ class ConInstanceRow(GridDataRowClass):
         self._pages: int=0              # Page count
 
 
-    def __str__(self):      
+    def __str__(self) -> str:
         s=""
         if len(self.SourceFilename) > 0:
             s+="Source="+self.SourceFilename+"; "
@@ -68,7 +68,8 @@ class ConInstanceRow(GridDataRowClass):
         return tot+hash(self._size)+hash(self._isText)+Int0(self.Pages)
 
 
-    def append(self, val):
+
+    def append(self, val) -> None:
         LogError("Call to ConInstanceRow().append which should never happen.")
         assert False
     def DelCol(self, icol) -> None:

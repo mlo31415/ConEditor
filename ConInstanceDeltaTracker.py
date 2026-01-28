@@ -31,7 +31,7 @@ class Delta:
 #       Replace an existing file ("replace", con, oldname)
 # When two deltas affect the same file, they are usually merged.  (E.g., Add followed by Delete cancels out; Add followed by Rename updates the Add with the new name.)
 class ConInstanceDeltaTracker:
-    def __init__(self):
+    def __init__(self) -> None:
         self._deltas: list[Delta]=list()
 
     def __str__(self) -> str:

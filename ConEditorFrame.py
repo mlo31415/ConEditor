@@ -79,7 +79,7 @@ def main():
 
 
 class Convention(GridDataRowClass):
-    def __init__(self, Name: str="", URL: str=""):
+    def __init__(self, Name: str="", URL: str="") -> None:
         self._name: str=""      # The name of the convention series
         self._URL: str=""       # The location of the convention series html page relative to the main cons page; empty if no series page exists yet
         self.Name=Name
@@ -98,7 +98,7 @@ class Convention(GridDataRowClass):
             return self._name
         return "Convention.Val can't interpret '"+str(index)+"'"
 
-    def __setitem__(self, nameOrCol: str|int|slice, value: ColDefinition) -> None:     
+    def __setitem__(self, nameOrCol: str|int|slice, value: ColDefinition|str) -> None:
         # (Could use return eval("self."+name))
         if nameOrCol == "Convention" or nameOrCol == 0:
             self._name=value
@@ -289,7 +289,7 @@ class ConEditorFrame(GenConEditorFrame):
 
 
     #------------------
-    def UploadMainConlist(self):        
+    def UploadMainConlist(self) -> None:
 
         with ModalDialogManager(ProgressMessage2, "Uploading index.html to fanac.org/conpubs", parent=self) as pm:
             # First read in the template
@@ -328,7 +328,7 @@ class ConEditorFrame(GenConEditorFrame):
             # Save the old file as a backup.
             if not FTP().BackupServerFile(f"/index.html"):
                 Log(f"Could not back up server file /index.html")
-                return False
+                return
 
             if not FTP().PutFileAsString("/", "index.html", file):
                 Log("Upload of /index.html failed")

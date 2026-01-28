@@ -9,7 +9,7 @@ from Log import Log
 ####################################################################################
 # Note that the order of the cells in the row for a ConSeries row is fixed.
 class Con(GridDataRowClass):
-    def __init__(self, Name="", Link="", Extra="", Locale="", Dates=None, GoHs="", URL=""):
+    def __init__(self, Name="", Link="", Extra="", Locale="", Dates=None, GoHs="", URL="") -> None:
         self._name: str=Name                  # Name including number designation
         self._link: str=Link
         self._extra: str=Extra
@@ -27,7 +27,7 @@ class Con(GridDataRowClass):
     def Name(self) -> str:        
         return self._name.strip()
     @Name.setter
-    def Name(self, val: str):
+    def Name(self, val: str) -> None:
         self._name=RemoveAccents(val)
 
 
@@ -35,7 +35,7 @@ class Con(GridDataRowClass):
     def Extra(self) -> str:
         return self._extra
     @Extra.setter
-    def Extra(self, val: str):
+    def Extra(self, val: str) -> None:
         self._extra=RemoveAccents(val)
 
     @property

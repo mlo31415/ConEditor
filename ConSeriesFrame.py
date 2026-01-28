@@ -25,7 +25,7 @@ from FanzineDateTime import FanzineDateRange
 
 #####################################################################################
 class ConSeriesFrame(GenConSeriesFrame):
-    def __init__(self, basedirFTP: str, conseriesname: str, conserieslist: list[str], show: bool=True):
+    def __init__(self, basedirFTP: str, conseriesname: str, conserieslist: list[str], show: bool=True) -> None:
         GenConSeriesFrame.__init__(self, None)
 
         self._basedirectoryFTP: str=basedirFTP

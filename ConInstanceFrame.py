@@ -88,7 +88,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     def NeedsSaving(self) -> bool:
         return self._signature != self.Signature()
 
-    def UpdateNeedsSavingFlag(self):
+    def UpdateNeedsSavingFlag(self) -> None:
         s=self.Title.removesuffix(" *")     # Remove existing Needs Saving marker, if any
         if self.NeedsSaving():
             s=s+" *"
