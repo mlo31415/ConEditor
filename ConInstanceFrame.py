@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-import wx
 import os
-
 import re
+
+from WxHelpers import wxMessageBox
+import wx
 
 from GenConInstanceFrame import GenConInstanceFrame
 from WxDataGrid import DataGrid, Color, IsEditable
