@@ -1038,7 +1038,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                 if self.Datasource[irow].URL != "" and self.Datasource[irow].URL != "index.html":
                     Log(f"OnRegenerateConPages(): Skipping {self.Datasource[irow].Name} because of non-empty extra or URL, Name='{self.Datasource[irow].Name}'   Link='{self.Datasource[irow].URL}'  Extra='{self.Datasource[irow].Extra}'")
                     continue
-
+                pm.Update(f"Regenerating all con pages in this con series: {self.Datasource[irow].Name}")
                 prevname, nextname=self.GetPrevNext(self.Datasource[irow].Name)
                 # We download the page, but don't actually open the dialog.  Then we upload the page which regenerates it.
                 self.DownloadThenUploadConInstancePage(f"{self._basedirectoryFTP}/{self.Seriesname}", self.Seriesname, self.Datasource[irow].Name, prevcon=prevname, nextcon=nextname, pm=pm)
