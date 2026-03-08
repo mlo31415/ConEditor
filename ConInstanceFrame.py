@@ -324,7 +324,28 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         ci.NextConInstanceName=self.NextConInstanceName
         ci.ConInstanceRows=self._Datasource.Rows
 
-        if not ci.Upload():
+        # We have some conventions that have names of the form "Swancon 2004: Chronopolis"
+        # The question is whether the ": Chronopolis" is part of the con's name or not.
+        # First, we check to see if the con already exists and if it does, we follow precedent.
+        # If it does not exist, we pop uo a query
+        conname=self.Conname
+        # We only need to do something if there is a colon int he conname
+        if ":" in conname:
+            # If there is a colon in the conname, we only need to do somehthing if the full-name-with-colon does not already exist.
+            if not FTP().FileExists(f"/{self._seriesname}/{conname}/index.html"):
+                # It does not.
+                # Now check to see if it exists when truncated to before the colon. If that fails also, then we need to ask the user what to do.
+                testname=conname[:conname.index(":")].strip()
+                if FTP().FileExists(f"/{self._seriesname}/{testname}/index.html"):
+                    conname=testname
+                else:
+                    rslt=wxMessageBox(f"The con's name contains a colon.\nConpub's default policy is to ignore everything following the colon, "
+                                            f"making the con's name '{testname}'.\nDo you want to use that truncated name?\n('YES' is recommended unless there "
+                                            f"is a specific reason to include the colon and material following it.)", style=wx.YES_NO)
+                    if rslt == wx.ID_YES:
+                        conname=testname
+
+        if not ci.Upload(conname):
             return False
 
         if UploadFiles:

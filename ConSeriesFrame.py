@@ -1082,7 +1082,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         ci.PrevConInstanceName=prevcon
         ci.NextConInstanceName=nextcon
 
-        if not ci.Upload():
+        if not ci.Upload(conname):
             LogError(f"DownloadThenUploadConInstancePage(): Upload of '{conname}' failed.")
             return False
 

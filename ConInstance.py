@@ -387,7 +387,9 @@ class ConInstance:
         return True
 
 
-    def Upload(self) -> bool:
+    # Upload the current con.
+    # Return the name it was uploaded under
+    def Upload(self, conname: str) -> bool:
 
         # Read in the template
         try:
@@ -403,15 +405,15 @@ class ConInstance:
 
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name is tagged with <fanac-instance>, the random text with "fanac-headertext"
-        fancylink=FormatLink(f"https://fancyclopedia.org/{WikiPagenameToWikiUrlname(self._conname)}", self._conname)
-        file=SubstituteHTML(file, "title", self._conname)
-        file=file.replace("fanac-meta-description", f"{self._conname} {self._seriesname} {self.Toptext}")
-        file=file.replace("fanac-meta-keywords", f"{self._conname} {self._seriesname} {self.Toptext}")
+        fancylink=FormatLink(f"https://fancyclopedia.org/{WikiPagenameToWikiUrlname(conname)}", conname)
+        file=SubstituteHTML(file, "title", conname)
+        file=file.replace("fanac-meta-description", f"{conname} {self._seriesname} {self.Toptext}")
+        file=file.replace("fanac-meta-keywords", f"{conname} {self._seriesname} {self.Toptext}")
         file=SubstituteHTML(file, "fanac-instance", fancylink)
         file=SubstituteHTML(file, "fanac-stuff", self.Toptext)
 
         # Fill in the top buttons
-        s=f"<button onclick=\"window.location.href='https://fancyclopedia.org/{WikiPagenameToWikiUrlname(self._conname)}'\"> Fancyclopedia 3 </button>&nbsp;&nbsp;"
+        s=f"<button onclick=\"window.location.href='https://fancyclopedia.org/{WikiPagenameToWikiUrlname(conname)}'\"> Fancyclopedia 3 </button>&nbsp;&nbsp;"
         s+=f"<button onclick=\"window.location.href='../index.html'\">All {self._seriesname}s</button>"
         file=SubstituteHTML(file, "fanac-topbuttons", s)
 
@@ -481,13 +483,13 @@ class ConInstance:
         file=UpdateButton(file, "fanac-nextCon", self._seriesname, self.NextConInstanceName)
 
         # Make a backup of the existing index file
-        if not FTP().BackupServerFile(f"/{self._seriesname}/{self._conname}/index.html"):
-            Log(f"DownloadThenUploadConInstancePage(): Could not back up server file {self._seriesname}/{self._conname}/index.html")
+        if not FTP().BackupServerFile(f"/{self._seriesname}/{conname}/index.html"):
+            Log(f"DownloadThenUploadConInstancePage(): Could not back up server file {self._seriesname}/{conname}/index.html")
             return False
 
-        if not FTP().PutFileAsString(f"/{self._seriesname}/{self._conname}", "index.html", file, create=True):
-            Log(f"Upload failed: /{self._seriesname}/{self._conname}/index.html")
-            MessageBox(f"OnUploadConInstancePage: Upload failed: /{self._seriesname}/{self._conname}/index.html")
+        if not FTP().PutFileAsString(f"/{self._seriesname}/{conname}", "index.html", file, create=True):
+            Log(f"Upload failed: /{self._seriesname}/{conname}/index.html")
+            MessageBox(f"OnUploadConInstancePage: Upload failed: /{self._seriesname}/{conname}/index.html")
             return False
 
         return True
