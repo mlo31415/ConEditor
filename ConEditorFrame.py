@@ -299,7 +299,7 @@ class ConEditorFrame(GenConEditorFrame):
             # First read in the template
             file=None
             try:
-                with open(PyiResourcePath("Template-ConMain.html")) as f:
+                with open(PyiResourcePath("Template-ConMain.html"), encoding='utf-8') as f:
                     file=f.read()
             except:
                 wx.MessageBox("Can't read 'Template-ConMain.html'")

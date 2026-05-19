@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import re
 import sys
+from urllib.parse import quote
 
 from datetime import datetime
 
@@ -396,7 +397,7 @@ class ConInstance:
             Log(f"sys.path[0]=  {sys.path[0]}")
             Log(f"sys.argv[0]=  {sys.argv[0]}")
             Log(f"{os.path.join(sys.path[0], 'Template-ConPage.html')=}")
-            with open(PyiResourcePath("Template-ConPage.html")) as f:
+            with open(PyiResourcePath("Template-ConPage.html"), encoding='utf-8') as f:
                 file=f.read()
         except:
             MessageBox("Can't read 'Template-ConPage.html'")
@@ -407,8 +408,11 @@ class ConInstance:
         # The con's name is tagged with <fanac-instance>, the random text with "fanac-headertext"
         fancylink=FormatLink(f"https://fancyclopedia.org/{WikiPagenameToWikiUrlname(conname)}", conname)
         file=SubstituteHTML(file, "title", conname)
-        file=file.replace("fanac-meta-description", f"{conname} {self._seriesname} {self.Toptext}")
-        file=file.replace("fanac-meta-keywords", f"{conname} {self._seriesname} {self.Toptext}")
+        file=file.replace("fanac-meta-url", f"https://fanac.org/conpubs/{quote(self._seriesname, safe='')}/{quote(conname, safe='')}/")
+        file=file.replace("fanac-meta-title", f"{conname} — fanac.org")
+        file=file.replace("fanac-meta-description", f"{conname}, {self._seriesname}")
+        file=file.replace("fanac-meta-keywords", f"{conname}, {self._seriesname}")
+        file=file.replace("fanac-meta-credits", self.Credits.strip())
         file=SubstituteHTML(file, "fanac-instance", fancylink)
         file=SubstituteHTML(file, "fanac-stuff", self.Toptext)
 

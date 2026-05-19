@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 import wx, wx.grid
-from urllib.parse import unquote
+from urllib.parse import unquote, quote
 from datetime import datetime
 
 from GenConSeriesFrame import GenConSeriesFrame
@@ -315,7 +315,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         # First read in the template
         try:
-            with open(PyiResourcePath("Template-ConSeries.html")) as f:
+            with open(PyiResourcePath("Template-ConSeries.html"), encoding='utf-8') as f:
                 file=f.read()
         except:
             wx.MessageBox("Can't read 'Template-ConSeries.html'")
@@ -341,8 +341,10 @@ class ConSeriesFrame(GenConSeriesFrame):
             # The con's name is tagged with <fanac-instance>, the random text with "fanac-headertext"
             link=FormatLink(f"https://fancyclopedia.org/{WikiPagenameToWikiUrlname(self.Seriesname)}", self.Seriesname)
             file=SubstituteHTML(file, "title", self.Seriesname)
-            file=file.replace("fanac-meta-description", f"{self.Seriesname}")
-            file=file.replace("fanac-meta-keywords", f"{self.Seriesname}")
+            file=file.replace("fanac-meta-url", f"https://fanac.org/conpubs/{quote(self.Seriesname, safe='')}/")
+            file=file.replace("fanac-meta-title", f"{self.Seriesname} — fanac.org")
+            file=file.replace("fanac-meta-description", self.Seriesname)
+            file=file.replace("fanac-meta-keywords", self.Seriesname)
             file=SubstituteHTML(file, "fanac-instance", link)
             file=SubstituteHTML(file, "fanac-headertext", self.TextComments)
 

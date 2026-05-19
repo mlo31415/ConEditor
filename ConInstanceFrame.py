@@ -14,7 +14,7 @@ from FTP import FTP
 from Settings import Settings
 from Log import Log, LogError
 from HelpersPackage import WikiPagenameToWikiUrlname, ExtensionMatches
-from PDFHelpers import GetPdfPageCount, AddMissingMetadata
+from PDFHelpers import GetPdfPageCount, AddStdMetadata
 from WxHelpers import OnCloseHandling, ModalDialogManager, ProgressMessage2
 
 
@@ -365,10 +365,13 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 if pm is not None:
                     pm.Update(f"Adding {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
                 Log(f"delta-ADD: {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
-                metadata={
-                    '/Title': f'{self.Conname}: {delta.Con.DisplayTitle.strip().removesuffix(".pdf").removesuffix(".PDF")}'
-                }
-                AddMissingMetadata(delta.Con.SourcePathname, metadata)
+                title_clean=delta.Con.DisplayTitle.strip().removesuffix(".pdf").removesuffix(".PDF")
+                AddStdMetadata(delta.Con.SourcePathname,
+                               title=f'{title_clean} – {self.ConInstanceName} – {self._seriesname}',
+                               author=self.Credits,
+                               subject=f'Science fiction convention; {self._seriesname}; {self.ConInstanceName}; fan history; fanac.org',
+                               keywords=", ".join(filter(None, [self._seriesname, self.ConInstanceName, title_clean,
+                                                                "fanac.org", "fan history", "science fiction convention"])))
                 FTP().PutFile(delta.Con.SourcePathname, delta.Con.SiteFilename)
             elif delta.Verb == "rename":
                 if pm is not None:
@@ -392,10 +395,13 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 Log(f"   delta-DELETE: {delta.Con.SiteFilename}")
                 if len(delta.Con.SiteFilename.strip()) > 0:
                     FTP().DeleteFile(delta.Con.SiteFilename)
-                metadata={
-                    '/Title': f'{self.Conname}: {delta.Con.DisplayTitle.strip().removesuffix(".pdf").removesuffix(".PDF")}'
-                }
-                AddMissingMetadata(delta.Con.SourcePathname, metadata)
+                title_clean=delta.Con.DisplayTitle.strip().removesuffix(".pdf").removesuffix(".PDF")
+                AddStdMetadata(delta.Con.SourcePathname,
+                               title=f'{title_clean} – {self.ConInstanceName} – {self._seriesname}',
+                               author=self.Credits,
+                               subject=f'Science fiction convention; {self._seriesname}; {self.ConInstanceName}; fan history; fanac.org',
+                               keywords=", ".join(filter(None, [self._seriesname, self.ConInstanceName, title_clean,
+                                                                "fanac.org", "fan history", "science fiction convention"])))
                 Log(f"   delta-ADD: {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
                 FTP().PutFile(delta.Con.SourcePathname, delta.Con.SiteFilename)
             else:
