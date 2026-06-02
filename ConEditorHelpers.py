@@ -39,7 +39,7 @@ def FetchConSeriesFromFancy(name, retry: bool = False) -> tuple[None|str, None|l
 
     tables=soup.find_all("table", class_="wikitable mw-collapsible")
     if tables is None or len(tables) == 0:
-        msg="fCan't find a table in Fancy 3 page {pageurl}.  Is it possible that its name on Fancy 3 is different?"
+        msg=f"Can't find a table in Fancy 3 page {pageurl}.  Is it possible that its name on Fancy 3 is different?"
         Log(msg)
         wx.MessageBox(msg)
         return None, None
