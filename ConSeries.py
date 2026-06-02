@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from WxDataGrid import GridDataSource, GridDataRowClass, ColDefinition, ColDefinitionsList, IsEditable
-from HelpersPackage import RemoveAccents
 from FanzineDateTime import FanzineDateRange
 from Log import Log
 
@@ -28,7 +27,7 @@ class Con(GridDataRowClass):
         return self._name.strip()
     @Name.setter
     def Name(self, val: str) -> None:
-        self._name=RemoveAccents(val)
+        self._name=val
 
 
     @property
@@ -36,7 +35,7 @@ class Con(GridDataRowClass):
         return self._extra
     @Extra.setter
     def Extra(self, val: str) -> None:
-        self._extra=RemoveAccents(val)
+        self._extra=val
 
     @property
     def GoHs(self) -> str:        

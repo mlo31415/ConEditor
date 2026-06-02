@@ -281,12 +281,13 @@ class ConSeriesFrame(GenConSeriesFrame):
     # Reverse of ConNameInfoUnpack()
     @staticmethod
     def ConNameInfoPack(name: str, url: str, extra: str) -> str:
-        ename=html.escape(name)
+        ename=html.escape(name)                         # display text: preserve accents
+        dirname=html.escape(RemoveAccents(name))        # href path: strip accents to match server directory
         packed=""
         if url == "":
             packed+=ename
         elif url == "index.html":
-            packed+=f'<a href="{html.escape(name)}/index.html">{ename}</a>'
+            packed+=f'<a href="{dirname}/index.html">{ename}</a>'
         else:
             packed+=f'<a href="{html.escape(url)}">{ename}</a>'
         if extra != "":
