@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import re
 import sys
+import html
 from urllib.parse import quote
 
 from datetime import datetime
@@ -365,7 +366,7 @@ class ConInstance:
                     if small == "":
                         LogError(f"DownloadConInstancePage(): Can't find <small> tag in {rest}")
                         return False
-                    small=small.replace("&nbsp;", " ")
+                    small=html.unescape(small).replace("\xa0", " ")  # unescape all entities; &nbsp; becomes \xa0
                     m=re.match(".*?([0-9.]+) MB", small, re.IGNORECASE)
                     if m is not None:
                         conf.Size=Float0(m.group(1))
@@ -374,7 +375,7 @@ class ConInstance:
                         conf.Pages=Int0(m.group(1))
 
                     # Get the notes, if any.  Remove surrounding whitespace and parens.
-                    notes=RemoveHTMLishWhitespace(notes).strip().removeprefix("(").removesuffix(")")
+                    notes=html.unescape(RemoveHTMLishWhitespace(notes).strip().removeprefix("(").removesuffix(")"))
                     conf.Notes=notes
 
                 self.ConInstanceRows.append(conf)
@@ -409,10 +410,10 @@ class ConInstance:
         fancylink=FormatLink(f"https://fancyclopedia.org/{WikiPagenameToWikiUrlname(conname)}", conname)
         file=SubstituteHTML(file, "title", conname)
         file=file.replace("fanac-meta-url", f"https://fanac.org/conpubs/{quote(self._seriesname, safe='')}/{quote(conname, safe='')}/")
-        file=file.replace("fanac-meta-title", f"{conname} — fanac.org")
-        file=file.replace("fanac-meta-description", f"{conname}, {self._seriesname}")
-        file=file.replace("fanac-meta-keywords", f"{conname}, {self._seriesname}")
-        file=file.replace("fanac-meta-credits", self.Credits.strip())
+        file=file.replace("fanac-meta-title", f"{html.escape(conname)} — fanac.org")
+        file=file.replace("fanac-meta-description", f"{html.escape(conname)}, {html.escape(self._seriesname)}")
+        file=file.replace("fanac-meta-keywords", f"{html.escape(conname)}, {html.escape(self._seriesname)}")
+        file=file.replace("fanac-meta-credits", html.escape(self.Credits.strip()))
         file=SubstituteHTML(file, "fanac-instance", fancylink)
         file=SubstituteHTML(file, "fanac-stuff", self.Toptext)
 
@@ -444,7 +445,7 @@ class ConInstance:
         for i, row in enumerate(self.ConInstanceRows):
             if row.IsTextRow:
                 text=f"{row.SourceFilename} {row.SiteFilename} {row.DisplayTitle} {row.Notes}"
-                newtable+=f'    </ul><b>{text.strip()}</b><ul id="conpagetable">\n'
+                newtable+=f'    </ul><b>{html.escape(text.strip())}</b><ul id="conpagetable">\n'
             elif row.IsLinkRow:
                 newtable+=f'    <li id="conpagetable">{FormatLink(row.SiteFilename, row.DisplayTitle)}</li>\n'
             else:
@@ -461,7 +462,7 @@ class ConInstance:
 
                 # Notes
                 if len(row.Notes) > 0:
-                    newtable+=f"&nbsp;&nbsp;({row.Notes})"
+                    newtable+=f"&nbsp;&nbsp;({html.escape(row.Notes)})"
                 newtable+="</li>\n"
         newtable+="</ul>\n"
         newtable+="  </table>\n"

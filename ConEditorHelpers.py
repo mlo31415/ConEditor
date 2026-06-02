@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import html
 from bs4 import BeautifulSoup
 import wx, wx.grid
 import requests
@@ -52,7 +53,7 @@ def FetchConSeriesFromFancy(name, retry: bool = False) -> tuple[None|str, None|l
             if len(heads) > 0:
                 for head in heads:
                     headers.append(head.contents[0])
-                headers=[RemoveAllHTMLTags(UnformatLinks(str(h))).strip() for h in headers]
+                headers=[html.unescape(RemoveAllHTMLTags(UnformatLinks(str(h))).strip()) for h in headers]
                 continue
 
         # Ordinary row
@@ -61,7 +62,7 @@ def FetchConSeriesFromFancy(name, retry: bool = False) -> tuple[None|str, None|l
         print("")
         if len(cols) > 0:
             for col in cols:
-                row.append(RemoveAllHTMLTags(UnformatLinks(str(col))).strip())
+                row.append(html.unescape(RemoveAllHTMLTags(UnformatLinks(str(col))).strip()))
         if len(row) > 0:
             rows.append(row)
 

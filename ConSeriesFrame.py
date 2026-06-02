@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import html
 import re
 import wx, wx.grid
 from urllib.parse import unquote, quote
@@ -234,9 +235,9 @@ class ConSeriesFrame(GenConSeriesFrame):
                     case "Convention":
                         con.Name, con.URL, con.Extra = self.ConNameInfoUnpack(row[icol])
                     case "Location":
-                        con.Locale=row[icol]
+                        con.Locale=html.unescape(row[icol])
                     case _:
-                        con[header]=row[icol]
+                        con[header]=html.unescape(row[icol]) if isinstance(row[icol], str) else row[icol]
 
             cons.append(con)
         self.Datasource.Rows=cons
@@ -251,15 +252,15 @@ class ConSeriesFrame(GenConSeriesFrame):
     # Reversed by ConNameInfoPack()
     @staticmethod
     def ConNameInfoUnpack(packed: str) -> tuple[str, str, str]:
-        name=packed
+        name=html.unescape(packed)  # default when there is no <a> tag
         url=""
         extra=""
 
         m=re.match('<a href=\"?(.*?)\"?>(.*?)</a>(.*)$', packed, re.IGNORECASE)
         if m is not None:
             url=m.groups()[0].strip()
-            name=m.groups()[1].strip()
-            extra=m.groups()[2].strip()
+            name=html.unescape(m.groups()[1].strip())
+            extra=html.unescape(m.groups()[2].strip())
 
         # If there is no extra found and if name is of the form "xxx (yyy)", set name=xxx and extra=(yyy)
         if extra == "":
@@ -342,9 +343,9 @@ class ConSeriesFrame(GenConSeriesFrame):
             link=FormatLink(f"https://fancyclopedia.org/{WikiPagenameToWikiUrlname(self.Seriesname)}", self.Seriesname)
             file=SubstituteHTML(file, "title", self.Seriesname)
             file=file.replace("fanac-meta-url", f"https://fanac.org/conpubs/{quote(self.Seriesname, safe='')}/")
-            file=file.replace("fanac-meta-title", f"{self.Seriesname} — fanac.org")
-            file=file.replace("fanac-meta-description", self.Seriesname)
-            file=file.replace("fanac-meta-keywords", self.Seriesname)
+            file=file.replace("fanac-meta-title", f"{html.escape(self.Seriesname)} — fanac.org")
+            file=file.replace("fanac-meta-description", html.escape(self.Seriesname))
+            file=file.replace("fanac-meta-keywords", html.escape(self.Seriesname))
             file=SubstituteHTML(file, "fanac-instance", link)
             file=SubstituteHTML(file, "fanac-headertext", self.TextComments)
 
@@ -381,9 +382,9 @@ class ConSeriesFrame(GenConSeriesFrame):
                     newtable+=str(row.Dates) if row.Dates is not None else ""
                     newtable+='</td>\n'
                 if haslocations:
-                    newtable+=f'      <td>{row.Locale}</td>\n'
+                    newtable+=f'      <td>{html.escape(row.Locale)}</td>\n'
                 if hasgohs:
-                    newtable+=f'      <td>{row.GoHs}</td>\n'
+                    newtable+=f'      <td>{html.escape(row.GoHs)}</td>\n'
                 newtable+="    </tr>\n"
             newtable+="    </tbody>\n"
             newtable+="  </table>\n"
