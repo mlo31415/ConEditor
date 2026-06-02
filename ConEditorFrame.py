@@ -301,7 +301,7 @@ class ConEditorFrame(GenConEditorFrame):
             try:
                 with open(PyiResourcePath("Template-ConMain.html"), encoding='utf-8') as f:
                     file=f.read()
-            except:
+            except Exception:
                 wx.MessageBox("Can't read 'Template-ConMain.html'")
 
             # We want to do substitutions, replacing whatever is there now with the new data

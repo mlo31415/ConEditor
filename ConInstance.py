@@ -400,7 +400,7 @@ class ConInstance:
             Log(f"{os.path.join(sys.path[0], 'Template-ConPage.html')=}")
             with open(PyiResourcePath("Template-ConPage.html"), encoding='utf-8') as f:
                 file=f.read()
-        except:
+        except Exception:
             MessageBox("Can't read 'Template-ConPage.html'")
             Log("Can't read 'Template-ConPage.html'")
             return False
