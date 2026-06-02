@@ -281,15 +281,16 @@ class ConSeriesFrame(GenConSeriesFrame):
     # Reverse of ConNameInfoUnpack()
     @staticmethod
     def ConNameInfoPack(name: str, url: str, extra: str) -> str:
+        ename=html.escape(name)
         packed=""
         if url == "":
-            packed+=f"{name}"
+            packed+=ename
         elif url == "index.html":
-            packed+=f'<a href="{name}/index.html">{name}</a>'
+            packed+=f'<a href="{html.escape(name)}/index.html">{ename}</a>'
         else:
-            packed+=f'<a href="{url}">{name}</a>'
+            packed+=f'<a href="{html.escape(url)}">{ename}</a>'
         if extra != "":
-            packed+=f" {extra}"
+            packed+=f" {html.escape(extra)}"
 
         return packed
 
@@ -584,7 +585,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                 elif locale is not None:
                     description+=" was held in " +locale+"."
                 if row.GoHs is not None and len(row.GoHs) > 0:
-                    gohs=row.GoHs.replace("&amp;", "&")
+                    gohs=row.GoHs  # GoHs is plain text (html.unescape applied on download)
                     if ("," in gohs and not ", jr" in gohs) or "&" in gohs or " and " in gohs:
                         # Assume that the GoHs are comma-separated. We want to add an and (w/o a comma) between the last two
                         gohs=[x.strip() for x in gohs.split(",")]
