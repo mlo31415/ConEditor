@@ -1053,20 +1053,23 @@ class ConSeriesFrame(GenConSeriesFrame):
     # When a page gets added, deleted, or renamed, the adjacent pages need to be regenerated to update the next/prev buttons
     def RegenerateAdjacentConInstancePages(self, irow: int, pm=None):
 
-        prev, next=self.GetPrevNext(irow)
+        prev, nxt=self.GetPrevNext(irow)
+        irow_name=self.Datasource[irow].Name
 
-        Log(f"RegenerateAdjacentConInstancePages '{prev}' and '{next}'")
+        Log(f"RegenerateAdjacentConInstancePages '{prev}' and '{nxt}'")
 
         if pm is None:
             with ModalDialogManager(ProgressMessage2, "Regenerating adjacent con instance pages", parent=self) as pm:
-                # Now do the same for the previous and next pages to update the inter-page links.
-                self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname, self.Datasource[irow].Name, prev, pm=pm)
-                self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname, self.Datasource[irow].Name, next, pm=pm)
+                if prev:
+                    self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname, prev, nextcon=irow_name, pm=pm)
+                if nxt:
+                    self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname, nxt, prevcon=irow_name, pm=pm)
                 return
 
-        # Now do the same for the previous and next pages to update the inter-page links.
-        self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname, self.Datasource[irow].Name, prev, pm=pm)
-        self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname, self.Datasource[irow].Name, next, pm=pm)
+        if prev:
+            self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname, prev, nextcon=irow_name, pm=pm)
+        if nxt:
+            self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname, nxt, prevcon=irow_name, pm=pm)
 
 
 
@@ -1074,7 +1077,7 @@ class ConSeriesFrame(GenConSeriesFrame):
     # ------------------
     # Download a con instance and then immediately re-upload it.  This will regenerate the page using the latest template and processing.
     # It will also update the next/prev buttons at the bottom.
-    def DownloadThenUploadConInstancePage(self, seriespath: str, seriesname: str, conname: str, prevcon: str="", nextcon: str="", pm=None) -> bool:
+    def DownloadThenUploadConInstancePage(self, seriespath: str, seriesname: str, conname: str, prevcon: str|None=None, nextcon: str|None=None, pm=None) -> bool:
 
         # Download a con instance page
         ci=ConInstance(f"{self._basedirectoryFTP}/{seriesname}", seriesname, conname)
@@ -1082,10 +1085,12 @@ class ConSeriesFrame(GenConSeriesFrame):
             LogError(f"DownloadThenUploadConInstancePage(): Download of '{conname}' failed.")
             return False
 
-        # And upload it back
-        # Override any value read from the server, since they will need to be updated.
-        ci.PrevConInstanceName=prevcon
-        ci.NextConInstanceName=nextcon
+        # Override the nav values read from the server only when the caller supplies them.
+        # Passing None leaves the downloaded value intact.
+        if prevcon is not None:
+            ci.PrevConInstanceName=prevcon
+        if nextcon is not None:
+            ci.NextConInstanceName=nextcon
 
         if not ci.Upload(conname):
             LogError(f"DownloadThenUploadConInstancePage(): Upload of '{conname}' failed.")
