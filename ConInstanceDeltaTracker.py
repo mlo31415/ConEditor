@@ -112,7 +112,7 @@ class UpdateFTPLog:
 
     @staticmethod
     def Tagstring() -> str:
-        return f"[{FTP().GetEditor()}  {datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")} EST]"
+        return f"[{FTP().GetEditor()}  {datetime.now().strftime('%A %B %d, %Y  %I:%M:%S %p')} EST]"
 
 
     @staticmethod
