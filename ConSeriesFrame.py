@@ -689,7 +689,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
             # Download and then Upload the Con instance page to update its new name.
             pm.Update(f"Refreshing '{newname}'")
-            next, prev=self.GetPrevNext(irow)
+            prev, next=self.GetPrevNext(irow)
 
             Log(f"RegenerateAdjacentConInstancePages '{prev}' and '{next}'")
             self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname, newname, prev, next, pm=pm)
@@ -1053,7 +1053,7 @@ class ConSeriesFrame(GenConSeriesFrame):
     # When a page gets added, deleted, or renamed, the adjacent pages need to be regenerated to update the next/prev buttons
     def RegenerateAdjacentConInstancePages(self, irow: int, pm=None):
 
-        next, prev=self.GetPrevNext(irow)
+        prev, next=self.GetPrevNext(irow)
 
         Log(f"RegenerateAdjacentConInstancePages '{prev}' and '{next}'")
 
