@@ -662,7 +662,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             irow=thisrow
 
         # Using that, find the previous and next names
-        prev=next=""
+        prev=nxt=""
         if irow > 0:
             for i in range(irow-1, -1, -1):
                 if self.Datasource[i].URL != "":  # If the previous con instance does not exist, the prev button will be nonfunctional
@@ -671,10 +671,10 @@ class ConSeriesFrame(GenConSeriesFrame):
         if irow+1 < self.Datasource.NumRows:
             for i in range(irow+1, self.Datasource.NumRows):
                 if self.Datasource[i].URL != "":  # If the next con instance does not exist, the next button will be nonfunctional
-                    next=self.Datasource.Rows[i].Name
+                    nxt=self.Datasource.Rows[i].Name
                     break
 
-        return prev, next
+        return prev, nxt
 
 
 
