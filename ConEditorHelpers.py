@@ -58,7 +58,6 @@ def FetchConSeriesFromFancy(name, retry: bool = False) -> tuple[None|str, None|l
         # Ordinary row
         cols=bsrow.find_all("td")
         row=[]
-        print("")
         if len(cols) > 0:
             for col in cols:
                 row.append(html.unescape(RemoveAllHTMLTags(UnformatLinks(str(col))).strip()))
