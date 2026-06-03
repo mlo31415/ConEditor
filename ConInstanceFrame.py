@@ -389,6 +389,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     if len(delta.Con.SiteFilename.strip()) > 0:
                         FTP().DeleteFile(delta.Con.SiteFilename)
             elif delta.Verb == "replace":
+
                 if pm is not None:
                     pm.Update(f"Replacing {delta.Oldname} with new/updated file")
                 Log(f"delta-REPLACE: {delta.Con.SourcePathname} <-- {delta.Oldname}")
@@ -409,7 +410,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
             UpdateFTPLog.LogDeltas(self._seriesname, self.Conname, self.conInstanceDeltaTracker)
 
-            self.conInstanceDeltaTracker=ConInstanceDeltaTracker()  # The upload is complete. Start tracking changes afresh
+        # The upload is complete. Start tracking changes afresh
+        self.conInstanceDeltaTracker=ConInstanceDeltaTracker()
 
 
     #------------------
