@@ -214,7 +214,7 @@ class ConInstanceRow(GridDataRowClass):
 
     @property
     def IsEmptyRow(self) -> bool:      
-        return self.SourceFilename == "" and self.SiteFilename == "" and self.DisplayTitle == "" and Int0(self.Pages) == 0 and self.Notes != ""
+        return self.SourceFilename == "" and self.SiteFilename == "" and self.DisplayTitle == "" and Int0(self.Pages) == 0 and self.Notes == ""
 
 
 
