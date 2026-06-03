@@ -33,8 +33,7 @@ def FetchConSeriesFromFancy(name, retry: bool = False) -> tuple[None|str, None|l
             return FetchConSeriesFromFancy(response)
         return None, None
 
-    html=response.text
-    soup=BeautifulSoup(html, 'html.parser')
+    soup=BeautifulSoup(response.text, 'html.parser')
     del wait  # End the wait cursor
 
     tables=soup.find_all("table", class_="wikitable mw-collapsible")
