@@ -486,15 +486,15 @@ class ConSeriesFrame(GenConSeriesFrame):
         if name == "":
             return
 
-        # Add a new, empty row.
-        irow=self._grid.clickedRow
-        self._grid.Datasource.InsertEmptyRows(irow, 1)
-
         # Check to make sure this instance name is not already present.
         for row in self.Datasource.Rows:
             if row.URL == name:
                 MessageBox(f"Convention instance {name} already exists in this convention series.")
                 return
+
+        # Add a new, empty row.
+        irow=self._grid.clickedRow
+        self._grid.Datasource.InsertEmptyRows(irow, 1)
 
         # Go to Fancyclopedia to see if this new convention instance already exists there.
         _, cons=FetchConSeriesFromFancy(self.Seriesname, retry=True)
