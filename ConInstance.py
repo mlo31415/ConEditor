@@ -288,7 +288,7 @@ class ConInstance:
         m=re.match(r"^\s*Credits?:?\s*(?:Publications provided by )?(.*?)\s*(<br>)?\s*$", fanaccredits)  # Remove some debris that shows up on older pages.
         if m is not None:
             fanaccredits=m.group(1)
-        self.Credits=fanaccredits
+        self.Credits=html.unescape(fanaccredits)
 
         rows: list[tuple[str, str]]=[]
         ulists, _=FindBracketedText2(body, "fanac-table", caseInsensitive=True)
@@ -335,7 +335,7 @@ class ConInstance:
                     return False
                 # if href is a foreign link, then this is a link line
                 if "/" in href:
-                    conf.DisplayTitle=text
+                    conf.DisplayTitle=html.unescape(text)
                     conf.SiteFilename=href
                     conf.IsLinkRow=True
                     self.ConInstanceRows.append(conf)
@@ -350,7 +350,7 @@ class ConInstance:
                     href=re.sub("#view=fit", "", href, count=1, flags=re.IGNORECASE)    # Note that if the view=Fit was followed by &anything, it would have been deleted in the previous line
 
                 # It appears to be an ordinary file like
-                conf.DisplayTitle=text
+                conf.DisplayTitle=html.unescape(text)
                 # There are some cases of ugliness -- old errors -- which need to be detected and removed
                 # The only one known so far as &%23x27;  The x23 needs to be turned into a # and the resulting &#27x; to a quote
                 # It may make sense to generalize on the pattern...or it may not.
@@ -408,7 +408,7 @@ class ConInstance:
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name is tagged with <fanac-instance>, the random text with "fanac-headertext"
         fancylink=FormatLink(f"https://fancyclopedia.org/{WikiPagenameToWikiUrlname(conname)}", conname)
-        file=SubstituteHTML(file, "title", conname)
+        file=SubstituteHTML(file, "title", html.escape(conname))
         file=file.replace("fanac-meta-url", f"https://fanac.org/conpubs/{quote(self._seriesname, safe='')}/{quote(conname, safe='')}/")
         file=file.replace("fanac-meta-title", f"{html.escape(conname)} — fanac.org")
         file=file.replace("fanac-meta-description", f"{html.escape(conname)}, {html.escape(self._seriesname)}")
@@ -425,7 +425,7 @@ class ConInstance:
 
         file=SubstituteHTML(file, "fanac-date", datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST")
         if len(self.Credits.strip()) > 0:
-            file=SubstituteHTML(file, "fanac-credits", self.Credits.strip())
+            file=SubstituteHTML(file, "fanac-credits", html.escape(self.Credits.strip()))
 
         def FormatSizes(row: ConInstanceRow) -> str:
             info=""
@@ -475,13 +475,13 @@ class ConInstance:
             if URLname == "first" or URLname == "last" or URLname == "":
                 if URLname == "":
                     URLname="first" if "prev" in target else "last"
-                html=f"<button>{URLname}</button>"
+                button_html=f"<button>{html.escape(URLname)}</button>"
             else:
                 url=f"https://www.fanac.org/conpubs/{series}/{URLname}/index.html"
                 url=url.replace(" ", "%20")
-                html=f"<button onclick=window.location.href='{url}'>{URLname}</button>"
+                button_html=f"<button onclick=window.location.href='{url}'>{html.escape(URLname)}</button>"
 
-            return SubstituteHTML(file, target, html)
+            return SubstituteHTML(file, target, button_html)
 
         # Update the prev- and next-con nav buttons
         file=UpdateButton(file, "fanac-prevCon", self._seriesname, self.PrevConInstanceName)
