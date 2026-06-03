@@ -481,11 +481,14 @@ class ConSeriesFrame(GenConSeriesFrame):
 
     #------------------
     def OnPopupCreateNewConPage(self, event):     
-        irow=self._grid.clickedRow
-        self._grid.Datasource.InsertEmptyRows(irow, 1)
+
         name=MessageBoxInput("Enter name of convention instance to be added.", title="Create a New Convention Instance", Parent=self)
         if name == "":
             return
+
+        # Add a new, empty row.
+        irow=self._grid.clickedRow
+        self._grid.Datasource.InsertEmptyRows(irow, 1)
 
         # Check to make sure this instance name is not already present.
         for row in self.Datasource.Rows:
