@@ -69,12 +69,6 @@ def main():
     frame=ConEditorFrame(None)      # Required. Frame need not ever be used, but must exist.
 
     app.MainLoop()
-    Log("Exit mainloop")
-    pass
-
-    LogFlush()
-    sys.exit(1)
-
 
 
 
