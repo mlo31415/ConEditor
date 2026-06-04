@@ -359,7 +359,14 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
     def UploadConInstanceFiles(self, pm):
         wd=f"/{self._seriesname}/{self.Conname}"
-        FTP().CWD(wd)
+        if not FTP().CWD(wd):
+            msg=f"Could not change to server directory {wd} — file upload aborted."
+            LogError(msg)
+            wx.MessageBox(msg, f"Could not access server directory {wd}\nUpload failed", wx.OK|wx.ICON_ERROR)
+            return
+
+        failures: list[str]=[]
+
         for delta in self.conInstanceDeltaTracker.Deltas:
             if delta.Verb == "add":
                 if pm is not None:
@@ -370,41 +377,73 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                                title=f'{CleanTitle} – {self.ConInstanceName} – {self._seriesname}',
                                author=self.Credits,
                                subject=f'Science fiction convention; {self._seriesname}; {self.ConInstanceName}; fan history; fanac.org',
-                               keywords=", ".join(filter(None, [self._seriesname, self.ConInstanceName, title_clean,
+                               keywords=", ".join(filter(None, [self._seriesname, self.ConInstanceName, CleanTitle,
                                                                 "fanac.org", "fan history", "science fiction convention"])))
-                FTP().PutFile(delta.Con.SourcePathname, delta.Con.SiteFilename)
+                if not FTP().PutFile(delta.Con.SourcePathname, delta.Con.SiteFilename):
+                    msg=f"Failed to upload '{delta.Con.SiteFilename}'"
+                    LogError(msg)
+                    failures.append(msg)
+                    if pm is not None:
+                        pm.Update(f"FAILED: could not upload {delta.Con.SiteFilename}")
+                else:
+                    delta.Completed=True
             elif delta.Verb == "rename":
                 if pm is not None:
                     pm.Update(f"Renaming {delta.Oldname} to {delta.Con.SiteFilename}")
                 Log(f"delta-RENAME: {delta.Oldname} to {delta.Con.SiteFilename}")
                 if len(delta.Oldname.strip()) == 0:
-                    Log("***Renaming an blank name can't be right! Ignored", isError=True)
+                    Log("***Renaming a blank name can't be right! Ignored", isError=True)
                     continue
-                FTP().Rename(delta.Oldname, delta.Con.SiteFilename)
+                if not FTP().Rename(delta.Oldname, delta.Con.SiteFilename):
+                    msg=f"Failed to rename '{delta.Oldname}' to '{delta.Con.SiteFilename}'"
+                    LogError(msg)
+                    failures.append(msg)
+                    if pm is not None:
+                        pm.Update(f"FAILED: could not rename {delta.Oldname}")
+                else:
+                    delta.Completed=True
             elif delta.Verb == "delete":
                 if not delta.Con.IsTextRow and not delta.Con.IsLinkRow:
                     if pm is not None:
                         pm.Update(f"Deleting {delta.Con.SiteFilename}")
                     Log(f"delta-DELETE: {delta.Con.SiteFilename}")
                     if len(delta.Con.SiteFilename.strip()) > 0:
-                        FTP().DeleteFile(delta.Con.SiteFilename)
+                        if not FTP().DeleteFile(delta.Con.SiteFilename):
+                            msg=f"Failed to delete '{delta.Con.SiteFilename}'"
+                            LogError(msg)
+                            failures.append(msg)
+                            if pm is not None:
+                                pm.Update(f"FAILED: could not delete {delta.Con.SiteFilename}")
+                        else:
+                            delta.Completed=True
             elif delta.Verb == "replace":
-
                 if pm is not None:
                     pm.Update(f"Replacing {delta.Oldname} with new/updated file")
                 Log(f"delta-REPLACE: {delta.Con.SourcePathname} <-- {delta.Oldname}")
                 Log(f"   delta-DELETE: {delta.Con.SiteFilename}")
+                delete_ok=True
                 if len(delta.Con.SiteFilename.strip()) > 0:
-                    FTP().DeleteFile(delta.Con.SiteFilename)
-                title_clean=delta.Con.DisplayTitle.strip().removesuffix(".pdf").removesuffix(".PDF")
+                    if not FTP().DeleteFile(delta.Con.SiteFilename):
+                        msg=f"Failed to delete old file '{delta.Con.SiteFilename}' before replace"
+                        LogError(msg)
+                        failures.append(msg)
+                        delete_ok=False
+                CleanTitle=delta.Con.DisplayTitle.strip().removesuffix(".pdf").removesuffix(".PDF")
                 AddStdMetadata(delta.Con.SourcePathname,
-                               title=f'{title_clean} – {self.ConInstanceName} – {self._seriesname}',
+                               title=f'{CleanTitle} – {self.ConInstanceName} – {self._seriesname}',
                                author=self.Credits,
                                subject=f'Science fiction convention; {self._seriesname}; {self.ConInstanceName}; fan history; fanac.org',
-                               keywords=", ".join(filter(None, [self._seriesname, self.ConInstanceName, title_clean,
+                               keywords=", ".join(filter(None, [self._seriesname, self.ConInstanceName, CleanTitle,
                                                                 "fanac.org", "fan history", "science fiction convention"])))
                 Log(f"   delta-ADD: {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
-                FTP().PutFile(delta.Con.SourcePathname, delta.Con.SiteFilename)
+                if not FTP().PutFile(delta.Con.SourcePathname, delta.Con.SiteFilename):
+                    msg=f"Failed to upload replacement '{delta.Con.SiteFilename}'"
+                    LogError(msg)
+                    failures.append(msg)
+                    if pm is not None:
+                        pm.Update(f"FAILED: {delta.Con.SiteFilename}")
+                elif delete_ok:
+                    delta.Completed=True
             else:
                 Log(f"delta-UNRECOGNIZED: {delta}")
 
@@ -412,6 +451,10 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         # The upload is complete. Start tracking changes afresh
         self.conInstanceDeltaTracker=ConInstanceDeltaTracker()
+
+        if failures:
+            wx.MessageBox("The following file operations failed:\n\n" + "\n".join(failures),
+                          "Upload Errors", wx.OK|wx.ICON_ERROR)
 
 
     #------------------

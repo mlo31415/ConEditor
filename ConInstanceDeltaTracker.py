@@ -16,6 +16,7 @@ class Delta:
     Verb: str
     Con: ConInstanceRow
     Oldname: str=""
+    Completed: bool=False       # Has this delta been successfully completed?
 
     def __str__(self) -> str:
         s=f"{self.Verb}: {self.Con}"
