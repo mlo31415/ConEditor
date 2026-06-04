@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import html
+import json
 import re
 import wx, wx.grid
 from urllib.parse import unquote, quote
