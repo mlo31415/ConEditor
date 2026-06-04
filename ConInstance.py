@@ -4,11 +4,12 @@ import os
 import re
 import sys
 import html
+import json
 from urllib.parse import quote
 
 from datetime import datetime
 
-from HelpersPackage import Int0, Float0, RemoveAccents, PyiResourcePath, MessageBox, RemoveHTMLishWhitespace
+from HelpersPackage import Int0, Float0, RemoveAccents, PyiResourcePath, MessageBox, RemoveHTMLishWhitespace, RemoveAllHTMLTags
 from HelpersPackage import FindBracketedText2, FindNextBracketedText, FindLinkInString, FormatLink, SubstituteHTML, WikiPagenameToWikiUrlname
 from WxDataGrid import GridDataSource, Color, GridDataRowClass, ColDefinition, ColDefinitionsList, IsEditable
 from FTP import FTP
@@ -409,11 +410,56 @@ class ConInstance:
         # The con's name is tagged with <fanac-instance>, the random text with "fanac-headertext"
         fancylink=FormatLink(f"https://fancyclopedia.org/{WikiPagenameToWikiUrlname(conname)}", conname)
         file=SubstituteHTML(file, "title", html.escape(conname))
-        file=file.replace("fanac-meta-url", f"https://fanac.org/conpubs/{quote(self._seriesname, safe='')}/{quote(conname, safe='')}/")
-        file=file.replace("fanac-meta-title", f"{html.escape(conname)} — fanac.org")
-        file=file.replace("fanac-meta-description", f"{html.escape(conname)}, {html.escape(self._seriesname)}")
-        file=file.replace("fanac-meta-keywords", f"{html.escape(conname)}, {html.escape(self._seriesname)}")
+        canonical_url=f"https://fanac.org/conpubs/{quote(self._seriesname, safe='')}/{quote(conname, safe='')}/"
+        file=file.replace("fanac-meta-url", canonical_url)
+        file=file.replace("fanac-meta-title", f"{html.escape(conname)} publications and documents — fanac.org")
         file=file.replace("fanac-meta-credits", html.escape(self.Credits.strip()))
+
+        # Build a rich plain-text description from the top-of-page text
+        plain_top=RemoveAllHTMLTags(self.Toptext).strip() if self.Toptext else ""
+        if len(plain_top) > 220:
+            plain_top=plain_top[:217]+"..."
+        if plain_top:
+            description=plain_top
+        else:
+            description=f"{conname}, part of the {self._seriesname} convention series."
+        if self.Credits.strip():
+            description+=f" Publications provided by {self.Credits.strip()}."
+        description+=f" From fanac.org, the Science Fiction Fan History Archive."
+
+        # Keywords: con name, series, publication titles (up to 5), standard tags
+        pub_titles=[r.DisplayTitle for r in self.ConInstanceRows
+                    if not r.IsTextRow and not r.IsLinkRow and r.DisplayTitle][:5]
+        keywords=", ".join(filter(None,
+            [conname, self._seriesname] + pub_titles +
+            ["SF", "Science Fiction", "Convention", "science fiction convention", "fan history", "fanac.org", "fanzine"]))
+
+        file=file.replace("fanac-meta-description", html.escape(description))
+        file=file.replace("fanac-meta-keywords",    html.escape(keywords))
+
+        # Open Graph tags
+        og=(
+            f'    <meta property="og:title"       content="{html.escape(conname)} — fanac.org">\n'
+            f'    <meta property="og:description" content="{html.escape(description[:200])}">\n'
+            f'    <meta property="og:url"         content="{html.escape(canonical_url)}">\n'
+            f'    <meta property="og:type"        content="website">\n'
+            f'    <meta property="og:site_name"   content="fanac.org — Science Fiction Fan History Archive">\n'
+        )
+
+        # JSON-LD Event structured data
+        ld={
+            "@context": "https://schema.org",
+            "@type":    "Event",
+            "name":     conname,
+            "url":      canonical_url,
+            "description": description,
+            "organizer":   {"@type": "Organization", "name": self._seriesname},
+            "isPartOf":    {"@type": "WebSite", "name": "fanac.org",
+                            "url": "https://fanac.org/"},
+        }
+        ld_tag=f'    <script type="application/ld+json">\n{json.dumps(ld, indent=4)}\n    </script>\n'
+
+        file=file.replace("</head>", og+ld_tag+"</head>", 1)
         file=SubstituteHTML(file, "fanac-instance", fancylink)
         file=SubstituteHTML(file, "fanac-stuff", self.Toptext)
 

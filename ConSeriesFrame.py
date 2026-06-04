@@ -16,7 +16,7 @@ from WxDataGrid import DataGrid, IsEditable
 from ConInstanceFrame import ConInstanceDialogClass
 from Settings import Settings
 
-from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText2, WikiPagenameToWikiUrlname, RemoveAccents
+from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText2, WikiPagenameToWikiUrlname, RemoveAccents, RemoveAllHTMLTags
 from HelpersPackage import PyiResourcePath, MessageBox
 from WxHelpers import ModalDialogManager, ProgressMessage2, OnCloseHandling, MessageBoxInput, wxMessageDialogInput, wxMessageBox
 from Log import Log, LogError
@@ -344,10 +344,72 @@ class ConSeriesFrame(GenConSeriesFrame):
             # The con's name is tagged with <fanac-instance>, the random text with "fanac-headertext"
             link=FormatLink(f"https://fancyclopedia.org/{WikiPagenameToWikiUrlname(self.Seriesname)}", self.Seriesname)
             file=SubstituteHTML(file, "title", self.Seriesname)
-            file=file.replace("fanac-meta-url", f"https://fanac.org/conpubs/{quote(self.Seriesname, safe='')}/")
-            file=file.replace("fanac-meta-title", f"{html.escape(self.Seriesname)} — fanac.org")
-            file=file.replace("fanac-meta-description", html.escape(self.Seriesname))
-            file=file.replace("fanac-meta-keywords", html.escape(self.Seriesname))
+            canonical_url=f"https://fanac.org/conpubs/{quote(self.Seriesname, safe='')}/"
+            file=file.replace("fanac-meta-url",   canonical_url)
+            file=file.replace("fanac-meta-title", f"Publications and documents for {html.escape(self.Seriesname)} — fanac.org")
+
+            # Build description: use TextComments if available, otherwise generate
+            plain_comments=RemoveAllHTMLTags(self.TextComments).strip() if self.TextComments else ""
+            if len(plain_comments) > 200:
+                plain_comments=plain_comments[:197]+"..."
+            if plain_comments:
+                description=f"{plain_comments} — {self.Seriesname} on fanac.org, the Science Fiction Fan History Archive."
+            else:
+                description=f"{self.Seriesname} science fiction convention series. Publications, program books, and fan history on fanac.org."
+
+            # Keywords: series name, unique locations, standard tags
+            locales=list({r.Locale for r in self.Datasource.Rows if r.Locale})
+            keywords=", ".join(filter(None,
+                [self.Seriesname] + locales +
+                ["SF", "Science Fiction", "Convention", "science fiction convention", "fan history", "fanac.org", "fanzine"]))
+
+            file=file.replace("fanac-meta-description", html.escape(description))
+            file=file.replace("fanac-meta-keywords",    html.escape(keywords))
+
+            # Open Graph tags
+            og=(
+                f'    <meta property="og:title"       content="{html.escape(self.Seriesname)} — fanac.org">\n'
+                f'    <meta property="og:description" content="{html.escape(description[:200])}">\n'
+                f'    <meta property="og:url"         content="{html.escape(canonical_url)}">\n'
+                f'    <meta property="og:type"        content="website">\n'
+                f'    <meta property="og:site_name"   content="fanac.org — Science Fiction Fan History Archive">\n'
+            )
+
+            # JSON-LD ItemList: one entry per linked con instance
+            ld_items=[]
+            pos=1
+            for row in self.Datasource.Rows:
+                if row.Name and row.URL:
+                    item={
+                        "@type":    "ListItem",
+                        "position": pos,
+                        "item": {
+                            "@type": "Event",
+                            "name":  row.Name,
+                            "url":   f"https://fanac.org/conpubs/{quote(self.Seriesname, safe='')}/{quote(row.Name, safe='')}/"
+                        }
+                    }
+                    if row.Dates and not row.Dates.IsEmpty():
+                        item["item"]["startDate"]=str(row.Dates)
+                    if row.Locale:
+                        item["item"]["location"]={"@type": "Place", "name": row.Locale}
+                    if row.GoHs:
+                        item["item"]["performer"]=[{"@type": "Person", "name": g.strip()}
+                                                   for g in re.split(r",| and |&", row.GoHs) if g.strip()]
+                    ld_items.append(item)
+                    pos+=1
+
+            ld={
+                "@context":       "https://schema.org",
+                "@type":          "ItemList",
+                "name":           f"{self.Seriesname} Convention Series",
+                "url":            canonical_url,
+                "description":    description,
+                "itemListElement": ld_items,
+            }
+            ld_tag=f'    <script type="application/ld+json">\n{json.dumps(ld, indent=4)}\n    </script>\n'
+
+            file=file.replace("</head>", og+ld_tag+"</head>", 1)
             file=SubstituteHTML(file, "fanac-instance", link)
             file=SubstituteHTML(file, "fanac-headertext", self.TextComments)
 

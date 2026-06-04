@@ -300,6 +300,8 @@ class ConEditorFrame(GenConEditorFrame):
 
             # We want to do substitutions, replacing whatever is there now with the new data
             # The con's name might be tagged with <fanac-instance>, the random text with "fanac-headertext"
+            file=SubstituteHTML(file, "title", "SF Convention Publications and Documents")
+            file=file.replace("fanac-meta-title", "SF Convention Publications and Documents — fanac.org")
             file=SubstituteHTML(file, "fanac-stuff", self.m_textCtrlTopText.GetValue())
 
             # Now construct the table which we'll then substitute.
