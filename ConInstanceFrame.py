@@ -365,9 +365,9 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 if pm is not None:
                     pm.Update(f"Adding {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
                 Log(f"delta-ADD: {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
-                title_clean=delta.Con.DisplayTitle.strip().removesuffix(".pdf").removesuffix(".PDF")
+                CleanTitle=delta.Con.DisplayTitle.strip().removesuffix(".pdf").removesuffix(".PDF")
                 AddStdMetadata(delta.Con.SourcePathname,
-                               title=f'{title_clean} – {self.ConInstanceName} – {self._seriesname}',
+                               title=f'{CleanTitle} – {self.ConInstanceName} – {self._seriesname}',
                                author=self.Credits,
                                subject=f'Science fiction convention; {self._seriesname}; {self.ConInstanceName}; fan history; fanac.org',
                                keywords=", ".join(filter(None, [self._seriesname, self.ConInstanceName, title_clean,
