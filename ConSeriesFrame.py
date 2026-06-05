@@ -559,21 +559,33 @@ class ConSeriesFrame(GenConSeriesFrame):
         irow=self._grid.clickedRow
         self._grid.Datasource.InsertEmptyRows(irow, 1)
 
-        # Go to Fancyclopedia to see if this new convention instance already exists there.
-        _, cons=FetchConSeriesFromFancy(self.Seriesname, retry=True)
+        # Try to find this convention on Fancyclopedia to pre-fill its data.
+        # This is a best-effort lookup — if the series isn't on Fancyclopedia, skip silently.
+        _, cons=FetchConSeriesFromFancy(self.Seriesname, retry=True, silent=True)
 
-        # Run through the cons list to see if there's a match for name.
-        for con in cons:
-            if con.Name == name:
-                # Add the new instance
-                self.Datasource.Rows[irow]=con
-                self.EditConInstancePage(irow, Create=True)
+        if cons is not None:
+            for con in cons:
+                if con.Name == name:
+                    self.Datasource.Rows[irow]=con
+                    self.EditConInstancePage(irow, Create=True)
+                    self._grid.RefreshWxGridFromDatasource()
+                    self.RegenerateAdjacentConInstancePages(irow)
+                    return
 
-                self._grid.RefreshWxGridFromDatasource()
+        # Not found on Fancyclopedia (or series has no Fancyclopedia page).
+        # Ask the user whether to proceed with a blank entry or cancel.
+        resp=wx.MessageBox(
+            f"'{name}' was not found on Fancyclopedia 3.\nDo you want to create it anyway?",
+            "Not found on Fancyclopedia", wx.YES_NO|wx.ICON_QUESTION)
+        if resp != wx.YES:
+            # Remove the empty row that was inserted and bail out.
+            self._grid.DeleteRows(irow, 1)
+            self.RefreshWindow()
+            return
 
-                self.RegenerateAdjacentConInstancePages(irow)
-
-        return
+        self.EditConInstancePage(irow, Create=True)
+        self._grid.RefreshWxGridFromDatasource()
+        self.RegenerateAdjacentConInstancePages(irow)
 
 
     #------------------
