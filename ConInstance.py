@@ -5,7 +5,7 @@ import re
 import sys
 import html
 import json
-from urllib.parse import quote
+from urllib.parse import quote, unquote
 
 from datetime import datetime
 
@@ -352,15 +352,9 @@ class ConInstance:
 
                 # It appears to be an ordinary file like
                 conf.DisplayTitle=html.unescape(text)
-                # There are some cases of ugliness -- old errors -- which need to be detected and removed
-                # The only one known so far as &%23x27;  The x23 needs to be turned into a # and the resulting &#27x; to a quote
-                # It may make sense to generalize on the pattern...or it may not.
-                m=re.match(r"(.*)&%([0-9]+)x([0-9]+);(.*)", href)
-                if m is not None:
-                    if m.groups()[1] == "23" and m.groups()[2] == "27":
-                        href=m.groups()[0]+"'"+m.groups()[3]
-
-                conf.SiteFilename=href
+                # Decode the href back to the plain filename (undo the HTML-escaping and percent-encoding
+                # applied by FormatLink on upload) so SiteFilename matches the plain form used by AddFiles.
+                conf.SiteFilename=unquote(html.unescape(href))
 
                 if len(rest.strip()) > 0:
                     small, notes=FindBracketedText2(rest, "small")
