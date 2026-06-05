@@ -583,6 +583,10 @@ class ConSeriesFrame(GenConSeriesFrame):
             self.RefreshWindow()
             return
 
+        # Pre-fill the row with the name the user already entered so the dialog
+        # opens with it populated and the server directory is named correctly.
+        self.Datasource.Rows[irow].Name=name
+
         self.EditConInstancePage(irow, Create=True)
         self._grid.RefreshWxGridFromDatasource()
         self.RegenerateAdjacentConInstancePages(irow)
@@ -690,14 +694,32 @@ class ConSeriesFrame(GenConSeriesFrame):
 
 
     #------------------
-    def OnPopupDeleteConPage(self, event):     
-        irow=self._grid.clickedRow
-        if irow >= 0 and irow < self.Datasource.NumRows:
-            ret=wx.MessageBox(f"This will delete {self.Datasource.Rows[irow].Name} from the list of conventions on this page, but will not delete "+
-                              "its directory or files from fanac.org. You must use FTP to do that.", 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
-            if ret == wx.OK:
-                self._grid.DeleteRows(irow, 1)
-                self.RefreshWindow()
+    def OnPopupDeleteConPage(self, event):
+        # Determine the selected rows, falling back to the right-clicked row when there's no selection.
+        if self._grid.HasSelection():
+            top, _, bottom, _=self._grid.LocateSelection()
+        else:
+            top=bottom=self._grid.clickedRow
+
+        nrows=self.Datasource.NumRows
+        if top < 0 or top >= nrows:
+            return
+        if bottom >= nrows:
+            bottom=nrows-1
+
+        names="\n    ".join(self.Datasource.Rows[i].Name for i in range(top, bottom+1))
+        if bottom == top:
+            intro=f"This will delete {names} "
+            possessive="its directory"
+        else:
+            intro=f"This will delete the following {bottom-top+1} convention(s):\n    "+names+"\n"
+            possessive="their directories"
+        ret=wx.MessageBox(intro+"from the list of conventions on this page, but will not delete "+
+                          possessive+" or files from fanac.org. You must use FTP to do that.", 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
+        if ret == wx.OK:
+            self._grid.Grid.ClearSelection()
+            self._grid.DeleteRows(top, bottom-top+1)
+            self.RefreshWindow()
 
 
     #------------------
@@ -983,11 +1005,12 @@ class ConSeriesFrame(GenConSeriesFrame):
         elif icol < len(self.Datasource.ColDefs) and self.Datasource.ColDefs[icol].IsEditable == IsEditable.Maybe:
             self.m_popupAllowEditCell.Enabled=True
 
+        if irow < self.Datasource.NumRows:
+            self.m_popupDeleteConPage.Enabled=True      # Delete works from a click in any column
+
         if icol == 0:      # These popup options work on the 1st column only
             self.m_popupCreateNewConPage.Enabled=True
             if irow < self.Datasource.NumRows:
-                self.m_popupDeleteConPage.Enabled=True
-
                 if len(self.Datasource.Rows[irow].URL) > 0:   # Only if there's a link in the row
                     self.m_popupUnlink.Enabled=True
                 if len(self.Datasource.Rows[irow].URL) == 0:   # Only if there's NO link in the row
