@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import os
 import re
+import shutil
+import tempfile
 
 from WxHelpers import wxMessageBox
 import wx
@@ -14,8 +16,17 @@ from FTP import FTP
 from Settings import Settings
 from Log import Log, LogError
 from HelpersPackage import WikiPagenameToWikiUrlname, ExtensionMatches
-from PDFHelpers import GetPdfPageCount, AddStdMetadata
+from PDFHelpers import GetPdfPageCount, AddStdMetadata, AddPdfPageHeader
 from WxHelpers import OnCloseHandling, ModalDialogManager, ProgressMessage2
+
+# TODO: Replace these dummy values with data derived from the con instance being uploaded.
+_HEADER_FORMAT = "{} #1, May 1952, by {} and {}  --  from {}"
+_HEADER_ITEMS  = [
+    "https://fanac.org/fanzines/Hyphen/",          "Hyphen",
+    "https://fancyclopedia.org/wiki/Walt_Willis",   "Walt Willis",
+    "https://fancyclopedia.org/wiki/Chuck_Harris",  "Chuck Harris",
+    "https://fanac.org/",                           "fanac.org",
+]
 
 
 #####################################################################################
@@ -357,6 +368,37 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         return True
 
 
+    def _UploadPdfWithHeaderAndMetadata(self, src_path: str, site_name: str, metadata: dict,
+                                        add_header: bool=True) -> bool:
+        """
+        For PDF files: copy to a temp file, apply metadata and (optionally) page header to the
+        copy, upload the copy, then delete it — leaving the original on disk untouched.
+        For non-PDF files: upload the original directly.
+        Returns True on success.
+        """
+        if not ExtensionMatches(src_path, ".pdf"):
+            return FTP().PutFile(src_path, site_name)
+
+        tmp_fd, tmp_path=tempfile.mkstemp(suffix=".pdf")
+        os.close(tmp_fd)
+        shutil.copy2(src_path, tmp_path)
+        try:
+            AddStdMetadata(tmp_path, **metadata)
+            if add_header:
+                try:
+                    AddPdfPageHeader(tmp_path, _HEADER_FORMAT, _HEADER_ITEMS)
+                except Exception as e:
+                    msg=f"Failed to add page header to '{site_name}':\n{e}"
+                    LogError(msg)
+                    wx.MessageBox(msg, "Page Header Error", wx.OK|wx.ICON_WARNING)
+            return FTP().PutFile(tmp_path, site_name)
+        finally:
+            try:
+                os.remove(tmp_path)
+            except Exception as e:
+                Log(f"Could not delete temp file '{tmp_path}': {e}", isError=True)
+
+
     def UploadConInstanceFiles(self, pm):
         wd=f"/{self._seriesname}/{self.Conname}"
         if not FTP().CWD(wd):
@@ -364,6 +406,19 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             LogError(msg)
             wx.MessageBox(msg, f"Could not access server directory {wd}\nUpload failed", wx.OK|wx.ICON_ERROR)
             return
+
+        # Check once whether PyMuPDF is available for page headers.
+        fitz_available=True
+        try:
+            import fitz as _fitz_check  # noqa: F401
+        except ImportError:
+            fitz_available=False
+            wx.MessageBox(
+                "PyMuPDF is not installed — PDF page headers will be skipped for this upload.\n\n"
+                "To install it, open a command prompt in the ConEditor folder and run:\n\n"
+                "    .venv\\Scripts\\pip install pymupdf\n\n"
+                "Then restart ConEditor.",
+                "PyMuPDF not installed", wx.OK|wx.ICON_WARNING)
 
         failures: list[str]=[]
 
@@ -373,13 +428,12 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     pm.Update(f"Adding {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
                 Log(f"delta-ADD: {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
                 CleanTitle=delta.Con.DisplayTitle.strip().removesuffix(".pdf").removesuffix(".PDF")
-                AddStdMetadata(delta.Con.SourcePathname,
-                               title=f'{CleanTitle} – {self.ConInstanceName} – {self._seriesname}',
-                               author=self.Credits,
-                               subject=f'Science fiction convention; {self._seriesname}; {self.ConInstanceName}; fan history; fanac.org',
-                               keywords=", ".join(filter(None, [self._seriesname, self.ConInstanceName, CleanTitle,
-                                                                "fanac.org", "fan history", "science fiction convention"])))
-                if not FTP().PutFile(delta.Con.SourcePathname, delta.Con.SiteFilename):
+                metadata=dict(title=f'{CleanTitle} – {self.ConInstanceName} – {self._seriesname}',
+                              author=self.Credits,
+                              subject=f'Science fiction convention; {self._seriesname}; {self.ConInstanceName}; fan history; fanac.org',
+                              keywords=", ".join(filter(None, [self._seriesname, self.ConInstanceName, CleanTitle,
+                                                               "fanac.org", "fan history", "science fiction convention"])))
+                if not self._UploadPdfWithHeaderAndMetadata(delta.Con.SourcePathname, delta.Con.SiteFilename, metadata, add_header=fitz_available):
                     msg=f"Failed to upload '{delta.Con.SiteFilename}'"
                     LogError(msg)
                     failures.append(msg)
@@ -429,14 +483,13 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                         failures.append(msg)
                         delete_ok=False
                 CleanTitle=delta.Con.DisplayTitle.strip().removesuffix(".pdf").removesuffix(".PDF")
-                AddStdMetadata(delta.Con.SourcePathname,
-                               title=f'{CleanTitle} – {self.ConInstanceName} – {self._seriesname}',
-                               author=self.Credits,
-                               subject=f'Science fiction convention; {self._seriesname}; {self.ConInstanceName}; fan history; fanac.org',
-                               keywords=", ".join(filter(None, [self._seriesname, self.ConInstanceName, CleanTitle,
-                                                                "fanac.org", "fan history", "science fiction convention"])))
+                metadata=dict(title=f'{CleanTitle} – {self.ConInstanceName} – {self._seriesname}',
+                              author=self.Credits,
+                              subject=f'Science fiction convention; {self._seriesname}; {self.ConInstanceName}; fan history; fanac.org',
+                              keywords=", ".join(filter(None, [self._seriesname, self.ConInstanceName, CleanTitle,
+                                                               "fanac.org", "fan history", "science fiction convention"])))
                 Log(f"   delta-ADD: {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
-                if not FTP().PutFile(delta.Con.SourcePathname, delta.Con.SiteFilename):
+                if not self._UploadPdfWithHeaderAndMetadata(delta.Con.SourcePathname, delta.Con.SiteFilename, metadata, add_header=fitz_available):
                     msg=f"Failed to upload replacement '{delta.Con.SiteFilename}'"
                     LogError(msg)
                     failures.append(msg)
