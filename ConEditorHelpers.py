@@ -13,7 +13,9 @@ from Log import Log
 
 # --------------------------------------------
 # Given the name of the ConSeries, go to fancy 3 and fetch the con series information and fill in a con series from it.
-def FetchConSeriesFromFancy(name, retry: bool = False) -> tuple[None|str, None|list[Con]]:
+def FetchConSeriesFromFancy(name, retry: bool = False, silent: bool = False) -> tuple[None|str, None|list[Con]]:
+    """Fetch convention series data from Fancyclopedia 3.
+    silent=True suppresses all user-facing popups (use when the lookup is optional/best-effort)."""
     if name is None or name == "":
         return None, None
 
@@ -21,11 +23,10 @@ def FetchConSeriesFromFancy(name, retry: bool = False) -> tuple[None|str, None|l
     pageurl="https://fancyclopedia.org/"+WikiPagenameToWikiUrlname(name)        # 162.246.254.57
     try:
         response=requests.get(pageurl)
-        #response=urlopen(pageurl)
     except Exception:
         del wait  # End the wait cursor
         Log("FetchConSeriesFromFancy: Got exception when trying to open "+pageurl)
-        if not retry:
+        if not retry and not silent:
             dlg=wx.TextEntryDialog(None, "Load failed. Enter a different name and press OK to retry.", "Try a different name?", value=name)
             if dlg.ShowModal() == wx.CANCEL or len(dlg.GetValue().strip()) == 0:
                 return None, None
@@ -40,7 +41,8 @@ def FetchConSeriesFromFancy(name, retry: bool = False) -> tuple[None|str, None|l
     if tables is None or len(tables) == 0:
         msg=f"Can't find a table in Fancy 3 page {pageurl}.  Is it possible that its name on Fancy 3 is different?"
         Log(msg)
-        wx.MessageBox(msg)
+        if not silent:
+            wx.MessageBox(msg)
         return None, None
 
     bsrows=tables[0].find_all("tr")
@@ -67,7 +69,8 @@ def FetchConSeriesFromFancy(name, retry: bool = False) -> tuple[None|str, None|l
     # Did we find anything?
     if len(headers) == 0 or len(rows) == 0:
         Log(f"FetchConSeriesFromFancy: Can't interpret Fancy 3 page '{pageurl}'")
-        wx.MessageBox(f"Can't interpret Fancy 3 page '{pageurl}'")
+        if not silent:
+            wx.MessageBox(f"Can't interpret Fancy 3 page '{pageurl}'")
         return None, None
 
     # OK. We have the data.  Now fill in the ConSeries object
