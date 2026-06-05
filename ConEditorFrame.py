@@ -192,10 +192,17 @@ class ConEditorFrame(GenConEditorFrame):
 
         self._grid.HideRowLabels()
 
-        # Position the window on the screen it was on before
+        # Position the window on the screen it was on before.
+        # If that position is now off all connected screens (e.g. a monitor was unplugged),
+        # centre on the primary display instead.
         tlwp=Settings().Get("Top Level Window Position")
         if tlwp:
             self.SetPosition(tlwp)
+            pos=wx.Point(*tlwp)
+            on_screen=any(wx.Display(i).GetGeometry().Contains(pos)
+                          for i in range(wx.Display.GetCount()))
+            if not on_screen:
+                self.Centre()
 
         self.DownloadMainConlist()
         self.MarkAsSaved()
