@@ -4,6 +4,7 @@ import os
 import re
 import shutil
 import tempfile
+from urllib.parse import quote
 
 from WxHelpers import wxMessageBox
 import wx
@@ -19,16 +20,6 @@ from HelpersPackage import WikiPagenameToWikiUrlname, ExtensionMatches
 from PDFHelpers import GetPdfPageCount, AddStdMetadata, AddPdfPageHeader
 from WxHelpers import OnCloseHandling, ModalDialogManager, ProgressMessage2
 
-# TODO: Replace these dummy values with data derived from the con instance being uploaded.
-_HEADER_FORMAT = "{} #1, May 1952, by {} and {}  --  from {}"
-_HEADER_ITEMS  = [
-    "https://fanac.org/fanzines/Hyphen/",          "Hyphen",
-    "https://fancyclopedia.org/wiki/Walt_Willis",   "Walt Willis",
-    "https://fancyclopedia.org/wiki/Chuck_Harris",  "Chuck Harris",
-    "https://fanac.org/",                           "fanac.org",
-]
-
-
 #####################################################################################
 class ConInstanceDialogClass(GenConInstanceFrame):
 
@@ -43,6 +34,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self._FTPbasedir=basedirFTP # The root of the convention's files, e.g., "/seriesName"
         self._seriesname=seriesname # The name of the series
         self.Conname=conname        # The actual name of the con directory on conpubs
+        self.ConInstanceDates=""    # The con's date(s) (from its row on the con series page); used in the PDF page header. May be empty if unknown.
         self._credits=""
 
         self._signature=0
@@ -368,8 +360,27 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         return True
 
 
+    # Build the PDF page-header format string and substitution items from real con-instance data.
+    # See AddPdfPageHeader for the format/items conventions: a URL item is rendered as a hyperlink
+    # whose display text is the immediately-following item; other items are plain text.
+    #   * the con instance name -- linked to the con instance page
+    #   * the item's title       -- plain text
+    #   * the con's date(s)      -- plain text, in parentheses; omitted if unknown
+    #   * "fanac.org/conpubs"    -- linked to the conpubs root
+    def _BuildPageHeader(self, item_title: str) -> tuple[str, list]:
+        instance_url=f"https://www.fanac.org/conpubs/{quote(self._seriesname, safe='')}/{quote(self.Conname, safe='')}/"
+        items=[instance_url, self.ConInstanceName, item_title]
+        if self.ConInstanceDates.strip():
+            fmt="{} {} ({})  --  from {}"
+            items.append(self.ConInstanceDates.strip())
+        else:
+            fmt="{} {}  --  from {}"
+        items+=["https://www.fanac.org/conpubs/", "fanac.org/conpubs"]
+        return fmt, items
+
+
     def _UploadPdfWithHeaderAndMetadata(self, src_path: str, site_name: str, metadata: dict,
-                                        add_header: bool=True) -> bool:
+                                        add_header: bool=True, header_format: str="", header_items: list=None) -> bool:
         """
         For PDF files: copy to a temp file, apply metadata and (optionally) page header to the
         copy, upload the copy, then delete it — leaving the original on disk untouched.
@@ -386,7 +397,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             AddStdMetadata(tmp_path, **metadata)
             if add_header:
                 try:
-                    AddPdfPageHeader(tmp_path, _HEADER_FORMAT, _HEADER_ITEMS)
+                    AddPdfPageHeader(tmp_path, header_format, header_items)
                 except Exception as e:
                     msg=f"Failed to add page header to '{site_name}':\n{e}"
                     LogError(msg)
@@ -433,7 +444,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                               subject=f'Science fiction convention; {self._seriesname}; {self.ConInstanceName}; fan history; fanac.org',
                               keywords=", ".join(filter(None, [self._seriesname, self.ConInstanceName, CleanTitle,
                                                                "fanac.org", "fan history", "science fiction convention"])))
-                if not self._UploadPdfWithHeaderAndMetadata(delta.Con.SourcePathname, delta.Con.SiteFilename, metadata, add_header=fitz_available):
+                header_format, header_items=self._BuildPageHeader(CleanTitle)
+                if not self._UploadPdfWithHeaderAndMetadata(delta.Con.SourcePathname, delta.Con.SiteFilename, metadata, add_header=fitz_available, header_format=header_format, header_items=header_items):
                     msg=f"Failed to upload '{delta.Con.SiteFilename}'"
                     LogError(msg)
                     failures.append(msg)
@@ -489,7 +501,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                               keywords=", ".join(filter(None, [self._seriesname, self.ConInstanceName, CleanTitle,
                                                                "fanac.org", "fan history", "science fiction convention"])))
                 Log(f"   delta-ADD: {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
-                if not self._UploadPdfWithHeaderAndMetadata(delta.Con.SourcePathname, delta.Con.SiteFilename, metadata, add_header=fitz_available):
+                header_format, header_items=self._BuildPageHeader(CleanTitle)
+                if not self._UploadPdfWithHeaderAndMetadata(delta.Con.SourcePathname, delta.Con.SiteFilename, metadata, add_header=fitz_available, header_format=header_format, header_items=header_items):
                     msg=f"Failed to upload replacement '{delta.Con.SiteFilename}'"
                     LogError(msg)
                     failures.append(msg)

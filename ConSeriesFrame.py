@@ -681,6 +681,12 @@ class ConSeriesFrame(GenConSeriesFrame):
             dlg.ConInstanceName=conname
             dlg.ConInstanceFancyURL="fancyclopedia.org/"+WikiPagenameToWikiUrlname(conname)
 
+            # Pass the con's date(s) (from its row on the series page) to the instance dialog for use in the PDF page header.
+            if irow < self.Datasource.NumRows:
+                rowDates=self.Datasource.Rows[irow].Dates
+                if rowDates is not None and type(rowDates) is not str and not rowDates.IsEmpty():
+                    dlg.ConInstanceDates=str(rowDates)
+
             dlg.MarkAsSaved()
             dlg.RefreshWindow()
             dlg.ShowModal() # We don't care about the return value because you can't cancel out of this dialog; all you can do is change nothing
