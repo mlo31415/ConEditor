@@ -26,8 +26,14 @@ from WxHelpers import OnCloseHandling, ModalDialogManager, ProgressMessage2
 # "PB 5" -> "Program Book 5"). The con-instance page's link text itself is left unchanged.
 def _CleanTitle(display_title: str) -> str:
     t=display_title.strip().removesuffix(".pdf").removesuffix(".PDF")
-    t=re.sub(r"\bPR (\d+)", r"Progress Report \1", t)
-    t=re.sub(r"\bPB (\d+)", r"Program Book \1", t)
+    # Expand the fannish abbreviations "PR"/"pr" -> "Progress Report" and "PB"/"pb" -> "Program Book".
+    # Match a standalone PR/PB token (any case) whether or not a number follows and regardless of the
+    # spacing: "PR 5", "PR5", "pr 5", "pr5" -> "...Report 5"; a bare "PR" -> "Progress Report".
+    # The leading \b keeps it from matching inside words (e.g. "expr", "PROGRAM", "Spring").
+    t=re.sub(r"\b[Pp][Rr] *(\d+)", r"Progress Report \1", t)   # PR/pr with a number (any spacing)
+    t=re.sub(r"\b[Pp][Rr](?![A-Za-z0-9])", "Progress Report", t)   # bare PR/pr (no number)
+    t=re.sub(r"\b[Pp][Bb] *(\d+)", r"Program Book \1", t)      # PB/pb with a number (any spacing)
+    t=re.sub(r"\b[Pp][Bb](?![A-Za-z0-9])", "Program Book", t)      # bare PB/pb (no number)
     return t
 
 
