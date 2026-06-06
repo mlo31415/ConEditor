@@ -58,6 +58,12 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.PrevConInstanceName=prevconname
         self.NextConInstanceName=nextconname
 
+        # TEMPORARY: an RMB item to regenerate a single PDF's page header on the server.
+        # Added programmatically (not in the generated base class) so it can be removed easily.
+        self.m_popupRegenPDFHeader=wx.MenuItem(self.m_GridPopup, wx.ID_ANY, "Regenerate PDF Header", wx.EmptyString, wx.ITEM_NORMAL)
+        self.m_GridPopup.Append(self.m_popupRegenPDFHeader)
+        self.Bind(wx.EVT_MENU, self.OnPopupRegeneratePDFHeader, id=self.m_popupRegenPDFHeader.GetId())
+
         self._valid=True
         self.SetEscapeId(wx.ID_CANCEL)
 
@@ -371,12 +377,21 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         instance_url=f"https://www.fanac.org/conpubs/{quote(self._seriesname, safe='')}/{quote(self.Conname, safe='')}/"
         items=[instance_url, self.ConInstanceName, item_title]
         if self.ConInstanceDates.strip():
-            fmt="{} {} ({})  --  from {}"
+            fmt="{}: {} ({})  --  from {}"
             items.append(self.ConInstanceDates.strip())
         else:
-            fmt="{} {}  --  from {}"
+            fmt="{}: {}  --  from {}"
         items+=["https://www.fanac.org/conpubs/", "fanac.org/conpubs"]
         return fmt, items
+
+
+    # Build the standard PDF document metadata from real con-instance data.
+    def _BuildMetadata(self, CleanTitle: str) -> dict:
+        return dict(title=f'{CleanTitle} – {self.ConInstanceName} – {self._seriesname}',
+                    author=self.Credits,
+                    subject=f'Science fiction convention; {self._seriesname}; {self.ConInstanceName}; fan history; fanac.org',
+                    keywords=", ".join(filter(None, [self._seriesname, self.ConInstanceName, CleanTitle,
+                                                     "fanac.org", "fan history", "science fiction convention"])))
 
 
     def _UploadPdfWithHeaderAndMetadata(self, src_path: str, site_name: str, metadata: dict,
@@ -439,11 +454,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     pm.Update(f"Adding {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
                 Log(f"delta-ADD: {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
                 CleanTitle=delta.Con.DisplayTitle.strip().removesuffix(".pdf").removesuffix(".PDF")
-                metadata=dict(title=f'{CleanTitle} – {self.ConInstanceName} – {self._seriesname}',
-                              author=self.Credits,
-                              subject=f'Science fiction convention; {self._seriesname}; {self.ConInstanceName}; fan history; fanac.org',
-                              keywords=", ".join(filter(None, [self._seriesname, self.ConInstanceName, CleanTitle,
-                                                               "fanac.org", "fan history", "science fiction convention"])))
+                metadata=self._BuildMetadata(CleanTitle)
                 header_format, header_items=self._BuildPageHeader(CleanTitle)
                 if not self._UploadPdfWithHeaderAndMetadata(delta.Con.SourcePathname, delta.Con.SiteFilename, metadata, add_header=fitz_available, header_format=header_format, header_items=header_items):
                     msg=f"Failed to upload '{delta.Con.SiteFilename}'"
@@ -495,11 +506,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                         failures.append(msg)
                         delete_ok=False
                 CleanTitle=delta.Con.DisplayTitle.strip().removesuffix(".pdf").removesuffix(".PDF")
-                metadata=dict(title=f'{CleanTitle} – {self.ConInstanceName} – {self._seriesname}',
-                              author=self.Credits,
-                              subject=f'Science fiction convention; {self._seriesname}; {self.ConInstanceName}; fan history; fanac.org',
-                              keywords=", ".join(filter(None, [self._seriesname, self.ConInstanceName, CleanTitle,
-                                                               "fanac.org", "fan history", "science fiction convention"])))
+                metadata=self._BuildMetadata(CleanTitle)
                 Log(f"   delta-ADD: {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
                 header_format, header_items=self._BuildPageHeader(CleanTitle)
                 if not self._UploadPdfWithHeaderAndMetadata(delta.Con.SourcePathname, delta.Con.SiteFilename, metadata, add_header=fitz_available, header_format=header_format, header_items=header_items):
@@ -598,7 +605,66 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     not self.Datasource.Rows[self._grid.clickedRow].IsLinkRow:
                 self.m_popupUpdateFile.Enabled=True
 
+        # TEMPORARY: enable "Regenerate PDF Header" when the row points to a PDF.
+        if row < self.Datasource.NumRows:
+            r=self.Datasource.Rows[row]
+            if not r.IsTextRow and not r.IsLinkRow and ExtensionMatches(r.SiteFilename, ".pdf"):
+                self.m_popupRegenPDFHeader.Enabled=True
+
         self.PopupMenu(self.m_GridPopup, pos=self.gRowGrid.Position+event.Position)
+
+
+    # ------------------
+    # TEMPORARY: Regenerate the metadata and page header on a single already-uploaded PDF.
+    # Downloads the row's PDF from the server, (re)applies current metadata and header, and uploads it back.
+    def OnPopupRegeneratePDFHeader(self, event):
+        row=self._grid.clickedRow
+        if row < 0 or row >= self.Datasource.NumRows:
+            return
+        r=self.Datasource.Rows[row]
+        if r.IsTextRow or r.IsLinkRow or not ExtensionMatches(r.SiteFilename, ".pdf"):
+            return
+
+        try:
+            import fitz as _fitz_check  # noqa: F401
+        except ImportError:
+            wx.MessageBox("PyMuPDF is not installed — cannot regenerate the PDF header.", "PyMuPDF not installed", wx.OK|wx.ICON_WARNING)
+            return
+
+        serverdir=f"/{self._seriesname}/{self.Conname}"
+        sitename=r.SiteFilename
+        CleanTitle=r.DisplayTitle.strip().removesuffix(".pdf").removesuffix(".PDF")
+
+        tmp_fd, tmp_path=tempfile.mkstemp(suffix=".pdf")
+        os.close(tmp_fd)
+        error=""
+        try:
+            with ModalDialogManager(ProgressMessage2, f"Regenerating metadata and header for {sitename}", parent=self) as pm:
+                pm.Update(f"Downloading {serverdir}/{sitename}")
+                if not FTP().GetFile(serverdir, sitename, tmp_path):
+                    error=f"Could not download '{serverdir}/{sitename}' from the server."
+                else:
+                    pm.Update(f"Updating metadata and header for {sitename}")
+                    try:
+                        AddStdMetadata(tmp_path, **self._BuildMetadata(CleanTitle))
+                        header_format, header_items=self._BuildPageHeader(CleanTitle)
+                        AddPdfPageHeader(tmp_path, header_format, header_items)
+                        pm.Update(f"Uploading {sitename}")
+                        if not FTP().CWD(serverdir) or not FTP().PutFile(tmp_path, sitename):
+                            error=f"Could not upload '{sitename}' to the server."
+                        else:
+                            pm.Update(f"Regenerated metadata and header for {sitename}", delay=0.5)
+                    except Exception as e:
+                        error=f"Failed to update metadata/header for '{sitename}':\n{e}"
+                        LogError(error)
+        finally:
+            try:
+                os.remove(tmp_path)
+            except Exception as e:
+                Log(f"Could not delete temp file '{tmp_path}': {e}", isError=True)
+
+        if error:
+            wx.MessageBox(error, "Regenerate PDF Header failed", wx.OK|wx.ICON_ERROR)
 
 
     # ------------------
