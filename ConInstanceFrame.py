@@ -402,13 +402,31 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         return fmt, items
 
 
+    # Return True if `row` falls in a "Newsletter" section of the con-instance table -- i.e. the
+    # nearest preceding header (text) row is titled "Newsletter".
+    def _IsInNewsletterSection(self, row) -> bool:
+        rows=self.Datasource.Rows
+        idx=next((i for i, x in enumerate(rows) if x is row), -1)
+        if idx < 0:
+            return False
+        for i in range(idx-1, -1, -1):
+            if rows[i].IsTextRow:
+                return rows[i].DisplayTitle.strip().lower() == "newsletter"
+        return False
+
+
     # Build the standard PDF document metadata from real con-instance data.
-    def _BuildMetadata(self, CleanTitle: str) -> dict:
+    # For an issue in a "Newsletter" section whose own title doesn't already mention "newsletter",
+    # add "Newsletter" as an extra metadata keyword (the title and the page header are left unchanged).
+    def _BuildMetadata(self, CleanTitle: str, is_newsletter: bool=False) -> dict:
+        keywords=[self._seriesname, self.ConInstanceName, CleanTitle]
+        if is_newsletter and "newsletter" not in CleanTitle.lower():
+            keywords.append("Newsletter")
+        keywords+=["fanac.org", "fan history", "science fiction convention"]
         return dict(title=f'{CleanTitle} – {self.ConInstanceName} – {self._seriesname}',
                     author=self.Credits,
                     subject=f'Science fiction convention; {self._seriesname}; {self.ConInstanceName}; fan history; fanac.org',
-                    keywords=", ".join(filter(None, [self._seriesname, self.ConInstanceName, CleanTitle,
-                                                     "fanac.org", "fan history", "science fiction convention"])))
+                    keywords=", ".join(filter(None, keywords)))
 
 
     def _UploadPdfWithHeaderAndMetadata(self, src_path: str, site_name: str, metadata: dict,
@@ -471,7 +489,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     pm.Update(f"Adding {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
                 Log(f"delta-ADD: {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
                 CleanTitle=_CleanTitle(delta.Con.DisplayTitle)
-                metadata=self._BuildMetadata(CleanTitle)
+                metadata=self._BuildMetadata(CleanTitle, self._IsInNewsletterSection(delta.Con))
                 header_format, header_items=self._BuildPageHeader(CleanTitle)
                 if not self._UploadPdfWithHeaderAndMetadata(delta.Con.SourcePathname, delta.Con.SiteFilename, metadata, add_header=fitz_available, header_format=header_format, header_items=header_items):
                     msg=f"Failed to upload '{delta.Con.SiteFilename}'"
@@ -523,7 +541,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                         failures.append(msg)
                         delete_ok=False
                 CleanTitle=_CleanTitle(delta.Con.DisplayTitle)
-                metadata=self._BuildMetadata(CleanTitle)
+                metadata=self._BuildMetadata(CleanTitle, self._IsInNewsletterSection(delta.Con))
                 Log(f"   delta-ADD: {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
                 header_format, header_items=self._BuildPageHeader(CleanTitle)
                 if not self._UploadPdfWithHeaderAndMetadata(delta.Con.SourcePathname, delta.Con.SiteFilename, metadata, add_header=fitz_available, header_format=header_format, header_items=header_items):
@@ -663,7 +681,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 else:
                     pm.Update(f"Updating metadata and header for {sitename}")
                     try:
-                        AddStdMetadata(tmp_path, **self._BuildMetadata(CleanTitle))
+                        AddStdMetadata(tmp_path, **self._BuildMetadata(CleanTitle, self._IsInNewsletterSection(r)))
                         header_format, header_items=self._BuildPageHeader(CleanTitle)
                         AddPdfPageHeader(tmp_path, header_format, header_items)
                         pm.Update(f"Uploading {sitename}")
