@@ -20,6 +20,17 @@ from HelpersPackage import WikiPagenameToWikiUrlname, ExtensionMatches
 from PDFHelpers import GetPdfPageCount, AddStdMetadata, AddPdfPageHeader
 from WxHelpers import OnCloseHandling, ModalDialogManager, ProgressMessage2
 
+
+# Derive the document title used in the PDF header and metadata from the con-instance link text.
+# Strips the file extension and expands fannish abbreviations ("PR 5" -> "Progress Report 5",
+# "PB 5" -> "Program Book 5"). The con-instance page's link text itself is left unchanged.
+def _CleanTitle(display_title: str) -> str:
+    t=display_title.strip().removesuffix(".pdf").removesuffix(".PDF")
+    t=re.sub(r"\bPR (\d+)", r"Progress Report \1", t)
+    t=re.sub(r"\bPB (\d+)", r"Program Book \1", t)
+    return t
+
+
 #####################################################################################
 class ConInstanceDialogClass(GenConInstanceFrame):
 
@@ -453,7 +464,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 if pm is not None:
                     pm.Update(f"Adding {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
                 Log(f"delta-ADD: {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
-                CleanTitle=delta.Con.DisplayTitle.strip().removesuffix(".pdf").removesuffix(".PDF")
+                CleanTitle=_CleanTitle(delta.Con.DisplayTitle)
                 metadata=self._BuildMetadata(CleanTitle)
                 header_format, header_items=self._BuildPageHeader(CleanTitle)
                 if not self._UploadPdfWithHeaderAndMetadata(delta.Con.SourcePathname, delta.Con.SiteFilename, metadata, add_header=fitz_available, header_format=header_format, header_items=header_items):
@@ -505,7 +516,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                         LogError(msg)
                         failures.append(msg)
                         delete_ok=False
-                CleanTitle=delta.Con.DisplayTitle.strip().removesuffix(".pdf").removesuffix(".PDF")
+                CleanTitle=_CleanTitle(delta.Con.DisplayTitle)
                 metadata=self._BuildMetadata(CleanTitle)
                 Log(f"   delta-ADD: {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
                 header_format, header_items=self._BuildPageHeader(CleanTitle)
@@ -633,7 +644,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         serverdir=f"/{self._seriesname}/{self.Conname}"
         sitename=r.SiteFilename
-        CleanTitle=r.DisplayTitle.strip().removesuffix(".pdf").removesuffix(".PDF")
+        CleanTitle=_CleanTitle(r.DisplayTitle)
 
         tmp_fd, tmp_path=tempfile.mkstemp(suffix=".pdf")
         os.close(tmp_fd)
