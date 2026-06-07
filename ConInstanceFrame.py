@@ -661,7 +661,9 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         try:
             pm.Update(f"Downloading {sitename}")
             if not FTP().GetFile(serverdir, sitename, tmp_path):
-                return f"Could not download '{serverdir}/{sitename}' from the server."
+                msg=f"Could not download '{serverdir}/{sitename}' from the server (file not present?)."
+                LogError(msg)
+                return msg
             pm.Update(f"Updating metadata and header for {sitename}")
             try:
                 AddStdMetadata(tmp_path, **self._BuildMetadata(CleanTitle, self._IsInNewsletterSection(r)))
@@ -672,7 +674,9 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 return f"Failed to update metadata/header for '{sitename}':\n{e}"
             pm.Update(f"Uploading {sitename}")
             if not FTP().CWD(serverdir) or not FTP().PutFile(tmp_path, sitename):
-                return f"Could not upload '{sitename}' to the server."
+                msg=f"Could not upload '{sitename}' to the server."
+                LogError(msg)
+                return msg
             return ""
         finally:
             try:
