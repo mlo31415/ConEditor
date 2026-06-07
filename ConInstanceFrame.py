@@ -423,7 +423,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         if is_newsletter and "newsletter" not in CleanTitle.lower():
             keywords.append("Newsletter")
         keywords+=["fanac.org", "fan history", "science fiction convention"]
-        return dict(title=f'{CleanTitle} – {self.ConInstanceName} – {self._seriesname}',
+        return dict(title=f'{self.ConInstanceName}: {CleanTitle}',
                     author=self.Credits,
                     subject=f'Science fiction convention; {self._seriesname}; {self.ConInstanceName}; fan history; fanac.org',
                     keywords=", ".join(filter(None, keywords)))
