@@ -651,55 +651,72 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
     # ------------------
     # TEMPORARY: Regenerate the metadata and page header on a single already-uploaded PDF.
-    # Downloads the row's PDF from the server, (re)applies current metadata and header, and uploads it back.
-    def OnPopupRegeneratePDFHeader(self, event):
-        row=self._grid.clickedRow
-        if row < 0 or row >= self.Datasource.NumRows:
-            return
-        r=self.Datasource.Rows[row]
-        if r.IsTextRow or r.IsLinkRow or not ExtensionMatches(r.SiteFilename, ".pdf"):
-            return
-
-        try:
-            import fitz as _fitz_check  # noqa: F401
-        except ImportError:
-            wx.MessageBox("PyMuPDF is not installed — cannot regenerate the PDF header.", "PyMuPDF not installed", wx.OK|wx.ICON_WARNING)
-            return
-
-        serverdir=f"/{self._seriesname}/{self.Conname}"
+    # Downloads the row's PDF from the server, (re)applies current metadata and header, and uploads it
+    # back. Returns "" on success or an error message.
+    def RegeneratePdfHeaderForRow(self, r, serverdir, pm) -> str:
         sitename=r.SiteFilename
         CleanTitle=_CleanTitle(r.DisplayTitle)
-
         tmp_fd, tmp_path=tempfile.mkstemp(suffix=".pdf")
         os.close(tmp_fd)
-        error=""
         try:
-            with ModalDialogManager(ProgressMessage2, f"Regenerating metadata and header for {sitename}", parent=self) as pm:
-                pm.Update(f"Downloading {serverdir}/{sitename}")
-                if not FTP().GetFile(serverdir, sitename, tmp_path):
-                    error=f"Could not download '{serverdir}/{sitename}' from the server."
-                else:
-                    pm.Update(f"Updating metadata and header for {sitename}")
-                    try:
-                        AddStdMetadata(tmp_path, **self._BuildMetadata(CleanTitle, self._IsInNewsletterSection(r)))
-                        header_format, header_items=self._BuildPageHeader(CleanTitle)
-                        AddPdfPageHeader(tmp_path, header_format, header_items)
-                        pm.Update(f"Uploading {sitename}")
-                        if not FTP().CWD(serverdir) or not FTP().PutFile(tmp_path, sitename):
-                            error=f"Could not upload '{sitename}' to the server."
-                        else:
-                            pm.Update(f"Regenerated metadata and header for {sitename}", delay=0.5)
-                    except Exception as e:
-                        error=f"Failed to update metadata/header for '{sitename}':\n{e}"
-                        LogError(error)
+            pm.Update(f"Downloading {sitename}")
+            if not FTP().GetFile(serverdir, sitename, tmp_path):
+                return f"Could not download '{serverdir}/{sitename}' from the server."
+            pm.Update(f"Updating metadata and header for {sitename}")
+            try:
+                AddStdMetadata(tmp_path, **self._BuildMetadata(CleanTitle, self._IsInNewsletterSection(r)))
+                header_format, header_items=self._BuildPageHeader(CleanTitle)
+                AddPdfPageHeader(tmp_path, header_format, header_items)
+            except Exception as e:
+                LogError(f"Failed to update metadata/header for '{sitename}':\n{e}")
+                return f"Failed to update metadata/header for '{sitename}':\n{e}"
+            pm.Update(f"Uploading {sitename}")
+            if not FTP().CWD(serverdir) or not FTP().PutFile(tmp_path, sitename):
+                return f"Could not upload '{sitename}' to the server."
+            return ""
         finally:
             try:
                 os.remove(tmp_path)
             except Exception as e:
                 Log(f"Could not delete temp file '{tmp_path}': {e}", isError=True)
 
-        if error:
-            wx.MessageBox(error, "Regenerate PDF Header failed", wx.OK|wx.ICON_ERROR)
+
+    # TEMPORARY: Regenerate metadata+header for the clicked PDF, or for all selected rows when the
+    # click landed on a selected row. Non-PDF rows in the selection are skipped.
+    def OnPopupRegeneratePDFHeader(self, event):
+        try:
+            import fitz as _fitz_check  # noqa: F401
+        except ImportError:
+            wx.MessageBox("PyMuPDF is not installed — cannot regenerate the PDF header.", "PyMuPDF not installed", wx.OK|wx.ICON_WARNING)
+            return
+
+        # Operate on the whole selection only when the click landed inside it; otherwise just the clicked row.
+        clicked=self._grid.clickedRow
+        if self._grid.HasSelection():
+            top, _, bottom, _=self._grid.LocateSelection()
+        else:
+            top=bottom=-1
+        rownums=list(range(top, bottom+1)) if top <= clicked <= bottom else [clicked]
+
+        # Keep only real PDF rows.
+        rownums=[i for i in rownums if 0 <= i < self.Datasource.NumRows
+                 and not self.Datasource.Rows[i].IsTextRow
+                 and not self.Datasource.Rows[i].IsLinkRow
+                 and ExtensionMatches(self.Datasource.Rows[i].SiteFilename, ".pdf")]
+        if not rownums:
+            return
+
+        serverdir=f"/{self._seriesname}/{self.Conname}"
+        failures=[]
+        with ModalDialogManager(ProgressMessage2, f"Regenerating {len(rownums)} PDF header(s)", parent=self) as pm:
+            for i in rownums:
+                err=self.RegeneratePdfHeaderForRow(self.Datasource.Rows[i], serverdir, pm)
+                if err:
+                    failures.append(err)
+            pm.Update(f"Regenerated {len(rownums)-len(failures)} of {len(rownums)} PDF header(s)", delay=0.5)
+
+        if failures:
+            wx.MessageBox("\n".join(failures), "Regenerate PDF Header failed", wx.OK|wx.ICON_ERROR)
 
 
     # ------------------
