@@ -484,76 +484,85 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         failures: list[str]=[]
 
         for delta in self.conInstanceDeltaTracker.Deltas:
-            if delta.Verb == "add":
-                if pm is not None:
-                    pm.Update(f"Adding {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
-                Log(f"delta-ADD: {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
-                CleanTitle=_CleanTitle(delta.Con.DisplayTitle)
-                metadata=self._BuildMetadata(CleanTitle, self._IsInNewsletterSection(delta.Con))
-                header_format, header_items=self._BuildPageHeader(CleanTitle)
-                if not self._UploadPdfWithHeaderAndMetadata(delta.Con.SourcePathname, delta.Con.SiteFilename, metadata, add_header=fitz_available, header_format=header_format, header_items=header_items):
-                    msg=f"Failed to upload '{delta.Con.SiteFilename}'"
-                    LogError(msg)
-                    failures.append(msg)
+            # Each delta is processed independently: any unexpected error is logged and recorded as a
+            # failure, but the loop continues with the remaining files rather than aborting the upload.
+            try:
+                if delta.Verb == "add":
                     if pm is not None:
-                        pm.Update(f"FAILED: could not upload {delta.Con.SiteFilename}")
-                else:
-                    delta.Completed=True
-            elif delta.Verb == "rename":
-                if pm is not None:
-                    pm.Update(f"Renaming {delta.Oldname} to {delta.Con.SiteFilename}")
-                Log(f"delta-RENAME: {delta.Oldname} to {delta.Con.SiteFilename}")
-                if len(delta.Oldname.strip()) == 0:
-                    Log("***Renaming a blank name can't be right! Ignored", isError=True)
-                    continue
-                if not FTP().Rename(delta.Oldname, delta.Con.SiteFilename):
-                    msg=f"Failed to rename '{delta.Oldname}' to '{delta.Con.SiteFilename}'"
-                    LogError(msg)
-                    failures.append(msg)
-                    if pm is not None:
-                        pm.Update(f"FAILED: could not rename {delta.Oldname}")
-                else:
-                    delta.Completed=True
-            elif delta.Verb == "delete":
-                if not delta.Con.IsTextRow and not delta.Con.IsLinkRow:
-                    if pm is not None:
-                        pm.Update(f"Deleting {delta.Con.SiteFilename}")
-                    Log(f"delta-DELETE: {delta.Con.SiteFilename}")
-                    if len(delta.Con.SiteFilename.strip()) > 0:
-                        if not FTP().DeleteFile(delta.Con.SiteFilename):
-                            msg=f"Failed to delete '{delta.Con.SiteFilename}'"
-                            LogError(msg)
-                            failures.append(msg)
-                            if pm is not None:
-                                pm.Update(f"FAILED: could not delete {delta.Con.SiteFilename}")
-                        else:
-                            delta.Completed=True
-            elif delta.Verb == "replace":
-                if pm is not None:
-                    pm.Update(f"Replacing {delta.Oldname} with new/updated file")
-                Log(f"delta-REPLACE: {delta.Con.SourcePathname} <-- {delta.Oldname}")
-                Log(f"   delta-DELETE: {delta.Con.SiteFilename}")
-                delete_ok=True
-                if len(delta.Con.SiteFilename.strip()) > 0:
-                    if not FTP().DeleteFile(delta.Con.SiteFilename):
-                        msg=f"Failed to delete old file '{delta.Con.SiteFilename}' before replace"
+                        pm.Update(f"Adding {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
+                    Log(f"delta-ADD: {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
+                    CleanTitle=_CleanTitle(delta.Con.DisplayTitle)
+                    metadata=self._BuildMetadata(CleanTitle, self._IsInNewsletterSection(delta.Con))
+                    header_format, header_items=self._BuildPageHeader(CleanTitle)
+                    if not self._UploadPdfWithHeaderAndMetadata(delta.Con.SourcePathname, delta.Con.SiteFilename, metadata, add_header=fitz_available, header_format=header_format, header_items=header_items):
+                        msg=f"Failed to upload '{delta.Con.SiteFilename}'"
                         LogError(msg)
                         failures.append(msg)
-                        delete_ok=False
-                CleanTitle=_CleanTitle(delta.Con.DisplayTitle)
-                metadata=self._BuildMetadata(CleanTitle, self._IsInNewsletterSection(delta.Con))
-                Log(f"   delta-ADD: {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
-                header_format, header_items=self._BuildPageHeader(CleanTitle)
-                if not self._UploadPdfWithHeaderAndMetadata(delta.Con.SourcePathname, delta.Con.SiteFilename, metadata, add_header=fitz_available, header_format=header_format, header_items=header_items):
-                    msg=f"Failed to upload replacement '{delta.Con.SiteFilename}'"
-                    LogError(msg)
-                    failures.append(msg)
+                        if pm is not None:
+                            pm.Update(f"FAILED: could not upload {delta.Con.SiteFilename}")
+                    else:
+                        delta.Completed=True
+                elif delta.Verb == "rename":
                     if pm is not None:
-                        pm.Update(f"FAILED: {delta.Con.SiteFilename}")
-                elif delete_ok:
-                    delta.Completed=True
-            else:
-                Log(f"delta-UNRECOGNIZED: {delta}")
+                        pm.Update(f"Renaming {delta.Oldname} to {delta.Con.SiteFilename}")
+                    Log(f"delta-RENAME: {delta.Oldname} to {delta.Con.SiteFilename}")
+                    if len(delta.Oldname.strip()) == 0:
+                        Log("***Renaming a blank name can't be right! Ignored", isError=True)
+                    elif not FTP().Rename(delta.Oldname, delta.Con.SiteFilename):
+                        msg=f"Failed to rename '{delta.Oldname}' to '{delta.Con.SiteFilename}'"
+                        LogError(msg)
+                        failures.append(msg)
+                        if pm is not None:
+                            pm.Update(f"FAILED: could not rename {delta.Oldname}")
+                    else:
+                        delta.Completed=True
+                elif delta.Verb == "delete":
+                    if not delta.Con.IsTextRow and not delta.Con.IsLinkRow:
+                        if pm is not None:
+                            pm.Update(f"Deleting {delta.Con.SiteFilename}")
+                        Log(f"delta-DELETE: {delta.Con.SiteFilename}")
+                        if len(delta.Con.SiteFilename.strip()) > 0:
+                            if not FTP().DeleteFile(delta.Con.SiteFilename):
+                                msg=f"Failed to delete '{delta.Con.SiteFilename}'"
+                                LogError(msg)
+                                failures.append(msg)
+                                if pm is not None:
+                                    pm.Update(f"FAILED: could not delete {delta.Con.SiteFilename}")
+                            else:
+                                delta.Completed=True
+                elif delta.Verb == "replace":
+                    if pm is not None:
+                        pm.Update(f"Replacing {delta.Oldname} with new/updated file")
+                    Log(f"delta-REPLACE: {delta.Con.SourcePathname} <-- {delta.Oldname}")
+                    Log(f"   delta-DELETE: {delta.Con.SiteFilename}")
+                    delete_ok=True
+                    if len(delta.Con.SiteFilename.strip()) > 0:
+                        if not FTP().DeleteFile(delta.Con.SiteFilename):
+                            msg=f"Failed to delete old file '{delta.Con.SiteFilename}' before replace"
+                            LogError(msg)
+                            failures.append(msg)
+                            delete_ok=False
+                    CleanTitle=_CleanTitle(delta.Con.DisplayTitle)
+                    metadata=self._BuildMetadata(CleanTitle, self._IsInNewsletterSection(delta.Con))
+                    Log(f"   delta-ADD: {delta.Con.SourcePathname} as {delta.Con.SiteFilename}")
+                    header_format, header_items=self._BuildPageHeader(CleanTitle)
+                    if not self._UploadPdfWithHeaderAndMetadata(delta.Con.SourcePathname, delta.Con.SiteFilename, metadata, add_header=fitz_available, header_format=header_format, header_items=header_items):
+                        msg=f"Failed to upload replacement '{delta.Con.SiteFilename}'"
+                        LogError(msg)
+                        failures.append(msg)
+                        if pm is not None:
+                            pm.Update(f"FAILED: {delta.Con.SiteFilename}")
+                    elif delete_ok:
+                        delta.Completed=True
+                else:
+                    Log(f"delta-UNRECOGNIZED: {delta}")
+            except Exception as e:
+                name=delta.Con.SiteFilename or delta.Oldname or delta.Con.SourcePathname or "?"
+                msg=f"Unexpected error during {delta.Verb} of '{name}': {e}"
+                LogError(msg)
+                failures.append(msg)
+                if pm is not None:
+                    pm.Update(f"FAILED: {name}")
 
             UpdateFTPLog.LogDeltas(self._seriesname, self.Conname, self.conInstanceDeltaTracker)
 
