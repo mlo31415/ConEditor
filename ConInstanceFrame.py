@@ -258,8 +258,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
     # ----------------------------------------------
     def OnUploadConInstance(self, event):
-        self.Uploaded=self.UploadConInstancePage()
-        self.MarkAsSaved()
+        self.Uploaded=self.UploadConInstancePage()      # MarkAsSaved() runs inside on a successful upload
         self.RefreshWindow()
 
     # ----------------------------------------------
@@ -380,6 +379,9 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         if pm is not None:
             pm.Update(f"Upload succeeded: /{self._seriesname}/{self.Conname}/index.html", delay=0.5)
+
+        # The con instance is now saved to the server, so snapshot the current state as "saved".
+        self.MarkAsSaved()
         return True
 
 
