@@ -688,6 +688,12 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 msg=f"Could not upload '{sitename}' to the server."
                 LogError(msg)
                 return msg
+            # Update the row to match the regenerated file so the grid and the con instance page
+            # show the correct size (and page count).
+            r.Size=os.path.getsize(tmp_path)/(1024**2)
+            pages=GetPdfPageCount(tmp_path)
+            if pages is not None:
+                r.Pages=pages
             return ""
         finally:
             try:
@@ -723,15 +729,41 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         serverdir=f"/{self._seriesname}/{self.Conname}"
         failures=[]
+        nsuccess=0
         with ModalDialogManager(ProgressMessage2, f"Regenerating {len(rownums)} PDF header(s)", parent=self) as pm:
             for i in rownums:
                 err=self.RegeneratePdfHeaderForRow(self.Datasource.Rows[i], serverdir, pm)
                 if err:
                     failures.append(err)
-            pm.Update(f"Regenerated {len(rownums)-len(failures)} of {len(rownums)} PDF header(s)", delay=0.5)
+                else:
+                    nsuccess+=1
+
+            # The regenerated files have new sizes. Refresh the grid and re-upload index.html so both
+            # the grid and the live con instance page reflect the updated sizes.
+            if nsuccess > 0:
+                self._grid.RefreshWxGridFromDatasource()
+                pm.Update(f"Updating {self.Conname}/index.html")
+                try:
+                    ci=ConInstance(self._FTPbasedir, self._seriesname, self.Conname)
+                    ci.Toptext=self.topText.GetValue()
+                    ci.Credits=self.tCredits.GetValue()
+                    ci.PrevConInstanceName=self.PrevConInstanceName
+                    ci.NextConInstanceName=self.NextConInstanceName
+                    ci.ConInstanceRows=self.Datasource.Rows
+                    if not ci.Upload(self.Conname):
+                        failures.append(f"Could not update '{self.Conname}/index.html' with the new sizes.")
+                    else:
+                        # The con instance index.html was re-uploaded with the new sizes, so it's now saved.
+                        self.MarkAsSaved()
+                        self.UpdateNeedsSavingFlag()    # Clear the " *" needs-saving marker in the title
+                except Exception as e:
+                    LogError(f"OnPopupRegeneratePDFHeader: failed to re-upload index.html: {e}")
+                    failures.append(f"Could not update '{self.Conname}/index.html': {e}")
+
+            pm.Update(f"Regenerated {nsuccess} of {len(rownums)} PDF header(s)", delay=0.5)
 
         if failures:
-            wx.MessageBox("\n".join(failures), "Regenerate PDF Header failed", wx.OK|wx.ICON_ERROR)
+            wx.MessageBox("\n".join(failures), "Regenerate PDF Header", wx.OK|wx.ICON_ERROR)
 
 
     # ------------------
