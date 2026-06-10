@@ -179,6 +179,9 @@ class GenConInstanceFrame ( wx.Dialog ):
 		self.m_popupWSFSstuff = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"+WSFS, Hugos, Site Selection", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_GridPopup.Append( self.m_popupWSFSstuff )
 
+		self.m_popupBidding = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"+Bidding", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_GridPopup.Append( self.m_popupBidding )
+
 		self.Bind( wx.EVT_RIGHT_DOWN, self.GenConInstanceFrameOnContextMenu )
 
 
@@ -214,6 +217,7 @@ class GenConInstanceFrame ( wx.Dialog ):
 		self.Bind( wx.EVT_MENU, self.OnPopupPhotosAndVideo, id = self.m_popupPhotosAndVideo.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupConventionReports, id = self.m_popupConventionReports.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupWSFSstuff, id = self.m_popupWSFSstuff.GetId() )
+		self.Bind( wx.EVT_MENU, self.OnPopupBidding, id = self.m_popupBidding.GetId() )
 
 	def __del__( self ):
 		pass
@@ -303,6 +307,9 @@ class GenConInstanceFrame ( wx.Dialog ):
 		event.Skip()
 
 	def OnPopupWSFSstuff( self, event ):
+		event.Skip()
+
+	def OnPopupBidding( self, event ):
 		event.Skip()
 
 	def gRowGridOnContextMenu( self, event ):

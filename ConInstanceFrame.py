@@ -634,6 +634,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.m_popupPublications.Enabled=True
         self.m_popupConventionReports.Enabled=True
         self.m_popupPhotosAndVideo.Enabled=True
+        self.m_popupWSFSstuff.Enabled=True
+        self.m_popupBidding.Enabled=True
 
         self.m_popupAddFiles.Enabled=True
         self.m_popupInsertText.Enabled=True
@@ -792,6 +794,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.m_popupPublications.Enabled=True
         self.m_popupConventionReports.Enabled=True
         self.m_popupPhotosAndVideo.Enabled=True
+        self.m_popupWSFSstuff.Enabled=True
+        self.m_popupBidding.Enabled=True
 
         self.m_popupCopy.Enabled=False
         self.m_popupCopy.Enabled=False
@@ -838,6 +842,11 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     def OnPopupWSFSstuff(self, event):
         self.InsertTextRow()
         self.Datasource.Rows[self._PopupInsertTextRow_RowNumber][0]="WSFS, Hugos, Site Selection"
+        self.RefreshWindow()
+
+    def OnPopupBidding(self, event):
+        self.InsertTextRow()
+        self.Datasource.Rows[self._PopupInsertTextRow_RowNumber][0]="Bidding"
         self.RefreshWindow()
 
     # -------------------

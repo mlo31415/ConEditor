@@ -2577,6 +2577,20 @@
           <property name="unchecked_bitmap"></property>
           <event name="OnMenuSelection">OnPopupWSFSstuff</event>
         </object>
+        <object class="wxMenuItem" expanded="false">
+          <property name="bitmap"></property>
+          <property name="checked">0</property>
+          <property name="enabled">1</property>
+          <property name="help"></property>
+          <property name="id">wxID_ANY</property>
+          <property name="kind">wxITEM_NORMAL</property>
+          <property name="label">+Bidding</property>
+          <property name="name">m_popupBidding</property>
+          <property name="permission">none</property>
+          <property name="shortcut"></property>
+          <property name="unchecked_bitmap"></property>
+          <event name="OnMenuSelection">OnPopupBidding</event>
+        </object>
       </object>
     </object>
     <object class="Frame" expanded="true">
