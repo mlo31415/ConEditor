@@ -4,7 +4,7 @@ import html
 import json
 import re
 import wx, wx.grid
-from urllib.parse import unquote, quote
+from urllib.parse import quote
 from datetime import datetime
 
 from GenConSeriesFrame import GenConSeriesFrame
@@ -38,8 +38,8 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         self._isNewSeriesPage=False     # Must be overridden after class is instantiated if needed
 
-        # Set up the grid
-        self._grid: DataGrid=DataGrid(self.gRowGrid)    # Old, New
+        # Set up the grid (with a per-cell hook that tints cross-link rows so they stand out)
+        self._grid: DataGrid=DataGrid(self.gRowGrid, ColorSingleCellByValue=self._TintCrossLinkRow)
         self.Datasource=ConSeries()
 
         self._grid.HideRowLabels()
@@ -271,7 +271,19 @@ class ConSeriesFrame(GenConSeriesFrame):
                     name=m.groups()[0]
                     extra=f"({m.groups()[1]})"
 
-        if url == f"{name}/index.html" or url == name:
+        # Recognize a standard "<dir>/index.html" link and collapse it to "index.html". The href was
+        # written as html.escape(RemoveAccents(name))/index.html, so we must compare against the *escaped*
+        # form -- and because older saves re-escaped the href on every pass (e.g. "&amp;amp;#x27;"), we
+        # fully unescape it first (repeatedly, until stable). Comparing the unescaped href against the
+        # unescaped name both stops the re-escaping going forward and repairs already-corrupted rows.
+        nurl=url
+        while True:
+            u=html.unescape(nurl)
+            if u == nurl:
+                break
+            nurl=u
+        dirpath=RemoveAccents(name)
+        if nurl in (f"{dirpath}/index.html", dirpath, f"{name}/index.html", name):
             url="index.html"
 
         return name, url, extra
@@ -623,7 +635,34 @@ class ConSeriesFrame(GenConSeriesFrame):
         self._grid.OnGridEditorShown(event)
 
     #------------------
+    # Give cross-link rows a distinct background so they're visually obvious. The grid calls this per
+    # cell after its own coloring -- note the (icol, irow) argument order.
+    def _TintCrossLinkRow(self, icol: int, irow: int) -> None:
+        if irow < self.Datasource.NumRows and self.Datasource.Rows[irow].IsCrossLink:
+            self._grid.SetCellBackgroundColor(irow, icol, wx.Colour(224, 234, 255))
+
+    #------------------
+    # A cross-linked con is owned by another con series; its files can only be edited there. When the
+    # row is a cross-link this explains where to edit it and returns True so callers can bail out.
+    def _BlockIfCrossLink(self, irow: int) -> bool:
+        if irow >= self.Datasource.NumRows:
+            return False
+        con=self.Datasource.Rows[irow]
+        if not con.IsCrossLink:
+            return False
+        tgt=con.CrossLinkTarget()
+        owner, name=tgt if tgt else ("another convention series", con.Name)
+        wxMessageBox(f"'{con.Name}' is a cross-link: its publications are stored in the '{owner}' "
+                     f"convention series as '{name}'.\n\n"
+                     f"To edit them, open the '{owner}' series, open '{name}', and edit it there.",
+                     "Cross-linked convention")
+        return True
+
+    #------------------
     def EditConInstancePage(self, irow: int, Create: bool=False) -> None:
+
+        if self._BlockIfCrossLink(irow):
+            return
 
         # We have three cases:
         # Case 1: edit a con that is on the list and that has an existing page. The URL is filled
@@ -732,6 +771,8 @@ class ConSeriesFrame(GenConSeriesFrame):
     # This can only deal wityh a simple name: To popup menu item should not be enabled for cons with different links or extras
     def OnPopupRenameConInstancePage(self, event):
         irow=self._grid.clickedRow
+        if self._BlockIfCrossLink(irow):    # renaming the server folder makes no sense for a cross-link
+            return
 
         # We know from the RMB popup item activation rules that cols 0 and 1 are identical and this is a real row.
         newname=wxMessageDialogInput("Enter the new convention instance name.  Note that this will also rename the convention instance's folder on the server.", title="Renaming Convention Instance", initialValue=self.Datasource.Rows[irow].Name, parent=self)
@@ -811,10 +852,12 @@ class ConSeriesFrame(GenConSeriesFrame):
     #------------------
     # Take an existing con instance and move it to a new con series.  This can either be a simple move or a move-and-link
     # We allow convention xxx in series XXX to be moved to aseries YYY with new name yyy, and the entry in XXX being deleted or renamed with a link to the new location
-    def OnPopupChangeConSeries(self, event):      
+    def OnPopupChangeConSeries(self, event):
         irowOld=self._grid.clickedRow
         if irowOld < 0 or irowOld >= self.Datasource.NumRows:
             Log("OnPopupChangeConSeries: bad irow="+str(irowOld))
+            return
+        if self._BlockIfCrossLink(irowOld):     # nothing local to move for a cross-link
             return
 
         ret=wxMessageBox("Is this a Move-(Maybe-Rename)-and-Link-Back? (No selects a simple Move.)", style=wx.YES_NO)
@@ -960,19 +1003,49 @@ class ConSeriesFrame(GenConSeriesFrame):
 
 
     # ------------------
+    # Guided tool to add a cross-link: pick the con series that owns the convention, pick the convention,
+    # give it a display name here, and we build the canonical "../Owner/Con/index.html" link.
     def OnPopupLinkToAnotherConInstance(self, event):
-        newcon=MessageBoxInput("Use a browser to copy the URL of the convention instance you want to link to from the convention series table and paste it here.", "Link an existing convention to this series.")
-        m=re.match("https?://fanac.org/conpubs/(.*?/.*?).index.html$", newcon, re.IGNORECASE)
-        if m is None:
-            MessageBox(f"Could not interperet '{newcon} as a conpubs convention URL")
-            event.skip()
-            return
-
-        series, con=unquote(m.groups()[0]).split("/")
         irow=self._grid.clickedRow
-        #self.Datasource.Rows[irow][0]+=f' (->{series}/{con})'
-        self.Datasource.Rows[irow].Name=f"{self.Datasource.Rows[irow].Name} (->{series}/{con})"
-        self.Datasource.Rows[irow].URL=unquote(m.groups()[0])
+
+        # 1) Pick the con series that actually owns the convention.
+        others=sorted(s for s in self._conserieslist if s and s != self.Seriesname)
+        if not others:
+            wxMessageBox("There are no other convention series to link to.")
+            return
+        with wx.SingleChoiceDialog(self, "Which convention series owns the convention you want to link to?",
+                                   "Add cross-link -- owning series", others) as dlg:
+            if dlg.ShowModal() != wx.ID_OK:
+                return
+            owner=dlg.GetStringSelection()
+
+        # 2) Load that series (hidden) and list its real (non-cross-link) conventions.
+        ownerFrame=ConSeriesFrame(self._basedirectoryFTP, owner, self._conserieslist, show=False)
+        cons=[c for c in ownerFrame.Datasource.Rows if c.Name.strip() and not c.IsCrossLink]
+        ownerFrame.Destroy()
+        if not cons:
+            wxMessageBox(f"No conventions found in '{owner}'.")
+            return
+        with wx.SingleChoiceDialog(self, f"Which convention in '{owner}'?",
+                                   "Add cross-link -- convention", [c.Name for c in cons]) as dlg:
+            if dlg.ShowModal() != wx.ID_OK:
+                return
+            target=cons[dlg.GetSelection()]
+
+        # 3) The name to show for it in this series (defaults to the name in the owning series).
+        yyy=MessageBoxInput(f"Name to show in '{self.Seriesname}' for this cross-link:",
+                            "Add cross-link -- display name", initialValue=target.Name).strip()
+        if not yyy:
+            yyy=target.Name
+
+        # 4) Fill the row: the canonical "../Owner/Con/index.html" link plus a snapshot of the display
+        #    fields (Dates/Locale/GoHs) so the row reads well here. The snapshot does not auto-track X.
+        row=self.Datasource.Rows[irow]
+        row.Name=yyy
+        row.URL=f"../{quote(owner)}/{quote(target.Name)}/index.html"
+        row.Dates=target.Dates
+        row.Locale=target.Locale
+        row.GoHs=target.GoHs
         self.RefreshWindow()
         event.Skip()
 
@@ -1039,16 +1112,9 @@ class ConSeriesFrame(GenConSeriesFrame):
         # We go into edit mode on the con instance on a double-click to either the Name cell or the Link cell
         if self._grid.clickedColumn in (self.Datasource.ColDefs.index("Name"), self.Datasource.ColDefs.index("Link")):
             irow=event.GetRow()
-            url=self.Datasource[irow].URL
-            # Is this a link to a con instance in another series?
-            if url.startswith("../"):
-                url=url.removeprefix("../")
-                name="???"
-                if len(url.split("/")) > 1:
-                    url, name=url.split("/")[0:2]
-                wxMessageBox(f"The convention '{self.Datasource[irow].Name}' is not located in convention series '{self.Seriesname}'.\n"
-                             f"Edit instance '{name}' in convention series '{unquote(url)}'.")
+            if self._BlockIfCrossLink(irow):
                 return
+            url=self.Datasource[irow].URL
 
             # If we double-click on a line that is not yet linked, allow the user to create one.
             if url == "":

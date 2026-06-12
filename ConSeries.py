@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from urllib.parse import unquote
+
 from WxDataGrid import GridDataSource, GridDataRowClass, ColDefinition, ColDefinitionsList, IsEditable
 from FanzineDateTime import FanzineDateRange
 from Log import Log
@@ -59,11 +61,27 @@ class Con(GridDataRowClass):
         self._dates=val
 
     @property
-    def URL(self) -> str:        
+    def URL(self) -> str:
         return self._URL
     @URL.setter
     def URL(self, val: str) -> None:
         self._URL=val
+
+    # A cross-link points at a con instance stored under a *different* con series (DSC-style
+    # "../OtherSeries/Con/index.html"). Its files are owned and edited only from that other series.
+    @property
+    def IsCrossLink(self) -> bool:
+        return self._URL.strip().startswith("../")
+
+    # For a cross-link, return (owningSeriesName, conName); otherwise None.
+    def CrossLinkTarget(self) -> tuple[str, str] | None:
+        u=unquote(self._URL.strip())
+        if not u.startswith("../"):
+            return None
+        parts=[p for p in u[len("../"):].split("/") if p]
+        if len(parts) >= 2:
+            return parts[0], parts[1]
+        return None
 
     # Get or set a value by name or column number
     #def GetVal(self, name: str|int) -> str|int|FanzineDateRange:

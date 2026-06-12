@@ -191,7 +191,7 @@ class GenConSeriesFrame ( wx.Dialog ):
 		self.m_popupChangeConSeries = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Change Convention Series", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_GridPopup.Append( self.m_popupChangeConSeries )
 
-		self.m_popupLinkToOtherConventionInstance = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Link to Another Convection Instance", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_popupLinkToOtherConventionInstance = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Add Cross-Link...", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_GridPopup.Append( self.m_popupLinkToOtherConventionInstance )
 
 		self.Bind( wx.EVT_RIGHT_DOWN, self.GenConSeriesFrameOnContextMenu )
