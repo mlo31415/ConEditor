@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import html
-import json
 import re
 import wx, wx.grid
 from urllib.parse import quote
 from datetime import datetime
 
 from GenConSeriesFrame import GenConSeriesFrame
+from GenExtrasDialog import GenExtrasDialog
 from FTP import FTP
 from ConInstanceDeltaTracker import UpdateFTPLog
 from ConEditorHelpers import FetchConSeriesFromFancy
@@ -23,6 +23,30 @@ from WxHelpers import ModalDialogManager, ProgressMessage2, OnCloseHandling, Mes
 from Log import Log, LogError
 from FanzineDateTime import FanzineDateRange
 
+
+#####################################################################################
+# A small dialog to edit the three "Extras" fields of a con series row: the Special Link (a link that
+# replaces the default Display Name/index.html), the Special Text (an alternate name shown in parens),
+# and free-form Notes/Other.
+# The dialog's UI is defined in ExtrasDialog.fbp and generated into GenExtrasDialog (do not hand-edit that
+# file -- edit the .fbp in wxFormBuilder and regenerate). This subclass adds only the behaviour: seed the
+# three fields and expose their trimmed values.
+class ExtrasDialog(GenExtrasDialog):
+    def __init__(self, parent, specialLink: str, specialText: str, notes: str):
+        super().__init__(parent)
+        self.m_textSpecialLink.SetValue(specialLink)
+        self.m_textSpecialText.SetValue(specialText)
+        self.m_textNotes.SetValue(notes)
+
+    @property
+    def SpecialLink(self) -> str:
+        return self.m_textSpecialLink.GetValue().strip()
+    @property
+    def SpecialText(self) -> str:
+        return self.m_textSpecialText.GetValue().strip()
+    @property
+    def Notes(self) -> str:
+        return self.m_textNotes.GetValue().strip()
 
 
 #####################################################################################
@@ -599,15 +623,70 @@ class ConSeriesFrame(GenConSeriesFrame):
         self.RefreshWindow()
 
     # ------------------
-    def OnGridEditorShown(self, event):     
+    def OnGridEditorShown(self, event):
+        # A linked Display Name is locked -- it is renamed via the RMB menu, not edited in place.
+        irow, icol=event.GetRow(), event.GetCol()
+        if icol == 0 and irow < self.Datasource.NumRows and self.Datasource.Rows[irow].URL.strip() != "":
+            event.Veto()
+            return
         self._grid.OnGridEditorShown(event)
+
+    # ------------------
+    # Normalize a Special Link the way the old Link column did: strip a leading http(s):// and turn a
+    # browser-pasted fanac.org/conpubs/... URL into the relative "../..." form.
+    @staticmethod
+    def _NormalizeSpecialLink(val: str) -> str:
+        val=val.strip()
+        m=re.match("^https?://(.*)$", val)
+        if m is not None:
+            val=str(m.group(1))
+        m=re.match("^(www.)?fanac.org/conpubs/(.*)", val)
+        if m is not None:
+            val=f"../{m.groups()[1]}"
+        return val
+
+    # ------------------
+    def OnPopupEditExtras(self, event):
+        self.OnEditExtras(self._grid.clickedRow)
+
+    # ------------------
+    # Open the Extras dialog for a row and write the results back. The Special Link maps to the row's
+    # URL: a value links the con via that link; clearing an existing special link leaves the row UNLINKED
+    # (the default <Display Name>/index.html would point at a directory that does not exist); and a row
+    # that was default-linked or unlinked with the field left blank is unchanged.
+    def OnEditExtras(self, irow: int) -> None:
+        if irow < 0 or irow >= self.Datasource.NumRows:
+            return
+        con=self.Datasource.Rows[irow]
+        origURL=con.URL.strip()
+        specialLink=origURL if origURL not in ("", "index.html") else ""
+        with ExtrasDialog(self, specialLink, con.SpecialText, con.Notes) as dlg:
+            if dlg.ShowModal() != wx.ID_OK:
+                return
+            newSL=self._NormalizeSpecialLink(dlg.SpecialLink)
+            if newSL:
+                con.URL=newSL                       # an explicit link (cross-link or custom path)
+            elif origURL not in ("", "index.html"):
+                con.URL=""                          # a special link was cleared -> unlinked placeholder
+            # else: was default-linked or unlinked and the field stayed blank -> leave URL unchanged
+            con.SpecialText=dlg.SpecialText
+            con.Notes=dlg.Notes
+        self.RefreshWindow()
+        self.UpdateNeedsSavingFlag()
 
     #------------------
     # Give cross-link rows a distinct background so they're visually obvious. The grid calls this per
     # cell after its own coloring -- note the (icol, irow) argument order.
     def _TintCrossLinkRow(self, icol: int, irow: int) -> None:
-        if irow < self.Datasource.NumRows and self.Datasource.Rows[irow].IsCrossLink:
+        if irow >= self.Datasource.NumRows:
+            return
+        con=self.Datasource.Rows[irow]
+        # Cross-link rows get a tinted background.
+        if con.IsCrossLink:
             self._grid.SetCellBackgroundColor(irow, icol, wx.Colour(224, 234, 255))
+        # The Display Name shows in link-blue when linked, default black when not.
+        if icol == 0:
+            self._grid.Grid.SetCellTextColour(irow, icol, wx.Colour(0, 0, 238) if con.URL.strip() != "" else wx.BLACK)
 
     #------------------
     # A cross-linked con is owned by another con series; its files can only be edited there. When the
@@ -1000,17 +1079,21 @@ class ConSeriesFrame(GenConSeriesFrame):
                 return
             target=cons[dlg.GetSelection()]
 
-        # 3) The name to show for it in this series (defaults to the name in the owning series).
-        yyy=MessageBoxInput(f"Name to show in '{self.Seriesname}' for this cross-link:",
-                            "Add cross-link -- display name", initialValue=target.Name).strip()
-        if not yyy:
-            yyy=target.Name
-
-        # 4) Fill the row: the canonical "../Owner/Con/index.html" link plus a snapshot of the display
-        #    fields (Dates/Locale/GoHs) so the row reads well here. The snapshot does not auto-track X.
+        # 3) The name to show for it in this series. Default to whatever the user already typed on this
+        #    row (its name in this series), or the owning-series name if the row is blank.
         row=self.Datasource.Rows[irow]
+        defaultName=row.Name.strip() or target.Name
+        yyy=MessageBoxInput(f"Name to show in '{self.Seriesname}' for this cross-link:",
+                            "Add cross-link -- display name", initialValue=defaultName).strip()
+        if not yyy:
+            yyy=defaultName
+
+        # 4) Fill the row: Display Name, the canonical "../Owner/Con/index.html" Special Link (URL), and the
+        #    owning-series name as Special Text -- the "(alternate name)" -- unless that just duplicates the
+        #    Display Name. Plus a display-only snapshot of Dates/Locale/GoHs (does not auto-track X).
         row.Name=yyy
         row.URL=f"../{quote(owner)}/{quote(target.Name)}/index.html"
+        row.SpecialText="" if yyy == target.Name else target.Name
         row.Dates=target.Dates
         row.Locale=target.Locale
         row.GoHs=target.GoHs
@@ -1060,11 +1143,16 @@ class ConSeriesFrame(GenConSeriesFrame):
             if irow < self.Datasource.NumRows:
                 if len(self.Datasource.Rows[irow].URL) > 0:   # Only if there's a link in the row
                     self.m_popupUnlink.Enabled=True
-                if len(self.Datasource.Rows[irow].URL) == 0:   # Only if there's NO link in the row
-                    self.m_popupLinkToOtherConventionInstance.Enabled=True
 
-        if (icol == 0 or icol == 1) and irow < self.Datasource.NumRows:
-            self.m_popupRenameConInstancePage.Enabled=True      # We only allow renaming if click is on cols 0 or 1
+        # Adding a cross-link works from a click in any column, as long as the row's Display Name is unlinked.
+        if irow < self.Datasource.NumRows and len(self.Datasource.Rows[irow].URL) == 0:
+            self.m_popupLinkToOtherConventionInstance.Enabled=True
+
+        if icol == 0 and irow < self.Datasource.NumRows:
+            self.m_popupRenameConInstancePage.Enabled=True      # Renaming is offered on the Display Name column
+
+        if icol == 1 and irow < self.Datasource.NumRows:
+            self.m_popupEditExtras.Enabled=True                 # Edit Extras is offered on the Extras column
 
         if irow < self.Datasource.NumRows and self.Datasource.Rows[irow].URL is not None and self.Datasource.Rows[irow].URL != "":
             self.m_popupChangeConSeries.Enabled=True    # Enable only for rows that exist and point to a con instance
@@ -1077,8 +1165,8 @@ class ConSeriesFrame(GenConSeriesFrame):
         if self._grid.clickedRow >= self.Datasource.NumRows:
             return      # Double-clicking below the bottom means nothing
 
-        # We go into edit mode on the con instance on a double-click to either the Name cell or the Link cell
-        if self._grid.clickedColumn in (self.Datasource.ColDefs.index("Name"), self.Datasource.ColDefs.index("Link")):
+        # A double-click on the Display Name opens/creates the con instance.
+        if self._grid.clickedColumn == self.Datasource.ColDefs.index("Display Name"):
             irow=event.GetRow()
             if self._BlockIfCrossLink(irow):
                 return
@@ -1094,9 +1182,13 @@ class ConSeriesFrame(GenConSeriesFrame):
 
             self.RefreshWindow()
 
+        # A double-click on the Extras cell opens the Extras dialog (item 7 / Q7).
+        elif self._grid.clickedColumn == self.Datasource.ColDefs.index("Extras"):
+            self.OnEditExtras(event.GetRow())
+
 
     #-------------------
-    def OnKeyDown(self, event):     
+    def OnKeyDown(self, event):
         self._grid.OnKeyDown(event)
         self.UpdateNeedsSavingFlag()
 
@@ -1120,49 +1212,10 @@ class ConSeriesFrame(GenConSeriesFrame):
         irow=event.GetRow()
         icol=event.GetCol()
 
-        # An edit to the name causes a rename of the page if there is no independent link.  If there is an independent link,
-        # then all that's changed is the display text for the link
-        if icol == self.Datasource.ColDefs.index("Name"):
-            iLinkCol=self.Datasource.ColDefs.index("Link")
-            if iLinkCol != -1 and self.Datasource.Rows[iLinkCol].URL != "":
-                if irow < self._Datasource.NumRows:
-                    newVal=self._grid.Grid.GetCellValue(irow, icol).strip()
-                    oldVal=self._Datasource[irow][icol].strip()
-                    if newVal != oldVal:
-                        if len(oldVal) > 0:
-                            self.RenameConInstancePage(irow, newVal)
-                        else:
-                            val=self._grid.Grid.GetCellValue(irow, icol)
-                            self._grid.GridCellChangeProcessing(irow, icol, val)
-                    self.UpdateNeedsSavingFlag()
-                    return
-
-        if icol == self.Datasource.ColDefs.index("Link"):
-            # We need to convert the input into a URL relative to the current server directory
-            # Is this a link to another conpubs file or is a link outside of conpubs?
-            # Case 1, a relative link
-            #       ../Boskone/Boskone 20/Prohgram Book.pdf
-            #   Display as-is
-            # Case 2, a link copied from a browser
-            #       https://www.fanac.org/conpubs/Con*Stellation/Con*Stellation%20IV:%20Aquarius/Program%20Book.pdf#view=Fit
-            #   Convert this to Case 1 format
-            # Case 3, a link to somewhere else
-            #       http://somewhere.com/dir/file.ext
-            #       index.html
-            #   Display as-is
-            val=self._grid.Grid.GetCellValue(irow, icol)
-            m=re.match("^https?://(.*)$", val)
-            if m is not None:
-                val=str(m.group(1))     # Remove leading http[s]
-            m=re.match("^(www.)?fanac.org/conpubs/(.*)", val)
-            if m is not None:
-                val=f"../{m.groups()[1]}"    # Remove www.fanac.org/conpubs/
-
-            self._grid.GridCellChangeProcessing(irow, icol, val)
-
-            self.UpdateNeedsSavingFlag()
-            return
-
+        # Linked Display Names are locked (renamed via the RMB menu), so an in-cell edit only ever lands
+        # on an unlinked placeholder name or on another editable column -- all handled the same way.
+        # (The browser-URL -> "../" normalization that used to live here for the Link column moves to the
+        # Extras dialog's Special Link field in the next stage.)
         val=self._grid.Grid.GetCellValue(irow, icol)
         self._grid.GridCellChangeProcessing(irow, icol, val)
         self.UpdateNeedsSavingFlag()

@@ -173,26 +173,34 @@ class GenConSeriesFrame ( wx.Dialog ):
 		self.m_popupPaste = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Paste", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_GridPopup.Append( self.m_popupPaste )
 
+		self.m_GridPopup.AppendSeparator()
+
+		# Display Name / Extras group (item 11): creating, linking, and editing a row.
 		self.m_popupCreateNewConPage = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Create New Convention Page", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_GridPopup.Append( self.m_popupCreateNewConPage )
-
-		self.m_popupDeleteConPage = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Delete Convention Page", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_GridPopup.Append( self.m_popupDeleteConPage )
 
 		self.m_popupRenameConInstancePage = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Rename Convention Instance Page", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_GridPopup.Append( self.m_popupRenameConInstancePage )
 
-		self.m_popupAllowEditCell = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Allow Cell Edit", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_GridPopup.Append( self.m_popupAllowEditCell )
-
 		self.m_popupUnlink = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Unlink", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_GridPopup.Append( self.m_popupUnlink )
+
+		self.m_popupLinkToOtherConventionInstance = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Add Cross-Link...", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_GridPopup.Append( self.m_popupLinkToOtherConventionInstance )
+
+		self.m_popupEditExtras = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Edit Extras...", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_GridPopup.Append( self.m_popupEditExtras )
+
+		self.m_GridPopup.AppendSeparator()
+
+		self.m_popupDeleteConPage = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Delete Convention Page", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_GridPopup.Append( self.m_popupDeleteConPage )
 
 		self.m_popupChangeConSeries = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Change Convention Series", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_GridPopup.Append( self.m_popupChangeConSeries )
 
-		self.m_popupLinkToOtherConventionInstance = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Add Cross-Link...", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_GridPopup.Append( self.m_popupLinkToOtherConventionInstance )
+		self.m_popupAllowEditCell = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Allow Cell Edit", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_GridPopup.Append( self.m_popupAllowEditCell )
 
 		self.Bind( wx.EVT_RIGHT_DOWN, self.GenConSeriesFrameOnContextMenu )
 
@@ -225,6 +233,7 @@ class GenConSeriesFrame ( wx.Dialog ):
 		self.Bind( wx.EVT_MENU, self.OnPopupUnlink, id = self.m_popupUnlink.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupChangeConSeries, id = self.m_popupChangeConSeries.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupLinkToAnotherConInstance, id = self.m_popupLinkToOtherConventionInstance.GetId() )
+		self.Bind( wx.EVT_MENU, self.OnPopupEditExtras, id = self.m_popupEditExtras.GetId() )
 
 	def __del__( self ):
 		pass

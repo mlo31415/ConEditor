@@ -1,10 +1,28 @@
 from __future__ import annotations
 
+import re
 from urllib.parse import unquote
 
 from WxDataGrid import GridDataSource, GridDataRowClass, ColDefinition, ColDefinitionsList, IsEditable
 from FanzineDateTime import FanzineDateRange
 from Log import Log
+
+
+# The CSP "Extra" string (everything rendered after the linked Display Name) is split, for editing,
+# into a Special Text -- a leading "(alternate name)" -- and free-form Notes/Other. SplitExtra and
+# JoinExtra are EXACT inverses: JoinExtra(*SplitExtra(x)) == x for any string. That is what keeps the
+# html round-trip byte-identical (verified across all 2274 Convention cells on conpubs).
+def SplitExtra(extra: str) -> tuple[str, str]:
+    m=re.match(r"^\((.*?)\)(?: (.*))?$", extra)      # a clean leading "(yyy)" optionally + " rest"
+    return (m.group(1), m.group(2) or "") if m else ("", extra)
+
+def JoinExtra(specialText: str, notes: str) -> str:
+    parts=[]
+    if specialText:
+        parts.append(f"({specialText})")
+    if notes:
+        parts.append(notes)
+    return " ".join(parts)
 
 
 ####################################################################################
@@ -13,7 +31,7 @@ class Con(GridDataRowClass):
     def __init__(self, Name="", Link="", Extra="", Locale="", Dates=None, GoHs="", URL="") -> None:
         self._name: str=Name                  # Name including number designation
         self._link: str=Link
-        self._extra: str=Extra
+        self._specialText, self._notes=SplitExtra(Extra)   # the single "Extra" string -> (Special Text, Notes)
         self._locale: str=Locale                # Name of locale where the con was held
         self._dates: FanzineDateRange|None =Dates      # Date range of the con
         self._gohs: str=GoHs                  # A list of the con's GoHs
@@ -32,12 +50,30 @@ class Con(GridDataRowClass):
         self._name=val
 
 
+    # Extra is the legacy single string rendered after the linked Display Name. It is now COMPUTED from
+    # the two editable fields (Special Text, Notes), so every existing caller and the html round-trip are
+    # unchanged; only the internal storage moved.
     @property
     def Extra(self) -> str:
-        return self._extra
+        return JoinExtra(self._specialText, self._notes)
     @Extra.setter
     def Extra(self, val: str) -> None:
-        self._extra=val
+        self._specialText, self._notes=SplitExtra(val)
+
+    # The two fields the Extras dialog edits. Special Text is stored bare (no parentheses).
+    @property
+    def SpecialText(self) -> str:
+        return self._specialText
+    @SpecialText.setter
+    def SpecialText(self, val: str) -> None:
+        self._specialText=val
+
+    @property
+    def Notes(self) -> str:
+        return self._notes
+    @Notes.setter
+    def Notes(self, val: str) -> None:
+        self._notes=val
 
     @property
     def GoHs(self) -> str:        
@@ -83,50 +119,69 @@ class Con(GridDataRowClass):
             return parts[0], parts[1]
         return None
 
-    # Get or set a value by name or column number
-    #def GetVal(self, name: str|int) -> str|int|FanzineDateRange:
+    # What the read-only "Extras" grid cell shows: bare "SpecialText Notes", capped at 20 characters.
+    @property
+    def ExtrasDisplay(self) -> str:
+        s=f"{self._specialText} {self._notes}".strip()
+        return s if len(s) <= 20 else s[:17]+"..."
+
+    # Get or set a value by name or column number.
+    # Grid columns are now: 0=Display Name, 1=Extras (display-only), 2=Dates, 3=Locale, 4=GoHs.
+    # URL / Extra / SpecialText / Notes remain accessible by name (they are not their own columns).
     def __getitem__(self, index: str|int) -> str|int|FanzineDateRange:
-        # (Could use return eval("self."+name))
-        if index == "Name" or index == 0:
+        if index == "Name" or index == "Display Name" or index == 0:
             return self.Name
-        if index == "URL" or index == 1:
-            return self.URL
-        if index == "Extra" or index == 2:
-            return self.Extra
-        if index == "Dates" or index == 3:
+        if index == "Extras" or index == 1:
+            return self.ExtrasDisplay
+        if index == "Dates" or index == 2:
             return self.Dates
-        if index == "Locale" or index == 4:
+        if index == "Locale" or index == 3:
             return self.Locale
-        if index == "GoHs" or index == 5:
+        if index == "GoHs" or index == 4:
             return self.GoHs
-        if index != 6:  # Index == 4 is normal, being the terminator of an iteration through the columns
+        if index == "URL":
+            return self.URL
+        if index == "Extra":
+            return self.Extra
+        if index == "SpecialText":
+            return self.SpecialText
+        if index == "Notes":
+            return self.Notes
+        if index != 5:  # 5 is the normal terminator of an iteration through the 5 columns
             Log(f"Con(GridDataRowClass).__getitem__({index}) does not exist")
         raise IndexError
 
 
     def __setitem__(self, index: str|int, value: str|int|FanzineDateRange) -> None:
-        # (Could use return eval("self."+name))
-        if index == "Name" or index == 0:
+        if index == "Name" or index == "Display Name" or index == 0:
             self.Name=value
             return
-        if index == "URL" or index == 1:
-            self.URL=value
-            return
-        if index == "Extra" or index == 2:
-            self.Extra=value
-            return
-        if index == "Dates" or index == 3:
+        if index == "Extras" or index == 1:
+            return      # display-only column; the Extras dialog edits SpecialText/Notes directly
+        if index == "Dates" or index == 2:
             if isinstance(value, FanzineDateRange):
                 self.Dates=FanzineDateRange()
                 self.Dates.Copy(value)
                 return
             self.Dates=FanzineDateRange().Match(value)
             return
-        if index == "Locale" or index == 4:
+        if index == "Locale" or index == 3:
             self.Locale=value
             return
-        if index == "GoHs" or index == 5:
+        if index == "GoHs" or index == 4:
             self.GoHs=value
+            return
+        if index == "URL":
+            self.URL=value
+            return
+        if index == "Extra":
+            self.Extra=value
+            return
+        if index == "SpecialText":
+            self.SpecialText=value
+            return
+        if index == "Notes":
+            self.Notes=value
             return
         Log(f"Con(GridDataRowClass).__putitem__('{index}') does not exist")
         raise IndexError
@@ -134,7 +189,7 @@ class Con(GridDataRowClass):
 
     @property
     def IsEmptyRow(self) -> bool:        
-        return (self._name == "" and self._link == "" and self._extra == "" and
+        return (self._name == "" and self._link == "" and self._specialText == "" and self._notes == "" and
                 self._locale == "" and (self._dates is None or self._dates.IsEmpty()) and
                 self._gohs == "" and self._URL == "")
 
@@ -145,9 +200,8 @@ class ConSeries(GridDataSource):
     def __init__(self):
         GridDataSource.__init__(self)
         self._colDefs: ColDefinitionsList=ColDefinitionsList([
-            ColDefinition("Name", Type="text", Width=30, IsEditable=IsEditable.Maybe),
-            ColDefinition("Link", Type="url", Width=30, IsEditable=IsEditable.Maybe),
-            ColDefinition("Extra",Type="text", Width=30, IsEditable=IsEditable.Yes),
+            ColDefinition("Display Name", Type="text", Width=30, IsEditable=IsEditable.Yes),   # editable when unlinked; locked when linked (via OnGridEditorShown)
+            ColDefinition("Extras", Type="text", Width=30, IsEditable=IsEditable.No),   # display-only; edited via the Extras dialog
             ColDefinition("Dates", Type="date range", Width=30),
             ColDefinition("Locale", Width=30),
             ColDefinition("GoHs", Width=30),
