@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ###########################################################################
-## Python code generated with wxFormBuilder (version 3.10.1-0-g8feb16b3)
+## Python code generated with wxFormBuilder (version 4.2.1-0-g80c4cb6)
 ## http://www.wxformbuilder.org/
 ##
 ## PLEASE DO *NOT* EDIT THIS FILE!
@@ -72,9 +72,9 @@ class GenExtrasDialog ( wx.Dialog ):
 		m_sdbSizer.AddButton( self.m_sdbSizerOK )
 		self.m_sdbSizerCancel = wx.Button( self, wx.ID_CANCEL )
 		m_sdbSizer.AddButton( self.m_sdbSizerCancel )
-		m_sdbSizer.Realize();
+		m_sdbSizer.Realize()
 
-		bSizerMain.Add( m_sdbSizer, 0, wx.ALIGN_RIGHT|wx.ALL, 8 )
+		bSizerMain.Add( m_sdbSizer, 0, wx.ALL|wx.ALIGN_RIGHT, 8 )
 
 
 		self.SetSizer( bSizerMain )
