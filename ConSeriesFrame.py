@@ -388,41 +388,9 @@ class ConSeriesFrame(GenConSeriesFrame):
                 f'    <meta property="og:site_name"   content="fanac.org — Science Fiction Fan History Archive">\n'
             )
 
-            # JSON-LD ItemList: one entry per linked con instance
-            ld_items=[]
-            pos=1
-            for row in self.Datasource.Rows:
-                if row.Name and row.URL:
-                    item={
-                        "@type":    "ListItem",
-                        "position": pos,
-                        "item": {
-                            "@type": "Event",
-                            "name":  row.Name,
-                            "url":   f"https://fanac.org/conpubs/{quote(self.Seriesname, safe='')}/{quote(row.Name, safe='')}/"
-                        }
-                    }
-                    if row.Dates and not row.Dates.IsEmpty():
-                        item["item"]["startDate"]=str(row.Dates)
-                    if row.Locale:
-                        item["item"]["location"]={"@type": "Place", "name": row.Locale}
-                    if row.GoHs:
-                        item["item"]["performer"]=[{"@type": "Person", "name": g.strip()}
-                                                   for g in re.split(r",| and |&", row.GoHs) if g.strip()]
-                    ld_items.append(item)
-                    pos+=1
-
-            ld={
-                "@context":       "https://schema.org",
-                "@type":          "ItemList",
-                "name":           f"{self.Seriesname} Convention Series",
-                "url":            canonical_url,
-                "description":    description,
-                "itemListElement": ld_items,
-            }
-            ld_tag=f'    <script type="application/ld+json">\n{json.dumps(ld, indent=4)}\n    </script>\n'
-
-            file=file.replace("</head>", og+ld_tag+"</head>", 1)
+            # No per-con-instance JSON-LD here: the structured data for each individual con is carried by
+            # that con's own instance page. The series page keeps only the lightweight series-level meta.
+            file=file.replace("</head>", og+"</head>", 1)
             file=SubstituteHTML(file, "fanac-instance", link)
             file=SubstituteHTML(file, "fanac-headertext", self.TextComments)
 
