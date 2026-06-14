@@ -390,9 +390,9 @@ class ConInstance:
 
         # Read in the template
         try:
-            Log(f"sys.path[0]=  {sys.path[0]}")
-            Log(f"sys.argv[0]=  {sys.argv[0]}")
-            Log(f"{os.path.join(sys.path[0], 'Template-ConPage.html')=}")
+            # Log(f"sys.path[0]=  {sys.path[0]}")
+            # Log(f"sys.argv[0]=  {sys.argv[0]}")
+            # Log(f"{os.path.join(sys.path[0], 'Template-ConPage.html')=}")
             with open(PyiResourcePath("Template-ConPage.html"), encoding='utf-8') as f:
                 file=f.read()
         except Exception:
