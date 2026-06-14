@@ -886,10 +886,10 @@ class ConSeriesFrame(GenConSeriesFrame):
 
             # Download and then Upload the Con instance page to update its new name.
             pm.Update(f"Refreshing '{newname}'")
-            prev, next=self.GetPrevNext(irow)
+            prev, nxt=self.GetPrevNext(irow)
 
-            Log(f"RegenerateAdjacentConInstancePages '{prev}' and '{next}'")
-            self.DownloadThenUploadConInstancePage(self.Seriesname, newname, prev, next, pm=pm)
+            Log(f"RegenerateAdjacentConInstancePages '{prev}' and '{nxt}'")
+            self.DownloadThenUploadConInstancePage(self.Seriesname, newname, prev, nxt, pm=pm)
 
             prev, nxt=self.GetPrevNext(oldname)
             if prev is None or nxt is None:
