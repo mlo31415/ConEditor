@@ -117,11 +117,11 @@ class UpdateFTPLog:
 
 
     @staticmethod
-    def LogDeltas(series: str, con: str = "", deltas: ConInstanceDeltaTracker|None = None):
+    def LogDelta(series: str, con: str = "", delta: Delta|None = None):
         lines=f"Uploaded ConInstance: {series}:{con}   {UpdateFTPLog.Tagstring()}\n"
 
-        if deltas is not None and deltas.Num > 0:
-            lines+=f"^^deltas by {FTP().GetEditor()}:\n{deltas}\n"
+        if delta is not None:
+            lines+=f"^^delta by {FTP().GetEditor()}:\n>>{delta}\n"
 
         FTP().AppendString(UpdateFTPLog.g_Logfilename, lines)
 

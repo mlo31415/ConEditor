@@ -291,7 +291,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         if extra == "":
             m=re.match(r"(.*)\((.*)\)$", name)
             if m is not None:
-                if len(m.groups(2)) > 0:
+                if len(m.group(2)) > 0:
                     name=m.groups()[0]
                     extra=f"({m.groups()[1]})"
 
@@ -365,7 +365,7 @@ class ConSeriesFrame(GenConSeriesFrame):
         # Find the last non-blank row.
         last=None
         for i, row in enumerate(self.Datasource.Rows):
-            if len((row.GoHs+row.Locale+row.Name+row.URL).strip()) > 0 or not row.Dates.IsEmpty:
+            if len((row.GoHs+row.Locale+row.Name+row.URL).strip()) > 0 or (row.Dates is not None and not row.Dates.IsEmpty()):
                 last=i
         # Delete the row or rows following it
         if last is not None and last < self.Datasource.NumRows-1:
@@ -558,7 +558,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         # Check to make sure this instance name is not already present.
         for row in self.Datasource.Rows:
-            if row.URL == name:
+            if row.Name == name:
                 MessageBox(f"Convention instance {name} already exists in this convention series.")
                 return
 

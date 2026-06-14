@@ -575,7 +575,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 if pm is not None:
                     pm.Update(f"FAILED: {name}")
 
-            UpdateFTPLog.LogDeltas(self._seriesname, self.Conname, self.conInstanceDeltaTracker)
+            UpdateFTPLog.LogDelta(self._seriesname, self.Conname, delta)
 
         # The upload is complete. Start tracking changes afresh
         self.conInstanceDeltaTracker=ConInstanceDeltaTracker()
@@ -806,7 +806,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.m_popupWSFSstuff.Enabled=True
         self.m_popupBidding.Enabled=True
 
-        self.m_popupCopy.Enabled=False
         self.m_popupCopy.Enabled=False
         self.m_popupAddFiles.Enabled=False
         self.m_popupInsertText.Enabled=False
