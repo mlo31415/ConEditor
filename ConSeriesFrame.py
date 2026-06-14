@@ -827,8 +827,8 @@ class ConSeriesFrame(GenConSeriesFrame):
         # We know from the RMB popup item activation rules that cols 0 and 1 are identical and this is a real row.
         newname=wxMessageDialogInput("Enter the new convention instance name.  Note that this will also rename the convention instance's folder on the server.", title="Renaming Convention Instance", initialValue=self.Datasource.Rows[irow].Name, parent=self)
         newname=newname.strip()
-        if newname is None or newname == "":
-            return  # Bail out if no input  provided
+        if newname == "":
+            return  # Bail out if no input provided
 
         Log(f"OnPopupRenameConInstancePage(row[{irow}] to '{newname}')")
         self.RenameConInstancePage(irow, newname)
