@@ -462,6 +462,9 @@ class ConSeriesFrame(GenConSeriesFrame):
 
             file=SubstituteHTML(file, "fanac-date", datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST")
 
+            # Copyright terminal year: replace the template's tagged "26" with the current 2-digit year.
+            file=SubstituteHTML(file, "fanac-copyright", datetime.now().strftime("%y"))
+
             # Now try to FTP the data up to fanac.org
             if self.Seriesname is None or len(self.Seriesname) == 0:
                 Log("UploadConSeries: No series name provided")

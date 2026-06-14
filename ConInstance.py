@@ -509,7 +509,7 @@ class ConInstance:
 
         file=SubstituteHTML(file, "fanac-table", newtable)
 
-        file=SubstituteHTML(file, "fanac-copyright", datetime.now().strftime("%Y"))
+        file=SubstituteHTML(file, "fanac-copyright", datetime.now().strftime("%y"))
 
         def UpdateButton(file: str, target: str, series: str, URLname: str) -> str:
             if URLname == "first" or URLname == "last" or URLname == "":

@@ -331,6 +331,9 @@ class ConEditorFrame(GenConEditorFrame):
 
             file=SubstituteHTML(file, "fanac-date", datetime.now().strftime("%A %B %d, %Y  %I:%M:%S %p")+" EST")
 
+            # Copyright terminal year: replace the template's tagged "26" with the current 2-digit year.
+            file=SubstituteHTML(file, "fanac-copyright", datetime.now().strftime("%y"))
+
             Log("Uploading /index.html")
             # Save the old file as a backup.
             if not FTP().BackupServerFile(f"/index.html"):
