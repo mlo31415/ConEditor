@@ -21,6 +21,15 @@ from PDFHelpers import GetPdfPageCount, AddStdMetadata, AddPdfPageHeader
 from WxHelpers import OnCloseHandling, ModalDialogManager, ProgressMessage2
 
 
+# The FANAC logo stamped onto uploaded PDFs' page headers. Loaded once at startup (see main() in
+# ConEditorFrame) and held here as raw image bytes; None means no logo (file missing or unreadable).
+_g_headerLogo: bytes|None=None
+
+def SetHeaderLogo(data: bytes|None) -> None:
+    global _g_headerLogo
+    _g_headerLogo=data
+
+
 # Derive the document title used in the PDF header and metadata from the con-instance link text.
 # Strips the file extension and expands fannish abbreviations ("PR 5" -> "Progress Report 5",
 # "PB 5" -> "Program Book 5"). The con-instance page's link text itself is left unchanged.
@@ -449,7 +458,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             AddStdMetadata(tmp_path, **metadata)
             if add_header:
                 try:
-                    AddPdfPageHeader(tmp_path, header_format, header_items)
+                    AddPdfPageHeader(tmp_path, header_format, header_items, logo=_g_headerLogo)
                 except Exception as e:
                     msg=f"Failed to add page header to '{site_name}':\n{e}"
                     LogError(msg)
@@ -681,7 +690,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             try:
                 AddStdMetadata(tmp_path, **self._BuildMetadata(CleanTitle, self._IsInNewsletterSection(r)))
                 header_format, header_items=self._BuildPageHeader(CleanTitle)
-                AddPdfPageHeader(tmp_path, header_format, header_items)
+                AddPdfPageHeader(tmp_path, header_format, header_items, logo=_g_headerLogo)
             except Exception as e:
                 LogError(f"Failed to update metadata/header for '{sitename}':\n{e}")
                 return f"Failed to update metadata/header for '{sitename}':\n{e}"

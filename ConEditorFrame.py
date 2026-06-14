@@ -10,6 +10,7 @@ from datetime import datetime
 from GenConEditorFrame import GenConEditorFrame
 from WxDataGrid import DataGrid, GridDataSource, GridDataRowClass, ColDefinition, ColDefinitionsList, IsEditable
 from ConSeriesFrame import ConSeriesFrame
+from ConInstanceFrame import SetHeaderLogo
 from ConInstanceDeltaTracker import UpdateFTPLog
 from FTP import FTP
 from Settings import Settings
@@ -58,6 +59,14 @@ def main():
 
     # Load the global settings dictionary
     Settings().Load("ConEditor settings.json")
+
+    # Load the PDF page-header logo once. It is stamped onto uploaded PDFs' headers (see
+    # ConInstanceFrame). A missing or unreadable file is non-fatal -- headers simply carry no logo.
+    try:
+        with open(PyiResourcePath("Fanac logo for pdf headers.jpg"), "rb") as f:
+            SetHeaderLogo(f.read())
+    except Exception as e:
+        Log(f"Main: could not load 'Fanac logo for pdf headers.jpg'; PDF headers will have no logo: {e}")
 
     with open("FTP Credentials.json") as f:
         UpdateFTPLog.Init(json.loads(f.read())["ID"], "/updatelog.txt")
