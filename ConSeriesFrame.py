@@ -889,10 +889,10 @@ class ConSeriesFrame(GenConSeriesFrame):
             prev, next=self.GetPrevNext(irow)
 
             Log(f"RegenerateAdjacentConInstancePages '{prev}' and '{next}'")
-            self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname, newname, prev, next, pm=pm)
+            self.DownloadThenUploadConInstancePage(self.Seriesname, newname, prev, next, pm=pm)
 
-            prev, next=self.GetPrevNext(oldname)
-            if prev is None or next is None:
+            prev, nxt=self.GetPrevNext(oldname)
+            if prev is None or nxt is None:
                 Log(f"RenameConInstancePage() can't find {oldname} in Datasource.Rows")
                 return
 
