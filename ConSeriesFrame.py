@@ -970,7 +970,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             irowNew=0
         else:
             for i in range(1, len(newSeriesInstanceNames)):
-                if connameNew > newSeriesInstanceNames[i]:
+                if connameNew < newSeriesInstanceNames[i]:
                     irowNew=i
                     break
 
