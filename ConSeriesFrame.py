@@ -155,9 +155,6 @@ class ConSeriesFrame(GenConSeriesFrame):
             # Nothing to load. Just return.
             return False
 
-        if self._basedirectoryFTP is None:
-            assert False   # Never take this branch.  Delete when I'm sure.
-
         with ModalDialogManager(ProgressMessage2, f"Loading {self.Seriesname}/index.html from fanac.org", parent=self) as pm:
             file=FTP().GetFileAsString("/"+self.Seriesname, "index.html")
 
@@ -978,8 +975,14 @@ class ConSeriesFrame(GenConSeriesFrame):
         # (Note that this is just copying the entry in the con series table, not the data it points to.)
         # Note that we are editing Datasource and ignoring the grid.  This is OK as long as we don't later start playing with the grid or displaying the series.
         newConSeriesFrame.Datasource.InsertEmptyRows(irowNew, 1)
-        for i in range(6):    # Copy the old row contents to the new row
+        for i in range(5):    # Copy the 5 columns (Display Name, Extras, Dates, Locale, GoHs) to the new row
             newConSeriesFrame.Datasource.Rows[irowNew][i]=self.Datasource.Rows[irowOld][i]
+        # The moved convention is a normal local entry in the new series (its files live there now), so
+        # give the new row its new-series name and the standard local "index.html" link.
+        newName, _, newExtra=ConSeriesFrame.ConNameInfoUnpack(connameNew)
+        newConSeriesFrame.Datasource.Rows[irowNew].Name=newName
+        newConSeriesFrame.Datasource.Rows[irowNew].URL="index.html"
+        newConSeriesFrame.Datasource.Rows[irowNew].Extra=newExtra
 
         oldDirPath = "/" + self.Seriesname + "/" + connameOld
         if self._basedirectoryFTP != "":
@@ -1015,40 +1018,26 @@ class ConSeriesFrame(GenConSeriesFrame):
                     wx.MessageBox(msg, 'Warning', wx.OK|wx.CANCEL|wx.ICON_WARNING)
                     return
 
-            # If appropriate, rename the convention in both the old and new con series.
-            if not IsMoveAndLink:
-                # All we do is move the entry to the new series (which is complete). It's not renamed, and it's not retained in the old con series list
+            # Update the OLD con series entry. A move-and-link that keeps a link replaces the old row
+            # with a (possibly renamed) cross-link to the convention's new home; every other case
+            # (simple move, or move-and-link with no link retained) removes the entry entirely.
+            if IsMoveAndLink and connameNewOld != "":
+                # The retained entry becomes a cross-link to the new home. By convention the parenthesized
+                # part of Extra (SpecialText) is the convention's name on the far end of the cross-link,
+                # omitted when it would just duplicate the display name (cf. OnPopupLinkToAnotherConInstance).
+                row=self.Datasource.Rows[irowOld]
+                row.Name=connameNewOld
+                row.URL=f"../{conseriesNew}/{connameNew}/index.html"      # Reference to the new location
+                row.SpecialText="" if connameNewOld == connameNew else connameNew
+            else:
                 del self.Datasource.Rows[irowOld]
 
-                # Save the old and new con series. Don't upload the modified old series if uploading the new one failed
-                if not newConSeriesFrame.UploadConSeries():
-                    return
-
-                if self.UploadConSeries():
-                    # Finally, delete the old directory
-                    FTP().DeleteDir(oldDirPath)
-
-            # It's more complicated...
-            # Is the copied directory's name in the new con series list being changed?
-            if connameNew != connameOld:
-                # The con is being renamed in the new conseries
-                name, url, extra=ConSeriesFrame.ConNameInfoUnpack(connameNew)
-                self.Datasource.Rows[irowNew].Name=name
-                self.Datasource.Rows[irowNew].URL="index.html"      # The URL of a con instance local to the series is always this
-                self.Datasource.Rows[irowNew].Extra=extra
-# UnpackExtra()
-            # Is the copied directory's name in the old con series being changed?
-            if connameNewOld != connameOld:
-                # A link to the convention is being retained in the old series and needs to be renamed.
-                name, url, extra=ConSeriesFrame.ConNameInfoUnpack(connameNewOld)
-                self.Datasource.Rows[irowOld].Name=name
-                self.Datasource.Rows[irowOld].URL=f"../{conseriesNew}/{connameNew}/index.html"      # Reference to the new location
-                self.Datasource.Rows[irowOld].Extra=extra
-
-
-            # Save the old and new con series. Don't upload the modified old series if uploading the new one failed
-            if newConSeriesFrame.UploadConSeries():
-                self.UploadConSeries()
+            # Save the new series first; only commit the old-series change once the new one is safely up.
+            if not newConSeriesFrame.UploadConSeries():
+                return
+            if self.UploadConSeries() and not IsMoveAndLink:
+                # A simple move leaves nothing behind in the old series, so delete the old directory.
+                FTP().DeleteDir(oldDirPath)
 
 
 
@@ -1243,7 +1232,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                 pm.Update(f"Regenerating all con pages in this con series: {self.Datasource[irow].Name}")
                 prevname, nextname=self.GetPrevNext(self.Datasource[irow].Name)
                 # We download the page, but don't actually open the dialog.  Then we upload the page which regenerates it.
-                self.DownloadThenUploadConInstancePage(f"{self._basedirectoryFTP}/{self.Seriesname}", self.Seriesname, self.Datasource[irow].Name, prevcon=prevname, nextcon=nextname, pm=pm)
+                self.DownloadThenUploadConInstancePage(self.Seriesname, self.Datasource[irow].Name, prevcon=prevname, nextcon=nextname, pm=pm)
 
 
     # ------------------
@@ -1258,15 +1247,15 @@ class ConSeriesFrame(GenConSeriesFrame):
         if pm is None:
             with ModalDialogManager(ProgressMessage2, "Regenerating adjacent con instance pages", parent=self) as pm:
                 if prev:
-                    self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname, prev, nextcon=irow_name, pm=pm)
+                    self.DownloadThenUploadConInstancePage(self.Seriesname, prev, nextcon=irow_name, pm=pm)
                 if nxt:
-                    self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname, nxt, prevcon=irow_name, pm=pm)
+                    self.DownloadThenUploadConInstancePage(self.Seriesname, nxt, prevcon=irow_name, pm=pm)
                 return
 
         if prev:
-            self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname, prev, nextcon=irow_name, pm=pm)
+            self.DownloadThenUploadConInstancePage(self.Seriesname, prev, nextcon=irow_name, pm=pm)
         if nxt:
-            self.DownloadThenUploadConInstancePage(self._basedirectoryFTP, self.Seriesname, nxt, prevcon=irow_name, pm=pm)
+            self.DownloadThenUploadConInstancePage(self.Seriesname, nxt, prevcon=irow_name, pm=pm)
 
 
 
@@ -1274,7 +1263,7 @@ class ConSeriesFrame(GenConSeriesFrame):
     # ------------------
     # Download a con instance and then immediately re-upload it.  This will regenerate the page using the latest template and processing.
     # It will also update the next/prev buttons at the bottom.
-    def DownloadThenUploadConInstancePage(self, seriespath: str, seriesname: str, conname: str, prevcon: str|None=None, nextcon: str|None=None, pm=None) -> bool:
+    def DownloadThenUploadConInstancePage(self, seriesname: str, conname: str, prevcon: str|None=None, nextcon: str|None=None, pm=None) -> bool:
 
         # Download a con instance page
         ci=ConInstance(f"{self._basedirectoryFTP}/{seriesname}", seriesname, conname)

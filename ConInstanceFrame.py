@@ -84,12 +84,6 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.PrevConInstanceName=prevconname
         self.NextConInstanceName=nextconname
 
-        # TEMPORARY: an RMB item to regenerate a single PDF's page header on the server.
-        # Added programmatically (not in the generated base class) so it can be removed easily.
-        self.m_popupRegenPDFHeader=wx.MenuItem(self.m_GridPopup, wx.ID_ANY, "Regenerate PDF Header", wx.EmptyString, wx.ITEM_NORMAL)
-        self.m_GridPopup.Append(self.m_popupRegenPDFHeader)
-        self.Bind(wx.EVT_MENU, self.OnPopupRegeneratePDFHeader, id=self.m_popupRegenPDFHeader.GetId())
-
         self._valid=True
         self.SetEscapeId(wx.ID_CANCEL)
 
@@ -242,24 +236,25 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 dname=m.groups()[0]
 
             if replacerow is None:
-                conf=ConInstanceRow()       # This is a new row
+                conf: ConInstanceRow=ConInstanceRow()       # This is a new row
             else:
-                conf=self.Datasource.Rows[replacerow]       # Update an existing row
+                conf: ConInstanceRow=self.Datasource.Rows[replacerow]       # Update an existing row
 
-            conf.SiteFilename=dname
+            # The new file's properties always update. The Site Name and Display Name are the file's
+            # identity on the server, so they are set only when adding a brand-new row: a replace keeps
+            # the existing names and swaps only the file behind them.
             conf.SourceFilename=fn
             conf.SourcePathname=str(os.path.join(dlg.GetDirectory(), fn))
             conf.Pages=GetPdfPageCount(conf.SourcePathname)
             conf.Size=os.path.getsize(conf.SourcePathname)/(1024**2)
 
             if replacerow is None:
+                conf.SiteFilename=dname
                 conf.DisplayTitle=dname     # Note that we only update the name for a new row.
                 self.conInstanceDeltaTracker.Add(conf)
                 self.Datasource.Rows.append(conf)
             else:
-                newfilename=os.path.join(dlg.GetDirectory(), fn)
-                self.conInstanceDeltaTracker.Replace(conf, conf.SourcePathname)
-                self.Datasource.Rows[replacerow].SourcePathname=newfilename
+                self.conInstanceDeltaTracker.Replace(conf, conf.SiteFilename)
 
         dlg.Destroy()
         self.RefreshWindow()
@@ -662,7 +657,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     not self.Datasource.Rows[self._grid.clickedRow].IsLinkRow:
                 self.m_popupUpdateFile.Enabled=True
 
-        # TEMPORARY: enable "Regenerate PDF Header" when the row points to a PDF.
+        # Enable "Regenerate PDF Header" when the row points to a PDF.
         if row < self.Datasource.NumRows:
             r=self.Datasource.Rows[row]
             if not r.IsTextRow and not r.IsLinkRow and ExtensionMatches(r.SiteFilename, ".pdf"):
@@ -672,9 +667,11 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
 
     # ------------------
-    # TEMPORARY: Regenerate the metadata and page header on a single already-uploaded PDF.
+    # Regenerate the metadata and page header on a single already-uploaded PDF.
     # Downloads the row's PDF from the server, (re)applies current metadata and header, and uploads it
     # back. Returns "" on success or an error message.
+
+    # This may be dumped after all pdfs in conpubs are brought up to current standards.
     def RegeneratePdfHeaderForRow(self, r, serverdir, pm) -> str:
         sitename=r.SiteFilename
         CleanTitle=_CleanTitle(r.DisplayTitle)
@@ -713,7 +710,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 Log(f"Could not delete temp file '{tmp_path}': {e}", isError=True)
 
 
-    # TEMPORARY: Regenerate metadata+header for the clicked PDF, or for all selected rows when the
+    # Regenerate metadata+header for the clicked PDF, or for all selected rows when the
     # click landed on a selected row. Non-PDF rows in the selection are skipped.
     def OnPopupRegeneratePDFHeader(self, event):
         try:

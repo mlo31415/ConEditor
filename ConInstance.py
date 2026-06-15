@@ -184,7 +184,8 @@ class ConInstanceRow(GridDataRowClass):
             return f"{self.Size:.1f}"
         if index == 5:
             return self.Notes
-        return "Val can't interpret '"+str(index)+"'"
+        LogError(f"GetVal can't interpret '{index}'")
+        raise KeyError(f"GetVal can't interpret '{index}'")
 
     def __setitem__(self, index: int|slice, value: str) -> None:      
         # (Could use return eval("self."+name))
@@ -209,8 +210,8 @@ class ConInstanceRow(GridDataRowClass):
         if index == 5:
             self.Notes=value
             return
-        print("SetVal can't interpret '"+str(index)+"'")
-        raise KeyError
+        LogError(f"SetVal can't interpret '{index}'")
+        raise KeyError(f"SetVal can't interpret '{index}'")
 
 
     @property

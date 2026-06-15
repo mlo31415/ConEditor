@@ -60,7 +60,10 @@ class Con(GridDataRowClass):
     def Extra(self, val: str) -> None:
         self._specialText, self._notes=SplitExtra(val)
 
-    # The two fields the Extras dialog edits. Special Text is stored bare (no parentheses).
+    # The two fields the Extras dialog edits. Special Text is stored bare (no parentheses); it is what
+    # renders inside the "(...)" right after the Display Name. For a cross-link row (see IsCrossLink),
+    # Special Text is by convention the *target* convention's name on the far end of the link -- it must
+    # be set from the link target, not from free-form input (cf. ConSeriesFrame.OnPopupLinkToAnotherConInstance).
     @property
     def SpecialText(self) -> str:
         return self._specialText
@@ -105,6 +108,7 @@ class Con(GridDataRowClass):
 
     # A cross-link points at a con instance stored under a *different* con series (DSC-style
     # "../OtherSeries/Con/index.html"). Its files are owned and edited only from that other series.
+    # For such a row, the parenthesized Extra (SpecialText) holds the target con's name on the far end.
     @property
     def IsCrossLink(self) -> bool:
         return self._URL.strip().startswith("../")
