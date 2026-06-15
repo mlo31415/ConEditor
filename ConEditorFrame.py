@@ -483,6 +483,7 @@ class ConEditorFrame(GenConEditorFrame):
         if dlg.ShowModal() == wx.CANCEL or len(dlg.GetValue().strip()) == 0:
             return
         newname=dlg.GetValue()
+        dlg.Destroy()
         if newname != oldname:
             # Make sure newname isn't already on the list
             for row in self.Datasource.Rows:
