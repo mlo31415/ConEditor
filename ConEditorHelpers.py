@@ -31,6 +31,7 @@ def FetchConSeriesFromFancy(name, retry: bool = False, silent: bool = False) -> 
             if dlg.ShowModal() == wx.CANCEL or len(dlg.GetValue().strip()) == 0:
                 return None, None
             response=dlg.GetValue()
+            dlg.Destroy()
             return FetchConSeriesFromFancy(response)
         return None, None
 
