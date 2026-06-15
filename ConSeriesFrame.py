@@ -68,6 +68,9 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         self._grid.HideRowLabels()
 
+        # Show a tooltip over a cross-link row's Display Name/Extras cells naming the series + con it links to.
+        self.gRowGrid.GetGridWindow().Bind(wx.EVT_MOTION, self.OnGridMotion)
+
         if len(conseriesname) == 0:
             dlg=wx.TextEntryDialog(None, "Please enter the name of the Convention Series you wish to create.", "Enter Convention Series name")
             if dlg.ShowModal() == wx.CANCEL or len(dlg.GetValue().strip()) == 0:
@@ -689,6 +692,24 @@ class ConSeriesFrame(GenConSeriesFrame):
         # The Display Name shows in link-blue when linked, default black when not.
         if icol == 0:
             self._grid.Grid.SetCellTextColour(irow, icol, wx.Colour(0, 0, 238) if con.URL.strip() != "" else wx.BLACK)
+
+    #------------------
+    # Over the Display Name/Extras cell of a cross-link row, show a tooltip naming the convention series
+    # and con instance the row links to. Any other cell shows no tooltip.
+    def OnGridMotion(self, event):
+        x, y=self.gRowGrid.CalcUnscrolledPosition(event.GetX(), event.GetY())
+        row=self.gRowGrid.YToRow(y)
+        col=self.gRowGrid.XToCol(x)
+        tip=""
+        if 0 <= row < self.Datasource.NumRows and col in (0, 1):
+            tgt=self.Datasource.Rows[row].CrossLinkTarget()
+            if tgt:
+                owner, name=tgt
+                tip=f"Linked to '{name}' in series '{owner}'"
+        win=event.GetEventObject()
+        if win.GetToolTipText() != tip:      # only update when the text changes, to avoid tooltip flicker
+            win.SetToolTip(tip)
+        event.Skip()
 
     #------------------
     # A cross-linked con is owned by another con series; its files can only be edited there. When the
