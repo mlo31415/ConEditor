@@ -521,9 +521,11 @@ class ConInstance:
                     URLname="first" if "prev" in target else "last"
                 button_html=f"<button>{html.escape(URLname)}</button>"
             else:
-                url=f"https://www.fanac.org/conpubs/{series}/{URLname}/index.html"
-                url=url.replace(" ", "%20")
-                button_html=f"<button onclick=window.location.href='{url}'>{html.escape(URLname)}</button>"
+                # Percent-encode the path segments: a literal apostrophe (e.g. "Conspiracy '87") or other
+                # special character would otherwise terminate the single-quoted JS string and kill the
+                # button. Double-quote the onclick attribute so the result is valid HTML.
+                url=f"https://www.fanac.org/conpubs/{quote(series, safe='')}/{quote(URLname, safe='')}/index.html"
+                button_html=f"<button onclick=\"window.location.href='{url}'\">{html.escape(URLname)}</button>"
 
             return SubstituteHTML(file, target, button_html)
 
