@@ -681,8 +681,10 @@ class ConSeriesFrame(GenConSeriesFrame):
         if irow >= self.Datasource.NumRows:
             return
         con=self.Datasource.Rows[irow]
-        # Cross-link rows get a tinted background.
-        if con.IsCrossLink:
+        # Cross-link rows get only their Display Name (col 0) and Extras (col 1) cells tinted -- not the
+        # whole row. (The grid resets every cell to white before calling this hook, so the other columns
+        # stay white on their own.)
+        if con.IsCrossLink and icol in (0, 1):
             self._grid.SetCellBackgroundColor(irow, icol, wx.Colour(224, 234, 255))
         # The Display Name shows in link-blue when linked, default black when not.
         if icol == 0:
