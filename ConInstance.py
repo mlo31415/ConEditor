@@ -259,7 +259,10 @@ class ConInstance:
             # wx.MessageBox(self.FTPSeriesRootPath+"/"+self._coninstancename+"/index.html does not exist -- create a new file and upload it")
             return False  # Just return with the ConInstance page empty
 
-        file=file.replace("/n", "")  # I don't know where these are coming from, but they don't belong there!
+        # There are some /n in file. They are likely errors. Ignore.
+        #file=file.replace("/n", "")
+        if "/n" in file:
+            raise Exception(f"DownloadConInstancePage: '/n' in {self.FTPSeriesRootPath}/{self._conname} -- fix the damn thing")
 
         body, _=FindBracketedText2(file, "body", caseInsensitive=True)
         if body is None:
