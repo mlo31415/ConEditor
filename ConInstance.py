@@ -15,6 +15,11 @@ from WxDataGrid import GridDataSource, Color, GridDataRowClass, ColDefinition, C
 from FTP import FTP
 from Log import Log, LogError
 
+# Marker drawn in front of a (created) sub-page link so it reads as a folder. Purely decorative and
+# regenerated on every upload -- it is never parsed back, so it does not affect the html round-trip.
+# Phase-1 placeholder glyph; a Windows-Explorer-style icon image can replace it later.
+_SUBPAGE_ICON="\U0001F4C1&nbsp;"   # 📁
+
 # An individual file to be listed under a convention
 # This is a single row
 class ConInstanceRow(GridDataRowClass):
@@ -28,6 +33,7 @@ class ConInstanceRow(GridDataRowClass):
         self._size: int=0               # The file's size in bytes
         self._isText: bool=False        # Is this a piece of text rather than a convention?
         self._isLink: bool=False        # Is this a link?
+        self._isSubPage: bool=False     # Is this a link to a sub-page (an SP owned by this page)?
         self._pages: int=0              # Page count
 
 
@@ -49,6 +55,8 @@ class ConInstanceRow(GridDataRowClass):
             s+="IsTextRow; "
         if self.IsLinkRow:
             s+="IsLinkRow; "
+        if self.IsSubPageRow:
+            s+="IsSubPageRow; "
 
         return s
 
@@ -63,12 +71,13 @@ class ConInstanceRow(GridDataRowClass):
         cf._size=self._size
         cf._isText=self._isText
         cf._isLink=self._isLink
+        cf._isSubPage=self._isSubPage
         cf._pages=self._pages
         return cf
 
     def __hash__(self) -> int:
         tot=hash(self._displayTitle.strip()+self._notes.strip()+self._localfilename.strip()+self._localpathname.strip()+self._sitefilename.strip())
-        return tot+hash(self._size)+hash(self._isText)+Int0(self.Pages)
+        return tot+hash(self._size)+hash(self._isText)+hash(self._isSubPage)+Int0(self.Pages)
 
     def Signature(self) -> int:
         return self.__hash__()
@@ -160,11 +169,21 @@ class ConInstanceRow(GridDataRowClass):
         self._isText=val
 
     @property
-    def IsLinkRow(self) -> bool:      
+    def IsLinkRow(self) -> bool:
         return self._isLink
     @IsLinkRow.setter
     def IsLinkRow(self, val: bool) -> None:
         self._isLink=val
+
+    # A sub-page (SP) link: this row points at an SP owned by this page, stored as a sub-folder
+    # "{SiteFilename}/index.html". SiteFilename empty => the SP has not been created yet (renders as
+    # plain, unlinked text, like an unlinked con row on a ConSeries page).
+    @property
+    def IsSubPageRow(self) -> bool:
+        return self._isSubPage
+    @IsSubPageRow.setter
+    def IsSubPageRow(self, val: bool) -> None:
+        self._isSubPage=val
 
 
     # Get or set a value by name or column number in the grid
@@ -230,6 +249,12 @@ class ConInstance:
         self._conname: str=conname
 
         self.FTPSeriesRootPath: str=basedir
+
+        # Sub-page (SP) support. A CIP leaves these at their defaults; an SP sets IsSubPage and carries the
+        # identity of the owning con instance (the "root CIP") so its title/buttons can point back to it.
+        self.IsSubPage: bool=False
+        self.RootSeriesName: str=seriesname     # owning con's series (== seriesname for a con instance)
+        self.RootConName: str=conname           # owning con instance (== conname for a con instance)
 
         self.PrevConInstanceName: str=""
         self.NextConInstanceName: str=""
@@ -332,12 +357,38 @@ class ConInstance:
                 a, rest=FindBracketedText2(row[1], "a", includeBrackets=True)
                 #Log(f"{a=}   {rest=}")
                 if a == "":
-                    LogError(f"DownloadConInstancePage(): Can't find <a> tag in {row}")
-                    return False
+                    # An <li> with no <a> is an uncreated sub-page link: plain, unlinked text (the SP has
+                    # not been entered/created yet), exactly like an unlinked con row on a ConSeries page.
+                    # Split out a trailing "(notes)" the same way ConSeries splits an unlinked name.
+                    txt=row[1]
+                    notes=""
+                    mn=re.search(r"\((.*)\)\s*$", txt, flags=re.DOTALL)
+                    if mn is not None:
+                        notes=mn.group(1)
+                        txt=txt[:mn.start()]
+                    conf.DisplayTitle=html.unescape(RemoveHTMLishWhitespace(txt).strip())
+                    conf.Notes=html.unescape(RemoveHTMLishWhitespace(notes).strip())
+                    if conf.DisplayTitle != "":
+                        conf.IsSubPageRow=True
+                        self.ConInstanceRows.append(conf)
+                    continue
                 _, href, text, _=FindLinkInString(a)
                 if href == "":
                     LogError(f"DownloadConInstancePage(): Can't find href= in <a> tag in {row}")
                     return False
+                # A created sub-page link is a relative "{folder}/index.html". FindLinkInString strips the
+                # scheme, so an external link comes back starting with "//"; a sub-page link does not.
+                # Recognize it before the general foreign-link test below (which also fires on the "/").
+                hrefDecoded=unquote(html.unescape(href))
+                if hrefDecoded.endswith("/index.html") and not href.strip().startswith("//"):
+                    conf.DisplayTitle=html.unescape(text)
+                    conf.SiteFilename=hrefDecoded[:-len("/index.html")]
+                    conf.IsSubPageRow=True
+                    mn=re.search(r"\((.*)\)", rest, flags=re.DOTALL)   # notes (ignoring the leading folder icon)
+                    if mn is not None:
+                        conf.Notes=html.unescape(RemoveHTMLishWhitespace(mn.group(1)).strip())
+                    self.ConInstanceRows.append(conf)
+                    continue
                 # if href is a foreign link, then this is a link line
                 if "/" in href:
                     conf.DisplayTitle=html.unescape(text)
@@ -404,11 +455,28 @@ class ConInstance:
             Log("Can't read 'Template-ConPage.html'")
             return False
 
+        # Fix the relative depth of the page's static assets (stylesheet + logos). The template is written
+        # for a con instance two levels below /conpubs ("../../"); a sub-page sits deeper, so recompute the
+        # number of "../" from the page's own path. For a con instance this reproduces "../../" exactly.
+        up="../"*(len([s for s in self.FTPSeriesRootPath.split("/") if s])+1)
+        file=file.replace('href="../../conpubs.css"', f'href="{up}conpubs.css"')
+        file=file.replace('src="../../logo-rect.png"', f'src="{up}logo-rect.png"')
+        file=file.replace('src="../../Logo.gif"', f'src="{up}Logo.gif"')
+
         # We want to do substitutions, replacing whatever is there now with the new data
         # The con's name is tagged with <fanac-instance>, the random text with "fanac-headertext"
-        fancylink=FormatLink(f"https://fancyclopedia.org/{WikiPagenameToWikiUrlname(conname)}", conname)
-        file=SubstituteHTML(file, "title", html.escape(conname))
-        canonical_url=f"https://fanac.org/conpubs/{quote(self._seriesname, safe='')}/{quote(conname, safe='')}/"
+        # The page title. For a con instance it is just the con name; for a sub-page it is the breadcrumb
+        # from the owning con down to it (e.g. "xxx 0/Secrets"), dropping the series.
+        if self.IsSubPage:
+            segs=[s for s in self.FTPSeriesRootPath.split("/") if s]+[conname]
+            pagetitle="/".join(segs[1:])
+            canonical_url="https://fanac.org/conpubs/"+"/".join(quote(s, safe='') for s in segs)+"/"
+        else:
+            pagetitle=conname
+            canonical_url=f"https://fanac.org/conpubs/{quote(self._seriesname, safe='')}/{quote(conname, safe='')}/"
+        # The big title links to Fancyclopedia -- for a sub-page, to its owning con's page (RootConName).
+        fancylink=FormatLink(f"https://fancyclopedia.org/{WikiPagenameToWikiUrlname(self.RootConName)}", pagetitle)
+        file=SubstituteHTML(file, "title", html.escape(pagetitle))
         file=file.replace("fanac-meta-url", canonical_url)
         file=file.replace("fanac-meta-title", f"{html.escape(conname)} publications and documents — fanac.org")
         file=file.replace("fanac-meta-credits", html.escape(self.Credits.strip()))
@@ -461,9 +529,15 @@ class ConInstance:
         file=SubstituteHTML(file, "fanac-instance", fancylink)
         file=SubstituteHTML(file, "fanac-stuff", self.Toptext)
 
-        # Fill in the top buttons
-        s=f"<button onclick=\"window.location.href='https://fancyclopedia.org/{WikiPagenameToWikiUrlname(conname)}'\"> Fancyclopedia 3 </button>&nbsp;&nbsp;"
-        s+=f"<button onclick=\"window.location.href='../index.html'\">All {self._seriesname}s</button>"
+        # Fill in the top buttons. Fancyclopedia 3 -> the owning con's Fancy page (RootConName == conname
+        # for a CIP). Second button: a con instance shows "All {series}s"; a sub-page shows its owning con
+        # and links back to that con's page.
+        s=f"<button onclick=\"window.location.href='https://fancyclopedia.org/{WikiPagenameToWikiUrlname(self.RootConName)}'\"> Fancyclopedia 3 </button>&nbsp;&nbsp;"
+        if self.IsSubPage:
+            rooturl=f"https://www.fanac.org/conpubs/{quote(self.RootSeriesName, safe='')}/{quote(self.RootConName, safe='')}/index.html"
+            s+=f"<button onclick=\"window.location.href='{rooturl}'\">{html.escape(self.RootConName)}</button>"
+        else:
+            s+=f"<button onclick=\"window.location.href='../index.html'\">All {self._seriesname}s</button>"
         file=SubstituteHTML(file, "fanac-topbuttons", s)
 
 
@@ -492,6 +566,17 @@ class ConInstance:
                 newtable+=f'    </ul><b>{html.escape(text.strip())}</b><ul id="conpagetable">\n'
             elif row.IsLinkRow:
                 newtable+=f'    <li id="conpagetable">{FormatLink(row.SiteFilename, row.DisplayTitle)}</li>\n'
+            elif row.IsSubPageRow:
+                # A sub-page link. Created (has a target folder) -> folder-icon link to its index.html;
+                # not yet created (no folder) -> plain unlinked text, exactly like an unlinked con row on
+                # a ConSeries page. The icon is decorative and is never parsed back.
+                if row.SiteFilename.strip():
+                    newtable+=f'    <li id="conpagetable">{_SUBPAGE_ICON}{FormatLink(row.SiteFilename.strip()+"/index.html", row.DisplayTitle.strip())}'
+                else:
+                    newtable+=f'    <li id="conpagetable">{html.escape(row.DisplayTitle.strip())}'
+                if len(row.Notes) > 0:
+                    newtable+=f"&nbsp;&nbsp;({html.escape(row.Notes)})"
+                newtable+="</li>\n"
             else:
                 s=row.DisplayTitle
                 parts=os.path.splitext(row.DisplayTitle)
@@ -529,18 +614,25 @@ class ConInstance:
 
             return SubstituteHTML(file, target, button_html)
 
-        # Update the prev- and next-con nav buttons
-        file=UpdateButton(file, "fanac-prevCon", self._seriesname, self.PrevConInstanceName)
-        file=UpdateButton(file, "fanac-nextCon", self._seriesname, self.NextConInstanceName)
+        # Update the prev/next-con nav buttons. A sub-page is not part of a con-series sequence, so it has
+        # no prev/next: blank the whole nav block. (Template-ConPage.html already wraps it in this tag.)
+        if self.IsSubPage:
+            file=SubstituteHTML(file, "fanac-nextprevbuttons", "")
+        else:
+            file=UpdateButton(file, "fanac-prevCon", self._seriesname, self.PrevConInstanceName)
+            file=UpdateButton(file, "fanac-nextCon", self._seriesname, self.NextConInstanceName)
 
+        # The page's server directory. For a con instance this is "/{series}/{con}"; for a sub-page it is
+        # the deeper parent path the ConInstance was created with (FTPSeriesRootPath/conname).
+        pagedir=f"{self.FTPSeriesRootPath}/{conname}"
         # Make a backup of the existing index file
-        if not FTP().BackupServerFile(f"/{self._seriesname}/{conname}/index.html"):
-            Log(f"DownloadThenUploadConInstancePage(): Could not back up server file {self._seriesname}/{conname}/index.html")
+        if not FTP().BackupServerFile(f"{pagedir}/index.html"):
+            Log(f"ConInstance.Upload(): Could not back up server file {pagedir}/index.html")
             return False
 
-        if not FTP().PutFileAsString(f"/{self._seriesname}/{conname}", "index.html", file, create=True):
-            Log(f"Upload failed: /{self._seriesname}/{conname}/index.html")
-            MessageBox(f"OnUploadConInstancePage: Upload failed: /{self._seriesname}/{conname}/index.html")
+        if not FTP().PutFileAsString(pagedir, "index.html", file, create=True):
+            Log(f"Upload failed: {pagedir}/index.html")
+            MessageBox(f"OnUploadConInstancePage: Upload failed: {pagedir}/index.html")
             return False
 
         return True

@@ -8,6 +8,7 @@ from urllib.parse import quote
 
 from WxHelpers import wxMessageBox
 import wx
+import wx.grid
 
 from GenConInstanceFrame import GenConInstanceFrame
 from WxDataGrid import DataGrid, Color, IsEditable
@@ -16,9 +17,9 @@ from ConInstanceDeltaTracker import ConInstanceDeltaTracker, UpdateFTPLog
 from FTP import FTP
 from Settings import Settings
 from Log import Log, LogError
-from HelpersPackage import WikiPagenameToWikiUrlname, ExtensionMatches
+from HelpersPackage import WikiPagenameToWikiUrlname, ExtensionMatches, RemoveAccents
 from PDFHelpers import GetPdfPageCount, AddStdMetadata, AddPdfPageHeader
-from WxHelpers import OnCloseHandling, ModalDialogManager, ProgressMessage2
+from WxHelpers import OnCloseHandling, ModalDialogManager, ProgressMessage2, MessageBoxInput
 
 
 # The FANAC logo stamped onto uploaded PDFs' page headers. Loaded once at startup (see main() in
@@ -28,6 +29,42 @@ _g_headerLogo: bytes|None=None
 def SetHeaderLogo(data: bytes|None) -> None:
     global _g_headerLogo
     _g_headerLogo=data
+
+
+# Draws a grid cell with the system folder icon to the left of its text -- used on the Display Name cell
+# of a sub-page (SP) row so it reads like a folder. Data-safe: it only changes how the cell is painted,
+# never the stored value. Falls back to plain text if the icon can't be loaded.
+class _SubPageCellRenderer(wx.grid.GridCellRenderer):
+    _bmp=None
+    @classmethod
+    def _Bitmap(cls):
+        if cls._bmp is None:
+            cls._bmp=wx.ArtProvider.GetBitmap(wx.ART_FOLDER, wx.ART_MENU, wx.Size(16, 16))
+        return cls._bmp
+
+    def Draw(self, grid, attr, dc, rect, row, col, isSelected):
+        bg=grid.GetSelectionBackground() if isSelected else attr.GetBackgroundColour()
+        dc.SetBrush(wx.Brush(bg)); dc.SetPen(wx.TRANSPARENT_PEN); dc.DrawRectangle(rect)
+        x=rect.x+2
+        bmp=self._Bitmap()
+        if bmp is not None and bmp.IsOk():
+            dc.DrawBitmap(bmp, x, rect.y+(rect.height-bmp.GetHeight())//2, True)
+            x+=bmp.GetWidth()+3
+        dc.SetFont(attr.GetFont())
+        dc.SetTextForeground(grid.GetSelectionForeground() if isSelected else attr.GetTextColour())
+        dc.SetClippingRegion(rect)
+        text=grid.GetCellValue(row, col)
+        _, th=dc.GetTextExtent(text)
+        dc.DrawText(text, x, rect.y+(rect.height-th)//2)
+        dc.DestroyClippingRegion()
+
+    def GetBestSize(self, grid, attr, dc, row, col):
+        dc.SetFont(attr.GetFont())
+        tw, th=dc.GetTextExtent(grid.GetCellValue(row, col))
+        return wx.Size(tw+24, max(th, 18))
+
+    def Clone(self):
+        return _SubPageCellRenderer()
 
 
 # Derive the document title used in the PDF header and metadata from the con-instance link text.
@@ -49,17 +86,25 @@ def _CleanTitle(display_title: str) -> str:
 #####################################################################################
 class ConInstanceDialogClass(GenConInstanceFrame):
 
-    def __init__(self, basedirFTP: str, seriesname: str, conname: str, prevconname: str= "", nextconname: str= "", Create: bool=False, pm=None):
+    def __init__(self, basedirFTP: str, seriesname: str, conname: str, prevconname: str= "", nextconname: str= "", Create: bool=False, pm=None,
+                 is_subpage: bool=False, rootSeriesName: str="", rootConName: str=""):
         GenConInstanceFrame.__init__(self, None)
 
-        self._grid: DataGrid=DataGrid(self.gRowGrid)
+        # Sub-page support. When this dialog is editing a sub-page (SP) rather than a con instance, it
+        # carries the identity of the owning con (the "root CIP") so the generated page can link back to
+        # it; a CIP leaves _isSubPage False and is its own root.
+        self._isSubPage=is_subpage
+        self._rootSeriesName=rootSeriesName if is_subpage else seriesname
+        self._rootConName=rootConName if is_subpage else conname
+
+        self._grid: DataGrid=DataGrid(self.gRowGrid, ColorSingleCellByValue=self._DecorateSubPageCell)
         self.Datasource=ConInstanceDatasource()
 
         self._grid.HideRowLabels()
 
-        self._FTPbasedir=basedirFTP # The root of the convention's files, e.g., "/seriesName"
+        self._FTPbasedir=basedirFTP # The root of the convention's files, e.g., "/seriesName" (for a sub-page, the parent page's full path)
         self._seriesname=seriesname # The name of the series
-        self.Conname=conname        # The actual name of the con directory on conpubs
+        self.Conname=conname        # The actual name of the con (or sub-page) directory on conpubs
         self.ConInstanceDates=""    # The con's date(s) (from its row on the con series page); used in the PDF page header. May be empty if unknown.
         self._credits=""
 
@@ -86,6 +131,18 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         self._valid=True
         self.SetEscapeId(wx.ID_CANCEL)
+
+        # A sub-page has no Convention name or Fancyclopedia URL of its own to edit -- both are derived
+        # from the con instance it descends from -- so hide those two rows. Hide through the containing
+        # sizer so the (now fully empty) grid rows collapse rather than leaving a gap.
+        if self._isSubPage:
+            for ctrl in (self.m_staticText1, self.tConInstanceName, self.m_staticText11, self.tConInstanceFancyURL):
+                sizer=ctrl.GetContainingSizer()
+                if sizer is not None:
+                    sizer.Hide(ctrl)
+                else:
+                    ctrl.Hide()
+            self.Layout()
 
         self.MarkAsSaved()
         # Log("ConInstanceDialogClass.__init__(): About to refresh window.")
@@ -353,14 +410,18 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         ci.PrevConInstanceName=self.PrevConInstanceName
         ci.NextConInstanceName=self.NextConInstanceName
         ci.ConInstanceRows=self._Datasource.Rows
+        ci.IsSubPage=self._isSubPage
+        ci.RootSeriesName=self._rootSeriesName
+        ci.RootConName=self._rootConName
 
         # We have some conventions that have names of the form "Swancon 2004: Chronopolis"
         # The question is whether the ": Chronopolis" is part of the con's name or not.
         # First, we check to see if the con already exists and if it does, we follow precedent.
         # If it does not exist, we pop uo a query
         conname=self.Conname
-        # We only need to do something if there is a colon int he conname
-        if ":" in conname:
+        # We only need to do something if there is a colon int he conname (con instances only; a sub-page
+        # name is taken literally).
+        if not self._isSubPage and ":" in conname:
             # If there is a colon in the conname, we only need to do somehthing if the full-name-with-colon does not already exist.
             if not FTP().FileExists(f"/{self._seriesname}/{conname}/index.html"):
                 # It does not.
@@ -397,7 +458,10 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     #   * the con's date(s)      -- plain text, in parentheses; omitted if unknown
     #   * "fanac.org/conpubs"    -- linked to the conpubs root
     def _BuildPageHeader(self, item_title: str) -> tuple[str, list]:
-        instance_url=f"https://www.fanac.org/conpubs/{quote(self._seriesname, safe='')}/{quote(self.Conname, safe='')}/"
+        # Build the page's conpubs URL from its full server path so it is correct for a sub-page too
+        # (for a con instance this is just /conpubs/{series}/{con}/).
+        segs=[s for s in self._FTPbasedir.split("/") if s]+[self.Conname]
+        instance_url="https://www.fanac.org/conpubs/"+"/".join(quote(s, safe='') for s in segs)+"/"
         items=[instance_url, self.ConInstanceName, item_title]
         if self.ConInstanceDates.strip():
             fmt="{}: {} ({})  --  from {}"
@@ -467,7 +531,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
 
     def UploadConInstanceFiles(self, pm):
-        wd=f"/{self._seriesname}/{self.Conname}"
+        wd=f"{self._FTPbasedir}/{self.Conname}"   # the page's full server dir (handles sub-pages too)
         if not FTP().CWD(wd):
             msg=f"Could not change to server directory {wd} — file upload aborted."
             LogError(msg)
@@ -581,6 +645,15 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
 
     #------------------
+    # The page's name for the title bar: just the con name for a con instance; for a sub-page, the
+    # breadcrumb from the owning con down to it (e.g. "ConFederation/Secrets"), dropping the series.
+    def _PageBreadcrumb(self) -> str:
+        if not self._isSubPage:
+            return self.Conname
+        parents=[c for c in self._FTPbasedir.split("/") if c][1:]   # drop the leading series component
+        return "/".join(parents+[self.Conname])
+
+    #------------------
     # Download a ConInstance
     def DownloadConInstancePage(self, pm=None) -> bool:
         # Clear out any old information
@@ -601,7 +674,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 return False
             ret=self.DoConInstanceDownload(pm=pm)
 
-        self.Title=f"Editing {self.Conname}"
+        self.Title=f"Editing {self._PageBreadcrumb()}"
         self._grid.MakeTextLinesEditable()
         # Log("DownloadConInstancePage() exit.")
         return ret
@@ -644,6 +717,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.m_popupAddFiles.Enabled=True
         self.m_popupInsertText.Enabled=True
         self.m_popupInsertLink.Enabled=True
+        self.m_popupCreateSubPage.Enabled=True
 
         if row < self.Datasource.NumRows:
             self.m_popupDeleteRow.Enabled=True
@@ -782,6 +856,12 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         row=event.GetRow()
         self._PopupInsertTextRow_RowNumber=row
 
+        # Double-clicking a sub-page row opens it -- creating it (seeded from its Notes) on first entry,
+        # exactly like double-clicking an unlinked con row on a ConSeries page.
+        if row < self.Datasource.NumRows and self.Datasource.Rows[row].IsSubPageRow:
+            self._EnterSubPage(row)
+            return
+
         if row > self.Datasource.NumRows:
             return  # We do nothing when you double-click in an empty cell beyond the 1st empty row
         if event.GetCol() > 0:
@@ -813,6 +893,72 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         # This caches row number for popup's use
         self.PopupMenu(self.m_GridPopup, pos=self.gRowGrid.Position+event.Position)
+
+    # ------------------
+    # Open a sub-page (SP) row for editing. On first entry an SP that does not yet exist is created on the
+    # server -- its index.html seeded (once) from the row's Notes -- then the row is marked linked, mirroring
+    # how an unlinked con row on a ConSeries page is created when you enter it.
+    def _EnterSubPage(self, row: int) -> None:
+        r=self.Datasource.Rows[row]
+        spname=r.DisplayTitle.strip()
+        if spname == "":
+            return
+        parentpath=f"{self._FTPbasedir}/{self.Conname}"   # sub-pages live under the current page's directory
+        folder=r.SiteFilename.strip()
+        if folder == "":
+            # Not yet created. Confirm, then create the sub-page (seeded from this row's Notes) on entry.
+            if wx.ID_YES != wxMessageBox(f"No sub-page exists for '{spname}'. Do you wish to create one?", style=wx.YES_NO):
+                return
+            folder=RemoveAccents(spname)
+            with ModalDialogManager(ProgressMessage2, f"Creating sub-page '{spname}'", parent=self) as pm:
+                ci=ConInstance(parentpath, self._seriesname, folder)
+                ci.IsSubPage=True
+                ci.RootSeriesName=self._rootSeriesName
+                ci.RootConName=self._rootConName
+                ci.Toptext=r.Notes      # one-time seed from the row's Notes; independent thereafter
+                ci.Credits=""
+                ci.ConInstanceRows=[]
+                if not ci.Upload(folder):
+                    wx.MessageBox(f"Could not create the sub-page '{spname}'.", "Create Sub-Page failed", wx.OK|wx.ICON_ERROR)
+                    return
+            r.SiteFilename=folder       # the SP now exists -> mark the row as a working (linked) folder link
+            self.RefreshWindow()
+            self.UpdateNeedsSavingFlag()
+
+        # Open the sub-page for editing (it now exists on the server).
+        with ModalDialogManager(ConInstanceDialogClass, parentpath, self._seriesname, folder, "", "",
+                                Create=False, is_subpage=True,
+                                rootSeriesName=self._rootSeriesName, rootConName=self._rootConName) as dlg:
+            if len(dlg.ReturnMessage) > 0:
+                wx.MessageBox(dlg.ReturnMessage)
+                return
+            dlg.ShowModal()
+
+    # ------------------
+    # RMB "Create Sub-Page": add a (not-yet-created) sub-page row. Like filling in a con row on a ConSeries
+    # page, this only records the row; the SP itself is created when the user double-clicks to enter it.
+    def OnPopupCreateSubPage(self, event):
+        name=MessageBoxInput("Enter the name of the new sub-page.", title="Create Sub-Page", Parent=self)
+        if name is None or name.strip() == "":
+            return
+        name=name.strip()
+        irow=self._grid.clickedRow
+        if irow > self.Datasource.NumRows:
+            irow=self.Datasource.NumRows
+        self._grid.InsertEmptyRows(irow, 1)
+        r=self.Datasource.Rows[irow]
+        r.IsSubPageRow=True
+        r.DisplayTitle=name
+        r.SiteFilename=""       # uncreated until the user enters it
+        self.RefreshWindow()
+
+    # ------------------
+    # Per-cell grid hook (runs after each refresh): give the Display Name cell of a sub-page row a folder
+    # icon so it is recognizable as a link to a lower page. The full grid rebuild resets renderers, so this
+    # re-applies it each time; non-sub-page cells keep the default renderer.
+    def _DecorateSubPageCell(self, icol: int, irow: int) -> None:
+        if irow < self.Datasource.NumRows and icol == 0 and self.Datasource.Rows[irow].IsSubPageRow:
+            self._grid.Grid.SetCellRenderer(irow, icol, _SubPageCellRenderer())
 
     def OnPopupPublications(self, event):
         self.InsertTextRow()
