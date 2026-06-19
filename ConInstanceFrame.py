@@ -372,7 +372,16 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     Log(f"Missing information in row {i}  {row}")
                     for j in range(self._grid.NumCols):
                         self._grid.SetCellBackgroundColor(i, j, Color.Pink)
-            else:   # Ordinary rows and Link rows
+            elif row.IsSubPageRow:
+                # A sub-page row needs only a Display Name. An empty Site Name means it has not been
+                # created/entered yet (unlinked) -- allowed, exactly like an unlinked con row on a
+                # ConSeries page; it renders as plain text until the user double-clicks to create it.
+                if len(row.DisplayTitle.strip()) == 0:
+                    error=True
+                    Log(f"Missing display name in sub-page row {i}  {row}")
+                    for j in range(self._grid.NumCols):
+                        self._grid.SetCellBackgroundColor(i, j, Color.Pink)
+            else:   # Ordinary file rows and external link rows
                 if len(row.SiteFilename.strip()) == 0 or len(row.DisplayTitle.strip()) == 0:
                     error=True
                     Log(f"Missing sitename, or display name in row {i}  {row}")
@@ -719,6 +728,15 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.m_popupInsertLink.Enabled=True
         self.m_popupCreateSubPage.Enabled=True
 
+        # "Move to Sub-Page" -- only when the clicked row is a movable file row and the page has at least one
+        # created sub-page to move it into. (The handler validates a block selection and reports any issues.)
+        if (row < self.Datasource.NumRows
+                and not self.Datasource.Rows[row].IsTextRow
+                and not self.Datasource.Rows[row].IsLinkRow
+                and not self.Datasource.Rows[row].IsSubPageRow
+                and any(rr.IsSubPageRow and rr.SiteFilename.strip() for rr in self.Datasource.Rows)):
+            self.m_popupMoveToSubPage.Enabled=True
+
         if row < self.Datasource.NumRows:
             self.m_popupDeleteRow.Enabled=True
 
@@ -959,6 +977,195 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     def _DecorateSubPageCell(self, icol: int, irow: int) -> None:
         if irow < self.Datasource.NumRows and icol == 0 and self.Datasource.Rows[irow].IsSubPageRow:
             self._grid.Grid.SetCellRenderer(irow, icol, _SubPageCellRenderer())
+
+    # ------------------
+    # RMB "Move to Sub-Page...": move the selected file row(s) into one of this page's existing sub-pages.
+    # Each file is moved on the server (fetch -> regenerate its PDF header for the sub-page -> upload into the
+    # sub-page dir -> remove the original), both index.html pages are rewritten, and the rows move from this
+    # page to the sub-page. Only ordinary file rows are eligible.
+    def OnPopupMoveToSubPage(self, event):
+        # Determine the selected rows (a block, or the single right-clicked row).
+        if self._grid.HasSelection():
+            top, _, bottom, _=self._grid.LocateSelection()
+        else:
+            top=bottom=self._grid.clickedRow
+        if top < 0 or top >= self.Datasource.NumRows:
+            return
+        if bottom >= self.Datasource.NumRows:
+            bottom=self.Datasource.NumRows-1
+        rows=self.Datasource.Rows[top:bottom+1]
+
+        # Only ordinary file rows can be moved. Text headings, external links, and sub-page rows cannot.
+        movable=[r for r in rows if not r.IsTextRow and not r.IsLinkRow and not r.IsSubPageRow]
+        if len(movable) != len(rows):
+            wx.MessageBox("Only files can be moved into a sub-page.\n\nText headings, external links, and sub-page rows "
+                          "cannot be moved -- select only file rows and try again.",
+                          "Cannot move these rows", wx.OK|wx.ICON_WARNING)
+            return
+        if not movable:
+            return
+
+        # The target must be an existing (created) sub-page of this page.
+        subpages=[r for r in self.Datasource.Rows if r.IsSubPageRow and r.SiteFilename.strip()]
+        if not subpages:
+            wx.MessageBox("This page has no created sub-pages to move files into.\n\nCreate a sub-page (RMB -> Create "
+                          "Sub-Page) and enter it (double-click) so it exists on the server, then try again.",
+                          "No sub-page available", wx.OK|wx.ICON_WARNING)
+            return
+
+        with wx.SingleChoiceDialog(self, f"Move {len(movable)} file(s) into which sub-page?", "Move to Sub-Page",
+                                   [r.DisplayTitle.strip() for r in subpages]) as dlg:
+            if dlg.ShowModal() != wx.ID_OK:
+                return
+            target=subpages[dlg.GetSelection()]
+
+        sp_folder=target.SiteFilename.strip()
+        sp_display=target.DisplayTitle.strip()
+        if wx.ID_YES != wxMessageBox(f"Move {len(movable)} file(s) into sub-page '{sp_display}'?\n\nThe file(s) will be moved on "
+                                     f"the server now and their PDF headers regenerated for the sub-page; both pages are updated.",
+                                     style=wx.YES_NO):
+            return
+
+        p_dir=f"{self._FTPbasedir}/{self.Conname}"
+        sp_dir=f"{p_dir}/{sp_folder}"
+        moved=[]
+        failures=[]
+        with ModalDialogManager(ProgressMessage2, f"Moving {len(movable)} file(s) to '{sp_display}'", parent=self) as pm:
+            for r in movable:
+                if r.SiteFilename.strip() == "":
+                    continue
+                pm.Update(f"Moving {r.DisplayTitle}")
+                try:
+                    if self._MoveFileToSubPage(r, p_dir, sp_dir, sp_folder, sp_display):
+                        moved.append(r)
+                    else:
+                        failures.append(r.DisplayTitle)
+                except Exception as e:
+                    LogError(f"Move to sub-page failed for '{r.DisplayTitle}': {e}")
+                    failures.append(r.DisplayTitle)
+
+            if moved:
+                pm.Update(f"Updating sub-page '{sp_display}'")
+                if not self._AppendRowsToSubPage(sp_folder, moved):
+                    failures.append(f"(could not update sub-page '{sp_display}' page)")
+                # Drop the moved rows from this page's datasource, then re-upload its index.html (plus any
+                # remaining pending file changes). The moved files' server copies are already gone / their
+                # pending adds cancelled.
+                for r in moved:
+                    if r in self.Datasource.Rows:
+                        self.Datasource.Rows.remove(r)
+                pm.Update(f"Updating {self.Conname}")
+                if not self.UploadConInstancePage(pm=pm):
+                    failures.append(f"(could not update '{self.Conname}' page)")
+            pm.Update(f"Moved {len(moved)} of {len(movable)} file(s)", delay=0.5)
+
+        # Refresh the grid AFTER the progress dialog has closed so the removed rows actually disappear from
+        # the view -- a grid rebuild issued while the modal progress dialog is up does not repaint reliably.
+        if moved:
+            self._grid.RefreshWxGridFromDatasource()
+            self._grid.Grid.ForceRefresh()
+            self.UpdateNeedsSavingFlag()
+        if failures:
+            wx.MessageBox("Some items could not be fully moved:\n\n"+"\n".join(failures), "Move to Sub-Page", wx.OK|wx.ICON_ERROR)
+
+    # ------------------
+    # Move one file row's bytes to the sub-page's server directory and remove the original. Handles both an
+    # already-uploaded file (download from this page's dir, then delete it) and a not-yet-uploaded local add
+    # (copy the local file, then cancel its pending "add"). Regenerates the PDF header/metadata for the
+    # sub-page. Does NOT touch either index.html -- the caller rewrites both once. Returns True on success.
+    def _MoveFileToSubPage(self, r, p_dir: str, sp_dir: str, sp_folder: str, sp_display: str) -> bool:
+        fname=r.SiteFilename.strip()
+        pending=any(d.Verb == "add" and d.Con is r for d in self.conInstanceDeltaTracker.Deltas)
+        tmp_fd, tmp_path=tempfile.mkstemp(suffix=os.path.splitext(fname)[1] or ".pdf")
+        os.close(tmp_fd)
+        try:
+            # 1) Get the file's bytes into tmp_path.
+            if pending:
+                if not os.path.exists(r.SourcePathname):
+                    LogError(f"Move to sub-page: local file '{r.SourcePathname}' not found")
+                    return False
+                shutil.copy2(r.SourcePathname, tmp_path)
+            else:
+                if not FTP().GetFile(p_dir, fname, tmp_path):
+                    LogError(f"Move to sub-page: could not download '{p_dir}/{fname}'")
+                    return False
+
+            # 2) Regenerate metadata + header for the sub-page (PDFs only).
+            if ExtensionMatches(fname, ".pdf"):
+                CleanTitle=_CleanTitle(r.DisplayTitle)
+                AddStdMetadata(tmp_path, **self._BuildSubPageMetadata(sp_display, CleanTitle))
+                header_format, header_items=self._BuildSubPageHeader(sp_folder, sp_display, CleanTitle)
+                try:
+                    AddPdfPageHeader(tmp_path, header_format, header_items, logo=_g_headerLogo)
+                except Exception as e:
+                    LogError(f"Move to sub-page: header regen failed for '{fname}': {e}")
+
+            # 3) Upload into the sub-page directory.
+            if not (FTP().CWD(sp_dir) and FTP().PutFile(tmp_path, fname)):
+                LogError(f"Move to sub-page: could not upload '{fname}' to '{sp_dir}'")
+                return False
+
+            # 4) Remove the original: cancel a pending add, or delete the uploaded file from this page's dir.
+            if pending:
+                self.conInstanceDeltaTracker.Delete(r)
+            elif FTP().CWD(p_dir):
+                FTP().DeleteFile(fname)
+
+            # Refresh the row's size/page count from the regenerated file (best effort).
+            try:
+                r.Size=os.path.getsize(tmp_path)/(1024**2)
+                pages=GetPdfPageCount(tmp_path)
+                if pages is not None:
+                    r.Pages=pages
+            except Exception:
+                pass
+            return True
+        finally:
+            try:
+                os.remove(tmp_path)
+            except Exception:
+                pass
+
+    # ------------------
+    # Header format/items for a file that now lives on sub-page `sp_folder`: the header links to the sub-page's
+    # URL and shows the sub-page's name. Parallels _BuildPageHeader, but for the sub-page and without dates.
+    def _BuildSubPageHeader(self, sp_folder: str, sp_display: str, item_title: str) -> tuple[str, list]:
+        segs=[s for s in self._FTPbasedir.split("/") if s]+[self.Conname, sp_folder]
+        sp_url="https://www.fanac.org/conpubs/"+"/".join(quote(s, safe='') for s in segs)+"/"
+        fmt="{}: {}  --  from {}"
+        items=[sp_url, sp_display, item_title, "https://www.fanac.org/conpubs/", "fanac.org/conpubs"]
+        return fmt, items
+
+    # ------------------
+    def _BuildSubPageMetadata(self, sp_display: str, CleanTitle: str) -> dict:
+        keywords=[self._seriesname, self.ConInstanceName, sp_display, CleanTitle,
+                  "fanac.org", "fan history", "science fiction convention"]
+        return dict(title=f'{sp_display}: {CleanTitle}',
+                    author=self.Credits,
+                    subject=f'Science fiction convention; {self._seriesname}; {self.ConInstanceName}; {sp_display}; fan history; fanac.org',
+                    keywords=", ".join(filter(None, keywords)))
+
+    # ------------------
+    # Add the moved file rows to the sub-page's index.html: download the sub-page, append, re-upload. The
+    # sub-page's own dialog is not open, so this works directly on a ConInstance (like prev/next regeneration).
+    def _AppendRowsToSubPage(self, sp_folder: str, moved: list) -> bool:
+        sp_basedir=f"{self._FTPbasedir}/{self.Conname}"
+        ci=ConInstance(sp_basedir, self._seriesname, sp_folder)
+        if not ci.Download():
+            LogError(f"Move to sub-page: could not download sub-page '{sp_folder}' to update it")
+            return False
+        ci.IsSubPage=True
+        ci.RootSeriesName=self._rootSeriesName
+        ci.RootConName=self._rootConName
+        for r in moved:
+            nr=ConInstanceRow()
+            nr.DisplayTitle=r.DisplayTitle
+            nr.SiteFilename=r.SiteFilename
+            nr.Notes=r.Notes
+            nr.Size=r.Size
+            nr.Pages=r.Pages
+            ci.ConInstanceRows.append(nr)
+        return ci.Upload(sp_folder)
 
     def OnPopupPublications(self, event):
         self.InsertTextRow()
