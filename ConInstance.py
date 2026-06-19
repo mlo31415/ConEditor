@@ -20,6 +20,19 @@ from Log import Log, LogError
 # Phase-1 placeholder glyph; a Windows-Explorer-style icon image can replace it later.
 _SUBPAGE_ICON="\U0001F4C1&nbsp;"   # 📁
 
+
+# Some old CE versions left an HTML entity (e.g. an apostrophe as &#x27;) inside a stored link, and each
+# download->upload cycle escaped it again (&amp;#x27;, &amp;amp;#x27;, ...), eventually breaking the link.
+# Fully decode by unescaping repeatedly until the string stops changing, so a once- or many-times-escaped
+# value collapses back to clean text (and re-uploading the page then emits a single, correct encoding).
+def _UnescapeUntilStable(s: str) -> str:
+    while True:
+        u=html.unescape(s)
+        if u == s:
+            return s
+        s=u
+
+
 # An individual file to be listed under a convention
 # This is a single row
 class ConInstanceRow(GridDataRowClass):
@@ -406,10 +419,13 @@ class ConInstance:
                     href=re.sub("#view=fit", "", href, count=1, flags=re.IGNORECASE)    # Note that if the view=Fit was followed by &anything, it would have been deleted in the previous line
 
                 # It appears to be an ordinary file like
-                conf.DisplayTitle=html.unescape(text)
+                conf.DisplayTitle=_UnescapeUntilStable(text)
                 # Decode the href back to the plain filename (undo the HTML-escaping and percent-encoding
                 # applied by FormatLink on upload) so SiteFilename matches the plain form used by AddFiles.
-                conf.SiteFilename=unquote(html.unescape(href))
+                # Percent-decode FIRST, then unescape repeatedly: old links mangled the apostrophe in several
+                # ways -- "&#x27;", double-escaped "&amp;#x27;", and even "&%23x27;" (the '#' percent-encoded
+                # as %23). Decoding %23->'#' before the entity pass lets all of them collapse to clean text.
+                conf.SiteFilename=_UnescapeUntilStable(unquote(href))
 
                 if len(rest.strip()) > 0:
                     small, notes=FindBracketedText2(rest, "small")

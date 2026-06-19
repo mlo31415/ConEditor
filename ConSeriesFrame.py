@@ -24,6 +24,13 @@ from Log import Log, LogError
 from FanzineDateTime import FanzineDateRange
 
 
+# Escape a Con Series cell for HTML but let a strikeout (<s>...</s>) through, so a date, locale, or GoH
+# can be struck out (e.g. to mark superseded/cancelled info). Everything else stays escaped, so a stray
+# "&" or "<" in real content remains safe. (The Dates column is already emitted unescaped.)
+def _EscapeAllowStrikeout(s: str) -> str:
+    return re.sub(r"&lt;(/?s)&gt;", r"<\1>", html.escape(s), flags=re.IGNORECASE)
+
+
 #####################################################################################
 # A small dialog to edit the three "Extras" fields of a con series row: the Special Link (a link that
 # replaces the default Display Name/index.html), the Special Text (an alternate name shown in parens),
@@ -451,9 +458,9 @@ class ConSeriesFrame(GenConSeriesFrame):
                     newtable+=str(row.Dates) if row.Dates is not None else ""
                     newtable+='</td>\n'
                 if haslocations:
-                    newtable+=f'      <td>{html.escape(row.Locale)}</td>\n'
+                    newtable+=f'      <td>{_EscapeAllowStrikeout(row.Locale)}</td>\n'
                 if hasgohs:
-                    newtable+=f'      <td>{html.escape(row.GoHs)}</td>\n'
+                    newtable+=f'      <td>{_EscapeAllowStrikeout(row.GoHs)}</td>\n'
                 newtable+="    </tr>\n"
             newtable+="    </tbody>\n"
             newtable+="  </table>\n"
