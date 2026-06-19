@@ -53,8 +53,8 @@ class GenConSeriesFrame ( wx.Dialog ):
 		fgSizer8.Fit( self.m_panel2 )
 		fgSizer6.Add( self.m_panel2, 1, wx.EXPAND |wx.ALL, 5 )
 
-		self.bLoadSeriesFromFancy = wx.Button( self, wx.ID_ANY, u"Load Series from Fancy 3", wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer6.Add( self.bLoadSeriesFromFancy, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+		self.bFillFromFancy = wx.Button( self, wx.ID_ANY, u"Fill Missing Info from Fancy", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer6.Add( self.bFillFromFancy, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
 		self.bRegenerateConPages = wx.Button( self, wx.ID_ANY, u"Regenerate Con Pages", wx.DefaultPosition, wx.DefaultSize, 0 )
 		fgSizer6.Add( self.bRegenerateConPages, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
@@ -211,7 +211,7 @@ class GenConSeriesFrame ( wx.Dialog ):
 		self.Bind( wx.EVT_CLOSE, self.OnClose )
 		self.bUploadConSeries.Bind( wx.EVT_BUTTON, self.OnUploadConSeries )
 		self.m_radioBoxShowEmpty.Bind( wx.EVT_RADIOBOX, self.OnSetShowEmptyRadioBox )
-		self.bLoadSeriesFromFancy.Bind( wx.EVT_BUTTON, self.OnLoadSeriesFromFancy )
+		self.bFillFromFancy.Bind( wx.EVT_BUTTON, self.OnFillMissingFromFancy )
 		self.bRegenerateConPages.Bind( wx.EVT_BUTTON, self.OnRegenerateConPages )
 		self.m_Cancel.Bind( wx.EVT_BUTTON, self.OnClose )
 		self.tConSeries.Bind( wx.EVT_KEY_UP, self.ConTextConSeriesKeyUp )
@@ -249,7 +249,7 @@ class GenConSeriesFrame ( wx.Dialog ):
 	def OnSetShowEmptyRadioBox( self, event ):
 		event.Skip()
 
-	def OnLoadSeriesFromFancy( self, event ):
+	def OnFillMissingFromFancy( self, event ):
 		event.Skip()
 
 	def OnRegenerateConPages( self, event ):

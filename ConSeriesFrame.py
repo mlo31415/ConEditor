@@ -18,7 +18,7 @@ from ConInstanceFrame import ConInstanceDialogClass
 from Settings import Settings
 
 from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText2, WikiPagenameToWikiUrlname, RemoveAccents, RemoveAllHTMLTags
-from HelpersPackage import PyiResourcePath, MessageBox
+from HelpersPackage import PyiResourcePath, MessageBox, ExtractTrailingSequenceNumber
 from WxHelpers import ModalDialogManager, ProgressMessage2, OnCloseHandling, MessageBoxInput, wxMessageDialogInput, wxMessageBox
 from Log import Log, LogError
 from FanzineDateTime import FanzineDateRange
@@ -29,6 +29,144 @@ from FanzineDateTime import FanzineDateRange
 # "&" or "<" in real content remains safe. (The Dates column is already emitted unescaped.)
 def _EscapeAllowStrikeout(s: str) -> str:
     return re.sub(r"&lt;(/?s)&gt;", r"<\1>", html.escape(s), flags=re.IGNORECASE)
+
+
+# ===================================================================================================
+# Helpers for "Fill Missing Info from Fancy" -- pure functions (no wx) so they can be unit-tested.
+
+# Generational/honorific suffixes that are not part of a surname.
+_NAME_SUFFIXES = {"jr", "sr", "ii", "iii", "iv", "v", "phd", "md", "esq"}
+# Toastmaster role markers -- a GoH cell entry with this role is dropped, never added to the GoH list.
+_TM_RE = re.compile(r"toast\s*m(aster|istress)|\bt\.?\s*m\.?\b", re.IGNORECASE)
+
+
+def _Levenshtein(a: str, b: str) -> int:
+    if a == b: return 0
+    if not a: return len(b)
+    if not b: return len(a)
+    prev=list(range(len(b)+1))
+    for i, ca in enumerate(a, 1):
+        cur=[i]
+        for j, cb in enumerate(b, 1):
+            cur.append(min(prev[j]+1, cur[j-1]+1, prev[j-1]+(ca != cb)))
+        prev=cur
+    return prev[-1]
+
+
+def _NameNorm(s: str) -> str:
+    # lowercase, strip accents, keep only letters/digits, so "Smith-Jones" == "Smith Jones" == "smithjones"
+    return re.sub(r"[^a-z0-9]", "", RemoveAccents(s).lower())
+
+
+def _SurnameKeys(name: str) -> set:
+    # Candidate surname keys: the last name token, plus (last two tokens joined) to catch a two-word /
+    # hyphenated surname written without the hyphen. Generational suffixes (Jr, II, ...) are dropped first.
+    toks=[t for t in re.split(r"\s+", name.strip()) if t]
+    while toks and re.sub(r"[.,]", "", toks[-1]).lower() in _NAME_SUFFIXES:
+        toks.pop()
+    keys=set()
+    if toks:
+        keys.add(_NameNorm(toks[-1]))
+        if len(toks) >= 2:
+            keys.add(_NameNorm(toks[-2]+toks[-1]))
+    keys.discard("")
+    return keys
+
+
+def _NamesProbablySame(a: str, b: str) -> bool:
+    # Permissive surname match: equal key, one a prefix of the other (>=4 chars), or a small edit distance.
+    for x in _SurnameKeys(a):
+        for y in _SurnameKeys(b):
+            if x == y:
+                return True
+            if min(len(x), len(y)) >= 4 and (x.startswith(y) or y.startswith(x)):
+                return True
+            if _Levenshtein(x, y) <= (2 if max(len(x), len(y)) >= 7 else 1):
+                return True
+    return False
+
+
+def _ParseGoHNames(s: str) -> list[str]:
+    # Split a GoH cell into bare person names. Role labels ("GoH:", "Fan GoH:", "Name (Toastmaster)", ...)
+    # are stripped; anyone whose role is toastmaster (or "TM") is dropped entirely.
+    if not s:
+        return []
+    s=html.unescape(s).replace("&amp;", "&")
+    out=[]
+    for seg in re.split(r",|;|/|&|\band\b", s):
+        seg=seg.strip()
+        if not seg:
+            continue
+        role=""
+        m=re.match(r"^(.*?)\s*\(([^)]*)\)\s*$", seg)              # "Name (Role)"
+        if m: seg, role = m.group(1).strip(), m.group(2).strip()
+        m=re.match(r"^([^:]+):\s*(.+)$", seg)                     # "Role: Name" (a colon never appears in a name)
+        if m: role, seg = (role+" "+m.group(1)).strip(), m.group(2).strip()
+        m=re.match(r"^(toast\s*master|toast\s*mistress|fan guest of honou?r|guest of honou?r|fan goh|goh)\s+(.+)$", seg, re.IGNORECASE)
+        if m: role, seg = (role+" "+m.group(1)).strip(), m.group(2).strip()   # leading role word, no punctuation
+        if _TM_RE.search(role) or _TM_RE.search(seg):
+            continue                                             # toastmaster -> leave off the GoH list
+        seg=seg.strip(" .,")
+        if seg:
+            out.append(seg)
+    return out
+
+
+def _MergeGoHs(cp: str, fancy: str) -> tuple[str, bool]:
+    # Append Fancy GoHs whose surname has no permissive match among the conpubs GoHs (or already-added).
+    # Existing conpubs entries are never removed or reordered. Returns (newGoHs, changed).
+    cp=cp or ""
+    cp_names=_ParseGoHNames(cp)
+    additions=[]
+    for fn in _ParseGoHNames(fancy):
+        if not any(_NamesProbablySame(fn, cn) for cn in cp_names) and \
+           not any(_NamesProbablySame(fn, an) for an in additions):
+            additions.append(fn)
+    if not additions:
+        return cp, False
+    base=cp.strip()
+    return base+(", " if base else "")+", ".join(additions), True
+
+
+def _MergeDate(cp, fancy):
+    # Return (new_FanzineDateRange_or_None, conflict_bool). new is set when conpubs should be filled/replaced.
+    if fancy is None or fancy.IsEmpty():
+        return None, False
+    if cp is None or cp.IsEmpty():
+        nr=FanzineDateRange(); nr.Copy(fancy); return nr, False           # fill an empty conpubs date
+    cps=cp.StartDate
+    if cps.Day:                                                           # conpubs already has a full date (a day)
+        return None, (cp != fancy)                                        # never overwrite; flag only if it differs
+    fy={fancy.StartDate.Year, fancy.EndDate.Year}
+    fm={fancy.StartDate.MonthNum, fancy.EndDate.MonthNum}                 # MonthNum is None when absent
+    if cps.Year not in fy:
+        return None, True                                                 # year disagreement
+    if cps.MonthNum is not None and cps.MonthNum not in fm:
+        return None, True                                                 # month disagreement
+    nr=FanzineDateRange(); nr.Copy(fancy); return nr, False               # consistent + less precise -> replace
+
+
+def _CompressConRuns(names: list[str]) -> str:
+    # Collapse consecutive numbered cons ("Boskone 23".."Boskone 32" -> "Boskone 23-Boskone 32"). Handles
+    # Roman numerals via ExtractTrailingSequenceNumber. Cons without a clean trailing number list individually.
+    items=[]
+    for n in names:
+        pre, vol, num, suf = ExtractTrailingSequenceNumber(n)
+        if num and str(num).isdigit() and not vol:    # (the helper duplicates the number into 'suf', so ignore suf)
+            items.append((pre.strip().lower(), int(num), n))
+        else:
+            items.append((None, None, n))
+    numbered=sorted((x for x in items if x[0] is not None), key=lambda x: (x[0], x[1]))
+    others=[x[2] for x in items if x[0] is None]
+    out=[]
+    i=0
+    while i < len(numbered):
+        j=i
+        while j+1 < len(numbered) and numbered[j+1][0] == numbered[i][0] and numbered[j+1][1] == numbered[j][1]+1:
+            j+=1
+        out.append(numbered[i][2] if j == i else f"{numbered[i][2]}-{numbered[j][2]}")
+        i=j+1
+    return ", ".join(out+others)
 
 
 #####################################################################################
@@ -196,13 +334,16 @@ class ConSeriesFrame(GenConSeriesFrame):
     def ReadTableRow(row: str, delim="td") -> list[str]:
         rest=row
         out=[]
-        while True:
-            item, rest=FindBracketedText2(rest, delim, caseInsensitive=True)
-            if item == "":
+        # Loop while another <delim> cell remains. We can't stop on an empty item, because an *empty* cell
+        # (e.g. a blank Location "<td></td>") also returns "" -- stopping there would silently drop every
+        # column after it (such as GoHs). So test for a remaining opening tag instead of an empty result.
+        while re.search(fr"<{delim}[\s/>]", rest, re.IGNORECASE):
+            item, newrest=FindBracketedText2(rest, delim, caseInsensitive=True)
+            if newrest == rest:     # nothing consumed (e.g. an unclosed tag): stop rather than loop forever
                 break
+            rest=newrest
             if f"<{delim}>" in item:    # This corrects for an error in which we have the pattern '<td>xxx<td>yyy</td>' which displays perfectly well
-                item=item.split(f"<{delim}>")
-                out.extend(item)
+                out.extend(item.split(f"<{delim}>"))
             else:
                 out.append(item)
 
@@ -527,11 +668,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
     #------------------
     # Create a new, empty, con series
-    def OnLoadSeriesFromFancy(self, event):     
-        self.DownloadConSeriesFromFancy(self.tConSeries.GetValue())
-
-
-    def DownloadConSeriesFromFancy(self, seriesname: str):     
+    def DownloadConSeriesFromFancy(self, seriesname: str):
         self.Seriesname=seriesname
 
         with ModalDialogManager(ProgressMessage2, f"Loading {self.Seriesname} from Fancyclopedia 3", parent=self) as pm:
@@ -547,13 +684,161 @@ class ConSeriesFrame(GenConSeriesFrame):
 
 
     #------------------
+    # "Fill Missing Info from Fancy": download this series' table from Fancyclopedia 3 and use it to fill in
+    # MISSING dates, GoHs and locations on the conpubs rows (matched by con name). Non-destructive: an empty
+    # field is filled and a too-imprecise date (year, or year+month) is replaced with Fancy's fuller range; a
+    # full or conflicting conpubs date is left alone and logged. Changes are in memory only -- the user
+    # accepts (and uploads later) or rejects (rolled back here). No FTP writes happen.
+    def OnFillMissingFromFancy(self, event):
+        if self.Datasource.NumRows == 0:
+            return
+        with ModalDialogManager(ProgressMessage2, f"Downloading {self.Seriesname} from Fancyclopedia 3", parent=self) as pm:
+            fname, fcons = FetchConSeriesFromFancy(self.Seriesname, silent=True)
+        if fname is None or not fcons:
+            wxMessageBox(f"Could not download '{self.Seriesname}' from Fancyclopedia 3, so nothing was changed.")
+            return
+
+        def key(n): return RemoveAccents(n or "").strip().lower()
+        fmap={}
+        for c in fcons:
+            if c.Name.strip():
+                fmap.setdefault(key(c.Name), c)   # first Fancy row wins on a duplicate name
+
+        # Snapshot the existing rows + their Dates/GoHs/Locale for rollback. Keep the original row list too,
+        # so a rejection can drop any later-year rows we append below (Dates is copied so a replace can't
+        # disturb the snapshot).
+        orig_rows=self.Datasource.Rows[:]
+        snap=[]
+        for r in orig_rows:
+            d=r.Dates                                   # None/empty (e.g. a blank Dates cell): keep the reference as-is...
+            if d is not None and not d.IsEmpty():
+                d=FanzineDateRange().Copy(r.Dates)      # ...otherwise snapshot a deep copy (Copy() can't handle an empty range)
+            snap.append((r, d, r.GoHs, r.Locale))
+        cp_keys={key(r.Name) for r in orig_rows}
+
+        updated=[]   # existing rows whose info we filled
+        added=[]     # later-year cons we appended
+        conflicts=0
+        for r in orig_rows:
+            fc=fmap.get(key(r.Name))
+            if fc is None:
+                continue                          # no matching con on Fancy -> leave this row alone
+            changed=False
+            newd, conflict=_MergeDate(r.Dates, fc.Dates)
+            if conflict:
+                conflicts+=1
+                LogError(f"FillMissingFromFancy: date conflict for '{r.Name}': conpubs '{r.Dates}' vs Fancy '{fc.Dates}' (left unchanged)")
+            if newd is not None:
+                r.Dates=newd; changed=True
+            newg, gchanged=_MergeGoHs(r.GoHs, fc.GoHs)
+            if gchanged:
+                r.GoHs=newg; changed=True
+            if not (r.Locale or "").strip() and (fc.Locale or "").strip():
+                r.Locale=fc.Locale.strip(); changed=True
+            if changed:
+                updated.append(r.Name)
+
+        # Append Fancy cons for years LATER than anything on conpubs (newer conventions not here yet),
+        # created the way a new series is -- unlinked rows seeded from Fancy's name/date/locale/GoHs.
+        cp_years=[r.Dates.EndDate.Year for r in orig_rows
+                  if r.Dates is not None and not r.Dates.IsEmpty() and r.Dates.EndDate.Year is not None]
+        cp_max=max(cp_years) if cp_years else None
+        if cp_max is not None:
+            for c in fcons:
+                if key(c.Name) in cp_keys or c.Dates is None or c.Dates.IsEmpty():
+                    continue
+                cy=c.Dates.StartDate.Year
+                if cy is None or cy <= cp_max:
+                    continue                      # not a later year
+                d=FanzineDateRange(); d.Copy(c.Dates)
+                self.Datasource.Rows.append(Con(Name=c.Name, Locale=(c.Locale or "").strip(),
+                                                Dates=d, GoHs=_MergeGoHs("", c.GoHs)[0], URL=""))
+                added.append(c.Name)
+
+        self.RefreshWindow()
+
+        changed_names=updated+added
+        if not changed_names:
+            msg="Nothing to do -- every matched convention already has its dates, GoHs and location, and Fancy has no later years."
+            if conflicts:
+                msg+=f"\n\n{conflicts} date conflict(s) were logged to the error log."
+            wxMessageBox(msg)
+            return
+
+        parts=[]
+        if updated: parts.append(f"filled in {len(updated)}")
+        if added:   parts.append(f"appended {len(added)} new")
+        msg="From Fancyclopedia 3, "+" and ".join(parts)+" convention(s):\n\n"+_CompressConRuns(changed_names)
+        if conflicts:
+            msg+=f"\n\n({conflicts} date conflict(s) logged to the error log; those rows were left unchanged.)"
+        msg+="\n\nScroll/resize to review, then Accept to keep these changes or Reject to roll them all back."
+
+        # Stash the rollback state and confirm with a MODELESS dialog, so the grid behind stays scrollable
+        # and resizable while the user reviews the changes (a modal box would block the whole event loop).
+        self._fillRollback=(orig_rows, snap)
+        self._ShowFillConfirmDialog(msg)
+
+    #------------------
+    def _ShowFillConfirmDialog(self, msg: str) -> None:
+        dlg=wx.Dialog(self, title="Fill Missing Info from Fancy", style=wx.CAPTION | wx.RESIZE_BORDER | wx.STAY_ON_TOP)
+        sizer=wx.BoxSizer(wx.VERTICAL)
+        st=wx.StaticText(dlg, label=msg)
+        st.Wrap(520)
+        sizer.Add(st, 0, wx.ALL, 12)
+        btns=wx.BoxSizer(wx.HORIZONTAL)
+        bAccept=wx.Button(dlg, label="Accept")
+        bReject=wx.Button(dlg, label="Reject")
+        btns.Add(bAccept, 0, wx.RIGHT, 8)
+        btns.Add(bReject, 0)
+        sizer.Add(btns, 0, wx.ALL | wx.ALIGN_RIGHT, 12)
+        dlg.SetSizerAndFit(sizer)
+        bAccept.Bind(wx.EVT_BUTTON, self._OnFillAccept)
+        bReject.Bind(wx.EVT_BUTTON, self._OnFillReject)
+        dlg.Bind(wx.EVT_CLOSE, self._OnFillReject)   # closing the dialog (X) counts as Reject -- the safe default
+        self._fillDialog=dlg
+        # Keep mutating actions disabled until the user decides (prevents a second Fill/Upload over un-confirmed changes).
+        self.bFillFromFancy.Enabled=False
+        self.bUploadConSeries.Enabled=False
+        dlg.Show()
+
+    #------------------
+    def _OnFillAccept(self, event) -> None:
+        self._fillRollback=None                        # keep the applied changes; nothing to undo
+        self._CloseFillDialog()
+        self.RefreshWindow()
+
+    #------------------
+    def _OnFillReject(self, event) -> None:
+        rb=getattr(self, "_fillRollback", None)
+        if rb is not None:
+            orig_rows, snap=rb
+            self.Datasource.Rows=orig_rows             # drop any appended rows
+            for r, d, g, loc in snap:
+                r.Dates=d; r.GoHs=g; r.Locale=loc
+        self._fillRollback=None
+        self._CloseFillDialog()
+        self.RefreshWindow()
+
+    #------------------
+    def _CloseFillDialog(self) -> None:
+        dlg=getattr(self, "_fillDialog", None)
+        if dlg is not None:
+            self._fillDialog=None
+            dlg.Destroy()
+
+
+    #------------------
     def RefreshWindow(self, StartRow: int=-1, EndRow: int=-1, StartCol: int=-1, EndCol: int=-1) -> None:
         # Log(f"RefreshWindow: Called: Refreshing {self.Seriesname}")
         self._grid.RefreshWxGridFromDatasource(StartRow=StartRow, EndRow=EndRow, StartCol=StartCol, EndCol=EndCol)
         # Log(f"RefreshWindow: RefreshWxGridFromDatasource() finished")
         self.UpdateNeedsSavingFlag()
         self.bUploadConSeries.Enabled=len(self.Seriesname) > 0
-        self.bLoadSeriesFromFancy.Enabled=self.Datasource.NumRows == 0  # If any con instances have been created, don't offer a download from Fancy
+        self.bFillFromFancy.Enabled=self.Datasource.NumRows > 0         # the merge fills existing rows, so it needs some
+        if getattr(self, "_fillRollback", None) is not None:
+            # A modeless Fill-from-Fancy confirmation is pending: keep mutating actions disabled until it resolves.
+            self.bFillFromFancy.Enabled=False
+            self.bUploadConSeries.Enabled=False
         # Log(f"RefreshWindow: Done")
 
     #------------------
