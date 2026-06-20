@@ -449,7 +449,10 @@ class ConInstance:
             elif row[0] == "b":
                 conf=ConInstanceRow()
                 conf.IsTextRow=True
-                conf.TextLineText=row[1]
+                # Upload html.escape()d this text (so '&'->'&amp;', "'"->"&#x27;"). Reverse it here so the
+                # text round-trips; unescape-until-stable also repairs rows already double-escaped by an
+                # earlier round trip (e.g. "&amp;amp;", "&amp;#x27;").
+                conf.TextLineText=_UnescapeUntilStable(row[1])
                 self.ConInstanceRows.append(conf)
 
         return True
