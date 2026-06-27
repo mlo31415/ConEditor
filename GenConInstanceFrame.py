@@ -185,6 +185,12 @@ class GenConInstanceFrame ( wx.Dialog ):
 		self.m_popupRegenPDFHeader = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Regenerate PDF Header", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_GridPopup.Append( self.m_popupRegenPDFHeader )
 
+		self.m_popupOpenInBrowser = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Open in Browser", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_GridPopup.Append( self.m_popupOpenInBrowser )
+
+		self.m_popupOpenContainingPage = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Open Full Page in Browser", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_GridPopup.Append( self.m_popupOpenContainingPage )
+
 		self.m_popupCreateSubPage = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Create Sub-Page", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_GridPopup.Append( self.m_popupCreateSubPage )
 
@@ -228,6 +234,8 @@ class GenConInstanceFrame ( wx.Dialog ):
 		self.Bind( wx.EVT_MENU, self.OnPopupWSFSstuff, id = self.m_popupWSFSstuff.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupBidding, id = self.m_popupBidding.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupRegeneratePDFHeader, id = self.m_popupRegenPDFHeader.GetId() )
+		self.Bind( wx.EVT_MENU, self.OnPopupOpenInBrowser, id = self.m_popupOpenInBrowser.GetId() )
+		self.Bind( wx.EVT_MENU, self.OnPopupOpenContainingPage, id = self.m_popupOpenContainingPage.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupCreateSubPage, id = self.m_popupCreateSubPage.GetId() )
 		self.Bind( wx.EVT_MENU, self.OnPopupMoveToSubPage, id = self.m_popupMoveToSubPage.GetId() )
 
@@ -325,6 +333,12 @@ class GenConInstanceFrame ( wx.Dialog ):
 		event.Skip()
 
 	def OnPopupRegeneratePDFHeader( self, event ):
+		event.Skip()
+
+	def OnPopupOpenInBrowser( self, event ):
+		event.Skip()
+
+	def OnPopupOpenContainingPage( self, event ):
 		event.Skip()
 
 	def OnPopupCreateSubPage( self, event ):

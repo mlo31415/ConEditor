@@ -4,6 +4,7 @@ import os
 import re
 import shutil
 import tempfile
+import webbrowser
 from urllib.parse import quote
 
 from WxHelpers import wxMessageBox
@@ -728,6 +729,9 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.m_popupInsertLink.Enabled=True
         self.m_popupCreateSubPage.Enabled=True
 
+        # "Open Containing Page in Browser" is page-level (opens this CIP's index.html), so it's always available.
+        self.m_popupOpenContainingPage.Enabled=True
+
         # "Move to Sub-Page" -- only when the clicked row is a movable file row and the page has at least one
         # created sub-page to move it into. (The handler validates a block selection and reports any issues.)
         if (row < self.Datasource.NumRows
@@ -754,6 +758,13 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             r=self.Datasource.Rows[row]
             if not r.IsTextRow and not r.IsLinkRow and ExtensionMatches(r.SiteFilename, ".pdf"):
                 self.m_popupRegenPDFHeader.Enabled=True
+
+        # Enable "Open in Browser" for any row with a live page/file: a file row, a link row, or a
+        # created sub-page. Text rows and not-yet-created sub-pages (no SiteFilename) have no page.
+        if row < self.Datasource.NumRows:
+            r=self.Datasource.Rows[row]
+            if not r.IsTextRow and r.SiteFilename.strip():
+                self.m_popupOpenInBrowser.Enabled=True
 
         self.PopupMenu(self.m_GridPopup, pos=self.gRowGrid.Position+event.Position)
 
@@ -864,6 +875,54 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         if failures:
             wx.MessageBox("\n".join(failures), "Regenerate PDF Header", wx.OK|wx.ICON_ERROR)
+
+
+    # ------------------
+    # Open the web page corresponding to the clicked row in the user's default browser:
+    #   file row     -> the file's URL on fanac.org (the browser renders the PDF/image)
+    #   link row     -> the foreign URL it points to
+    #   sub-page row -> that sub-page's index.html
+    # The menu item is only enabled for rows that have a live page (see OnGridCellRightClick).
+    def OnPopupOpenInBrowser(self, event):
+        row=self._grid.clickedRow
+        if row < 0 or row >= self.Datasource.NumRows:
+            return
+        r=self.Datasource.Rows[row]
+        if r.IsTextRow:
+            return
+
+        if r.IsLinkRow:
+            # FindLinkInString strips the scheme on download, so a foreign link is stored scheme-relative.
+            url=r.SiteFilename.strip()
+            if url.startswith("//"):
+                url="https:"+url
+            elif "://" not in url:
+                url="https://"+url
+        else:
+            if not r.SiteFilename.strip():
+                return
+            base=self._PagePublicURL()
+            if r.IsSubPageRow:
+                url=base+quote(r.SiteFilename.strip(), safe='')+"/index.html"
+            else:
+                url=base+quote(r.SiteFilename.strip(), safe='')
+
+        webbrowser.open(url)
+
+
+    # ------------------
+    # The page's own public URL on fanac.org, ending in "/". _FTPbasedir/Conname is the page's full
+    # server dir (handles sub-pages); the trailing "/" serves its index.html.
+    def _PagePublicURL(self) -> str:
+        segs=[s for s in self._FTPbasedir.split("/") if s]+[self.Conname]
+        return "https://www.fanac.org/conpubs/"+"/".join(quote(s, safe='') for s in segs)+"/"
+
+
+    # ------------------
+    # Open this whole con instance page (its index.html) in the browser, regardless of the clicked row,
+    # so the user can see all the rows as they appear on the live website.
+    def OnPopupOpenContainingPage(self, event):
+        webbrowser.open(self._PagePublicURL()+"index.html")
 
 
     # ------------------
