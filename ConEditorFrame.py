@@ -5,6 +5,7 @@ import sys
 import wx
 import wx.grid
 import json
+import html
 from datetime import datetime
 
 from GenConEditorFrame import GenConEditorFrame
@@ -265,19 +266,24 @@ class ConEditorFrame(GenConEditorFrame):
             self.RefreshWindow()
             return
 
-        table, rest=FindBracketedText2(file, "fanac-table", caseInsensitive=True)
-        tbody, _=FindBracketedText2(table, "tbody", caseInsensitive=True)
-        
+        table, _=FindBracketedText2(file, "fanac-table", caseInsensitive=True)
+
+        # Read every convention link inside the table, in document order. This handles both the old
+        # single-column <table> layout and the new 3-column Bootstrap layout; non-link content (the
+        # divider) has no <a> and is naturally skipped. The divider is re-synthesized on upload.
         rows:list[Convention]=[]
+        rest=table
         while True:
-            tr, tbody=FindBracketedText2(tbody, "tr", caseInsensitive=True)
-            if tr == "":
+            a, rest=FindBracketedText2(rest, "a", caseInsensitive=True, includeBrackets=True)
+            if a == "":
                 break
-            td, _=FindBracketedText2(tr, "td", caseInsensitive=True)
-            if "----" in td:
-                continue    # Skip over dividing lines
-            _, link, text, _=FindLinkInString(td)
-            rows.append(Convention(text, link))
+            _, link, text, _=FindLinkInString(a)
+            if link == "":
+                continue
+            # Unescape both: FormatLink HTML-escapes the name and the href (e.g. '&'->'&amp;') on write, so
+            # reversing it here keeps a con whose name contains '&' from drifting on the next upload. Percent
+            # encoding in the href (e.g. "%20") is left untouched.
+            rows.append(Convention(html.unescape(text.strip()), html.unescape(link)))
 
         if len(rows) > 0:
             self.Datasource.Rows=rows
@@ -320,20 +326,15 @@ class ConEditorFrame(GenConEditorFrame):
             file=file.replace("fanac-meta-title", "SF Convention Publications and Documents — fanac.org")
             file=SubstituteHTML(file, "fanac-stuff", self.m_textCtrlTopText.GetValue())
 
-            # Now construct the table which we'll then substitute.
-            newtable="  <thead>\n"
-            newtable+="    <tr>\n"
-            newtable+='      <th scope="col">Convention</th>\n'
-            newtable+='    </tr>\n'
-            newtable+='  </thead>\n'
-            newtable+='  <tbody>\n'
+            # Render the whole list as a single multi-column list. CSS in Template-ConMain.html (the .conlist
+            # rules) balances it into 3 / 2 / 1 equal columns as the screen narrows, filling column-major so
+            # the first third stays in the left column. The divider <hr> sits inline after the grouping rows.
+            newtable='  <ul class="list-unstyled conlist">\n'
             for i, row in enumerate(self.Datasource.Rows):
-                if i == 4:  # Add a crude horizontal rule between items 3 (Misc. Cons) and 4 (1st real con)
-                    newtable+="    <tr>\n      <td>------------------</td>\n    </tr>\n"
-                newtable+="    <tr>\n"
-                newtable+='      <td>'+FormatLink(row.URL, row.Name)+'</td>\n'
-                newtable+="    </tr>\n"
-            newtable+="    </tbody>\n"
+                if i == 4:      # the divider falls between items 3 (Misc. Cons) and 4 (1st real con)
+                    newtable+='    <li><hr></li>\n'
+                newtable+=f'    <li>{FormatLink(row.URL, row.Name)}</li>\n'
+            newtable+='  </ul>\n'
 
             # Substitute the table into the template
             file=SubstituteHTML(file, "fanac-table", newtable)

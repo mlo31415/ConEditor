@@ -59,28 +59,22 @@
 
 <div>
 <div class="row border-0">
-<div class=col-md-9>
+<div class="col-xl-9">
 <fanac-stuff>Some commentary about the convention list</fanac-stuff>
 
-<table class="table">
-    <style> th, td, tr{line-height: 0px; border-style: hidden}</style>
+<style>
+  .conlist { column-count: 3; column-gap: 2rem; }
+  .conlist li { -webkit-column-break-inside: avoid; break-inside: avoid; }
+  @media (max-width: 991.98px) { .conlist { column-count: 2; } }
+  @media (max-width: 767.98px) { .conlist { column-count: 1; } }
+</style>
 <fanac-table>
-    <thead>
-    <tr>
-      <th scope="col">Convention</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Boskone</td>
-	</tr>
-  </tbody>
+  <ul class="list-unstyled conlist"><li>Boskone</li></ul>
 </fanac-table>
-</table>
 
 
 </div>
-<div class=col-md-3>
+<div class="col-xl-3">
 
     <ul class="list-unstyled" id="considecolophon">
 
