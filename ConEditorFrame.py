@@ -17,7 +17,7 @@ from FTP import FTP
 from Settings import Settings
 
 from HelpersPackage import SubstituteHTML, FindBracketedText2, FormatLink, Int, MessageBox, PyiResourcePath, FindLinkInString
-from WxHelpers import ModalDialogManager, OnCloseHandling, ProgressMessage2
+from WxHelpers import ModalDialogManager, OnCloseHandling3, ProgressMessage2
 from Log import LogOpen, Log, LogFlush, LogSetTimestamping
 
 
@@ -309,7 +309,7 @@ class ConEditorFrame(GenConEditorFrame):
 
 
     #------------------
-    def UploadMainConlist(self) -> None:
+    def UploadMainConlist(self) -> bool:
 
         with ModalDialogManager(ProgressMessage2, "Uploading index.html to fanac.org/conpubs", parent=self) as pm:
             # First read in the template
@@ -348,17 +348,19 @@ class ConEditorFrame(GenConEditorFrame):
             # Save the old file as a backup.
             if not FTP().BackupServerFile(f"/index.html"):
                 Log(f"Could not back up server file /index.html")
-                return
+                return False
 
             if not FTP().PutFileAsString("/", "index.html", file):
                 Log("Upload of /index.html failed")
                 wx.MessageBox("Upload of /index.html failed")
+                return False
 
             UpdateFTPLog.LogText("Uploaded Main convention list")
             pm.Update("Upload succeeded.", delay=0.5)
 
         self.MarkAsSaved()
         self.RefreshWindow()
+        return True
 
     #------------------
     def RefreshWindow(self) -> None:        
@@ -503,9 +505,12 @@ class ConEditorFrame(GenConEditorFrame):
         self.RefreshWindow()
 
     # ------------------
-    def OnClose(self, event):            
-        if OnCloseHandling(event, self.NeedsSaving(), "The main con list has been updated and not yet saved. Exit anyway?"):
+    def OnClose(self, event):
+        choice=OnCloseHandling3(event, self.NeedsSaving(), "The main con list has been changed but not yet uploaded.")
+        if choice == "cancel":
             return
+        if choice == "upload" and not self.UploadMainConlist():
+            return                          # upload failed -- keep the window open so the changes aren't lost
 
         # Save the window's position
         pos=self.GetPosition()

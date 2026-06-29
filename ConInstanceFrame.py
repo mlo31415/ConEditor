@@ -20,7 +20,7 @@ from Settings import Settings
 from Log import Log, LogError
 from HelpersPackage import WikiPagenameToWikiUrlname, ExtensionMatches, RemoveAccents
 from PDFHelpers import GetPdfPageCount, AddStdMetadata, AddPdfPageHeader
-from WxHelpers import OnCloseHandling, ModalDialogManager, ProgressMessage2, MessageBoxInput
+from WxHelpers import OnCloseHandling3, ModalDialogManager, ProgressMessage2, MessageBoxInput
 
 
 # The FANAC logo stamped onto uploaded PDFs' page headers. Loaded once at startup (see main() in
@@ -325,8 +325,13 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
     # ----------------------------------------------
     def OnClose(self, event):
-        if OnCloseHandling(event, self.NeedsSaving(), "This file list has been updated and not yet saved. Exit anyway?"):
+        choice=OnCloseHandling3(event, self.NeedsSaving(), "This file list has been changed but not yet uploaded.")
+        if choice == "cancel":
             return
+        if choice == "upload":
+            self.Uploaded=self.UploadConInstancePage()
+            if not self.Uploaded:
+                return                      # upload failed -- keep the window open so the changes aren't lost
 
         self.EndModal(wx.ID_OK if self.Uploaded else wx.ID_CANCEL)
 

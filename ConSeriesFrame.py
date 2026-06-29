@@ -19,7 +19,7 @@ from Settings import Settings
 
 from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText2, WikiPagenameToWikiUrlname, RemoveAccents, RemoveAllHTMLTags
 from HelpersPackage import PyiResourcePath, MessageBox, ExtractTrailingSequenceNumber
-from WxHelpers import ModalDialogManager, ProgressMessage2, OnCloseHandling, MessageBoxInput, wxMessageDialogInput, wxMessageBox
+from WxHelpers import ModalDialogManager, ProgressMessage2, OnCloseHandling3, MessageBoxInput, wxMessageDialogInput, wxMessageBox
 from Log import Log, LogError
 from FanzineDateTime import FanzineDateRange
 
@@ -1606,7 +1606,13 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         if self._fancydownloadfailed:
             self.SetReturnCode(wx.CANCEL)   # We tried a download from Fancy and it failed.
-        if OnCloseHandling(event, self.NeedsSaving(), "The convention series has been updated and not yet saved. Exit anyway?"):
+        choice=OnCloseHandling3(event, self.NeedsSaving(), "The convention series has been changed but not yet uploaded.")
+        if choice == "cancel":
+            return
+        if choice == "upload":
+            if not self.UploadConSeries():
+                return                      # upload failed -- keep the window open so the changes aren't lost
+            self.EndModal(wx.OK)
             return
 
         # If anything was uploaded to the website, then we return OK indicating something happened
