@@ -33,6 +33,15 @@ def _UnescapeUntilStable(s: str) -> str:
         s=u
 
 
+# Encode a literal '?' in a server path segment as %3F before it becomes an href. A raw '?' in an <a href>
+# starts the query string, so a browser requesting e.g. ".../Should We Bid?/index.html" asks for
+# ".../Should We Bid" (query "/index.html") and 404s. (CE reaches the same path over FTP, where '?' is an
+# ordinary character, which is why it opens fine there.) FormatLink already handles spaces and '#'-before-.pdf
+# but not '?'; unquote() on download turns the %3F back into '?', so it round-trips.
+def _EncodePathQuestion(s: str) -> str:
+    return s.replace("?", "%3F")
+
+
 # An individual file to be listed under a convention
 # This is a single row
 class ConInstanceRow(GridDataRowClass):
@@ -590,7 +599,7 @@ class ConInstance:
                 # not yet created (no folder) -> plain unlinked text, exactly like an unlinked con row on
                 # a ConSeries page. The icon is decorative and is never parsed back.
                 if row.SiteFilename.strip():
-                    newtable+=f'    <li id="conpagetable">{_SUBPAGE_ICON}{FormatLink(row.SiteFilename.strip()+"/index.html", row.DisplayTitle.strip())}'
+                    newtable+=f'    <li id="conpagetable">{_SUBPAGE_ICON}{FormatLink(_EncodePathQuestion(row.SiteFilename.strip())+"/index.html", row.DisplayTitle.strip())}'
                 else:
                     newtable+=f'    <li id="conpagetable">{html.escape(row.DisplayTitle.strip())}'
                 if len(row.Notes) > 0:
@@ -601,7 +610,7 @@ class ConInstance:
                 parts=os.path.splitext(row.DisplayTitle)
                 if parts[1].lower() in [".pdf", ".jpg", ".png", ".doc", ".docx"]:
                     s=parts[0]
-                newtable+='    <li id="conpagetable">'+FormatLink(row.SiteFilename, s.strip())
+                newtable+='    <li id="conpagetable">'+FormatLink(_EncodePathQuestion(row.SiteFilename), s.strip())
 
                 val=FormatSizes(row)
                 if len(val) > 0:
