@@ -3,7 +3,7 @@ from __future__ import annotations
 import html
 import re
 import wx, wx.grid
-from urllib.parse import quote
+from urllib.parse import quote, unquote
 from datetime import datetime
 
 from GenConSeriesFrame import GenConSeriesFrame
@@ -454,6 +454,7 @@ class ConSeriesFrame(GenConSeriesFrame):
             if u == nurl:
                 break
             nurl=u
+        nurl=unquote(nurl)      # undo %3F/%23 (and any %-encoding) so an encoded standard link is still recognized
         dirpath=RemoveAccents(name)
         if nurl in (f"{dirpath}/index.html", dirpath, f"{name}/index.html", name):
             url="index.html"
@@ -467,7 +468,10 @@ class ConSeriesFrame(GenConSeriesFrame):
     @staticmethod
     def ConNameInfoPack(name: str, url: str, extra: str) -> str:
         ename=html.escape(name)                         # display text: preserve accents
-        dirname=html.escape(RemoveAccents(name))        # href path: strip accents to match server directory
+        # href path: strip accents to match the server directory, and percent-encode '?' and '#' (which would
+        # otherwise start a query string / fragment and 404). Encode the raw name *before* html.escape so the
+        # '#' inside an escaped apostrophe ("&#x27;") is not corrupted.
+        dirname=html.escape(RemoveAccents(name).replace("?", "%3F").replace("#", "%23"))
         packed=""
         if url == "":
             packed+=ename

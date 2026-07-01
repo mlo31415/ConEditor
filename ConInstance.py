@@ -33,13 +33,14 @@ def _UnescapeUntilStable(s: str) -> str:
         s=u
 
 
-# Encode a literal '?' in a server path segment as %3F before it becomes an href. A raw '?' in an <a href>
-# starts the query string, so a browser requesting e.g. ".../Should We Bid?/index.html" asks for
-# ".../Should We Bid" (query "/index.html") and 404s. (CE reaches the same path over FTP, where '?' is an
-# ordinary character, which is why it opens fine there.) FormatLink already handles spaces and '#'-before-.pdf
-# but not '?'; unquote() on download turns the %3F back into '?', so it round-trips.
-def _EncodePathQuestion(s: str) -> str:
-    return s.replace("?", "%3F")
+# Encode the URL-significant characters '?' and '#' in a raw server path segment (%3F / %23) before it becomes
+# an href. In an <a href> a raw '?' starts the query string and a raw '#' starts the fragment, so a browser
+# requesting e.g. ".../Should We Bid?/index.html" asks for ".../Should We Bid" and 404s. (CE reaches the same
+# path over FTP, where both are ordinary characters, which is why it opens fine there.) Apply this to the raw
+# name only -- never after html-escaping, which turns "'" into "&#x27;" whose '#' must not be touched.
+# unquote() on download turns %3F/%23 back into '?'/'#', so it round-trips.
+def _EncodePathChars(s: str) -> str:
+    return s.replace("?", "%3F").replace("#", "%23")
 
 
 # An individual file to be listed under a convention
@@ -599,7 +600,7 @@ class ConInstance:
                 # not yet created (no folder) -> plain unlinked text, exactly like an unlinked con row on
                 # a ConSeries page. The icon is decorative and is never parsed back.
                 if row.SiteFilename.strip():
-                    newtable+=f'    <li id="conpagetable">{_SUBPAGE_ICON}{FormatLink(_EncodePathQuestion(row.SiteFilename.strip())+"/index.html", row.DisplayTitle.strip())}'
+                    newtable+=f'    <li id="conpagetable">{_SUBPAGE_ICON}{FormatLink(_EncodePathChars(row.SiteFilename.strip())+"/index.html", row.DisplayTitle.strip())}'
                 else:
                     newtable+=f'    <li id="conpagetable">{html.escape(row.DisplayTitle.strip())}'
                 if len(row.Notes) > 0:
@@ -610,7 +611,7 @@ class ConInstance:
                 parts=os.path.splitext(row.DisplayTitle)
                 if parts[1].lower() in [".pdf", ".jpg", ".png", ".doc", ".docx"]:
                     s=parts[0]
-                newtable+='    <li id="conpagetable">'+FormatLink(_EncodePathQuestion(row.SiteFilename), s.strip())
+                newtable+='    <li id="conpagetable">'+FormatLink(_EncodePathChars(row.SiteFilename), s.strip())
 
                 val=FormatSizes(row)
                 if len(val) > 0:
