@@ -649,7 +649,11 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 if pm is not None:
                     pm.Update(f"FAILED: {name}")
 
-            UpdateFTPLog.LogDelta(self._seriesname, self.Conname, delta)
+            # Only log a delta that actually performed a server operation. A failed upload/rename/delete or a
+            # no-op (e.g. a text- or link-row "delete", which does no FTP work) leaves Completed False, so the
+            # file never reaches the update log unless it was genuinely uploaded/changed/removed.
+            if delta.Completed:
+                UpdateFTPLog.LogDelta(self._seriesname, self._PageBreadcrumb(), delta)
 
         # The upload is complete. Start tracking changes afresh
         self.conInstanceDeltaTracker=ConInstanceDeltaTracker()
