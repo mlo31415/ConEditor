@@ -451,6 +451,11 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     if rslt == wx.ID_YES:
                         conname=testname
 
+        # Create the server folder for any sub-page that was added but never entered, so "add a sub-page +
+        # upload" makes it a real sub-page instead of a placeholder. Done before writing index.html so the
+        # newly-created sub-pages render as folder links rather than plain text.
+        self._CreatePendingSubPages(conname, pm)
+
         if not ci.Upload(conname):
             return False
 
@@ -463,6 +468,35 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         # The con instance is now saved to the server, so snapshot the current state as "saved".
         self.MarkAsSaved()
         return True
+
+
+    # ------------------
+    # Create the server folder for any sub-page row that was added but never entered/created. Mirrors what
+    # _EnterSubPage does on the first double-click (seed the sub-page's top text from the row's Notes, upload
+    # an empty index.html), and marks the row created (sets SiteFilename) so the parent page renders it as a
+    # folder link. Best-effort: a failure is logged and the row is left as an uncreated placeholder.
+    def _CreatePendingSubPages(self, conname: str, pm: ProgressMessage2=None) -> None:
+        parentpath=f"{self._FTPbasedir}/{conname}"   # sub-pages live under this page's directory
+        for r in self.Datasource.Rows:
+            if not r.IsSubPageRow or r.SiteFilename.strip():
+                continue
+            spname=r.DisplayTitle.strip()
+            if spname == "":
+                continue
+            folder=RemoveAccents(spname)
+            if pm is not None:
+                pm.Update(f"Creating sub-page '{spname}'")
+            sp=ConInstance(parentpath, self._seriesname, folder)
+            sp.IsSubPage=True
+            sp.RootSeriesName=self._rootSeriesName
+            sp.RootConName=self._rootConName
+            sp.Toptext=r.Notes      # one-time seed from the row's Notes; independent thereafter
+            sp.Credits=""
+            sp.ConInstanceRows=[]
+            if sp.Upload(folder):
+                r.SiteFilename=folder    # now created -> the parent page renders it as a folder link
+            else:
+                LogError(f"_CreatePendingSubPages: could not create sub-page '{spname}' under {parentpath}")
 
 
     # Build the PDF page-header format string and substitution items from real con-instance data.
