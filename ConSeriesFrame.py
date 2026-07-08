@@ -19,7 +19,7 @@ from Settings import Settings
 
 from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText2, WikiPagenameToWikiUrlname, RemoveAccents, RemoveAllHTMLTags
 from HelpersPackage import PyiResourcePath, MessageBox, ExtractTrailingSequenceNumber
-from WxHelpers import ModalDialogManager, ProgressMessage2, OnCloseHandling3, MessageBoxInput, wxMessageDialogInput, wxMessageBox
+from WxHelpers import ModalDialogManager, ProgressMessage2, OnCloseHandling3, MessageBoxInput, wxMessageDialogInput, wxMessageBox, SetWindowIcon
 from Log import Log, LogError
 from FanzineDateTime import FanzineDateRange
 
@@ -198,6 +198,7 @@ class ExtrasDialog(GenExtrasDialog):
 class ConSeriesFrame(GenConSeriesFrame):
     def __init__(self, basedirFTP: str, conseriesname: str, conserieslist: list[str], show: bool=True) -> None:
         GenConSeriesFrame.__init__(self, None)
+        SetWindowIcon(self, PyiResourcePath("ConEditor.ico"))
 
         self._basedirectoryFTP: str=basedirFTP
         Log(f"ConSeriesFrame: {self._basedirectoryFTP=}", Flush=True)

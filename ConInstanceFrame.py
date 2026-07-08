@@ -18,9 +18,9 @@ from ConInstanceDeltaTracker import ConInstanceDeltaTracker, UpdateFTPLog
 from FTP import FTP
 from Settings import Settings
 from Log import Log, LogError
-from HelpersPackage import WikiPagenameToWikiUrlname, ExtensionMatches, RemoveAccents
+from HelpersPackage import WikiPagenameToWikiUrlname, ExtensionMatches, RemoveAccents, PyiResourcePath
 from PDFHelpers import GetPdfPageCount, AddStdMetadata, AddPdfPageHeader
-from WxHelpers import OnCloseHandling3, ModalDialogManager, ProgressMessage2, MessageBoxInput
+from WxHelpers import OnCloseHandling3, ModalDialogManager, ProgressMessage2, MessageBoxInput, SetWindowIcon
 
 
 # The FANAC logo stamped onto uploaded PDFs' page headers. Loaded once at startup (see main() in
@@ -90,6 +90,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     def __init__(self, basedirFTP: str, seriesname: str, conname: str, prevconname: str= "", nextconname: str= "", Create: bool=False, pm=None,
                  is_subpage: bool=False, rootSeriesName: str="", rootConName: str=""):
         GenConInstanceFrame.__init__(self, None)
+        SetWindowIcon(self, PyiResourcePath("ConEditor.ico"))
 
         # Sub-page support. When this dialog is editing a sub-page (SP) rather than a con instance, it
         # carries the identity of the owning con (the "root CIP") so the generated page can link back to

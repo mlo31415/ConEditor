@@ -17,7 +17,7 @@ from FTP import FTP
 from Settings import Settings
 
 from HelpersPackage import SubstituteHTML, FindBracketedText2, FormatLink, Int, MessageBox, PyiResourcePath, FindLinkInString
-from WxHelpers import ModalDialogManager, OnCloseHandling3, ProgressMessage2
+from WxHelpers import ModalDialogManager, OnCloseHandling3, ProgressMessage2, SetWindowIcon
 from Log import LogOpen, Log, LogFlush, LogSetTimestamping
 
 
@@ -67,7 +67,7 @@ def main():
         with open(PyiResourcePath("Fanac logo for pdf headers.jpg"), "rb") as f:
             SetHeaderLogo(f.read())
     except Exception as e:
-        Log(f"Main: could not load 'Fanac logo for pdf headers.jpg'; PDF headers will have no logo: {e}")
+        Log(f"Main: could not load 'Fanac logo for pdf headers.jpg'; PDF headers will have no logo: {e}", isError=True)
 
     with open("FTP Credentials.json") as f:
         UpdateFTPLog.Init(json.loads(f.read())["ID"], "/updatelog.txt")
@@ -189,6 +189,7 @@ class ConList(GridDataSource):
 class ConEditorFrame(GenConEditorFrame):
     def __init__(self, parent):
         GenConEditorFrame.__init__(self, parent)
+        SetWindowIcon(self, PyiResourcePath("ConEditor.ico"))   # title-bar/taskbar icon (bundled in the exe via the .spec)
 
         # Class instance variables associated with RMB actions, etc.
         self.userSelection=None
