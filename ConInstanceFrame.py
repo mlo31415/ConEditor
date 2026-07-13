@@ -85,6 +85,15 @@ def _CleanTitle(display_title: str) -> str:
 
 
 #####################################################################################
+# Bridges files dragged from a file-explorer window onto the con-instance grid to the frame's drop handler.
+class _GridFileDropTarget(wx.FileDropTarget):
+    def __init__(self, frame):
+        super().__init__()
+        self._frame=frame
+    def OnDropFiles(self, x: int, y: int, filenames: list[str]) -> bool:
+        return self._frame._OnFilesDropped(x, y, filenames)
+
+
 class ConInstanceDialogClass(GenConInstanceFrame):
 
     def __init__(self, basedirFTP: str, seriesname: str, conname: str, prevconname: str= "", nextconname: str= "", Create: bool=False, pm=None,
@@ -103,6 +112,12 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.Datasource=ConInstanceDatasource()
 
         self._grid.HideRowLabels()
+
+        # Accept PDF/image files dragged in from a file-explorer window: they are added exactly like "Add
+        # Files", inserted just below the row nearest the drop point (see _OnFilesDropped). Keep a reference
+        # to the drop target so the Python object isn't garbage-collected out from under the C++ side.
+        self._fileDropTarget=_GridFileDropTarget(self)
+        self.gRowGrid.GetGridWindow().SetDropTarget(self._fileDropTarget)
 
         self._FTPbasedir=basedirFTP # The root of the convention's files, e.g., "/seriesName" (for a sub-page, the parent page's full path)
         self._seriesname=seriesname # The name of the series
@@ -283,16 +298,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             if len(fn) ==0:
                 continue
 
-            # We need to try to make the fn into a somewhat more useful display title.
-            # Commonly, file names are prefixed by <year> <conseriesname> <con number/con year>, so we'll remove those if we find them.
-            _, dname=os.path.split(fn)
-            m=re.match(r"\s*[0-9]{0,4}\s*"+seriesname+r"\s*(\'?[0-9]+|[IVXL]+|)\s*(.+)$", dname, flags=re.IGNORECASE)
-            if m is not None and len(m.groups()) == 2:
-                dname=m.groups()[1]
-            # The conventions in the series may also have unique names rather than something like 'conseries 15', so we actually plug in the name
-            m=re.match(r"\s*[0-9]{0,4}\s*"+self.Conname+r"\s*(.*)$", dname, flags=re.IGNORECASE)
-            if m is not None and len(m.groups()) == 1:
-                dname=m.groups()[0]
+            # Turn the file name into a more useful display title (strip a leading year/series/con prefix).
+            dname=self._DisplayTitleFromFilename(fn, seriesname)
 
             if replacerow is None:
                 conf: ConInstanceRow=ConInstanceRow()       # This is a new row
@@ -318,6 +325,64 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         dlg.Destroy()
         self.RefreshWindow()
         return
+
+    # ----------------------------------------------
+    # Turn a source file name into a display title by stripping a leading "<year> <series> <num>" and/or
+    # "<year> <con>" prefix (the historical Add-Files behavior). Accepts a bare name or a full path.
+    def _DisplayTitleFromFilename(self, filename: str, seriesname: str) -> str:
+        _, dname=os.path.split(filename)
+        m=re.match(r"\s*[0-9]{0,4}\s*"+seriesname+r"\s*(\'?[0-9]+|[IVXL]+|)\s*(.+)$", dname, flags=re.IGNORECASE)
+        if m is not None and len(m.groups()) == 2:
+            dname=m.groups()[1]
+        m=re.match(r"\s*[0-9]{0,4}\s*"+self.Conname+r"\s*(.*)$", dname, flags=re.IGNORECASE)
+        if m is not None and len(m.groups()) == 1:
+            dname=m.groups()[0]
+        return dname
+
+    # ----------------------------------------------
+    # A file (or files) was dragged from a file-explorer window onto the grid. Add the PDF/image files
+    # exactly as "Add Files" does, inserting them just BELOW the row nearest the drop point (at the top when
+    # the grid is empty). Non-file or unsupported items are skipped. Returns True if anything was added.
+    _DROP_EXTS=(".pdf", ".jpg", ".jpeg", ".png", ".gif")
+
+    def _OnFilesDropped(self, x: int, y: int, filenames: list[str]) -> bool:
+        try:
+            accepted=[f for f in filenames if os.path.isfile(f) and os.path.splitext(f)[1].lower() in self._DROP_EXTS]
+            skipped=[f for f in filenames if f not in accepted]
+            if not accepted:
+                if filenames:
+                    wx.MessageBox("None of the dropped items is a file ConEditor can add (PDF, JPG, PNG, GIF).",
+                                  "Nothing added", wx.OK | wx.ICON_INFORMATION)
+                return False
+
+            # Insert just below the row nearest the drop point. YToRow() returns wx.NOT_FOUND when the drop is
+            # below the last row (or the grid is empty) -> append at the end (the first line when empty).
+            _, uy=self.gRowGrid.CalcUnscrolledPosition(x, y)
+            row=self.gRowGrid.YToRow(uy)
+            insertAt=self.Datasource.NumRows if row == wx.NOT_FOUND else row+1
+
+            for i, path in enumerate(accepted):
+                conf=ConInstanceRow()
+                conf.SourceFilename=os.path.basename(path)
+                conf.SourcePathname=path
+                conf.Pages=GetPdfPageCount(path)
+                conf.Size=os.path.getsize(path)/(1024**2)
+                dname=self._DisplayTitleFromFilename(path, self._seriesname)
+                conf.SiteFilename=dname
+                conf.DisplayTitle=dname
+                self.conInstanceDeltaTracker.Add(conf)
+                self.Datasource.Rows.insert(insertAt+i, conf)
+
+            self.RefreshWindow()
+            self.gRowGrid.ForceRefresh()
+            if skipped:
+                wx.MessageBox(f"Added {len(accepted)} file(s). Skipped (not PDF/JPG/PNG/GIF):\n" +
+                              "\n".join(os.path.basename(s) for s in skipped), "Some files skipped", wx.OK | wx.ICON_INFORMATION)
+            return True
+        except Exception as e:
+            import traceback
+            LogError(f"_OnFilesDropped: failed to add dropped files: {e}\n{traceback.format_exc()}")
+            return False
 
     # ----------------------------------------------
     def OnUploadConInstance(self, event):
