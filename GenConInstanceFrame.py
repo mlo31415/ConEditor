@@ -152,14 +152,13 @@ class GenConInstanceFrame ( wx.Dialog ):
 		self.m_popupInsertText = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Insert Text Line", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_GridPopup.Append( self.m_popupInsertText )
 
-		self.m_popupUpdateFile = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Update File", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_GridPopup.Append( self.m_popupUpdateFile )
-
 		self.m_popupInsertLink = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Insert Link Line", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_GridPopup.Append( self.m_popupInsertLink )
 
 		self.m_popupAllowEditCell = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Allow Cell Edit", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_GridPopup.Append( self.m_popupAllowEditCell )
+
+		self.m_GridPopup.AppendSeparator()
 
 		self.m_popupPublications = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"+Publications", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_GridPopup.Append( self.m_popupPublications )
@@ -182,6 +181,11 @@ class GenConInstanceFrame ( wx.Dialog ):
 		self.m_popupBidding = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"+Bidding", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_GridPopup.Append( self.m_popupBidding )
 
+		self.m_GridPopup.AppendSeparator()
+
+		self.m_popupUpdateFile = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Update File", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_GridPopup.Append( self.m_popupUpdateFile )
+
 		self.m_popupRegenPDFHeader = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Regenerate PDF Header", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_GridPopup.Append( self.m_popupRegenPDFHeader )
 
@@ -190,6 +194,8 @@ class GenConInstanceFrame ( wx.Dialog ):
 
 		self.m_popupOpenContainingPage = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Open Full Page in Browser", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_GridPopup.Append( self.m_popupOpenContainingPage )
+
+		self.m_GridPopup.AppendSeparator()
 
 		self.m_popupCreateSubPage = wx.MenuItem( self.m_GridPopup, wx.ID_ANY, u"Create Sub-Page", wx.EmptyString, wx.ITEM_NORMAL )
 		self.m_GridPopup.Append( self.m_popupCreateSubPage )
