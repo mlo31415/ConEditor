@@ -87,6 +87,7 @@ def _CleanTitle(display_title: str) -> str:
 #####################################################################################
 # Background tint marking the row a drag-and-drop would insert above / push down (see _UpdateDragHighlight).
 _DRAG_HIGHLIGHT_COLOR=wx.Colour(198, 224, 255)   # light blue, distinct from the grid's pink/decoration colors
+_ROW_DRAG_THRESHOLD=5   # pixels of vertical movement before a press-inside-a-selection becomes a row drag
 
 
 # Bridges files dragged from a file-explorer window onto the con-instance grid to the frame's drop handler.
@@ -129,6 +130,25 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self._fileDropTarget=_GridFileDropTarget(self)
         self.gRowGrid.GetGridWindow().SetDropTarget(self._fileDropTarget)
         self._dragHighlightRow=None     # the grid row currently tinted to show a drag-drop target, or None
+
+        # Drag rows up/down to reorder them (alongside the arrow-key reorder). Two entry points: a drag that
+        # starts on an UNSELECTED row fires EVT_GRID_CELL_BEGIN_DRAG (EnableDragCell) and moves that one row;
+        # a drag that starts INSIDE the current selection is caught in _OnGridLeftDown -- we consume the click
+        # so the grid can't collapse the selection -- and detected by a movement threshold in _OnRowDragMotion.
+        # The drop target is shown with the same row highlight as the file-drop feature, and a timer
+        # auto-scrolls the grid while the cursor is held near a top/bottom edge.
+        self._rowDragBlock=None          # (top, bottom) of the block being actively dragged, or None
+        self._armedDragBlock=None        # (top, bottom) grabbed inside a selection on left-down, pending a drag
+        self._armedDragStartY=0
+        self._armedDragRow=0
+        self.gRowGrid.EnableDragCell(True)
+        self.gRowGrid.Bind(wx.grid.EVT_GRID_CELL_BEGIN_DRAG, self._OnRowBeginDrag)
+        _gw=self.gRowGrid.GetGridWindow()
+        _gw.Bind(wx.EVT_LEFT_DOWN, self._OnGridLeftDown)
+        _gw.Bind(wx.EVT_MOTION, self._OnRowDragMotion)
+        _gw.Bind(wx.EVT_LEFT_UP, self._OnRowDragEnd)
+        self._dragScrollTimer=wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self._OnDragScrollTick, self._dragScrollTimer)
 
         self._FTPbasedir=basedirFTP # The root of the convention's files, e.g., "/seriesName" (for a sub-page, the parent page's full path)
         self._seriesname=seriesname # The name of the series
@@ -428,6 +448,111 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         if r is not None and 0 <= r < self.Datasource.NumRows:
             self._grid.RefreshWxGridFromDatasource(StartRow=r, EndRow=r)
             self.gRowGrid.ForceRefresh()
+
+    # ----------------------------------------------
+    # ----- Drag rows up/down to reorder them -----
+    # Left-down: if it lands INSIDE the current selection, grab the block to drag -- consume the event so the
+    # grid can't collapse the selection, and arm a drag that _OnRowDragMotion starts once the mouse moves.
+    # Otherwise let the grid select normally (a drag on an unselected row starts via begin-drag = one row).
+    def _OnGridLeftDown(self, event) -> None:
+        self._armedDragBlock=None
+        try:
+            _, uy=self.gRowGrid.CalcUnscrolledPosition(*event.GetPosition())
+            row=self.gRowGrid.YToRow(uy)
+            if row >= 0 and self._grid.HasSelection():
+                top, _l, bottom, _r=self._grid.LocateSelection()
+                if top <= row <= bottom:
+                    self._armedDragBlock=(top, bottom)
+                    self._armedDragStartY=uy
+                    self._armedDragRow=row
+                    return          # consumed: selection preserved, no rubber-band, no begin-drag
+        except Exception:
+            self._armedDragBlock=None
+        event.Skip()
+
+    # begin-drag fires only for a drag started on a row NOT in the selection (its left-down was Skipped, so the
+    # grid selected that single row) -> drag just that row.
+    def _OnRowBeginDrag(self, event) -> None:
+        startRow=event.GetRow()
+        if 0 <= startRow < self.Datasource.NumRows:
+            self._StartRowDrag((startRow, startRow))
+
+    def _StartRowDrag(self, block) -> None:
+        self._rowDragBlock=block
+        self._grid.SelectRows(block[0], block[1])
+        self._dragScrollTimer.Start(60)     # auto-scroll while the cursor is held near a top/bottom edge
+
+    def _EndRowDrag(self) -> None:
+        self._rowDragBlock=None
+        self._dragScrollTimer.Stop()
+        self._ClearDragHighlight()
+
+    # While dragging (or while armed and awaiting the movement threshold), mark the row the block would be
+    # inserted ABOVE. We own these events (no Skip) so the grid does not rubber-band-select.
+    def _OnRowDragMotion(self, event) -> None:
+        if self._rowDragBlock is not None:
+            if not event.LeftIsDown():      # button released off the grid -> abandon the move
+                self._EndRowDrag()
+                event.Skip()
+                return
+            self._UpdateDragHighlight(*event.GetPosition())
+            return
+        if self._armedDragBlock is not None and event.LeftIsDown():
+            _, uy=self.gRowGrid.CalcUnscrolledPosition(*event.GetPosition())
+            if abs(uy-self._armedDragStartY) > _ROW_DRAG_THRESHOLD:
+                block=self._armedDragBlock
+                self._armedDragBlock=None
+                self._StartRowDrag(block)
+                self._UpdateDragHighlight(*event.GetPosition())
+            return          # consumed the down -> own these events even before the threshold
+        event.Skip()
+
+    # Drop: move the block just ABOVE the row under the cursor (append at the end past the last row).
+    def _OnRowDragEnd(self, event) -> None:
+        armed=self._armedDragBlock is not None
+        self._armedDragBlock=None
+        block=self._rowDragBlock
+        if block is None:
+            if not armed:                   # not our gesture
+                event.Skip()
+            else:                           # pressed inside the selection but never dragged -> a plain click:
+                self._grid.SelectRows(self._armedDragRow, self._armedDragRow)    # collapse to that row (Explorer-style)
+            return
+        self._EndRowDrag()
+        try:
+            top, bottom=block
+            count=bottom-top+1
+            _, uy=self.gRowGrid.CalcUnscrolledPosition(*event.GetPosition())
+            row=self.gRowGrid.YToRow(uy)
+            ins=self.Datasource.NumRows if row == wx.NOT_FOUND else row      # the block lands ABOVE this row
+            if top <= ins <= bottom+1:
+                return          # dropped onto (or right below) the block itself -> no move
+            newrow=ins if ins < top else ins-count                          # account for the removed block
+            if newrow != top:
+                self._grid.MoveRows(top, count, newrow)
+                self.RefreshWindow()
+                self._grid.SelectRows(newrow, newrow+count-1)               # keep the moved block selected
+                self.gRowGrid.ForceRefresh()
+        except Exception as e:
+            import traceback
+            LogError(f"_OnRowDragEnd: row move failed: {e}\n{traceback.format_exc()}")
+
+    # While a row drag hovers near the top/bottom edge, scroll the grid so off-screen rows become reachable.
+    # Motion events stop firing when the cursor is held still, so a timer drives the scrolling.
+    def _OnDragScrollTick(self, event) -> None:
+        if self._rowDragBlock is None:
+            self._dragScrollTimer.Stop()
+            return
+        gw=self.gRowGrid.GetGridWindow()
+        pt=gw.ScreenToClient(wx.GetMousePosition())
+        h=gw.GetClientSize().height
+        if pt.y < 24:
+            self.gRowGrid.ScrollLines(-1)
+        elif pt.y > h-24:
+            self.gRowGrid.ScrollLines(1)
+        else:
+            return
+        self._UpdateDragHighlight(pt.x, pt.y)   # re-evaluate the target row after the scroll
 
     # ----------------------------------------------
     def OnUploadConInstance(self, event):
