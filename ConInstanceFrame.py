@@ -85,6 +85,10 @@ def _CleanTitle(display_title: str) -> str:
 
 
 #####################################################################################
+# Background tint marking the row a drag-and-drop would insert above / push down (see _UpdateDragHighlight).
+_DRAG_HIGHLIGHT_COLOR=wx.Colour(198, 224, 255)   # light blue, distinct from the grid's pink/decoration colors
+
+
 # Bridges files dragged from a file-explorer window onto the con-instance grid to the frame's drop handler.
 class _GridFileDropTarget(wx.FileDropTarget):
     def __init__(self, frame):
@@ -92,6 +96,12 @@ class _GridFileDropTarget(wx.FileDropTarget):
         self._frame=frame
     def OnDropFiles(self, x: int, y: int, filenames: list[str]) -> bool:
         return self._frame._OnFilesDropped(x, y, filenames)
+    def OnDragOver(self, x: int, y: int, defResult):
+        # Fired continuously during the drag: tint the row the files would be inserted above (it gets pushed down).
+        self._frame._UpdateDragHighlight(x, y)
+        return defResult
+    def OnLeave(self):
+        self._frame._ClearDragHighlight()
 
 
 class ConInstanceDialogClass(GenConInstanceFrame):
@@ -114,10 +124,11 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self._grid.HideRowLabels()
 
         # Accept PDF/image files dragged in from a file-explorer window: they are added exactly like "Add
-        # Files", inserted just below the row nearest the drop point (see _OnFilesDropped). Keep a reference
+        # Files", inserted just above the row nearest the drop point (see _OnFilesDropped). Keep a reference
         # to the drop target so the Python object isn't garbage-collected out from under the C++ side.
         self._fileDropTarget=_GridFileDropTarget(self)
         self.gRowGrid.GetGridWindow().SetDropTarget(self._fileDropTarget)
+        self._dragHighlightRow=None     # the grid row currently tinted to show a drag-drop target, or None
 
         self._FTPbasedir=basedirFTP # The root of the convention's files, e.g., "/seriesName" (for a sub-page, the parent page's full path)
         self._seriesname=seriesname # The name of the series
@@ -341,12 +352,14 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
     # ----------------------------------------------
     # A file (or files) was dragged from a file-explorer window onto the grid. Add the PDF/image files
-    # exactly as "Add Files" does, inserting them just BELOW the row nearest the drop point (at the top when
-    # the grid is empty). Non-file or unsupported items are skipped. Returns True if anything was added.
+    # exactly as "Add Files" does, inserting them just ABOVE the row nearest the drop point (which pushes that
+    # row and everything below it down; appended at the end when dropped past the last row / empty grid).
+    # Non-file or unsupported items are skipped. Returns True if anything was added.
     _DROP_EXTS=(".pdf", ".jpg", ".jpeg", ".png", ".gif")
 
     def _OnFilesDropped(self, x: int, y: int, filenames: list[str]) -> bool:
         try:
+            self._ClearDragHighlight()      # remove the hover tint before the insert renumbers the rows
             accepted=[f for f in filenames if os.path.isfile(f) and os.path.splitext(f)[1].lower() in self._DROP_EXTS]
             skipped=[f for f in filenames if f not in accepted]
             if not accepted:
@@ -355,11 +368,12 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                                   "Nothing added", wx.OK | wx.ICON_INFORMATION)
                 return False
 
-            # Insert just below the row nearest the drop point. YToRow() returns wx.NOT_FOUND when the drop is
-            # below the last row (or the grid is empty) -> append at the end (the first line when empty).
+            # Insert just ABOVE the row nearest the drop point (the drop row and everything below it get pushed
+            # down). YToRow() returns wx.NOT_FOUND when the drop is past the last row (or the grid is empty) ->
+            # append at the end (the first line when empty).
             _, uy=self.gRowGrid.CalcUnscrolledPosition(x, y)
             row=self.gRowGrid.YToRow(uy)
-            insertAt=self.Datasource.NumRows if row == wx.NOT_FOUND else row+1
+            insertAt=self.Datasource.NumRows if row == wx.NOT_FOUND else min(row, self.Datasource.NumRows)
 
             for i, path in enumerate(accepted):
                 conf=ConInstanceRow()
@@ -383,6 +397,37 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             import traceback
             LogError(f"_OnFilesDropped: failed to add dropped files: {e}\n{traceback.format_exc()}")
             return False
+
+    # ----------------------------------------------
+    # During a file drag over the grid, tint the row the files would be inserted ABOVE (it and everything below
+    # get pushed down) so the user sees the target.
+    # Only repaints when the hovered row changes (OnDragOver fires continuously). Cosmetic only -- it touches
+    # cell background color, never data; _ClearDragHighlight restores the row's proper colors.
+    def _UpdateDragHighlight(self, x: int, y: int) -> None:
+        try:
+            _, uy=self.gRowGrid.CalcUnscrolledPosition(x, y)
+            row=self.gRowGrid.YToRow(uy)
+            if row == wx.NOT_FOUND:                  # past the last row -> the files land below the last row
+                row=self.Datasource.NumRows-1
+            if row == self._dragHighlightRow:
+                return
+            self._ClearDragHighlight()               # reset the previously-tinted row
+            if 0 <= row < self.Datasource.NumRows:
+                for col in range(self.gRowGrid.GetNumberCols()):
+                    self._grid.SetCellBackgroundColor(row, col, _DRAG_HIGHLIGHT_COLOR)
+                self.gRowGrid.ForceRefresh()
+                self._dragHighlightRow=row
+        except Exception:
+            pass    # a hover hint is never worth disrupting the drag
+
+    # ----------------------------------------------
+    # Remove the drag hover tint, restoring the row's normal colors.
+    def _ClearDragHighlight(self) -> None:
+        r=self._dragHighlightRow
+        self._dragHighlightRow=None
+        if r is not None and 0 <= r < self.Datasource.NumRows:
+            self._grid.RefreshWxGridFromDatasource(StartRow=r, EndRow=r)
+            self.gRowGrid.ForceRefresh()
 
     # ----------------------------------------------
     def OnUploadConInstance(self, event):
