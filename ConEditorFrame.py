@@ -17,7 +17,7 @@ from FTP import FTP
 from Settings import Settings
 
 from HelpersPackage import SubstituteHTML, FindBracketedText2, FormatLink, Int, MessageBox, PyiResourcePath, FindLinkInString
-from WxHelpers import ModalDialogManager, OnCloseHandling3, ProgressMessage2, SetWindowIcon
+from WxHelpers import ModalDialogManager, OnCloseHandling3, ProgressMessage2, SetWindowIcon, RestoreWindowPlacement
 from Log import LogOpen, Log, LogFlush, LogSetTimestamping
 
 
@@ -206,14 +206,7 @@ class ConEditorFrame(GenConEditorFrame):
         # Position the window on the screen it was on before.
         # If that position is now off all connected screens (e.g. a monitor was unplugged),
         # centre on the primary display instead.
-        tlwp=Settings().Get("Top Level Window Position")
-        if tlwp:
-            self.SetPosition(tlwp)
-            pos=wx.Point(*tlwp)
-            on_screen=any(wx.Display(i).GetGeometry().Contains(pos)
-                          for i in range(wx.Display.GetCount()))
-            if not on_screen:
-                self.Centre()
+        RestoreWindowPlacement(self, Settings().Get("Top Level Window Position"), None)
 
         self.DownloadMainConlist()
         self.MarkAsSaved()
