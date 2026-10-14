@@ -4,7 +4,6 @@ import os
 import re
 import sys
 import html
-import json
 from urllib.parse import quote, unquote
 
 from datetime import datetime
@@ -540,20 +539,7 @@ class ConInstance:
             f'    <meta property="og:site_name"   content="fanac.org — Science Fiction Fan History Archive">\n'
         )
 
-        # JSON-LD Event structured data
-        ld={
-            "@context": "https://schema.org",
-            "@type":    "Event",
-            "name":     conname,
-            "url":      canonical_url,
-            "description": description,
-            "organizer":   {"@type": "Organization", "name": self._seriesname},
-            "isPartOf":    {"@type": "WebSite", "name": "fanac.org",
-                            "url": "https://fanac.org/"},
-        }
-        ld_tag=f'    <script type="application/ld+json">\n{json.dumps(ld, indent=4)}\n    </script>\n'
-
-        file=file.replace("</head>", og+ld_tag+"</head>", 1)
+        file=file.replace("</head>", og+"</head>", 1)
         file=SubstituteHTML(file, "fanac-instance", fancylink)
         file=SubstituteHTML(file, "fanac-stuff", self.Toptext)
 
