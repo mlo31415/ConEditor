@@ -530,16 +530,6 @@ class ConInstance:
         file=file.replace("fanac-meta-description", html.escape(description))
         file=file.replace("fanac-meta-keywords",    html.escape(keywords))
 
-        # Open Graph tags
-        og=(
-            f'    <meta property="og:title"       content="{html.escape(conname)} — fanac.org">\n'
-            f'    <meta property="og:description" content="{html.escape(description[:200])}">\n'
-            f'    <meta property="og:url"         content="{html.escape(canonical_url)}">\n'
-            f'    <meta property="og:type"        content="website">\n'
-            f'    <meta property="og:site_name"   content="fanac.org — Science Fiction Fan History Archive">\n'
-        )
-
-        file=file.replace("</head>", og+"</head>", 1)
         file=SubstituteHTML(file, "fanac-instance", fancylink)
         file=SubstituteHTML(file, "fanac-stuff", self.Toptext)
 

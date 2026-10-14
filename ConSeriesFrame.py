@@ -556,18 +556,9 @@ class ConSeriesFrame(GenConSeriesFrame):
             file=file.replace("fanac-meta-description", html.escape(description))
             file=file.replace("fanac-meta-keywords",    html.escape(keywords))
 
-            # Open Graph tags
-            og=(
-                f'    <meta property="og:title"       content="{html.escape(self.Seriesname)} — fanac.org">\n'
-                f'    <meta property="og:description" content="{html.escape(description[:200])}">\n'
-                f'    <meta property="og:url"         content="{html.escape(canonical_url)}">\n'
-                f'    <meta property="og:type"        content="website">\n'
-                f'    <meta property="og:site_name"   content="fanac.org — Science Fiction Fan History Archive">\n'
-            )
-
             # No per-con-instance JSON-LD here: the structured data for each individual con is carried by
             # that con's own instance page. The series page keeps only the lightweight series-level meta.
-            file=file.replace("</head>", og+"</head>", 1)
+            # (Open Graph tags come from the template.)
             file=SubstituteHTML(file, "fanac-instance", link)
             file=SubstituteHTML(file, "fanac-headertext", self.TextComments)
 
