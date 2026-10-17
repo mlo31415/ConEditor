@@ -73,6 +73,12 @@ class ConInstanceDeltaTracker:
         # If it doesn't match anything in the delta list, then it must be a rename of an existing file.
         self._deltas.append(Delta("rename", con, oldname))
 
+    # Drop every pending change for this row. Used when a row's file is abandoned (e.g. its link is replaced
+    # with a foreign URL). Unlike Delete(), this never queues a server delete -- a file already on the website
+    # is simply left there as an orphan.
+    def Forget(self, con: ConInstanceRow) -> None:
+        self._deltas=[d for d in self._deltas if d.Con is not con]
+
     # We want to replace one file with another
     def Replace(self, con: ConInstanceRow, oldname: str):
         # Check to see if the replacement is in a row yet to be uploaded or a row which has been renamed.

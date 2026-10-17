@@ -125,6 +125,48 @@ def _LinkFromPaste(pasted: str) -> tuple[str, str]:
     return url, text
 
 
+# Where Replace URL's Browse button sends the web browser: the URL in the box if it has one (adding "https://"
+# if it has no scheme), or, with the box empty, this con instance's own page on fanac.org.
+def _BrowseTarget(url: str, pageURL: str) -> str:
+    url=url.strip()
+    if url == "":
+        return pageURL
+    if re.match(r"^https?:", url, flags=re.IGNORECASE):
+        return url
+    if url.startswith("//"):
+        return "https:"+url
+    return "https://"+url
+
+
+# The Replace URL dialog:  New URL: <box> <Browse...>   <OK> <Cancel>
+class _ReplaceURLDialog(wx.Dialog):
+    def __init__(self, parent, url: str, pageURL: str) -> None:
+        wx.Dialog.__init__(self, parent, title="Replace URL")
+        self._pageURL=pageURL
+        self.tURL=wx.TextCtrl(self, value=url, size=(520, -1))
+        bBrowse=wx.Button(self, label="Browse...")
+        bBrowse.SetToolTip("Open the URL in the box -- or, if it's empty, this con page -- in your web browser, "
+                           "to find the page you want and copy its address into the box")
+        bBrowse.Bind(wx.EVT_BUTTON, self.OnBrowse)
+        line=wx.BoxSizer(wx.HORIZONTAL)
+        line.Add(wx.StaticText(self, label="New URL:"), 0, wx.ALIGN_CENTER_VERTICAL|wx.RIGHT, 8)
+        line.Add(self.tURL, 1, wx.ALIGN_CENTER_VERTICAL|wx.RIGHT, 8)
+        line.Add(bBrowse, 0, wx.ALIGN_CENTER_VERTICAL)
+        sizer=wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(line, 0, wx.EXPAND|wx.ALL, 12)
+        sizer.Add(self.CreateStdDialogButtonSizer(wx.OK|wx.CANCEL), 0, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, 12)
+        self.SetSizerAndFit(sizer)
+        self.CentreOnParent()
+        self.tURL.SetFocus()
+        self.tURL.SelectAll()
+
+    def GetValue(self) -> str:
+        return self.tURL.GetValue().strip()
+
+    def OnBrowse(self, event) -> None:
+        webbrowser.open(_BrowseTarget(self.GetValue(), self._pageURL))
+
+
 class ConInstanceDialogClass(GenConInstanceFrame):
 
     def __init__(self, basedirFTP: str, seriesname: str, conname: str, prevconname: str= "", nextconname: str= "", Create: bool=False, pm=None,
@@ -169,6 +211,12 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         _gw.Bind(wx.EVT_LEFT_UP, self._OnRowDragEnd)
         self._dragScrollTimer=wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self._OnDragScrollTick, self._dragScrollTimer)
+
+        # "Replace URL" RMB item: point a row at a different URL (see OnPopupReplaceURL). Added here in code
+        # rather than in ConEditor.fbp/GenConInstanceFrame.py, which is generated. Placed just below "Update File".
+        self.m_popupReplaceURL=wx.MenuItem(self.m_GridPopup, wx.ID_ANY, "Replace URL", wx.EmptyString, wx.ITEM_NORMAL)
+        self.m_GridPopup.Insert(self.m_GridPopup.GetMenuItems().index(self.m_popupUpdateFile)+1, self.m_popupReplaceURL)
+        self.Bind(wx.EVT_MENU, self.OnPopupReplaceURL, id=self.m_popupReplaceURL.GetId())
 
         self._FTPbasedir=basedirFTP # The root of the convention's files, e.g., "/seriesName" (for a sub-page, the parent page's full path)
         self._seriesname=seriesname # The name of the series
@@ -1065,6 +1113,12 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             if not r.IsTextRow and r.SiteFilename.strip():
                 self.m_popupOpenInBrowser.Enabled=True
 
+        # "Replace URL" points a file or link row at a different URL. Not meaningful for a text heading or a
+        # not-yet-created sub-page row.
+        self.m_popupReplaceURL.Enabled=(row < self.Datasource.NumRows
+                                        and not self.Datasource.Rows[row].IsTextRow
+                                        and not self.Datasource.Rows[row].IsSubPageRow)
+
         self.PopupMenu(self.m_GridPopup, pos=self.gRowGrid.Position+event.Position)
 
 
@@ -1264,6 +1318,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.m_popupInsertText.Enabled=False
         self.m_popupInsertLink.Enabled=False
         self.m_popupUpdateFile.Enabled=False
+        self.m_popupReplaceURL.Enabled=False
         self.m_popupAllowEditCell.Enabled=False
         self.m_popupDeleteRow.Enabled=False
 
@@ -1642,6 +1697,42 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             self._grid.AllowCellEdit(irow, icol)
 
         # Log("OnPopupInsertLink(): About to refresh")
+        self.RefreshWindow()
+
+    # ------------------
+    # Point a row at a different URL. The new link may be a plain URL, one missing "https://", or a pasted HTML
+    # '<a href=...>' link. The row becomes a Link row holding that URL verbatim, keeping its display text. A file
+    # already uploaded for the row is left on the server (not deleted); a file not yet uploaded is dropped from
+    # the pending changes (the user is asked first).
+    def OnPopupReplaceURL(self, event):
+        irow=self._grid.clickedRow
+        if irow < 0 or irow >= self.Datasource.NumRows:
+            return
+        row=self.Datasource.Rows[irow]
+        if row.IsTextRow or row.IsSubPageRow:
+            return
+        with _ReplaceURLDialog(self, row.SiteFilename, self._PagePublicURL()) as dlg:
+            if dlg.ShowModal() != wx.ID_OK:
+                return
+            url, _=_LinkFromPaste(dlg.GetValue())
+        if url == "" or url == row.SiteFilename.strip():
+            return
+
+        # If the row still has a local file waiting to be uploaded, replacing it with a link means that upload
+        # won't happen -- confirm before discarding it. (A file already on the server is simply left there.)
+        pending=any(d.Verb in ("add", "replace") and d.Con is row for d in self.conInstanceDeltaTracker.Deltas)
+        if pending:
+            if wx.ID_YES != wxMessageBox(f"This row's file '{row.SourceFilename}' has not been uploaded yet. Replace the "
+                                         f"row with a link and discard that pending upload?", style=wx.YES_NO|wx.NO_DEFAULT):
+                return
+        self.conInstanceDeltaTracker.Forget(row)    # drop any pending add/replace/rename for this row
+
+        row.IsLinkRow=True
+        row.SiteFilename=url
+        row.SourcePathname=""       # no local file to upload any more
+        textCol, hrefCol=self.Datasource.TextAndHrefCols
+        for icol in (textCol, hrefCol):
+            self._grid.AllowCellEdit(irow, icol)
         self.RefreshWindow()
 
     # ------------------
