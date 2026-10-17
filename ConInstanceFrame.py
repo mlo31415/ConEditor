@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import html
 import re
 import shutil
 import tempfile
@@ -103,6 +104,25 @@ class _GridFileDropTarget(wx.FileDropTarget):
         return defResult
     def OnLeave(self):
         self._frame._ClearDragHighlight()
+
+
+# Whatever the user pasted as a link -- a plain URL, one missing its "https://" ("www.x.org/...",
+# "fanac.org/...") or a pasted HTML link '<a href="URL">text</a>' -- returned as (the link to store, the
+# link's text if it came with any). A con-instance link row holds a foreign URL verbatim (FormatLink does the
+# escaping on upload), so, unlike the FanzinesEditor version this is modeled on, nothing here is rewritten
+# relative to fanac.org.
+def _LinkFromPaste(pasted: str) -> tuple[str, str]:
+    pasted=pasted.strip()
+    url, text=pasted, ""
+    m=re.search(r"""href\s*=\s*(["'])(.*?)\1""", pasted, flags=re.IGNORECASE|re.DOTALL) or re.search(r"""href\s*=\s*([^\s>"']+)""", pasted, flags=re.IGNORECASE)
+    if m is not None:
+        url=m.groups()[-1].replace("&amp;", "&").strip()       # (In HTML, an href's "&" is written "&amp;")
+        t=re.search(r"<a\b[^>]*>(.*?)</a>", pasted, flags=re.IGNORECASE|re.DOTALL)
+        if t is not None:
+            text=html.unescape(re.sub(r"<[^>]*>", "", t.group(1))).strip()
+    if re.match(r"^(?:www\.|(?:www\.)?fanac\.org(?:[/?#]|$))", url, flags=re.IGNORECASE):
+        url="https://"+url
+    return url, text
 
 
 class ConInstanceDialogClass(GenConInstanceFrame):
@@ -1582,13 +1602,43 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             self._grid.AllowCellEdit(irow, icol)
 
     # ------------------
+    # Insert a link line (a row that is just a link to some other page or file) above the clicked row. The link
+    # and its display text are asked for up front -- any form is accepted, including a pasted HTML '<a href=...>'
+    # link, whose text is then offered as the display text -- so Cancel leaves the page untouched.
     def OnPopupInsertLink(self, event):
         irow=self._grid.clickedRow
+        icol=self._grid.clickedColumn
+        if irow == -1 or icol == -1:
+            event.Skip()
+            return
+
+        with wx.TextEntryDialog(self, "URL:", "Insert a Link line") as dlg:     # (with: destroyed on Cancel, too)
+            if dlg.ShowModal() != wx.ID_OK:
+                event.Skip()
+                return
+            url, linktext=_LinkFromPaste(dlg.GetValue())
+        if url == "":
+            event.Skip()
+            return
+        with wx.TextEntryDialog(self, "Enter the text to be shown for the link: ", "Insert a Link line", value=linktext or url) as dlg:
+            if dlg.ShowModal() != wx.ID_OK:
+                event.Skip()
+                return
+            text=dlg.GetValue().strip() or url
+
         if irow > self.Datasource.NumRows:
             self._grid.ExpandDataSourceToInclude(irow, 0)   # Insert empty rows into the datasource if necessary to keep things in sync
         self._grid.InsertEmptyRows(irow, 1)     # Insert the new empty row
-        self.Datasource.Rows[irow].IsLinkRow=True
-        for icol in range(self._grid.NumCols):
+        row=self.Datasource.Rows[irow]
+
+        # A link row is written to the page from two cells -- the display text (Display Name, col 0) and the
+        # foreign URL (Site Name) -- and is displayed that way too, so those are the cells to fill in and allow
+        # editing of.
+        row.IsLinkRow=True
+        row.DisplayTitle=text
+        row.SiteFilename=url
+        textCol, hrefCol=self.Datasource.TextAndHrefCols
+        for icol in (textCol, hrefCol):
             self._grid.AllowCellEdit(irow, icol)
 
         # Log("OnPopupInsertLink(): About to refresh")
