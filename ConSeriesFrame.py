@@ -169,6 +169,16 @@ def _CompressConRuns(names: list[str]) -> str:
     return ", ".join(out+others)
 
 
+# Grid columns whose contents come from Fancyclopedia 3 (used by "Update from Fancy 3"). The Display Name is
+# the match key, not something to fill; Extras has no Fancy equivalent.
+_FANCY_COLS={2: "Dates", 3: "Locale", 4: "GoHs"}
+
+# Normalized form for a "significant difference" test: ignore case, accents, punctuation and ordering, so
+# "Smith, Jones" == "jones smith" and "April 12-14, 2019" == "2019 12 14 april".
+def _NormCell(s: str) -> str:
+    return " ".join(sorted(re.findall(r"[a-z0-9]+", RemoveAccents(s or "").lower())))
+
+
 #####################################################################################
 # A small dialog to edit the three "Extras" fields of a con series row: the Special Link (a link that
 # replaces the default Display Name/index.html), the Special Text (an alternate name shown in parens),
@@ -213,6 +223,13 @@ class ConSeriesFrame(GenConSeriesFrame):
         self.Datasource=ConSeries()
 
         self._grid.HideRowLabels()
+
+        # "Update from Fancy 3" RMB item: pull missing info (and whole missing cons) from this series'
+        # Fancyclopedia 3 page, and flag significant differences in the selected cells (see
+        # OnPopupUpdateFromFancy). Added in code rather than in the generated GenConSeriesFrame.py.
+        self.m_popupUpdateFromFancy=wx.MenuItem(self.m_GridPopup, wx.ID_ANY, "Update from Fancy 3", wx.EmptyString, wx.ITEM_NORMAL)
+        self.m_GridPopup.Append(self.m_popupUpdateFromFancy)
+        self.Bind(wx.EVT_MENU, self.OnPopupUpdateFromFancy, id=self.m_popupUpdateFromFancy.GetId())
 
         # Show a tooltip over a cross-link row's Display Name/Extras cells naming the series + con it links to.
         self.gRowGrid.GetGridWindow().Bind(wx.EVT_MOTION, self.OnGridMotion)
@@ -820,6 +837,163 @@ class ConSeriesFrame(GenConSeriesFrame):
         dlg=getattr(self, "_fillDialog", None)
         if dlg is not None:
             self._fillDialog=None
+            dlg.Destroy()
+
+
+    #------------------
+    # The set of (row, col) data cells currently selected in the grid -- gathered from block selections,
+    # individually selected cells, and whole selected rows/columns. Used by "Update from Fancy 3".
+    def _SelectedCells(self) -> set:
+        g=self.gRowGrid
+        nr, nc=self.Datasource.NumRows, self.Datasource.NumCols
+        cells=set()
+        for a, b in zip(g.GetSelectionBlockTopLeft(), g.GetSelectionBlockBottomRight()):
+            for r in range(max(0, a.Row), min(nr, b.Row+1)):
+                for c in range(max(0, a.Col), min(nc, b.Col+1)):
+                    cells.add((r, c))
+        for coord in g.GetSelectedCells():
+            if 0 <= coord.Row < nr and 0 <= coord.Col < nc:
+                cells.add((coord.Row, coord.Col))
+        for r in g.GetSelectedRows():
+            if 0 <= r < nr:
+                cells.update((r, c) for c in range(nc))
+        for c in g.GetSelectedCols():
+            if 0 <= c < nc:
+                cells.update((r, c) for r in range(nr))
+        return cells
+
+
+    #------------------
+    # "Update from Fancy 3": fetch this series' Fancyclopedia 3 page and reconcile it with the grid.
+    #   1. Copy Fancy's Dates/Locale/GoHs into any cell that is entirely empty, creating rows for cons on
+    #      Fancy but missing here (interleaved to match Fancy's order). Applied directly.
+    #   2. For the SELECTED cells only, flag those that already hold information differing significantly
+    #      (ignoring case, punctuation and ordering) from Fancy in a modeless Accept/Reject popup -- Accept
+    #      overwrites them with Fancy's values, Reject keeps them. No popup when nothing differs.
+    # Changes are in memory only; the user uploads later (or re-downloads to discard).
+    def OnPopupUpdateFromFancy(self, event):
+        with ModalDialogManager(ProgressMessage2, f"Downloading {self.Seriesname} from Fancyclopedia 3", parent=self) as pm:
+            fname, fcons=FetchConSeriesFromFancy(self.Seriesname, silent=True)
+        if fname is None or not fcons:
+            wxMessageBox(f"Could not download '{self.Seriesname}' from Fancyclopedia 3, so nothing was changed.")
+            return
+
+        def key(n): return RemoveAccents(n or "").strip().lower()
+        fmap={}
+        for fcon in fcons:
+            if fcon.Name.strip():
+                fmap.setdefault(key(fcon.Name), fcon)       # first Fancy row wins on a duplicate name
+
+        def fancyVal(fc, c):
+            if c == 2: return str(fc.Dates) if fc.Dates is not None and not fc.Dates.IsEmpty() else ""
+            if c == 3: return (fc.Locale or "").strip()
+            return (fc.GoHs or "").strip()
+
+        def curVal(con, c):
+            if c == 2: return str(con.Dates) if con.Dates is not None and not con.Dates.IsEmpty() else ""
+            if c == 3: return (con.Locale or "").strip()
+            return (con.GoHs or "").strip()
+
+        # Capture the selected Fancy-sourced cells as (Con object, col) BEFORE inserting rows, so the row
+        # indices the selection refers to still line up with the Con objects.
+        origRows=self.Datasource.Rows[:]
+        selCells=[(origRows[r], c) for (r, c) in self._SelectedCells()
+                  if c in _FANCY_COLS and r < len(origRows)]
+
+        # --- Part 1: fill empty cells on matched rows; interleave-insert cons missing from the series page ---
+        rows=self.Datasource.Rows
+        pos=0
+        added=[]
+        filled=0
+        for f in fcons:
+            j=next((i for i, r in enumerate(rows) if key(r.Name) == key(f.Name)), None)
+            if j is not None:
+                r=rows[j]
+                changed=False
+                if not curVal(r, 2) and fancyVal(f, 2):
+                    nd=FanzineDateRange(); nd.Copy(f.Dates); r.Dates=nd; changed=True
+                if not curVal(r, 3) and fancyVal(f, 3):
+                    r.Locale=fancyVal(f, 3); changed=True
+                if not curVal(r, 4) and fancyVal(f, 4):
+                    r.GoHs=fancyVal(f, 4); changed=True
+                filled+=changed
+                pos=j+1
+            else:
+                nd=None
+                if fancyVal(f, 2):
+                    nd=FanzineDateRange(); nd.Copy(f.Dates)
+                rows.insert(pos, Con(Name=f.Name, Locale=fancyVal(f, 3), Dates=nd, GoHs=fancyVal(f, 4), URL=""))
+                added.append(f.Name)
+                pos+=1
+
+        if filled or added:
+            self.RefreshWindow()
+
+        # --- Part 2: discrepancies among the SELECTED cells (non-empty cells that differ significantly) ---
+        discrepancies=[]
+        for con, c in selCells:
+            fc=fmap.get(key(con.Name))
+            if fc is None:
+                continue
+            cur, fan=curVal(con, c), fancyVal(fc, c)
+            if cur and fan and _NormCell(cur) != _NormCell(fan):
+                discrepancies.append((con, c, cur, fan, fc))
+
+        if discrepancies:
+            self._ShowFancyDiscrepancyDialog(discrepancies)
+        elif not (filled or added):
+            wxMessageBox("Nothing to do -- every cell already matches Fancyclopedia 3, and there are no new conventions to add.")
+
+
+    #------------------
+    def _ShowFancyDiscrepancyDialog(self, discrepancies: list) -> None:
+        lines=["These selected cells already hold information that differs from Fancyclopedia 3:", ""]
+        for con, c, cur, fan, fc in discrepancies:
+            lines.append(f"• {con.Name} — {_FANCY_COLS[c]}:   here \"{cur}\"   vs Fancy \"{fan}\"")
+        lines.append("")
+        lines.append("Accept to overwrite these cells with Fancy's values, or Reject to keep what's here now.")
+
+        dlg=wx.Dialog(self, title="Update from Fancy 3 — discrepancies", style=wx.CAPTION | wx.RESIZE_BORDER | wx.STAY_ON_TOP)
+        sizer=wx.BoxSizer(wx.VERTICAL)
+        st=wx.StaticText(dlg, label="\n".join(lines))
+        st.Wrap(560)
+        sizer.Add(st, 0, wx.ALL, 12)
+        btns=wx.BoxSizer(wx.HORIZONTAL)
+        bAccept=wx.Button(dlg, label="Accept")
+        bReject=wx.Button(dlg, label="Reject")
+        btns.Add(bAccept, 0, wx.RIGHT, 8)
+        btns.Add(bReject, 0)
+        sizer.Add(btns, 0, wx.ALL | wx.ALIGN_RIGHT, 12)
+        dlg.SetSizerAndFit(sizer)
+        bAccept.Bind(wx.EVT_BUTTON, self._OnFancyDiscrepancyAccept)
+        bReject.Bind(wx.EVT_BUTTON, self._OnFancyDiscrepancyReject)
+        dlg.Bind(wx.EVT_CLOSE, self._OnFancyDiscrepancyReject)   # closing (X) counts as Reject -- the safe default
+        self._fancyDiscrepancies=discrepancies
+        self._fancyDiscDialog=dlg
+        dlg.Show()
+
+    #------------------
+    def _OnFancyDiscrepancyAccept(self, event) -> None:
+        for con, c, cur, fan, fc in getattr(self, "_fancyDiscrepancies", None) or []:
+            if c == 2 and fc.Dates is not None and not fc.Dates.IsEmpty():
+                nd=FanzineDateRange(); nd.Copy(fc.Dates); con.Dates=nd
+            elif c == 3:
+                con.Locale=(fc.Locale or "").strip()
+            elif c == 4:
+                con.GoHs=(fc.GoHs or "").strip()
+        self._CloseFancyDiscrepancyDialog()
+        self.RefreshWindow()
+
+    #------------------
+    def _OnFancyDiscrepancyReject(self, event) -> None:
+        self._CloseFancyDiscrepancyDialog()
+
+    #------------------
+    def _CloseFancyDiscrepancyDialog(self) -> None:
+        self._fancyDiscrepancies=None
+        dlg=getattr(self, "_fancyDiscDialog", None)
+        if dlg is not None:
+            self._fancyDiscDialog=None
             dlg.Destroy()
 
 
@@ -1459,6 +1633,8 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         if irow < self.Datasource.NumRows and self.Datasource.Rows[irow].URL is not None and self.Datasource.Rows[irow].URL != "":
             self.m_popupChangeConSeries.Enabled=True    # Enable only for rows that exist and point to a con instance
+
+        self.m_popupUpdateFromFancy.Enabled=True        # a series-wide action; always available
 
         self.PopupMenu(self.m_GridPopup)
 
