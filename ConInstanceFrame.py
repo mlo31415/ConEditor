@@ -218,6 +218,12 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.m_GridPopup.Insert(self.m_GridPopup.GetMenuItems().index(self.m_popupUpdateFile)+1, self.m_popupReplaceURL)
         self.Bind(wx.EVT_MENU, self.OnPopupReplaceURL, id=self.m_popupReplaceURL.GetId())
 
+        # "View PDF" RMB item: download a PDF row's file and open it in the default PDF application (see
+        # OnPopupViewPDF). Added in code too, placed just below "Open in Browser".
+        self.m_popupViewPDF=wx.MenuItem(self.m_GridPopup, wx.ID_ANY, "View PDF", wx.EmptyString, wx.ITEM_NORMAL)
+        self.m_GridPopup.Insert(self.m_GridPopup.GetMenuItems().index(self.m_popupOpenInBrowser)+1, self.m_popupViewPDF)
+        self.Bind(wx.EVT_MENU, self.OnPopupViewPDF, id=self.m_popupViewPDF.GetId())
+
         self._FTPbasedir=basedirFTP # The root of the convention's files, e.g., "/seriesName" (for a sub-page, the parent page's full path)
         self._seriesname=seriesname # The name of the series
         self.Conname=conname        # The actual name of the con (or sub-page) directory on conpubs
@@ -1119,6 +1125,13 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                                         and not self.Datasource.Rows[row].IsTextRow
                                         and not self.Datasource.Rows[row].IsSubPageRow)
 
+        # "View PDF" downloads a PDF file row and opens it in the default PDF app -- only for actual PDF files.
+        self.m_popupViewPDF.Enabled=(row < self.Datasource.NumRows
+                                     and not self.Datasource.Rows[row].IsTextRow
+                                     and not self.Datasource.Rows[row].IsLinkRow
+                                     and not self.Datasource.Rows[row].IsSubPageRow
+                                     and ExtensionMatches(self.Datasource.Rows[row].SiteFilename, ".pdf"))
+
         self.PopupMenu(self.m_GridPopup, pos=self.gRowGrid.Position+event.Position)
 
 
@@ -1264,6 +1277,40 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
 
     # ------------------
+    # Download a PDF file row's file and open it in the system default PDF application. A not-yet-uploaded row
+    # already has its PDF locally (just opened directly); any other PDF row is downloaded from the server to a
+    # temp file first.
+    def OnPopupViewPDF(self, event):
+        row=self._grid.clickedRow
+        if row < 0 or row >= self.Datasource.NumRows:
+            return
+        r=self.Datasource.Rows[row]
+        if r.IsTextRow or r.IsLinkRow or r.IsSubPageRow or not ExtensionMatches(r.SiteFilename, ".pdf"):
+            return
+
+        fname=r.SiteFilename.strip()
+        pending=any(d.Verb in ("add", "replace") and d.Con is r for d in self.conInstanceDeltaTracker.Deltas)
+        if pending and r.SourcePathname and os.path.exists(r.SourcePathname):
+            localpath=r.SourcePathname
+        else:
+            serverdir=f"{self._FTPbasedir}/{self.Conname}"   # the row's full server dir (handles sub-pages too)
+            # Name the temp file after the real file (minus any characters illegal in a Windows filename) so the
+            # PDF viewer shows a sensible title.
+            localpath=os.path.join(tempfile.mkdtemp(), re.sub(r'[<>:"/\\|?*]', "_", fname))
+            with ModalDialogManager(ProgressMessage2, f"Downloading {fname}", parent=self) as pm:
+                if not FTP().GetFile(serverdir, fname, localpath):
+                    LogError(f"View PDF: could not download '{serverdir}/{fname}'")
+                    wx.MessageBox(f"Could not download '{fname}' from the server.", "View PDF", wx.OK|wx.ICON_ERROR)
+                    return
+
+        try:
+            os.startfile(localpath)     # Windows: open in the default PDF application
+        except Exception as e:
+            LogError(f"View PDF: could not open '{localpath}': {e}")
+            wx.MessageBox(f"Could not open '{fname}' in the default PDF viewer.", "View PDF", wx.OK|wx.ICON_ERROR)
+
+
+    # ------------------
     # The page's own public URL on fanac.org, ending in "/". _FTPbasedir/Conname is the page's full
     # server dir (handles sub-pages); the trailing "/" serves its index.html.
     def _PagePublicURL(self) -> str:
@@ -1319,6 +1366,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.m_popupInsertLink.Enabled=False
         self.m_popupUpdateFile.Enabled=False
         self.m_popupReplaceURL.Enabled=False
+        self.m_popupViewPDF.Enabled=False
         self.m_popupAllowEditCell.Enabled=False
         self.m_popupDeleteRow.Enabled=False
 
