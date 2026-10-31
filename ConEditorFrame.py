@@ -325,7 +325,9 @@ class ConEditorFrame(GenConEditorFrame):
             # the first third stays in the left column. The divider <hr> sits inline after the grouping rows.
             newtable='  <ul class="list-unstyled conlist">\n'
             for i, row in enumerate(self.Datasource.Rows):
-                if i == 4:      # the divider falls between items 3 (Misc. Cons) and 4 (1st real con)
+                # Two dividers: one after Worldcon (item 0), which stands alone, and one after the
+                # Early/Onesie/Misc. grouping (items 1-3), before the first alphabetical con (item 4).
+                if i == 1 or i == 4:
                     newtable+='    <li><hr></li>\n'
                 newtable+=f'    <li>{FormatLink(row.URL, row.Name)}</li>\n'
             newtable+='  </ul>\n'
