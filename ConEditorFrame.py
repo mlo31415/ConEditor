@@ -12,6 +12,7 @@ from GenConEditorFrame import GenConEditorFrame
 from WxDataGrid import DataGrid, GridDataSource, GridDataRowClass, ColDefinition, ColDefinitionsList, IsEditable
 from ConSeriesFrame import ConSeriesFrame
 from ConInstanceFrame import SetHeaderLogo
+from ConInstance import IsTestSeries
 from ConInstanceDeltaTracker import UpdateFTPLog
 from FTP import FTP
 from Settings import Settings
@@ -198,7 +199,7 @@ class ConEditorFrame(GenConEditorFrame):
 
         self._signature=0
 
-        self._grid: DataGrid=DataGrid(self.gRowGrid)
+        self._grid: DataGrid=DataGrid(self.gRowGrid, ColorSingleCellByValue=self._TintTestSeriesRow)
         self.Datasource=ConList()
 
         self._grid.HideRowLabels()
@@ -213,8 +214,18 @@ class ConEditorFrame(GenConEditorFrame):
         self.Show()
 
 
+    #------------------
+    # Show test series (hidden on the web page) in grey. The grid calls this per cell after its own
+    # coloring -- note the (icol, irow) argument order.
+    def _TintTestSeriesRow(self, icol: int, irow: int) -> None:
+        if irow >= self.Datasource.NumRows:
+            return
+        if IsTestSeries(self.Datasource.Rows[irow].Name):
+            self._grid.SetCellBackgroundColor(irow, icol, wx.Colour(225, 225, 225))
+
+
     @property
-    def Datasource(self) -> ConList:        
+    def Datasource(self) -> ConList:
         return self._Datasource
     @Datasource.setter
     def Datasource(self, val: ConList):
@@ -329,7 +340,9 @@ class ConEditorFrame(GenConEditorFrame):
                 # Early/Onesie/Misc. grouping (items 1-3), before the first alphabetical con (item 4).
                 if i == 1 or i == 4:
                     newtable+='    <li><hr></li>\n'
-                newtable+=f'    <li>{FormatLink(row.URL, row.Name)}</li>\n'
+                # A test series is written hidden: still on the page (so CE and the other tools find it) but not displayed
+                hidden=" hidden" if IsTestSeries(row.Name) else ""
+                newtable+=f'    <li{hidden}>{FormatLink(row.URL, row.Name)}</li>\n'
             newtable+='  </ul>\n'
 
             # Substitute the table into the template

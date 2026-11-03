@@ -71,6 +71,11 @@
 <fanac-table>
   <ul class="list-unstyled conlist"><li>Boskone</li></ul>
 </fanac-table>
+<script>
+  // Test con series (xxx..., yyy..., zzz...) are written hidden; add ?test to the URL to show them
+  if (new URLSearchParams(location.search).has("test"))
+    document.querySelectorAll(".conlist li[hidden]").forEach(li => li.hidden=false);
+</script>
 
 
 </div>

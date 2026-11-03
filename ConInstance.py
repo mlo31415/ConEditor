@@ -20,6 +20,16 @@ from Log import Log, LogError
 _SUBPAGE_ICON="\U0001F4C1&nbsp;"   # 📁
 
 
+# A con series whose name starts with xxx, yyy or zzz is a test series. It stays on the live site (so it can
+# be used for testing and debugging) but is hidden in the main con list and its pages are marked noindex.
+def IsTestSeries(name: str) -> bool:
+    return name.strip().lower().startswith(("xxx", "yyy", "zzz"))
+
+# Mark a page as not to be indexed by search engines
+def AddNoindex(file: str) -> str:
+    return file.replace("</head>", '<meta name="robots" content="noindex, nofollow">\n</head>', 1)
+
+
 # Some old CE versions left an HTML entity (e.g. an apostrophe as &#x27;) inside a stored link, and each
 # download->upload cycle escaped it again (&amp;#x27;, &amp;amp;#x27;, ...), eventually breaking the link.
 # Fully decode by unescaping repeatedly until the string stops changing, so a once- or many-times-escaped
@@ -507,6 +517,8 @@ class ConInstance:
         file=file.replace("fanac-meta-url", canonical_url)
         file=file.replace("fanac-meta-title", f"{html.escape(conname)} publications and documents — fanac.org")
         file=file.replace("fanac-meta-credits", html.escape(self.Credits.strip()))
+        if IsTestSeries(self._seriesname):
+            file=AddNoindex(file)
 
         # Build a rich plain-text description from the top-of-page text
         plain_top=RemoveAllHTMLTags(self.Toptext).strip() if self.Toptext else ""

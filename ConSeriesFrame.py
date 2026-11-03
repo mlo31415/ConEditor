@@ -12,7 +12,7 @@ from FTP import FTP
 from ConInstanceDeltaTracker import UpdateFTPLog
 from ConEditorHelpers import FetchConSeriesFromFancy
 from ConSeries import ConSeries, Con
-from ConInstance import ConInstance
+from ConInstance import ConInstance, IsTestSeries, AddNoindex
 from WxDataGrid import DataGrid, IsEditable
 from ConInstanceFrame import ConInstanceDialogClass
 from Settings import Settings
@@ -554,6 +554,8 @@ class ConSeriesFrame(GenConSeriesFrame):
             canonical_url=f"https://fanac.org/conpubs/{quote(self.Seriesname, safe='')}/"
             file=file.replace("fanac-meta-url",   canonical_url)
             file=file.replace("fanac-meta-title", f"Publications and documents for {html.escape(self.Seriesname)} — fanac.org")
+            if IsTestSeries(self.Seriesname):
+                file=AddNoindex(file)
 
             # Build description: use TextComments if available, otherwise generate
             plain_comments=RemoveAllHTMLTags(self.TextComments).strip() if self.TextComments else ""
