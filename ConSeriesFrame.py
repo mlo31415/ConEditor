@@ -866,13 +866,15 @@ class ConSeriesFrame(GenConSeriesFrame):
 
 
     #------------------
-    # "Update from Fancy 3": fetch this series' Fancyclopedia 3 page and reconcile it with the grid.
-    #   1. Copy Fancy's Dates/Locale/GoHs into any cell that is entirely empty, creating rows for cons on
-    #      Fancy but missing here (interleaved to match Fancy's order). Applied directly.
-    #   2. For the SELECTED cells only, flag those that already hold information differing significantly
-    #      (ignoring case, punctuation and ordering) from Fancy in a modeless Accept/Reject popup -- Accept
-    #      overwrites them with Fancy's values, Reject keeps them. No popup when nothing differs.
-    # Changes are in memory only; the user uploads later (or re-downloads to discard).
+    # "Update from Fancy 3": fetch this series' Fancyclopedia 3 page and reconcile it with the grid. What it does
+    # depends on the selection and where the right-click landed:
+    #   (1) One or more existing lines partly/completely selected -> check just those lines against Fancy.
+    #   (2) Nothing selected and the click is on an occupied line -> check ALL occupied lines, as if all selected.
+    #   (3) Nothing selected and the click is past the last occupied line -> just ADD conventions that are on
+    #       Fancy but not yet on this page ("extensions").
+    # Checking a line fills any blank Dates/Locale/GoHs cell from Fancy automatically, and lists any cell that
+    # already holds DIFFERENT data in a modeless Accept/Reject popup (old vs proposed). Changes are in memory
+    # only; the user uploads later (or re-downloads to discard).
     def OnPopupUpdateFromFancy(self, event):
         with ModalDialogManager(ProgressMessage2, f"Downloading {self.Seriesname} from Fancyclopedia 3", parent=self) as pm:
             fname, fcons=FetchConSeriesFromFancy(self.Seriesname, silent=True)
@@ -886,70 +888,97 @@ class ConSeriesFrame(GenConSeriesFrame):
             if fcon.Name.strip():
                 fmap.setdefault(key(fcon.Name), fcon)       # first Fancy row wins on a duplicate name
 
-        def fancyVal(fc, c):
-            if c == 2: return str(fc.Dates) if fc.Dates is not None and not fc.Dates.IsEmpty() else ""
-            if c == 3: return (fc.Locale or "").strip()
-            return (fc.GoHs or "").strip()
+        # A line counts as selected if ANY of its cells is selected (partial selection -> whole line).
+        nrows=self.Datasource.NumRows
+        selectedRows=sorted({r for (r, c) in self._SelectedCells() if 0 <= r < nrows})
+        clicked=self._grid.clickedRow
 
-        def curVal(con, c):
-            if c == 2: return str(con.Dates) if con.Dates is not None and not con.Dates.IsEmpty() else ""
-            if c == 3: return (con.Locale or "").strip()
-            return (con.GoHs or "").strip()
+        if selectedRows:
+            self._CheckRowsAgainstFancy(selectedRows, fmap, key)        # (1)
+        elif 0 <= clicked < nrows:
+            self._CheckRowsAgainstFancy(list(range(nrows)), fmap, key)  # (2)
+        else:
+            self._AddMissingConsFromFancy(fcons, key)                   # (3)
 
-        # Capture the selected Fancy-sourced cells as (Con object, col) BEFORE inserting rows, so the row
-        # indices the selection refers to still line up with the Con objects.
-        origRows=self.Datasource.Rows[:]
-        selCells=[(origRows[r], c) for (r, c) in self._SelectedCells()
-                  if c in _FANCY_COLS and r < len(origRows)]
 
-        # --- Part 1: fill empty cells on matched rows; interleave-insert cons missing from the series page ---
+    #------------------
+    # The grid value of a Fancy-sourced column (c in _FANCY_COLS), for a Fancy con and for a grid Con.
+    @staticmethod
+    def _FancyCellValue(fc, c) -> str:
+        if c == 2: return str(fc.Dates) if fc.Dates is not None and not fc.Dates.IsEmpty() else ""
+        if c == 3: return (fc.Locale or "").strip()
+        return (fc.GoHs or "").strip()
+
+    @staticmethod
+    def _ConCellValue(con, c) -> str:
+        if c == 2: return str(con.Dates) if con.Dates is not None and not con.Dates.IsEmpty() else ""
+        if c == 3: return (con.Locale or "").strip()
+        return (con.GoHs or "").strip()
+
+    #------------------
+    # Check the given existing lines against their Fancyclopedia 3 convention (matched by name): fill any blank
+    # Dates/Locale/GoHs cell from Fancy automatically, and collect the cells that already hold DIFFERENT data for
+    # a modeless Accept/Reject popup (old vs proposed). Adds and removes no lines.
+    def _CheckRowsAgainstFancy(self, rowIndices: list, fmap: dict, key) -> None:
+        rows=self.Datasource.Rows
+        filled=0
+        discrepancies=[]
+        for i in rowIndices:
+            con=rows[i]
+            fc=fmap.get(key(con.Name))
+            if fc is None:
+                continue                                  # no matching convention on Fancy
+            for c in _FANCY_COLS:
+                cur=self._ConCellValue(con, c)
+                fan=self._FancyCellValue(fc, c)
+                if not fan:
+                    continue
+                if not cur:                               # blank on the site -> fill it automatically
+                    if c == 2:
+                        nd=FanzineDateRange(); nd.Copy(fc.Dates); con.Dates=nd
+                    elif c == 3:
+                        con.Locale=fan
+                    else:
+                        con.GoHs=fan
+                    filled+=1
+                elif _NormCell(cur) != _NormCell(fan):    # already holds different data -> ask
+                    discrepancies.append((con, c, cur, fan, fc))
+
+        if filled:
+            self.RefreshWindow()
+        if discrepancies:
+            self._ShowFancyDiscrepancyDialog(discrepancies)
+        elif not filled:
+            wxMessageBox("Nothing to do -- the checked line(s) already match Fancyclopedia 3.")
+
+    #------------------
+    # Add conventions that are on Fancyclopedia 3 but not yet on this series page ("extensions"), each inserted so
+    # the whole list stays in Fancy's order. Existing lines are left untouched.
+    def _AddMissingConsFromFancy(self, fcons: list, key) -> None:
         rows=self.Datasource.Rows
         pos=0
         added=[]
-        filled=0
         for f in fcons:
             j=next((i for i, r in enumerate(rows) if key(r.Name) == key(f.Name)), None)
             if j is not None:
-                r=rows[j]
-                changed=False
-                if not curVal(r, 2) and fancyVal(f, 2):
-                    nd=FanzineDateRange(); nd.Copy(f.Dates); r.Dates=nd; changed=True
-                if not curVal(r, 3) and fancyVal(f, 3):
-                    r.Locale=fancyVal(f, 3); changed=True
-                if not curVal(r, 4) and fancyVal(f, 4):
-                    r.GoHs=fancyVal(f, 4); changed=True
-                filled+=changed
                 pos=j+1
             else:
                 nd=None
-                if fancyVal(f, 2):
+                if f.Dates is not None and not f.Dates.IsEmpty():
                     nd=FanzineDateRange(); nd.Copy(f.Dates)
-                rows.insert(pos, Con(Name=f.Name, Locale=fancyVal(f, 3), Dates=nd, GoHs=fancyVal(f, 4), URL=""))
+                rows.insert(pos, Con(Name=f.Name, Locale=(f.Locale or "").strip(),
+                                     Dates=nd, GoHs=(f.GoHs or "").strip(), URL=""))
                 added.append(f.Name)
                 pos+=1
-
-        if filled or added:
+        if added:
             self.RefreshWindow()
-
-        # --- Part 2: discrepancies among the SELECTED cells (non-empty cells that differ significantly) ---
-        discrepancies=[]
-        for con, c in selCells:
-            fc=fmap.get(key(con.Name))
-            if fc is None:
-                continue
-            cur, fan=curVal(con, c), fancyVal(fc, c)
-            if cur and fan and _NormCell(cur) != _NormCell(fan):
-                discrepancies.append((con, c, cur, fan, fc))
-
-        if discrepancies:
-            self._ShowFancyDiscrepancyDialog(discrepancies)
-        elif not (filled or added):
-            wxMessageBox("Nothing to do -- every cell already matches Fancyclopedia 3, and there are no new conventions to add.")
+        else:
+            wxMessageBox("Nothing to add -- every convention on Fancyclopedia 3 is already on this page.")
 
 
     #------------------
     def _ShowFancyDiscrepancyDialog(self, discrepancies: list) -> None:
-        lines=["These selected cells already hold information that differs from Fancyclopedia 3:", ""]
+        lines=["These cells already hold information that differs from Fancyclopedia 3:", ""]
         for con, c, cur, fan, fc in discrepancies:
             lines.append(f"• {con.Name} — {_FANCY_COLS[c]}:   here \"{cur}\"   vs Fancy \"{fan}\"")
         lines.append("")
