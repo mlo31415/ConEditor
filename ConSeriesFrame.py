@@ -872,11 +872,13 @@ class ConSeriesFrame(GenConSeriesFrame):
     #   (2) Nothing selected and the click is on an occupied line -> check ALL occupied lines, as if all selected.
     #   (3) Nothing selected and the click is past the last occupied line -> just ADD conventions that are on
     #       Fancy but not yet on this page ("extensions").
-    # Only UNLINKED lines (no convention page) are ever checked or filled: a line that links to a page holds
-    # curated data that is left untouched, even if it is selected. Checking a line fills any blank
-    # Dates/Locale/GoHs cell from Fancy automatically, and lists any cell that already holds DIFFERENT data in a
-    # modeless Accept/Reject popup (old vs proposed). Changes are in memory only; the user uploads later (or
-    # re-downloads to discard).
+    # A linked line (one with a convention page) holds curated data and is never modified. Checking an UNLINKED
+    # line fills any blank Dates/Locale/GoHs cell from Fancy automatically and lists any cell that already holds
+    # DIFFERENT data in a modeless Accept/Reject popup (old vs proposed). Special case: in (1), an explicitly
+    # selected LINKED line whose Fancy convention has newer/other info is left untouched but gets a new UNLINKED
+    # line added just below it carrying Fancy's record, for the user to reconcile by hand. (In (2), linked lines
+    # are simply skipped -- we don't spawn a duplicate under every linked con.) Changes are in memory only; the
+    # user uploads later (or re-downloads to discard).
     def OnPopupUpdateFromFancy(self, event):
         with ModalDialogManager(ProgressMessage2, f"Downloading {self.Seriesname} from Fancyclopedia 3", parent=self) as pm:
             fname, fcons=FetchConSeriesFromFancy(self.Seriesname, silent=True)
@@ -896,11 +898,11 @@ class ConSeriesFrame(GenConSeriesFrame):
         clicked=self._grid.clickedRow
 
         if selectedRows:
-            self._CheckRowsAgainstFancy(selectedRows, fmap, key)        # (1)
+            self._CheckRowsAgainstFancy(selectedRows, fmap, key, addLineForLinked=True)         # (1)
         elif 0 <= clicked < nrows:
-            self._CheckRowsAgainstFancy(list(range(nrows)), fmap, key)  # (2)
+            self._CheckRowsAgainstFancy(list(range(nrows)), fmap, key, addLineForLinked=False)  # (2)
         else:
-            self._AddMissingConsFromFancy(fcons, key)                   # (3)
+            self._AddMissingConsFromFancy(fcons, key)                                           # (3)
 
 
     #------------------
@@ -918,21 +920,51 @@ class ConSeriesFrame(GenConSeriesFrame):
         return (con.GoHs or "").strip()
 
     #------------------
-    # Check the given existing lines against their Fancyclopedia 3 convention (matched by name): fill any blank
-    # Dates/Locale/GoHs cell from Fancy automatically, and collect the cells that already hold DIFFERENT data for
-    # a modeless Accept/Reject popup (old vs proposed). Lines that link to a convention page are SKIPPED -- their
-    # data is curated and protected. Adds and removes no lines.
-    def _CheckRowsAgainstFancy(self, rowIndices: list, fmap: dict, key) -> None:
+    # Does Fancy hold any Dates/Locale/GoHs info that this line lacks or differs on?
+    def _FancyHasUpdate(self, con, fc) -> bool:
+        for c in _FANCY_COLS:
+            cur=self._ConCellValue(con, c)
+            fan=self._FancyCellValue(fc, c)
+            if fan and (not cur or _NormCell(cur) != _NormCell(fan)):
+                return True
+        return False
+
+    # Check the given existing lines against their Fancyclopedia 3 convention (matched by name). For an UNLINKED
+    # line: fill any blank Dates/Locale/GoHs cell from Fancy automatically, and collect the cells that already
+    # hold DIFFERENT data for a modeless Accept/Reject popup (old vs proposed). A LINKED line is never modified;
+    # when addLineForLinked is set (an explicit selection) and Fancy has newer/other info for it, a new unlinked
+    # line carrying Fancy's record is inserted just below it; otherwise the linked line is skipped.
+    def _CheckRowsAgainstFancy(self, rowIndices: list, fmap: dict, key, addLineForLinked: bool) -> None:
         rows=self.Datasource.Rows
+        targets=[rows[i] for i in rowIndices]       # capture the Con objects; indices shift as we insert below
         filled=0
+        added=0
         eligible=0              # unlinked lines that had a matching Fancy convention (i.e. could be checked)
         skippedLinked=False
         discrepancies=[]
-        for i in rowIndices:
-            con=rows[i]
+        for con in targets:
             if con.URL.strip():
-                skippedLinked=True
-                continue                                  # linked line: curated data, leave it untouched
+                if not addLineForLinked:
+                    skippedLinked=True
+                    continue                          # (2): linked line, curated data -- leave it untouched
+                # (1): linked line explicitly selected -- never modify it, but surface Fancy's record as a new
+                # unlinked line just below it when Fancy actually has newer/other info.
+                fc=fmap.get(key(con.Name))
+                if fc is None or not self._FancyHasUpdate(con, fc):
+                    continue
+                pos=next(k for k, r in enumerate(rows) if r is con)+1
+                # Don't stack duplicates on repeated runs: skip if we already added that line right below.
+                if (pos < len(rows) and not rows[pos].URL.strip()
+                        and key(rows[pos].Name) == key(fc.Name) and not self._FancyHasUpdate(rows[pos], fc)):
+                    continue
+                nd=None
+                if fc.Dates is not None and not fc.Dates.IsEmpty():
+                    nd=FanzineDateRange(); nd.Copy(fc.Dates)
+                rows.insert(pos, Con(Name=fc.Name, Locale=(fc.Locale or "").strip(),
+                                     Dates=nd, GoHs=(fc.GoHs or "").strip(), URL=""))
+                added+=1
+                continue
+
             fc=fmap.get(key(con.Name))
             if fc is None:
                 continue                                  # no matching convention on Fancy
@@ -953,11 +985,11 @@ class ConSeriesFrame(GenConSeriesFrame):
                 elif _NormCell(cur) != _NormCell(fan):    # already holds different data -> ask
                     discrepancies.append((con, c, cur, fan, fc))
 
-        if filled:
+        if filled or added:
             self.RefreshWindow()
         if discrepancies:
             self._ShowFancyDiscrepancyDialog(discrepancies)
-        elif not filled:
+        elif not (filled or added):
             if eligible == 0 and skippedLinked:
                 wxMessageBox("Nothing to do -- those lines link to convention pages, so their data is left unchanged.")
             else:
