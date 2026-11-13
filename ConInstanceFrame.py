@@ -1674,8 +1674,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
         if any(r.IsSubPageRow and r.SiteFilename.strip() for r in movers):
             if wx.ID_YES != wxMessageBox("The selection includes a sub-page, whose whole folder will be moved to the other "
-                                         "convention. (Links/headers inside the sub-page may still name this convention "
-                                         "until it is re-edited.)\n\nProceed?", style=wx.YES_NO|wx.NO_DEFAULT):
+                                         "convention and its files re-stamped for it.\n\nProceed?", style=wx.YES_NO|wx.NO_DEFAULT):
                 return
 
         names=[n for (n, _) in self.SiblingCons]
@@ -1847,13 +1846,68 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 pass
 
     # ------------------
+    # Sub-page versions of the header/metadata builders, parameterized by the parent con (parallels
+    # _BuildSubPageHeader/_BuildSubPageMetadata, which use this dialog's own con). Used to re-stamp a sub-page's
+    # files for a NEW parent con when the sub-page is moved.
+    def _BuildSubPageHeaderFor(self, parent_name: str, sp_folder: str, sp_display: str, item_title: str) -> tuple[str, list]:
+        segs=[s for s in self._FTPbasedir.split("/") if s]+[parent_name, sp_folder]
+        sp_url="https://www.fanac.org/conpubs/"+"/".join(quote(s, safe='') for s in segs)+"/"
+        fmt="{}: {}  --  from {}"
+        items=[sp_url, sp_display, item_title, "https://www.fanac.org/conpubs/", "fanac.org/conpubs"]
+        return fmt, items
+
+    def _BuildSubPageMetadataFor(self, parent_name: str, sp_display: str, CleanTitle: str) -> dict:
+        keywords=[self._seriesname, parent_name, sp_display, CleanTitle, "fanac.org", "fan history", "science fiction convention"]
+        return dict(title=f'{sp_display}: {CleanTitle}',
+                    author=self.Credits,
+                    subject=f'Science fiction convention; {self._seriesname}; {parent_name}; {sp_display}; fan history; fanac.org',
+                    keywords=", ".join(filter(None, keywords)))
+
+    # ------------------
+    # Re-stamp one already-copied sub-page PDF (in sp_dir) with the header/metadata for its new parent con, and
+    # refresh the row's size/pages. Best effort: logs and moves on if a step fails.
+    def _RestampSubPagePdf(self, row, sp_dir: str, parent_name: str, sp_folder: str, sp_display: str) -> None:
+        fname=row.SiteFilename.strip()
+        if not fname:
+            return
+        tmp_fd, tmp_path=tempfile.mkstemp(suffix=".pdf")
+        os.close(tmp_fd)
+        try:
+            if not FTP().GetFile(sp_dir, fname, tmp_path):
+                LogError(f"Move to con: could not download sub-page file '{sp_dir}/{fname}' to re-stamp")
+                return
+            CleanTitle=_CleanTitle(row.DisplayTitle)
+            AddStdMetadata(tmp_path, **self._BuildSubPageMetadataFor(parent_name, sp_display, CleanTitle))
+            fmt, items=self._BuildSubPageHeaderFor(parent_name, sp_folder, sp_display, CleanTitle)
+            AddPdfPageHeader(tmp_path, fmt, items, logo=_g_headerLogo)
+            if not (FTP().CWD(sp_dir) and FTP().PutFile(tmp_path, fname)):
+                LogError(f"Move to con: could not re-upload re-stamped '{fname}' to '{sp_dir}'")
+                return
+            try:
+                row.Size=os.path.getsize(tmp_path)/(1024**2)
+                pages=GetPdfPageCount(tmp_path)
+                if pages is not None:
+                    row.Pages=pages
+            except Exception:
+                pass
+        except Exception as e:
+            LogError(f"Move to con: re-stamp of sub-page file '{fname}' failed: {e}")
+        finally:
+            try:
+                os.remove(tmp_path)
+            except Exception:
+                pass
+
+    # ------------------
     # Copy a sub-page row's whole folder into the target con (server-side copy of every file, auto-renaming the
-    # folder on a collision), then re-point the copied sub-page's index.html at its new parent con. Does NOT
-    # delete the source folder. Returns the sub-page row to add to the target page, or None on failure.
+    # folder on a collision), then re-point the copied sub-page's index.html at its new parent con AND re-stamp
+    # each of its PDFs' headers/metadata for that new parent. Does NOT delete the source folder. Returns the
+    # sub-page row to add to the target page, or None on failure.
     def _CopySubPageToCon(self, r, src_dir: str, tgt_dir: str, tgt_name: str, existing: set):
         spfolder=r.SiteFilename.strip()
         if not spfolder:
             return None
+        sp_display=r.DisplayTitle.strip()
         newfolder=self._UniqueNameInDir(spfolder, existing)
         src_sp=f"{src_dir}/{spfolder}"
         tgt_sp=f"{tgt_dir}/{newfolder}"
@@ -1865,17 +1919,20 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             if not FTP().CopyAndRenameFile(src_sp, f, tgt_sp, Create=True):
                 LogError(f"Move to con: could not copy sub-page file '{f}' to '{tgt_sp}'")
                 return None
-        # Re-point the copied sub-page to its new parent (fixes its breadcrumb/title/prev-next; the per-file
-        # "from <con>" headers inside it are left as they were).
+        # Re-stamp the copied sub-page's PDFs for the new parent, then re-point its index.html (breadcrumb/
+        # title/prev-next) at the new parent and re-upload it with the re-stamped sizes.
         try:
             ci=ConInstance(tgt_dir, self._seriesname, newfolder)
             if ci.Download():
                 ci.IsSubPage=True
                 ci.RootSeriesName=self._rootSeriesName
                 ci.RootConName=tgt_name
+                for row in ci.ConInstanceRows:
+                    if not row.IsTextRow and not row.IsLinkRow and not row.IsSubPageRow and ExtensionMatches(row.SiteFilename, ".pdf"):
+                        self._RestampSubPagePdf(row, tgt_sp, tgt_name, newfolder, sp_display)
                 ci.Upload(newfolder)
         except Exception as e:
-            LogError(f"Move to con: could not re-point sub-page '{newfolder}' to '{tgt_name}': {e}")
+            LogError(f"Move to con: could not re-point/re-stamp sub-page '{newfolder}' for '{tgt_name}': {e}")
         nr=r.Copy()
         nr.SiteFilename=newfolder
         return nr
