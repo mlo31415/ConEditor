@@ -1685,6 +1685,13 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 return
             tgt_name, tgt_dates=self.SiblingCons[dlg.GetSelection()]
 
+        # Final confirmation: spell out exactly what is about to happen before anything touches the server.
+        if wx.ID_OK != wxMessageBox(f"Move these {len(movers)} row(s) from '{self.Conname}' to '{tgt_name}':\n\n{movedList}\n\n"
+                                    f"Their files will be copied to '{tgt_name}' (PDFs re-stamped for it, any name clash "
+                                    f"auto-renamed), the originals then removed from '{self.Conname}', and '{tgt_name}' "
+                                    f"opened for editing.", style=wx.OK|wx.CANCEL):
+            return
+
         src_dir=f"{self._FTPbasedir}/{self.Conname}"
         tgt_dir=f"{self._FTPbasedir}/{tgt_name}"
 
