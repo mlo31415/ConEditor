@@ -872,9 +872,11 @@ class ConSeriesFrame(GenConSeriesFrame):
     #   (2) Nothing selected and the click is on an occupied line -> check ALL occupied lines, as if all selected.
     #   (3) Nothing selected and the click is past the last occupied line -> just ADD conventions that are on
     #       Fancy but not yet on this page ("extensions").
-    # Checking a line fills any blank Dates/Locale/GoHs cell from Fancy automatically, and lists any cell that
-    # already holds DIFFERENT data in a modeless Accept/Reject popup (old vs proposed). Changes are in memory
-    # only; the user uploads later (or re-downloads to discard).
+    # Only UNLINKED lines (no convention page) are ever checked or filled: a line that links to a page holds
+    # curated data that is left untouched, even if it is selected. Checking a line fills any blank
+    # Dates/Locale/GoHs cell from Fancy automatically, and lists any cell that already holds DIFFERENT data in a
+    # modeless Accept/Reject popup (old vs proposed). Changes are in memory only; the user uploads later (or
+    # re-downloads to discard).
     def OnPopupUpdateFromFancy(self, event):
         with ModalDialogManager(ProgressMessage2, f"Downloading {self.Seriesname} from Fancyclopedia 3", parent=self) as pm:
             fname, fcons=FetchConSeriesFromFancy(self.Seriesname, silent=True)
@@ -918,16 +920,23 @@ class ConSeriesFrame(GenConSeriesFrame):
     #------------------
     # Check the given existing lines against their Fancyclopedia 3 convention (matched by name): fill any blank
     # Dates/Locale/GoHs cell from Fancy automatically, and collect the cells that already hold DIFFERENT data for
-    # a modeless Accept/Reject popup (old vs proposed). Adds and removes no lines.
+    # a modeless Accept/Reject popup (old vs proposed). Lines that link to a convention page are SKIPPED -- their
+    # data is curated and protected. Adds and removes no lines.
     def _CheckRowsAgainstFancy(self, rowIndices: list, fmap: dict, key) -> None:
         rows=self.Datasource.Rows
         filled=0
+        eligible=0              # unlinked lines that had a matching Fancy convention (i.e. could be checked)
+        skippedLinked=False
         discrepancies=[]
         for i in rowIndices:
             con=rows[i]
+            if con.URL.strip():
+                skippedLinked=True
+                continue                                  # linked line: curated data, leave it untouched
             fc=fmap.get(key(con.Name))
             if fc is None:
                 continue                                  # no matching convention on Fancy
+            eligible+=1
             for c in _FANCY_COLS:
                 cur=self._ConCellValue(con, c)
                 fan=self._FancyCellValue(fc, c)
@@ -949,7 +958,10 @@ class ConSeriesFrame(GenConSeriesFrame):
         if discrepancies:
             self._ShowFancyDiscrepancyDialog(discrepancies)
         elif not filled:
-            wxMessageBox("Nothing to do -- the checked line(s) already match Fancyclopedia 3.")
+            if eligible == 0 and skippedLinked:
+                wxMessageBox("Nothing to do -- those lines link to convention pages, so their data is left unchanged.")
+            else:
+                wxMessageBox("Nothing to do -- the checked line(s) already match Fancyclopedia 3.")
 
     #------------------
     # Add conventions that are on Fancyclopedia 3 but not yet on this series page ("extensions"), each inserted so
