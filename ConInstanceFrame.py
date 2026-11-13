@@ -1838,13 +1838,12 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             # Everything else needs to run through some checks
             if not self.Datasource[row].IsLinkRow:
                 newfname=self.Datasource[row][col]
-                # If we don't allow extensions to be edited (the default), restore the old extension before proceeding.
-                if not self.m_checkBoxAllowEditExtentions.IsChecked():
-                    newname, _=os.path.splitext(newfname)
-                    newfname=newname+oext
-                    self.Datasource[row][col]=newfname
-                    # Log("OnGridCellChanged(): About to refresh #1")
-                    self.RefreshWindow()
+                # The file extension is never editable here: restore the original extension before proceeding.
+                newname, _=os.path.splitext(newfname)
+                newfname=newname+oext
+                self.Datasource[row][col]=newfname
+                # Log("OnGridCellChanged(): About to refresh #1")
+                self.RefreshWindow()
 
                 if originalfname != newfname:
                     self.conInstanceDeltaTracker.Rename(self.Datasource.Rows[row], originalfname)

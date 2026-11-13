@@ -81,16 +81,6 @@ class GenConInstanceFrame ( wx.Dialog ):
 
 		bSizerMainBox.Add( fgSizer4, 0, wx.EXPAND, 5 )
 
-		fgSizer9 = wx.FlexGridSizer( 0, 3, 0, 0 )
-		fgSizer9.SetFlexibleDirection( wx.BOTH )
-		fgSizer9.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
-
-		self.m_checkBoxAllowEditExtentions = wx.CheckBox( self, wx.ID_ANY, u"Allow editing of extensions", wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer9.Add( self.m_checkBoxAllowEditExtentions, 0, wx.ALL, 5 )
-
-
-		bSizerMainBox.Add( fgSizer9, 0, wx.EXPAND, 5 )
-
 		theIssueGrid = wx.BoxSizer( wx.VERTICAL )
 
 		self.gRowGrid = wx.grid.Grid( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
