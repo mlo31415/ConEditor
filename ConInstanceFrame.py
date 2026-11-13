@@ -226,6 +226,18 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.m_GridPopup.Insert(self.m_GridPopup.GetMenuItems().index(self.m_popupOpenInBrowser)+1, self.m_popupViewPDF)
         self.Bind(wx.EVT_MENU, self.OnPopupViewPDF, id=self.m_popupViewPDF.GetId())
 
+        # "Move to different con" RMB item: move the selected rows (and their files) to a sibling con instance
+        # in this series (see OnPopupMoveToDifferentCon). Added in code, just below "Move to Sub-Page...".
+        self.m_popupMoveToDifferentCon=wx.MenuItem(self.m_GridPopup, wx.ID_ANY, "Move to different con...", wx.EmptyString, wx.ITEM_NORMAL)
+        self.m_GridPopup.Insert(self.m_GridPopup.GetMenuItems().index(self.m_popupMoveToSubPage)+1, self.m_popupMoveToDifferentCon)
+        self.Bind(wx.EVT_MENU, self.OnPopupMoveToDifferentCon, id=self.m_popupMoveToDifferentCon.GetId())
+
+        # The created sibling con instances in this series, as (name, datesStr), set by the con-series window
+        # before ShowModal; the target list for "Move to different con". Empty for sub-page dialogs.
+        self.SiblingCons: list=[]
+        # When a move finishes, the name of the con to open for editing next (read by the con-series window).
+        self._moveToConNext: str=""
+
         self._FTPbasedir=basedirFTP # The root of the convention's files, e.g., "/seriesName" (for a sub-page, the parent page's full path)
         self._seriesname=seriesname # The name of the series
         self.Conname=conname        # The actual name of the con (or sub-page) directory on conpubs
@@ -1096,6 +1108,11 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 and any(rr.IsSubPageRow and rr.SiteFilename.strip() for rr in self.Datasource.Rows)):
             self.m_popupMoveToSubPage.Enabled=True
 
+        # "Move to different con" -- move the selected rows (and their files) to a sibling con instance in this
+        # series. Available when this series has other created cons and the click/selection is on a data row.
+        if self.SiblingCons and (self._grid.HasSelection() or 0 <= row < self.Datasource.NumRows):
+            self.m_popupMoveToDifferentCon.Enabled=True
+
         if row < self.Datasource.NumRows:
             self.m_popupDeleteRow.Enabled=True
 
@@ -1369,6 +1386,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.m_popupUpdateFile.Enabled=False
         self.m_popupReplaceURL.Enabled=False
         self.m_popupViewPDF.Enabled=False
+        self.m_popupMoveToDifferentCon.Enabled=False
         self.m_popupAllowEditCell.Enabled=False
         self.m_popupDeleteRow.Enabled=False
 
@@ -1629,6 +1647,259 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             nr.Pages=r.Pages
             ci.ConInstanceRows.append(nr)
         return ci.Upload(sp_folder)
+
+    # ------------------
+    # "Move to different con": move the selected rows (and their files) to another created con instance in this
+    # series. File rows are copied with their PDF header/metadata re-stamped for the target con and auto-renamed
+    # on a name collision; text and link rows carry over as-is; a sub-page row relocates its whole folder (after
+    # a warning). The moved rows are appended to the target's index.html in their original order; only once the
+    # target has been updated are the originals removed from this con and its index.html re-uploaded. On success
+    # the source dialog closes and the target con opens for editing.
+    def OnPopupMoveToDifferentCon(self, event):
+        if not self.SiblingCons:
+            wx.MessageBox("There are no other created conventions in this series to move rows into.",
+                          "Move to different con", wx.OK|wx.ICON_WARNING)
+            return
+
+        if self._grid.HasSelection():
+            top, _, bottom, _=self._grid.LocateSelection()
+        else:
+            top=bottom=self._grid.clickedRow
+        if top < 0 or top >= self.Datasource.NumRows:
+            return
+        bottom=min(bottom, self.Datasource.NumRows-1)
+        movers=self.Datasource.Rows[top:bottom+1]
+        if not movers:
+            return
+
+        if any(r.IsSubPageRow and r.SiteFilename.strip() for r in movers):
+            if wx.ID_YES != wxMessageBox("The selection includes a sub-page, whose whole folder will be moved to the other "
+                                         "convention. (Links/headers inside the sub-page may still name this convention "
+                                         "until it is re-edited.)\n\nProceed?", style=wx.YES_NO|wx.NO_DEFAULT):
+                return
+
+        names=[n for (n, _) in self.SiblingCons]
+        movedList="\n".join("    "+(r.DisplayTitle.strip() or r.SiteFilename.strip() or "(text line)") for r in movers)
+        with wx.SingleChoiceDialog(self, f"Move these {len(movers)} row(s):\n\n{movedList}\n\nto which convention?",
+                                   f"Move {len(movers)} rows", names) as dlg:
+            if dlg.ShowModal() != wx.ID_OK:
+                return
+            tgt_name, tgt_dates=self.SiblingCons[dlg.GetSelection()]
+
+        src_dir=f"{self._FTPbasedir}/{self.Conname}"
+        tgt_dir=f"{self._FTPbasedir}/{tgt_name}"
+
+        moved=[]            # (originalRow, newTargetRow) pairs successfully copied to the target
+        failures=[]
+        targetUpdated=False
+        with ModalDialogManager(ProgressMessage2, f"Moving {len(movers)} row(s) to '{tgt_name}'", parent=self) as pm:
+            existing={n.lower() for n in FTP().Nlst(tgt_dir)}   # names already in the target dir (for auto-rename)
+
+            # 1) Copy each row's content to the target (nothing is deleted from the source yet).
+            for r in movers:
+                pm.Update(f"Copying {r.DisplayTitle.strip() or r.SiteFilename.strip() or 'text line'}")
+                try:
+                    if r.IsTextRow or r.IsLinkRow:
+                        moved.append((r, r.Copy()))                 # a row with no file of ours -- just carry it over
+                    elif r.IsSubPageRow:
+                        nr=self._CopySubPageToCon(r, src_dir, tgt_dir, tgt_name, existing)
+                        if nr is None: failures.append(r.DisplayTitle.strip() or r.SiteFilename.strip())
+                        else: moved.append((r, nr))
+                    else:
+                        nr=self._CopyFileRowToCon(r, src_dir, tgt_dir, tgt_name, tgt_dates, existing)
+                        if nr is None: failures.append(r.DisplayTitle.strip() or r.SiteFilename.strip())
+                        else: moved.append((r, nr))
+                except Exception as e:
+                    LogError(f"Move to different con failed for '{r.DisplayTitle}': {e}")
+                    failures.append(r.DisplayTitle.strip() or r.SiteFilename.strip())
+
+            # 2) Append the copied rows to the target's index.html, in order (only if every copy succeeded).
+            if moved and not failures:
+                pm.Update(f"Updating '{tgt_name}'")
+                if self._AppendRowsToCon(tgt_name, [nr for _, nr in moved]):
+                    targetUpdated=True
+                else:
+                    failures.append(f"(could not update the '{tgt_name}' page)")
+
+            # 3) Only once the target is safely updated: delete the originals and re-upload this page.
+            if targetUpdated:
+                for r, _ in moved:
+                    if r.IsTextRow or r.IsLinkRow:
+                        pass                                        # nothing on the server
+                    elif r.IsSubPageRow and r.SiteFilename.strip():
+                        FTP().DeleteDir(f"{src_dir}/{r.SiteFilename.strip()}")
+                    elif r.SiteFilename.strip():                    # file row
+                        if any(d.Verb in ("add", "replace") and d.Con is r for d in self.conInstanceDeltaTracker.Deltas):
+                            self.conInstanceDeltaTracker.Forget(r)  # was a pending upload -> just drop it
+                        elif FTP().CWD(src_dir):
+                            FTP().DeleteFile(r.SiteFilename.strip())
+                    if r in self.Datasource.Rows:
+                        self.Datasource.Rows.remove(r)
+                pm.Update(f"Updating {self.Conname}")
+                if not self.UploadConInstancePage(pm=pm):
+                    failures.append(f"(could not update the source '{self.Conname}' page)")
+                else:
+                    self.MarkAsSaved()
+            pm.Update(f"Moved {len(moved)} of {len(movers)} row(s)", delay=0.5)
+
+        if targetUpdated:
+            self._grid.RefreshWxGridFromDatasource()
+            self._grid.Grid.ForceRefresh()
+            self.UpdateNeedsSavingFlag()
+        if failures:
+            wx.MessageBox("Some rows could not be fully moved:\n\n"+"\n".join(failures), "Move to different con", wx.OK|wx.ICON_ERROR)
+            return
+        if not targetUpdated:
+            return
+
+        # Success: close this (source) dialog and ask the con-series window to open the target for editing.
+        self._moveToConNext=tgt_name
+        self.EndModal(wx.ID_OK)
+
+    # ------------------
+    # A name not already used in the target directory: fname as-is, or "name (1).ext", "name (2).ext", ...
+    # Reserves the returned name in `existing` so a batch of moves can't collide with each other.
+    def _UniqueNameInDir(self, fname: str, existing: set) -> str:
+        if fname.lower() not in existing:
+            existing.add(fname.lower())
+            return fname
+        base, ext=os.path.splitext(fname)
+        i=1
+        while f"{base} ({i}){ext}".lower() in existing:
+            i+=1
+        newname=f"{base} ({i}){ext}"
+        existing.add(newname.lower())
+        return newname
+
+    # ------------------
+    # PDF page-header format/items for a file that now lives on con instance `conname` (dates `conDates`).
+    # Mirrors _BuildPageHeader but for an arbitrary target con rather than this dialog's own.
+    def _BuildPageHeaderFor(self, conname: str, conDates: str, item_title: str) -> tuple[str, list]:
+        segs=[s for s in self._FTPbasedir.split("/") if s]+[conname]
+        instance_url="https://www.fanac.org/conpubs/"+"/".join(quote(s, safe='') for s in segs)+"/"
+        items=[instance_url, conname, item_title]
+        if conDates.strip():
+            fmt="{}: {} ({})  --  from {}"
+            items.append(conDates.strip())
+        else:
+            fmt="{}: {}  --  from {}"
+        items+=["https://www.fanac.org/conpubs/", "fanac.org/conpubs"]
+        return fmt, items
+
+    # ------------------
+    def _BuildMetadataFor(self, conname: str, CleanTitle: str) -> dict:
+        keywords=[self._seriesname, conname, CleanTitle, "fanac.org", "fan history", "science fiction convention"]
+        return dict(title=f'{conname}: {CleanTitle}',
+                    author=self.Credits,
+                    subject=f'Science fiction convention; {self._seriesname}; {conname}; fan history; fanac.org',
+                    keywords=", ".join(filter(None, keywords)))
+
+    # ------------------
+    # Copy one file row's file into the target con's directory (re-stamping a PDF's header/metadata for the
+    # target con, and auto-renaming on a name collision). Does NOT delete the source. Returns the row to add to
+    # the target page, or None on failure.
+    def _CopyFileRowToCon(self, r, src_dir: str, tgt_dir: str, tgt_name: str, tgt_dates: str, existing: set):
+        fname=r.SiteFilename.strip()
+        if not fname:
+            return None
+        newname=self._UniqueNameInDir(fname, existing)
+        pending=any(d.Verb in ("add", "replace") and d.Con is r for d in self.conInstanceDeltaTracker.Deltas)
+        tmp_fd, tmp_path=tempfile.mkstemp(suffix=os.path.splitext(fname)[1] or ".pdf")
+        os.close(tmp_fd)
+        try:
+            if pending:
+                if not os.path.exists(r.SourcePathname):
+                    LogError(f"Move to con: local file '{r.SourcePathname}' not found")
+                    return None
+                shutil.copy2(r.SourcePathname, tmp_path)
+            else:
+                if not FTP().GetFile(src_dir, fname, tmp_path):
+                    LogError(f"Move to con: could not download '{src_dir}/{fname}'")
+                    return None
+
+            if ExtensionMatches(fname, ".pdf"):
+                CleanTitle=_CleanTitle(r.DisplayTitle)
+                AddStdMetadata(tmp_path, **self._BuildMetadataFor(tgt_name, CleanTitle))
+                fmt, items=self._BuildPageHeaderFor(tgt_name, tgt_dates, CleanTitle)
+                try:
+                    AddPdfPageHeader(tmp_path, fmt, items, logo=_g_headerLogo)
+                except Exception as e:
+                    LogError(f"Move to con: header regen failed for '{fname}': {e}")
+
+            if not (FTP().CWD(tgt_dir) and FTP().PutFile(tmp_path, newname)):
+                LogError(f"Move to con: could not upload '{newname}' to '{tgt_dir}'")
+                return None
+
+            nr=r.Copy()
+            nr.SiteFilename=newname
+            try:
+                nr.Size=os.path.getsize(tmp_path)/(1024**2)
+                pages=GetPdfPageCount(tmp_path)
+                if pages is not None:
+                    nr.Pages=pages
+            except Exception:
+                pass
+            return nr
+        finally:
+            try:
+                os.remove(tmp_path)
+            except Exception:
+                pass
+
+    # ------------------
+    # Copy a sub-page row's whole folder into the target con (server-side copy of every file, auto-renaming the
+    # folder on a collision), then re-point the copied sub-page's index.html at its new parent con. Does NOT
+    # delete the source folder. Returns the sub-page row to add to the target page, or None on failure.
+    def _CopySubPageToCon(self, r, src_dir: str, tgt_dir: str, tgt_name: str, existing: set):
+        spfolder=r.SiteFilename.strip()
+        if not spfolder:
+            return None
+        newfolder=self._UniqueNameInDir(spfolder, existing)
+        src_sp=f"{src_dir}/{spfolder}"
+        tgt_sp=f"{tgt_dir}/{newfolder}"
+        files=FTP().Nlst(src_sp)
+        if not files:
+            LogError(f"Move to con: sub-page '{src_sp}' is empty or missing")
+            return None
+        for f in files:
+            if not FTP().CopyAndRenameFile(src_sp, f, tgt_sp, Create=True):
+                LogError(f"Move to con: could not copy sub-page file '{f}' to '{tgt_sp}'")
+                return None
+        # Re-point the copied sub-page to its new parent (fixes its breadcrumb/title/prev-next; the per-file
+        # "from <con>" headers inside it are left as they were).
+        try:
+            ci=ConInstance(tgt_dir, self._seriesname, newfolder)
+            if ci.Download():
+                ci.IsSubPage=True
+                ci.RootSeriesName=self._rootSeriesName
+                ci.RootConName=tgt_name
+                ci.Upload(newfolder)
+        except Exception as e:
+            LogError(f"Move to con: could not re-point sub-page '{newfolder}' to '{tgt_name}': {e}")
+        nr=r.Copy()
+        nr.SiteFilename=newfolder
+        return nr
+
+    # ------------------
+    # Append the moved rows (files, text headings, external links, sub-pages -- each keeping its type) to the
+    # target con's index.html: download it, append, re-upload.
+    def _AppendRowsToCon(self, tgt_name: str, movedRows: list) -> bool:
+        ci=ConInstance(self._FTPbasedir, self._seriesname, tgt_name)
+        if not ci.Download():
+            LogError(f"Move to con: could not download '{tgt_name}' to update it")
+            return False
+        for r in movedRows:
+            nr=ConInstanceRow()
+            nr.DisplayTitle=r.DisplayTitle
+            nr.SiteFilename=r.SiteFilename
+            nr.Notes=r.Notes
+            nr.Size=r.Size
+            nr.Pages=r.Pages
+            nr.IsTextRow=r.IsTextRow
+            nr.IsLinkRow=r.IsLinkRow
+            nr.IsSubPageRow=r.IsSubPageRow
+            ci.ConInstanceRows.append(nr)
+        return ci.Upload(tgt_name)
 
     def OnPopupPublications(self, event):
         self.InsertTextRow()

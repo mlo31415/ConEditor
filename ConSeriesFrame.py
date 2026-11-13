@@ -1333,6 +1333,13 @@ class ConSeriesFrame(GenConSeriesFrame):
                 if rowDates is not None and type(rowDates) is not str and not rowDates.IsEmpty():
                     dlg.ConInstanceDates=str(rowDates)
 
+            # Give the instance dialog the OTHER created cons in this series (name + dates) as the targets for
+            # its "Move to different con" item: those with a page (URL set) that aren't cross-links or this con.
+            dlg.SiblingCons=[(rr.Name.strip(),
+                              str(rr.Dates) if (rr.Dates is not None and type(rr.Dates) is not str and not rr.Dates.IsEmpty()) else "")
+                             for rr in self.Datasource.Rows
+                             if rr.Name.strip() and rr.Name.strip() != conname and rr.URL.strip() and not rr.IsCrossLink]
+
             dlg.MarkAsSaved()
             dlg.RefreshWindow()
             dlg.ShowModal() # We don't care about the return value because you can't cancel out of this dialog; all you can do is change nothing
@@ -1341,8 +1348,16 @@ class ConSeriesFrame(GenConSeriesFrame):
                     self.Datasource.Rows.append(Con())
             self.Datasource.Rows[irow].Name=dlg.ConInstanceName.strip()
             self.Datasource.Rows[irow].URL="index.html"
+            nextcon=getattr(dlg, "_moveToConNext", "")
 
         # Log("ModalDialogManager(ConInstanceDialogClass() done")
+
+        # "Move to different con" closed this dialog asking us to open the target con for editing now.
+        if nextcon:
+            self.RefreshWindow()
+            tgt=next((i for i, rr in enumerate(self.Datasource.Rows) if rr.Name.strip() == nextcon), None)
+            if tgt is not None:
+                self.EditConInstancePage(tgt)
 
 
     #------------------
