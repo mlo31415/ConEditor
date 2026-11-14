@@ -15,11 +15,11 @@ from ConEditorHelpers import FetchConSeriesFromFancy
 from ConSeries import ConSeries, Con
 from ConInstance import ConInstance, IsTestSeries, AddNoindex
 from WxDataGrid import DataGrid, IsEditable
-from ConInstanceFrame import ConInstanceDialogClass
+from ConInstanceFrame import ConInstanceDialogClass, PDF_HEADER_VERSION, CIP_FORMAT_VERSION
 from Settings import Settings
 
 from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText2, WikiPagenameToWikiUrlname, RemoveAccents, RemoveAllHTMLTags
-from HelpersPackage import PyiResourcePath, MessageBox, ExtractTrailingSequenceNumber, ExtensionMatches
+from HelpersPackage import PyiResourcePath, MessageBox, ExtractTrailingSequenceNumber, ExtensionMatches, Int0
 from WxHelpers import ModalDialogManager, ProgressMessage2, OnCloseHandling3, MessageBoxInput, wxMessageDialogInput, wxMessageBox, SetWindowIcon
 from Log import Log, LogError
 from FanzineDateTime import FanzineDateRange
@@ -429,7 +429,15 @@ class ConSeriesFrame(GenConSeriesFrame):
             for icol, header in enumerate(headers):
                 match header:
                     case "Convention":
-                        con.Name, con.URL, con.Extra = self.ConNameInfoUnpack(row[icol])
+                        cell=row[icol]
+                        # A hidden "<!--d=cip.pdf-->" records how far this con was brought up to date. Read it,
+                        # then strip it so ConNameInfoUnpack sees exactly what it wrote (its round-trip is exact).
+                        md=re.search(r"<!--d=(\d+)\.(\d+)-->", cell)
+                        if md is not None:
+                            con.DoneCipVersion=Int0(md.group(1))
+                            con.DonePdfVersion=Int0(md.group(2))
+                            cell=cell[:md.start()]+cell[md.end():]
+                        con.Name, con.URL, con.Extra = self.ConNameInfoUnpack(cell)
                     case "Location":
                         con.Locale=html.unescape(row[icol])
                     case _:
@@ -610,8 +618,10 @@ class ConSeriesFrame(GenConSeriesFrame):
                     continue
                 newtable+="    <tr>\n"
 
-                # Generate the first column from the name, url and extra
-                newtable+=f"    <td>{ConSeriesFrame.ConNameInfoPack(row.Name, row.URL, row.Extra)}</td>\n"
+                # Generate the first column from the name, url and extra, with a hidden up-to-date marker in
+                # front of it when the con has been verified (invisible; lets a later run skip a current con).
+                mark=f"<!--d={row.DoneCipVersion}.{row.DonePdfVersion}-->" if (row.DoneCipVersion or row.DonePdfVersion) else ""
+                newtable+=f"    <td>{mark}{ConSeriesFrame.ConNameInfoPack(row.Name, row.URL, row.Extra)}</td>\n"
 
                 # And the rest
                 if hasdates:
@@ -1888,18 +1898,41 @@ class ConSeriesFrame(GenConSeriesFrame):
     # sub-pages again. This is far more work than RegenerateConPages, which only uploads the convention pages
     # again: every PDF is downloaded and uploaded. Returns a list of what could not be done (empty if all OK).
     def RegenerateConPagesAndPdfHeaders(self) -> list[str]:
+        # A rename relocates: every PDF header must be rewritten regardless of its version (onlyStale=False),
+        # and every con must be visited (skipCurrent=False).
+        return self._WalkSeriesPdfs(onlyStale=False, skipCurrent=False, title=f"Updating the conventions in '{self.Seriesname}'")
+
+
+    # ------------------
+    # Bring this series up to date: visit each con instance, but skip one whose roll-up marker already shows it
+    # at the current CIP and PDF versions (no download), and for the rest re-stamp only the PDFs that are behind
+    # (onlyStale=True) and regenerate the page. Records progress in the con-series page's markers as it goes, so
+    # a later run resumes cheaply. Returns a list of what could not be done (empty if all OK).
+    def BringSeriesUpToDate(self) -> list[str]:
+        return self._WalkSeriesPdfs(onlyStale=True, skipCurrent=True, title=f"Bringing '{self.Seriesname}' up to date")
+
+
+    # ------------------
+    # Shared loop behind the two above. For each linked con: optionally skip it if its marker is already current;
+    # otherwise open it (window never shown), re-stamp its PDFs (all, or only stale ones), regenerate its page
+    # and sub-pages, and -- if that all succeeded -- stamp the con's roll-up marker to the current versions. The
+    # con-series page is uploaded at the end so the markers (and, for a rename, the new name) are saved.
+    def _WalkSeriesPdfs(self, onlyStale: bool, skipCurrent: bool, title: str) -> list[str]:
         try:
             import fitz as _fitz_check  # noqa: F401
         except ImportError:
-            # Without PyMuPDF the PDFs can't be re-stamped, so do what can be done: the convention pages.
-            return (["PyMuPDF is not installed, so the headers inside the PDFs, and the sub-pages, were not updated"]+
-                    [f"The page of {name} could not be updated" for name in self.RegenerateConPages()])
+            # Without PyMuPDF the PDFs can't be re-stamped, so do only what can be done: the convention pages.
+            # (No markers are set -- the PDFs are not known to be current.)
+            problems=[f"The page of {name} could not be updated" for name in self.RegenerateConPages()]
+            return ["PyMuPDF is not installed, so the headers inside the PDFs, and the sub-pages, were not updated"]+problems
 
         problems: list[str]=[]
-        with ModalDialogManager(ProgressMessage2, f"Updating the conventions in '{self.Seriesname}'", parent=self) as pm:
+        with ModalDialogManager(ProgressMessage2, title, parent=self) as pm:
             for irow, con in enumerate(self.Datasource.Rows):
                 if con.URL != "index.html":
                     continue    # Unlinked, or a cross-link into another series
+                if skipCurrent and con.DoneCipVersion >= CIP_FORMAT_VERSION and con.DonePdfVersion >= PDF_HEADER_VERSION:
+                    continue    # already current -- don't even download it
                 pm.Update(f"Updating {con.Name}")
                 prevname, nextname=self.GetPrevNext(irow)
                 # The con instance window (never shown) does the work: it knows how to build a PDF's header.
@@ -1911,9 +1944,17 @@ class ConSeriesFrame(GenConSeriesFrame):
                     dlg.ConInstanceName=con.Name
                     if con.Dates is not None and type(con.Dates) is not str and not con.Dates.IsEmpty():
                         dlg.ConInstanceDates=str(con.Dates)
-                    problems.extend(dlg.RegeneratePageAndPdfHeaders(pm))
+                    conProblems=dlg.RegeneratePageAndPdfHeaders(pm, onlyStale=onlyStale)
                 finally:
                     dlg.Destroy()
+                problems.extend(conProblems)
+                if not conProblems:
+                    # The con is now fully current: record it so a later run skips it without a download.
+                    con.DoneCipVersion=CIP_FORMAT_VERSION
+                    con.DonePdfVersion=PDF_HEADER_VERSION
+            pm.Update(f"Saving /{self.Seriesname}/index.html")
+        if not self.UploadConSeries():
+            problems.append(f"The '{self.Seriesname}' series page could not be uploaded, so its progress was not saved.")
         return problems
 
 

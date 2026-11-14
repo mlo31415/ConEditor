@@ -36,6 +36,11 @@ class Con(GridDataRowClass):
         self._dates: FanzineDateRange|None =Dates      # Date range of the con
         self._gohs: str=GoHs                  # A list of the con's GoHs
         self._URL: str=URL                   # The URL of the individual con page, if any
+        # Roll-up "bring up to date" marker for this con instance: the (CIP format, PDF header) versions its
+        # page was last fully verified at. Stored on the con-series page as a hidden "<!--d=cip.pdf-->" so a
+        # later run can skip a con that is already current without downloading its page. 0 = never verified.
+        self._doneCipVersion: int=0
+        self._donePdfVersion: int=0
 
     def __hash__(self) -> int:
         return hash(self._name)+hash(self._locale)+hash(self._dates)+hash(self._gohs)+hash(self._URL)
@@ -105,6 +110,21 @@ class Con(GridDataRowClass):
     @URL.setter
     def URL(self, val: str) -> None:
         self._URL=val
+
+    # The (CIP format, PDF header) versions this con's page was last fully brought up to. 0 = never.
+    @property
+    def DoneCipVersion(self) -> int:
+        return self._doneCipVersion
+    @DoneCipVersion.setter
+    def DoneCipVersion(self, val: int) -> None:
+        self._doneCipVersion=int(val)
+
+    @property
+    def DonePdfVersion(self) -> int:
+        return self._donePdfVersion
+    @DonePdfVersion.setter
+    def DonePdfVersion(self, val: int) -> None:
+        self._donePdfVersion=int(val)
 
     # A cross-link points at a con instance stored under a *different* con series (DSC-style
     # "../OtherSeries/Con/index.html"). Its files are owned and edited only from that other series.

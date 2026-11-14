@@ -30,6 +30,11 @@ from WxHelpers import OnCloseHandling3, ModalDialogManager, ProgressMessage2, Me
 # (ConInstanceRow.HeaderVersion), set here on every stamp.
 PDF_HEADER_VERSION: int=1
 
+# The version of the con-instance-page format (what ConInstance.Upload produces from the template). Bump this
+# when that changes; a bring-up-to-date walk then re-uploads every CIP (cheap -- no PDF work). A CIP's roll-up
+# marker on its con-series page records the (CIP, PDF) versions it was last fully verified at.
+CIP_FORMAT_VERSION: int=1
+
 # The FANAC logo stamped onto uploaded PDFs' page headers. Loaded once at startup (see main() in
 # ConEditorFrame) and held here as raw image bytes; None means no logo (file missing or unreadable).
 _g_headerLogo: bytes|None=None
@@ -1949,7 +1954,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     # its index.html (breadcrumb, title, the button back to the con) and upload it with the re-stamped sizes.
     # owning_con stays the top con all the way down (every sub-page links back to that con, not its immediate
     # parent, which is the existing convention). Returns a list of what could not be done (empty if all OK).
-    def _RegenerateSubPage(self, parent_dir: str, owning_con: str, sp_folder: str, sp_display: str, pm=None) -> list[str]:
+    def _RegenerateSubPage(self, parent_dir: str, owning_con: str, sp_folder: str, sp_display: str, pm=None, onlyStale: bool=False) -> list[str]:
         problems: list[str]=[]
         sp_dir=f"{parent_dir}/{sp_folder}"
         where=sp_dir.lstrip("/")
@@ -1963,8 +1968,10 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             for row in ci.ConInstanceRows:
                 if row.IsSubPageRow and row.SiteFilename.strip():
                     # A sub-page nested below this one: recurse all the way down.
-                    problems.extend(self._RegenerateSubPage(sp_dir, owning_con, row.SiteFilename.strip(), row.DisplayTitle.strip(), pm))
+                    problems.extend(self._RegenerateSubPage(sp_dir, owning_con, row.SiteFilename.strip(), row.DisplayTitle.strip(), pm, onlyStale))
                 elif not row.IsTextRow and not row.IsLinkRow and not row.IsSubPageRow and ExtensionMatches(row.SiteFilename, ".pdf"):
+                    if onlyStale and row.HeaderVersion >= PDF_HEADER_VERSION:
+                        continue        # already at the current header version
                     if pm is not None:
                         pm.Update(f"Updating {where}/{row.SiteFilename}")
                     if not self._RestampSubPagePdf(row, sp_dir, owning_con, sp_display):
@@ -1981,7 +1988,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     # each of its sub-pages (and regenerate them), then upload its own index.html again. This is what makes a
     # convention's pages and PDFs carry a new location after its series directory has been renamed. Nothing is
     # asked and no file rows are added or removed. Returns a list of what could not be done (empty if all OK).
-    def RegeneratePageAndPdfHeaders(self, pm) -> list[str]:
+    def RegeneratePageAndPdfHeaders(self, pm, onlyStale: bool=False) -> list[str]:
         problems: list[str]=[]
         serverdir=f"{self._FTPbasedir}/{self.Conname}"
         for r in self.Datasource.Rows:
@@ -1989,8 +1996,10 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 continue
             if r.IsSubPageRow:
                 if r.SiteFilename.strip():
-                    problems.extend(self._RegenerateSubPage(serverdir, self.Conname, r.SiteFilename.strip(), r.DisplayTitle.strip(), pm))
+                    problems.extend(self._RegenerateSubPage(serverdir, self.Conname, r.SiteFilename.strip(), r.DisplayTitle.strip(), pm, onlyStale))
             elif ExtensionMatches(r.SiteFilename, ".pdf"):
+                if onlyStale and r.HeaderVersion >= PDF_HEADER_VERSION:
+                    continue        # already at the current header version -- don't re-stamp
                 if self.RegeneratePdfHeaderForRow(r, serverdir, pm):
                     problems.append(f"The header of {self.Conname}/{r.SiteFilename} could not be updated")
 

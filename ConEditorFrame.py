@@ -572,12 +572,11 @@ class ConEditorFrame(GenConEditorFrame):
             if not self.UploadMainConlist():
                 problems.append("The main convention list could not be uploaded. Upload it, so that the main page links to the renamed series.")
 
-            # Now everything inside the series that carries its location: the series page, then each convention's
-            # page, sub-pages and PDFs.
+            # Now everything inside the series that carries its location: each convention's page, its sub-pages
+            # and PDFs, and finally the series page itself (uploaded last, inside this call, so it carries the
+            # new name and the refreshed progress markers).
             if frame is not None:
                 frame.Seriesname=newname
-                if not frame.UploadConSeries():
-                    problems.append(f"The '{newname}' series page could not be uploaded, so it still carries the old name.")
                 problems.extend(frame.RegenerateConPagesAndPdfHeaders())
         finally:
             if frame is not None:
