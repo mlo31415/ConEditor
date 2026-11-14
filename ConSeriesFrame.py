@@ -235,10 +235,10 @@ class ConSeriesFrame(GenConSeriesFrame):
         self.gRowGrid.GetGridWindow().Bind(wx.EVT_MOTION, self.OnGridMotion)
 
         if len(conseriesname) == 0:
-            dlg=wx.TextEntryDialog(None, "Please enter the name of the Convention Series you wish to create.", "Enter Convention Series name")
-            if dlg.ShowModal() == wx.CANCEL or len(dlg.GetValue().strip()) == 0:
-                return
-            conseriesname=dlg.GetValue()
+            with wx.TextEntryDialog(None, "Please enter the name of the Convention Series you wish to create.", "Enter Convention Series name") as dlg:     # (with: destroyed on Cancel, too)
+                if dlg.ShowModal() != wx.ID_OK or len(dlg.GetValue().strip()) == 0:
+                    return
+                conseriesname=dlg.GetValue()
 
         self.Seriesname=conseriesname
         self._conserieslist=conserieslist

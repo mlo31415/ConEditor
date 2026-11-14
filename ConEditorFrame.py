@@ -491,11 +491,10 @@ class ConEditorFrame(GenConEditorFrame):
     # ------------------
     def OnPopupRename(self, event):            
         oldname=self.Datasource[self._grid.clickedRow][0]
-        dlg=wx.TextEntryDialog(None, "Enter the new name of the Convention Series.", "Edit Convention Series name", value=oldname)
-        if dlg.ShowModal() == wx.CANCEL or len(dlg.GetValue().strip()) == 0:
-            return
-        newname=dlg.GetValue()
-        dlg.Destroy()
+        with wx.TextEntryDialog(None, "Enter the new name of the Convention Series.", "Edit Convention Series name", value=oldname) as dlg:     # (with: destroyed on Cancel, too)
+            if dlg.ShowModal() != wx.ID_OK or len(dlg.GetValue().strip()) == 0:
+                return
+            newname=dlg.GetValue()
         if newname != oldname:
             # Make sure newname isn't already on the list
             for row in self.Datasource.Rows:

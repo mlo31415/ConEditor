@@ -27,11 +27,10 @@ def FetchConSeriesFromFancy(name, retry: bool = False, silent: bool = False) -> 
         del wait  # End the wait cursor
         Log("FetchConSeriesFromFancy: Got exception when trying to open "+pageurl)
         if not retry and not silent:
-            dlg=wx.TextEntryDialog(None, "Load failed. Enter a different name and press OK to retry.", "Try a different name?", value=name)
-            if dlg.ShowModal() == wx.CANCEL or len(dlg.GetValue().strip()) == 0:
-                return None, None
-            response=dlg.GetValue()
-            dlg.Destroy()
+            with wx.TextEntryDialog(None, "Load failed. Enter a different name and press OK to retry.", "Try a different name?", value=name) as dlg:     # (with: destroyed on Cancel, too)
+                if dlg.ShowModal() != wx.ID_OK or len(dlg.GetValue().strip()) == 0:
+                    return None, None
+                response=dlg.GetValue()
             return FetchConSeriesFromFancy(response)
         return None, None
 
