@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import html
 import re
+import time
 import wx, wx.grid
 from urllib.parse import quote, unquote
 from datetime import datetime
@@ -18,7 +19,7 @@ from ConInstanceFrame import ConInstanceDialogClass
 from Settings import Settings
 
 from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText2, WikiPagenameToWikiUrlname, RemoveAccents, RemoveAllHTMLTags
-from HelpersPackage import PyiResourcePath, MessageBox, ExtractTrailingSequenceNumber
+from HelpersPackage import PyiResourcePath, MessageBox, ExtractTrailingSequenceNumber, ExtensionMatches
 from WxHelpers import ModalDialogManager, ProgressMessage2, OnCloseHandling3, MessageBoxInput, wxMessageDialogInput, wxMessageBox, SetWindowIcon
 from Log import Log, LogError
 from FanzineDateTime import FanzineDateRange
@@ -1833,6 +1834,84 @@ class ConSeriesFrame(GenConSeriesFrame):
                 if not self.DownloadThenUploadConInstancePage(self.Seriesname, self.Datasource[irow].Name, prevcon=prevname, nextcon=nextname, pm=pm):
                     failed.append(self.Datasource[irow].Name)
         return failed
+
+
+    # ------------------
+    # Measure what RegenerateConPagesAndPdfHeaders would have to do, by reading each of this series' convention
+    # pages and their sub-pages. Changes nothing. Returns a dict:
+    #   cons, subpages, pdfs    how many convention pages, sub-pages and PDFs there are
+    #   mb                      the PDFs' total size in MB (as listed on the pages)
+    #   unreadable              the names of the pages that could not be read
+    #   secondsPerPage          how long it took to read a page, on average -- a measure of the connection
+    def SurveyForRegeneration(self) -> dict:
+        survey={"cons": 0, "subpages": 0, "pdfs": 0, "mb": 0.0, "unreadable": [], "secondsPerPage": 0.0}
+        seriesdir=f"{self._basedirectoryFTP}/{self.Seriesname}"
+        nread=0
+        start=time.monotonic()
+        with ModalDialogManager(ProgressMessage2, f"Checking how much there is in '{self.Seriesname}'", parent=self) as pm:
+            for con in self.Datasource.Rows:
+                if con.URL != "index.html":
+                    continue    # Unlinked, or a cross-link into another series
+                pm.Update(f"Checking {con.Name}")
+                nread+=1
+                ci=ConInstance(seriesdir, self.Seriesname, con.Name)
+                if not ci.Download():
+                    survey["unreadable"].append(con.Name)
+                    continue
+                survey["cons"]+=1
+                pages=[ci]
+                for r in ci.ConInstanceRows:
+                    if r.IsSubPageRow and r.SiteFilename.strip():
+                        nread+=1
+                        sp=ConInstance(f"{seriesdir}/{con.Name}", self.Seriesname, r.SiteFilename.strip())
+                        if sp.Download():
+                            survey["subpages"]+=1
+                            pages.append(sp)
+                        else:
+                            survey["unreadable"].append(f"{con.Name}/{r.SiteFilename.strip()}")
+                for page in pages:
+                    for r in page.ConInstanceRows:
+                        if not r.IsTextRow and not r.IsLinkRow and not r.IsSubPageRow and ExtensionMatches(r.SiteFilename, ".pdf"):
+                            survey["pdfs"]+=1
+                            survey["mb"]+=r.Size
+        if nread > 0:
+            survey["secondsPerPage"]=(time.monotonic()-start)/nread
+        return survey
+
+
+    # ------------------
+    # Regenerate everything in this series that carries its location. For each convention: re-stamp the headers
+    # of its PDFs and of its sub-pages' PDFs (they link to the convention's page), and upload its page and its
+    # sub-pages again. This is far more work than RegenerateConPages, which only uploads the convention pages
+    # again: every PDF is downloaded and uploaded. Returns a list of what could not be done (empty if all OK).
+    def RegenerateConPagesAndPdfHeaders(self) -> list[str]:
+        try:
+            import fitz as _fitz_check  # noqa: F401
+        except ImportError:
+            # Without PyMuPDF the PDFs can't be re-stamped, so do what can be done: the convention pages.
+            return (["PyMuPDF is not installed, so the headers inside the PDFs, and the sub-pages, were not updated"]+
+                    [f"The page of {name} could not be updated" for name in self.RegenerateConPages()])
+
+        problems: list[str]=[]
+        with ModalDialogManager(ProgressMessage2, f"Updating the conventions in '{self.Seriesname}'", parent=self) as pm:
+            for irow, con in enumerate(self.Datasource.Rows):
+                if con.URL != "index.html":
+                    continue    # Unlinked, or a cross-link into another series
+                pm.Update(f"Updating {con.Name}")
+                prevname, nextname=self.GetPrevNext(irow)
+                # The con instance window (never shown) does the work: it knows how to build a PDF's header.
+                dlg=ConInstanceDialogClass(f"{self._basedirectoryFTP}/{self.Seriesname}", self.Seriesname, con.Name, prevname, nextname, Create=False, pm=pm)
+                try:
+                    if len(dlg.ReturnMessage) > 0:
+                        problems.append(f"The page of {con.Name} could not be read, so it and its PDFs were not updated")
+                        continue
+                    dlg.ConInstanceName=con.Name
+                    if con.Dates is not None and type(con.Dates) is not str and not con.Dates.IsEmpty():
+                        dlg.ConInstanceDates=str(con.Dates)
+                    problems.extend(dlg.RegeneratePageAndPdfHeaders(pm))
+                finally:
+                    dlg.Destroy()
+        return problems
 
 
     # ------------------

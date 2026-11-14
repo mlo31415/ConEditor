@@ -490,7 +490,11 @@ class ConEditorFrame(GenConEditorFrame):
 
     # ------------------
     # Rename a convention series: its directory on the server, its line on this list (the name and the link),
-    # and the pages that carry its name -- the series page and each of its convention pages.
+    # and everything inside it that carries its location -- the series page, each convention's page and
+    # sub-pages, and the header stamped in each PDF (which links to the convention's page). Cross-links to the
+    # series from other series are not changed.
+    # Because every PDF has to be downloaded and uploaded again, this can be a long job that must not be
+    # interrupted, so the series is measured first and the user is told its size and warned before it starts.
     def OnPopupRename(self, event):
         irow=self._grid.clickedRow
         oldname=self.Datasource[irow][0]
@@ -509,44 +513,85 @@ class ConEditorFrame(GenConEditorFrame):
                 wx.MessageBox("That is a duplicate convention name.", "Duplicate Con Name")
                 return
 
-        # Rename the series' directory on the server. Nothing else is changed unless that succeeds.
-        with ModalDialogManager(ProgressMessage2, f"Renaming '{oldname}' as '{newname}' on the server", parent=self) as pm:
-            renamed=FTP().SetDirectory("/") and not FTP().FileExists(newname) and FTP().Rename(oldname, newname)
-            hasPage=renamed and FTP().FileExists(f"/{newname}/index.html")
-        if not renamed:
-            Log(f"OnPopupRename: could not rename directory '{oldname}' as '{newname}'", isError=True)
-            wx.MessageBox(f"Could not rename the directory '{oldname}' as '{newname}' on the server, so nothing was changed.\n\n"
-                          f"(Is there already a directory named '{newname}'?)", "Rename failed", wx.OK|wx.ICON_ERROR)
+        # The new name must be free on the server. And is there a series page to work from?
+        with ModalDialogManager(ProgressMessage2, f"Checking '{oldname}' on the server", parent=self) as pm:
+            taken=not FTP().SetDirectory("/") or FTP().FileExists(newname)
+            hasPage=not taken and FTP().FileExists(f"/{oldname}/index.html")
+        if taken:
+            wx.MessageBox(f"There is already a directory named '{newname}' on the server (or the server could not be reached), "
+                          f"so nothing was changed.", "Can't rename", wx.OK|wx.ICON_ERROR)
             return
 
-        # The directory now has its new name. Update this list (the name and the link) and upload it at once,
-        # because the main page is what links to the directory.
-        self.Datasource.Rows[irow].Name=newname
-        self.Datasource.Rows[irow].URL="./"+newname+"/index.html"
-        self.RefreshWindow()
-        problems: list[str]=[]
-        if not self.UploadMainConlist():
-            problems.append("The main convention list could not be uploaded. Upload it, so that the main page links to the renamed series.")
-
-        # Regenerate the pages that carry the series' name: the series page, then its convention pages (whose
-        # prev/next buttons are full URLs that include it). The series is loaded into a hidden series window
-        # to do that.
+        # Load the series into a series window that is never shown: it does the work on the series' pages.
+        frame=None
         if hasPage:
-            frame=ConSeriesFrame(self._baseDirFTP, newname, [row.Name for row in self.Datasource.Rows], show=False)
-            try:
-                if not frame._loadedFromServer:
-                    problems.append(f"The '{newname}' series page could not be read, so it and its convention pages still carry the old name.")
-                elif not frame.UploadConSeries():
-                    problems.append(f"The '{newname}' series page could not be uploaded, so it and its convention pages still carry the old name.")
-                else:
-                    failed=frame.RegenerateConPages()
-                    if failed:
-                        problems.append("These convention pages could not be updated, and still carry the old name:\n    "+"\n    ".join(failed))
-            finally:
+            frame=ConSeriesFrame(self._baseDirFTP, oldname, [row.Name for row in self.Datasource.Rows], show=False)
+        try:
+            if frame is not None and not frame._loadedFromServer:
+                wx.MessageBox(f"The '{oldname}' series page could not be read, so nothing was changed. Try again.", "Can't rename", wx.OK|wx.ICON_ERROR)
+                return
+
+            # Measure the job and tell the user what they are about to start. Nothing has been changed yet.
+            msg=(f"Renaming '{oldname}' as '{newname}' will:\n\n"
+                 f"    • rename the series' directory on the server\n"
+                 f"    • update and upload the main convention list\n")
+            if frame is not None:
+                survey=frame.SurveyForRegeneration()
+                msg+=(f"    • regenerate the series page, {survey['cons']} convention page(s) and {survey['subpages']} sub-page(s)\n"
+                      f"    • download, re-stamp and upload again {survey['pdfs']} PDF(s) -- {survey['mb']:,.0f} MB -- so that the "
+                      f"header in each links to the new location\n")
+                if survey["unreadable"]:
+                    msg+=(f"\n{len(survey['unreadable'])} page(s) could not be read. They and their PDFs will be left as they are:\n    "+
+                          "\n    ".join(survey["unreadable"][:10])+("\n    ..." if len(survey["unreadable"]) > 10 else "")+"\n")
+                # A floor for the time: about three server round trips for each page and two for each PDF, at the
+                # speed the survey just measured. Moving the PDFs' contents comes on top of that.
+                minutes=max(1, round((3*(survey["cons"]+survey["subpages"])+2*survey["pdfs"])*survey["secondsPerPage"]/60))
+                msg+=(f"\nExpect this to take at least {minutes} minute(s), plus the time it takes to move {survey['mb']:,.0f} MB "
+                      f"in each direction.\n")
+            msg+=("\nOnce it has started it must run to the end. Until ConEditor says that the rename has finished, do NOT close "
+                  "ConEditor, do NOT let the computer sleep or shut down, and do NOT disconnect from the network.\n\n"
+                  "Start the rename?")
+            if wx.MessageBox(msg, "Rename a convention series", wx.OK|wx.CANCEL|wx.CANCEL_DEFAULT|wx.ICON_WARNING) != wx.OK:
+                return
+
+            # Rename the series' directory on the server. Nothing else is changed unless that succeeds.
+            with ModalDialogManager(ProgressMessage2, f"Renaming '{oldname}' as '{newname}' on the server", parent=self) as pm:
+                renamed=FTP().SetDirectory("/") and FTP().Rename(oldname, newname)
+            if not renamed:
+                Log(f"OnPopupRename: could not rename directory '{oldname}' as '{newname}'", isError=True)
+                wx.MessageBox(f"Could not rename the directory '{oldname}' as '{newname}' on the server, so nothing was changed.",
+                              "Rename failed", wx.OK|wx.ICON_ERROR)
+                return
+
+            # The directory now has its new name. Update this list (the name and the link) and upload it at once,
+            # because the main page is what links to the directory.
+            self.Datasource.Rows[irow].Name=newname
+            self.Datasource.Rows[irow].URL="./"+newname+"/index.html"
+            self.RefreshWindow()
+            problems: list[str]=[]
+            if not self.UploadMainConlist():
+                problems.append("The main convention list could not be uploaded. Upload it, so that the main page links to the renamed series.")
+
+            # Now everything inside the series that carries its location: the series page, then each convention's
+            # page, sub-pages and PDFs.
+            if frame is not None:
+                frame.Seriesname=newname
+                if not frame.UploadConSeries():
+                    problems.append(f"The '{newname}' series page could not be uploaded, so it still carries the old name.")
+                problems.extend(frame.RegenerateConPagesAndPdfHeaders())
+        finally:
+            if frame is not None:
                 frame.Destroy()
 
+        # The user was told to wait for this.
         if problems:
-            wx.MessageBox(f"'{oldname}' was renamed '{newname}' on the server, but:\n\n"+"\n\n".join(problems), "Rename incomplete", wx.OK|wx.ICON_WARNING)
+            for problem in problems:
+                Log(f"OnPopupRename ('{oldname}' as '{newname}'): {problem}", isError=True)
+            wx.MessageBox(f"The rename of '{oldname}' as '{newname}' has finished, but not everything was updated:\n\n"+
+                          "\n".join(problems[:25])+(f"\n... and {len(problems)-25} more (all are in the error log)" if len(problems) > 25 else ""),
+                          "Rename finished, with problems", wx.OK|wx.ICON_WARNING)
+        else:
+            wx.MessageBox(f"The rename of '{oldname}' as '{newname}' has finished.", "Rename finished", wx.OK|wx.ICON_INFORMATION)
 
     # ------------------
     def OnTopTextUpdated(self, event):        

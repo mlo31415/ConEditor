@@ -1892,25 +1892,25 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     keywords=", ".join(filter(None, keywords)))
 
     # ------------------
-    # Re-stamp one already-copied sub-page PDF (in sp_dir) with the header/metadata for its new parent con, and
-    # refresh the row's size/pages. Best effort: logs and moves on if a step fails.
-    def _RestampSubPagePdf(self, row, sp_dir: str, parent_name: str, sp_folder: str, sp_display: str) -> None:
+    # Re-stamp one sub-page PDF (in sp_dir) with the header/metadata for its parent con, and refresh the row's
+    # size/pages. Returns True if the PDF was re-stamped and uploaded; a failure is logged.
+    def _RestampSubPagePdf(self, row, sp_dir: str, parent_name: str, sp_folder: str, sp_display: str) -> bool:
         fname=row.SiteFilename.strip()
         if not fname:
-            return
+            return False
         tmp_fd, tmp_path=tempfile.mkstemp(suffix=".pdf")
         os.close(tmp_fd)
         try:
             if not FTP().GetFile(sp_dir, fname, tmp_path):
-                LogError(f"Move to con: could not download sub-page file '{sp_dir}/{fname}' to re-stamp")
-                return
+                LogError(f"Could not download sub-page file '{sp_dir}/{fname}' to re-stamp it")
+                return False
             CleanTitle=_CleanTitle(row.DisplayTitle)
             AddStdMetadata(tmp_path, **self._BuildSubPageMetadataFor(parent_name, sp_display, CleanTitle))
             fmt, items=self._BuildSubPageHeaderFor(parent_name, sp_folder, sp_display, CleanTitle)
             AddPdfPageHeader(tmp_path, fmt, items, logo=_g_headerLogo)
             if not (FTP().CWD(sp_dir) and FTP().PutFile(tmp_path, fname)):
-                LogError(f"Move to con: could not re-upload re-stamped '{fname}' to '{sp_dir}'")
-                return
+                LogError(f"Could not upload the re-stamped '{fname}' to '{sp_dir}'")
+                return False
             try:
                 row.Size=os.path.getsize(tmp_path)/(1024**2)
                 pages=GetPdfPageCount(tmp_path)
@@ -1918,13 +1918,73 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     row.Pages=pages
             except Exception:
                 pass
+            return True
         except Exception as e:
-            LogError(f"Move to con: re-stamp of sub-page file '{fname}' failed: {e}")
+            LogError(f"Re-stamp of sub-page file '{fname}' failed: {e}")
+            return False
         finally:
             try:
                 os.remove(tmp_path)
             except Exception:
                 pass
+
+    # ------------------
+    # Regenerate the sub-page in parent_dir/sp_folder for its parent con parent_name: re-stamp each of its PDFs'
+    # headers/metadata, then re-point its index.html (breadcrumb, title, the button back to the con) at that
+    # parent and upload it with the re-stamped sizes. Returns a list of what could not be done (empty if all OK).
+    def _RegenerateSubPage(self, parent_dir: str, parent_name: str, sp_folder: str, sp_display: str, pm=None) -> list[str]:
+        problems: list[str]=[]
+        where=f"{parent_name}/{sp_folder}"
+        try:
+            ci=ConInstance(parent_dir, self._seriesname, sp_folder)
+            if not ci.Download():
+                return [f"The sub-page {where} could not be read"]
+            ci.IsSubPage=True
+            ci.RootSeriesName=self._rootSeriesName
+            ci.RootConName=parent_name
+            for row in ci.ConInstanceRows:
+                if row.IsSubPageRow and row.SiteFilename.strip():
+                    problems.append(f"The sub-page {where}/{row.SiteFilename.strip()} (a sub-page of a sub-page) was not updated")
+                elif not row.IsTextRow and not row.IsLinkRow and not row.IsSubPageRow and ExtensionMatches(row.SiteFilename, ".pdf"):
+                    if pm is not None:
+                        pm.Update(f"Updating {where}/{row.SiteFilename}")
+                    if not self._RestampSubPagePdf(row, f"{parent_dir}/{sp_folder}", parent_name, sp_folder, sp_display):
+                        problems.append(f"The header of {where}/{row.SiteFilename} could not be updated")
+            if not ci.Upload(sp_folder):
+                problems.append(f"The sub-page {where} could not be uploaded")
+        except Exception as e:
+            LogError(f"Could not regenerate sub-page '{where}': {e}")
+            problems.append(f"The sub-page {where} could not be updated: {e}")
+        return problems
+
+    # ------------------
+    # Regenerate this con instance completely: re-stamp the header/metadata of each of its PDFs, do the same for
+    # each of its sub-pages (and regenerate them), then upload its own index.html again. This is what makes a
+    # convention's pages and PDFs carry a new location after its series directory has been renamed. Nothing is
+    # asked and no file rows are added or removed. Returns a list of what could not be done (empty if all OK).
+    def RegeneratePageAndPdfHeaders(self, pm) -> list[str]:
+        problems: list[str]=[]
+        serverdir=f"{self._FTPbasedir}/{self.Conname}"
+        for r in self.Datasource.Rows:
+            if r.IsTextRow or r.IsLinkRow:
+                continue
+            if r.IsSubPageRow:
+                if r.SiteFilename.strip():
+                    problems.extend(self._RegenerateSubPage(serverdir, self.Conname, r.SiteFilename.strip(), r.DisplayTitle.strip(), pm))
+            elif ExtensionMatches(r.SiteFilename, ".pdf"):
+                if self.RegeneratePdfHeaderForRow(r, serverdir, pm):
+                    problems.append(f"The header of {self.Conname}/{r.SiteFilename} could not be updated")
+
+        pm.Update(f"Updating {self.Conname}/index.html")
+        ci=ConInstance(self._FTPbasedir, self._seriesname, self.Conname)
+        ci.Toptext=self.topText.GetValue()
+        ci.Credits=self.tCredits.GetValue()
+        ci.PrevConInstanceName=self.PrevConInstanceName
+        ci.NextConInstanceName=self.NextConInstanceName
+        ci.ConInstanceRows=self.Datasource.Rows
+        if not ci.Upload(self.Conname):
+            problems.append(f"The page of {self.Conname} could not be uploaded")
+        return problems
 
     # ------------------
     # Copy a sub-page row's whole folder into the target con (server-side copy of every file, auto-renaming the
@@ -1947,20 +2007,10 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             if not FTP().CopyAndRenameFile(src_sp, f, tgt_sp, Create=True):
                 LogError(f"Move to con: could not copy sub-page file '{f}' to '{tgt_sp}'")
                 return None
-        # Re-stamp the copied sub-page's PDFs for the new parent, then re-point its index.html (breadcrumb/
-        # title/prev-next) at the new parent and re-upload it with the re-stamped sizes.
-        try:
-            ci=ConInstance(tgt_dir, self._seriesname, newfolder)
-            if ci.Download():
-                ci.IsSubPage=True
-                ci.RootSeriesName=self._rootSeriesName
-                ci.RootConName=tgt_name
-                for row in ci.ConInstanceRows:
-                    if not row.IsTextRow and not row.IsLinkRow and not row.IsSubPageRow and ExtensionMatches(row.SiteFilename, ".pdf"):
-                        self._RestampSubPagePdf(row, tgt_sp, tgt_name, newfolder, sp_display)
-                ci.Upload(newfolder)
-        except Exception as e:
-            LogError(f"Move to con: could not re-point/re-stamp sub-page '{newfolder}' for '{tgt_name}': {e}")
+        # Re-stamp the copied sub-page's PDFs for the new parent, and re-point its index.html (breadcrumb/title/
+        # the button back to the con) at the new parent.
+        for problem in self._RegenerateSubPage(tgt_dir, tgt_name, newfolder, sp_display):
+            LogError(f"Move to con: {problem}")
         nr=r.Copy()
         nr.SiteFilename=newfolder
         return nr
