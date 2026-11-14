@@ -436,10 +436,10 @@ class ConInstance:
                 conf.SiteFilename=_UnescapeUntilStable(unquote(href))
 
                 if len(rest.strip()) > 0:
+                    # The <small>(size; pages)</small> part is optional: Upload leaves it out for a file with neither
+                    # a size nor a page count, and the row may still have notes. (With no <small>, small is ""
+                    # and notes is everything after the link.)
                     small, notes=FindBracketedText2(rest, "small")
-                    if small == "":
-                        LogError(f"DownloadConInstancePage(): Can't find <small> tag in {rest}")
-                        return False
                     small=html.unescape(small).replace("\xa0", " ")  # unescape all entities; &nbsp; becomes \xa0
                     m=re.match(".*?([0-9.]+) MB", small, re.IGNORECASE)
                     if m is not None:
