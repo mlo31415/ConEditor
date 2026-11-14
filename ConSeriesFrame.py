@@ -1846,36 +1846,39 @@ class ConSeriesFrame(GenConSeriesFrame):
     def SurveyForRegeneration(self) -> dict:
         survey={"cons": 0, "subpages": 0, "pdfs": 0, "mb": 0.0, "unreadable": [], "secondsPerPage": 0.0}
         seriesdir=f"{self._basedirectoryFTP}/{self.Seriesname}"
-        nread=0
+        nread=[0]
         start=time.monotonic()
+
+        # Count a page's own PDFs, then descend into each of its sub-pages -- to any depth, the same way the
+        # regeneration does -- so the estimate covers the whole tree.
+        def Descend(page, pagedir: str) -> None:
+            for r in page.ConInstanceRows:
+                if r.IsSubPageRow and r.SiteFilename.strip():
+                    nread[0]+=1
+                    sp=ConInstance(pagedir, self.Seriesname, r.SiteFilename.strip())
+                    if sp.Download():
+                        survey["subpages"]+=1
+                        Descend(sp, f"{pagedir}/{r.SiteFilename.strip()}")
+                    else:
+                        survey["unreadable"].append(f"{pagedir}/{r.SiteFilename.strip()}".lstrip("/"))
+                elif not r.IsTextRow and not r.IsLinkRow and not r.IsSubPageRow and ExtensionMatches(r.SiteFilename, ".pdf"):
+                    survey["pdfs"]+=1
+                    survey["mb"]+=r.Size
+
         with ModalDialogManager(ProgressMessage2, f"Checking how much there is in '{self.Seriesname}'", parent=self) as pm:
             for con in self.Datasource.Rows:
                 if con.URL != "index.html":
                     continue    # Unlinked, or a cross-link into another series
                 pm.Update(f"Checking {con.Name}")
-                nread+=1
+                nread[0]+=1
                 ci=ConInstance(seriesdir, self.Seriesname, con.Name)
                 if not ci.Download():
                     survey["unreadable"].append(con.Name)
                     continue
                 survey["cons"]+=1
-                pages=[ci]
-                for r in ci.ConInstanceRows:
-                    if r.IsSubPageRow and r.SiteFilename.strip():
-                        nread+=1
-                        sp=ConInstance(f"{seriesdir}/{con.Name}", self.Seriesname, r.SiteFilename.strip())
-                        if sp.Download():
-                            survey["subpages"]+=1
-                            pages.append(sp)
-                        else:
-                            survey["unreadable"].append(f"{con.Name}/{r.SiteFilename.strip()}")
-                for page in pages:
-                    for r in page.ConInstanceRows:
-                        if not r.IsTextRow and not r.IsLinkRow and not r.IsSubPageRow and ExtensionMatches(r.SiteFilename, ".pdf"):
-                            survey["pdfs"]+=1
-                            survey["mb"]+=r.Size
-        if nread > 0:
-            survey["secondsPerPage"]=(time.monotonic()-start)/nread
+                Descend(ci, f"{seriesdir}/{con.Name}")
+        if nread[0] > 0:
+            survey["secondsPerPage"]=(time.monotonic()-start)/nread[0]
         return survey
 
 

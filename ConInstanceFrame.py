@@ -1874,27 +1874,28 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 pass
 
     # ------------------
-    # Sub-page versions of the header/metadata builders, parameterized by the parent con (parallels
-    # _BuildSubPageHeader/_BuildSubPageMetadata, which use this dialog's own con). Used to re-stamp a sub-page's
-    # files for a NEW parent con when the sub-page is moved.
-    def _BuildSubPageHeaderFor(self, parent_name: str, sp_folder: str, sp_display: str, item_title: str) -> tuple[str, list]:
-        segs=[s for s in self._FTPbasedir.split("/") if s]+[parent_name, sp_folder]
+    # Sub-page header/metadata builders used when re-stamping a sub-page's files (parallel to
+    # _BuildSubPageHeader/_BuildSubPageMetadata, which build for this dialog's own page). The header URL is
+    # built from the sub-page's FULL server directory, so it is correct at any nesting depth. owning_con is the
+    # top con instance the sub-page belongs to (used only in the metadata).
+    def _BuildSubPageHeaderForDir(self, sp_dir: str, sp_display: str, item_title: str) -> tuple[str, list]:
+        segs=[s for s in sp_dir.split("/") if s]
         sp_url="https://www.fanac.org/conpubs/"+"/".join(quote(s, safe='') for s in segs)+"/"
         fmt="{}: {}  --  from {}"
         items=[sp_url, sp_display, item_title, "https://www.fanac.org/conpubs/", "fanac.org/conpubs"]
         return fmt, items
 
-    def _BuildSubPageMetadataFor(self, parent_name: str, sp_display: str, CleanTitle: str) -> dict:
-        keywords=[self._seriesname, parent_name, sp_display, CleanTitle, "fanac.org", "fan history", "science fiction convention"]
+    def _BuildSubPageMetadataFor(self, owning_con: str, sp_display: str, CleanTitle: str) -> dict:
+        keywords=[self._seriesname, owning_con, sp_display, CleanTitle, "fanac.org", "fan history", "science fiction convention"]
         return dict(title=f'{sp_display}: {CleanTitle}',
                     author=self.Credits,
-                    subject=f'Science fiction convention; {self._seriesname}; {parent_name}; {sp_display}; fan history; fanac.org',
+                    subject=f'Science fiction convention; {self._seriesname}; {owning_con}; {sp_display}; fan history; fanac.org',
                     keywords=", ".join(filter(None, keywords)))
 
     # ------------------
-    # Re-stamp one sub-page PDF (in sp_dir) with the header/metadata for its parent con, and refresh the row's
-    # size/pages. Returns True if the PDF was re-stamped and uploaded; a failure is logged.
-    def _RestampSubPagePdf(self, row, sp_dir: str, parent_name: str, sp_folder: str, sp_display: str) -> bool:
+    # Re-stamp one sub-page PDF (in the sub-page's full dir sp_dir) with the header/metadata for that sub-page,
+    # and refresh the row's size/pages. Returns True if it was re-stamped and uploaded; a failure is logged.
+    def _RestampSubPagePdf(self, row, sp_dir: str, owning_con: str, sp_display: str) -> bool:
         fname=row.SiteFilename.strip()
         if not fname:
             return False
@@ -1905,8 +1906,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 LogError(f"Could not download sub-page file '{sp_dir}/{fname}' to re-stamp it")
                 return False
             CleanTitle=_CleanTitle(row.DisplayTitle)
-            AddStdMetadata(tmp_path, **self._BuildSubPageMetadataFor(parent_name, sp_display, CleanTitle))
-            fmt, items=self._BuildSubPageHeaderFor(parent_name, sp_folder, sp_display, CleanTitle)
+            AddStdMetadata(tmp_path, **self._BuildSubPageMetadataFor(owning_con, sp_display, CleanTitle))
+            fmt, items=self._BuildSubPageHeaderForDir(sp_dir, sp_display, CleanTitle)
             AddPdfPageHeader(tmp_path, fmt, items, logo=_g_headerLogo)
             if not (FTP().CWD(sp_dir) and FTP().PutFile(tmp_path, fname)):
                 LogError(f"Could not upload the re-stamped '{fname}' to '{sp_dir}'")
@@ -1929,26 +1930,30 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 pass
 
     # ------------------
-    # Regenerate the sub-page in parent_dir/sp_folder for its parent con parent_name: re-stamp each of its PDFs'
-    # headers/metadata, then re-point its index.html (breadcrumb, title, the button back to the con) at that
-    # parent and upload it with the re-stamped sizes. Returns a list of what could not be done (empty if all OK).
-    def _RegenerateSubPage(self, parent_dir: str, parent_name: str, sp_folder: str, sp_display: str, pm=None) -> list[str]:
+    # Regenerate the sub-page in parent_dir/sp_folder (whose owning con instance is owning_con): re-stamp each of
+    # its PDFs' headers/metadata, do the same for every sub-page nested below it -- to any depth -- and re-point
+    # its index.html (breadcrumb, title, the button back to the con) and upload it with the re-stamped sizes.
+    # owning_con stays the top con all the way down (every sub-page links back to that con, not its immediate
+    # parent, which is the existing convention). Returns a list of what could not be done (empty if all OK).
+    def _RegenerateSubPage(self, parent_dir: str, owning_con: str, sp_folder: str, sp_display: str, pm=None) -> list[str]:
         problems: list[str]=[]
-        where=f"{parent_name}/{sp_folder}"
+        sp_dir=f"{parent_dir}/{sp_folder}"
+        where=sp_dir.lstrip("/")
         try:
             ci=ConInstance(parent_dir, self._seriesname, sp_folder)
             if not ci.Download():
                 return [f"The sub-page {where} could not be read"]
             ci.IsSubPage=True
             ci.RootSeriesName=self._rootSeriesName
-            ci.RootConName=parent_name
+            ci.RootConName=owning_con
             for row in ci.ConInstanceRows:
                 if row.IsSubPageRow and row.SiteFilename.strip():
-                    problems.append(f"The sub-page {where}/{row.SiteFilename.strip()} (a sub-page of a sub-page) was not updated")
+                    # A sub-page nested below this one: recurse all the way down.
+                    problems.extend(self._RegenerateSubPage(sp_dir, owning_con, row.SiteFilename.strip(), row.DisplayTitle.strip(), pm))
                 elif not row.IsTextRow and not row.IsLinkRow and not row.IsSubPageRow and ExtensionMatches(row.SiteFilename, ".pdf"):
                     if pm is not None:
                         pm.Update(f"Updating {where}/{row.SiteFilename}")
-                    if not self._RestampSubPagePdf(row, f"{parent_dir}/{sp_folder}", parent_name, sp_folder, sp_display):
+                    if not self._RestampSubPagePdf(row, sp_dir, owning_con, sp_display):
                         problems.append(f"The header of {where}/{row.SiteFilename} could not be updated")
             if not ci.Upload(sp_folder):
                 problems.append(f"The sub-page {where} could not be uploaded")
