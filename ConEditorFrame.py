@@ -489,23 +489,64 @@ class ConEditorFrame(GenConEditorFrame):
         event.Skip()
 
     # ------------------
-    def OnPopupRename(self, event):            
-        oldname=self.Datasource[self._grid.clickedRow][0]
+    # Rename a convention series: its directory on the server, its line on this list (the name and the link),
+    # and the pages that carry its name -- the series page and each of its convention pages.
+    def OnPopupRename(self, event):
+        irow=self._grid.clickedRow
+        oldname=self.Datasource[irow][0]
         with wx.TextEntryDialog(None, "Enter the new name of the Convention Series.", "Edit Convention Series name", value=oldname) as dlg:     # (with: destroyed on Cancel, too)
             if dlg.ShowModal() != wx.ID_OK or len(dlg.GetValue().strip()) == 0:
                 return
-            newname=dlg.GetValue()
-        if newname != oldname:
-            # Make sure newname isn't already on the list
-            for row in self.Datasource.Rows:
-                if newname == row.Name:
-                    wx.MessageBox("That is a duplicate convention name.", "Duplicate Con Name")
-                    return
-            self.Datasource[self._grid.clickedRow][0]=newname
-            self.RefreshWindow()
-            FTP().SetDirectory("/")
-            FTP().Rename(oldname, newname)
-            self.UploadMainConlist()
+            newname=dlg.GetValue().strip()
+        if newname == oldname:
+            return
+        if "/" in newname:
+            wx.MessageBox("A convention series name can't contain a '/'.", "Can't rename")
+            return
+        # Make sure newname isn't already on the list
+        for row in self.Datasource.Rows:
+            if newname == row.Name:
+                wx.MessageBox("That is a duplicate convention name.", "Duplicate Con Name")
+                return
+
+        # Rename the series' directory on the server. Nothing else is changed unless that succeeds.
+        with ModalDialogManager(ProgressMessage2, f"Renaming '{oldname}' as '{newname}' on the server", parent=self) as pm:
+            renamed=FTP().SetDirectory("/") and not FTP().FileExists(newname) and FTP().Rename(oldname, newname)
+            hasPage=renamed and FTP().FileExists(f"/{newname}/index.html")
+        if not renamed:
+            Log(f"OnPopupRename: could not rename directory '{oldname}' as '{newname}'", isError=True)
+            wx.MessageBox(f"Could not rename the directory '{oldname}' as '{newname}' on the server, so nothing was changed.\n\n"
+                          f"(Is there already a directory named '{newname}'?)", "Rename failed", wx.OK|wx.ICON_ERROR)
+            return
+
+        # The directory now has its new name. Update this list (the name and the link) and upload it at once,
+        # because the main page is what links to the directory.
+        self.Datasource.Rows[irow].Name=newname
+        self.Datasource.Rows[irow].URL="./"+newname+"/index.html"
+        self.RefreshWindow()
+        problems: list[str]=[]
+        if not self.UploadMainConlist():
+            problems.append("The main convention list could not be uploaded. Upload it, so that the main page links to the renamed series.")
+
+        # Regenerate the pages that carry the series' name: the series page, then its convention pages (whose
+        # prev/next buttons are full URLs that include it). The series is loaded into a hidden series window
+        # to do that.
+        if hasPage:
+            frame=ConSeriesFrame(self._baseDirFTP, newname, [row.Name for row in self.Datasource.Rows], show=False)
+            try:
+                if not frame._loadedFromServer:
+                    problems.append(f"The '{newname}' series page could not be read, so it and its convention pages still carry the old name.")
+                elif not frame.UploadConSeries():
+                    problems.append(f"The '{newname}' series page could not be uploaded, so it and its convention pages still carry the old name.")
+                else:
+                    failed=frame.RegenerateConPages()
+                    if failed:
+                        problems.append("These convention pages could not be updated, and still carry the old name:\n    "+"\n    ".join(failed))
+            finally:
+                frame.Destroy()
+
+        if problems:
+            wx.MessageBox(f"'{oldname}' was renamed '{newname}' on the server, but:\n\n"+"\n\n".join(problems), "Rename incomplete", wx.OK|wx.ICON_WARNING)
 
     # ------------------
     def OnTopTextUpdated(self, event):        

@@ -316,6 +316,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         # Clear out any old information
         self.Datasource=ConSeries()
+        self._loadedFromServer=False    # Was the series page read from the server? (Not for a new series, nor if the read failed.)
 
         if seriesname is None or len(seriesname) == 0:
             # Nothing to load. Just return.
@@ -328,6 +329,7 @@ class ConSeriesFrame(GenConSeriesFrame):
                 if not self.LoadConSeriesFromHTML(file):
                     pm.Update(f"{self.Seriesname} Load Failed", delay=0.5)
                     return False
+                self._loadedFromServer=True
             else:
                 # Offer to download the data from Fancy 3
                 self.Seriesname=seriesname
@@ -377,7 +379,9 @@ class ConSeriesFrame(GenConSeriesFrame):
         if series == "":
             Log("LoadConSeriesFromHTML() could not find <title>...</title> in <head>...</head>")
             return False
-        self.Seriesname=series
+        # (The title is only checked for, not used: the series keeps the name of the directory it was opened
+        # from. Taking the name from the title sent every later upload to the wrong directory when the two
+        # disagreed -- as they do when a series' directory has been renamed and its page not yet regenerated.)
 
         # Locate the Fancy 3 reference
         ref, _=FindBracketedText2(rest, "fanac-instance", caseInsensitive=True)
@@ -1806,17 +1810,29 @@ class ConSeriesFrame(GenConSeriesFrame):
             return
 
         Log(f"OnRegenerateConPages() called")
+        self.RegenerateConPages()
 
+
+    # ------------------
+    # Regenerate (download, then upload again) each of this series' con instance pages, which rewrites it with
+    # the current template, series name and prev/next buttons. Returns the names of the cons whose page could
+    # not be regenerated.
+    def RegenerateConPages(self) -> list[str]:
+        failed: list[str]=[]
         with ModalDialogManager(ProgressMessage2, f"Regenerating all con pages in this con series", parent=self) as pm:
             for irow in range(self.Datasource.NumRows):
+                if self.Datasource[irow].URL == "":
+                    continue    # An unlinked con has no page to regenerate
                 # Do nothing in cases with complex names (e.g., extras or differing links)
-                if self.Datasource[irow].URL != "" and self.Datasource[irow].URL != "index.html":
+                if self.Datasource[irow].URL != "index.html":
                     Log(f"OnRegenerateConPages(): Skipping {self.Datasource[irow].Name} because of non-empty extra or URL, Name='{self.Datasource[irow].Name}'   Link='{self.Datasource[irow].URL}'  Extra='{self.Datasource[irow].Extra}'")
                     continue
                 pm.Update(f"Regenerating all con pages in this con series: {self.Datasource[irow].Name}")
                 prevname, nextname=self.GetPrevNext(self.Datasource[irow].Name)
                 # We download the page, but don't actually open the dialog.  Then we upload the page which regenerates it.
-                self.DownloadThenUploadConInstancePage(self.Seriesname, self.Datasource[irow].Name, prevcon=prevname, nextcon=nextname, pm=pm)
+                if not self.DownloadThenUploadConInstancePage(self.Seriesname, self.Datasource[irow].Name, prevcon=prevname, nextcon=nextname, pm=pm):
+                    failed.append(self.Datasource[irow].Name)
+        return failed
 
 
     # ------------------
