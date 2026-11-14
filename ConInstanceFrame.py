@@ -786,7 +786,12 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             return False
 
         if UploadFiles:
-            self.UploadConInstanceFiles(pm)
+            if not self.UploadConInstanceFiles(pm):
+                # index.html is up, but some file operations failed and are still queued. Report failure and
+                # leave the page marked as unsaved, so the dialog stays open and the next Upload retries them.
+                if pm is not None:
+                    pm.Update(f"Uploaded /{self._seriesname}/{self.Conname}/index.html, but some file operations failed", delay=0.5)
+                return False
 
         if pm is not None:
             pm.Update(f"Upload succeeded: /{self._seriesname}/{self.Conname}/index.html", delay=0.5)
@@ -905,13 +910,15 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 Log(f"Could not delete temp file '{tmp_path}': {e}", isError=True)
 
 
-    def UploadConInstanceFiles(self, pm):
+    # Carry out the queued file operations (adds, renames, deletes, replacements). Returns True only if all of
+    # them succeeded; the ones that failed stay queued, so the next upload tries them again.
+    def UploadConInstanceFiles(self, pm) -> bool:
         wd=f"{self._FTPbasedir}/{self.Conname}"   # the page's full server dir (handles sub-pages too)
         if not FTP().CWD(wd):
             msg=f"Could not change to server directory {wd} — file upload aborted."
             LogError(msg)
             wx.MessageBox(msg, f"Could not access server directory {wd}\nUpload failed", wx.OK|wx.ICON_ERROR)
-            return
+            return False
 
         # Check once whether PyMuPDF is available for page headers.
         fitz_available=True
@@ -927,8 +934,10 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 "PyMuPDF not installed", wx.OK|wx.ICON_WARNING)
 
         failures: list[str]=[]
+        failed: list=[]     # the deltas that recorded a failure
 
         for delta in self.conInstanceDeltaTracker.Deltas:
+            nfailures=len(failures)
             # Each delta is processed independently: any unexpected error is logged and recorded as a
             # failure, but the loop continues with the remaining files rather than aborting the upload.
             try:
@@ -1014,13 +1023,20 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             # file never reaches the update log unless it was genuinely uploaded/changed/removed.
             if delta.Completed:
                 UpdateFTPLog.LogDelta(self._seriesname, self._PageBreadcrumb(), delta)
+            if len(failures) > nfailures:
+                failed.append(delta)
 
-        # The upload is complete. Start tracking changes afresh
+        # The upload is complete. Start tracking changes afresh -- except for the operations that failed, which
+        # stay queued so that the next upload tries them again. (A delta that did nothing by design, such as the
+        # "delete" of a text row, recorded no failure and is dropped.)
         self.conInstanceDeltaTracker=ConInstanceDeltaTracker()
+        self.conInstanceDeltaTracker.Deltas.extend(failed)
 
         if failures:
-            wx.MessageBox("The following file operations failed:\n\n" + "\n".join(failures),
+            wx.MessageBox("The following file operations failed:\n\n" + "\n".join(failures) +
+                          "\n\nThey are still queued: Upload again to retry them.",
                           "Upload Errors", wx.OK|wx.ICON_ERROR)
+        return len(failures) == 0
 
 
     #------------------
