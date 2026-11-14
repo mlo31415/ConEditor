@@ -321,31 +321,21 @@ class ConInstance:
         # legitimately inside URLs and filenames -- e.g. a link to ".../NASFiC/n02-p00.html" -- so it aborted
         # the load of perfectly good pages. Removed.)
 
+        # Without a complete <body> and <fanac-table> this is not a readable con page (e.g. a truncated
+        # download). It must not be loaded as an empty page: an upload would then replace the real page's
+        # list of files with nothing. (FindBracketedText2 can't be used to test for this -- it returns "" both
+        # for a missing tag and for an empty one. The other tags are optional: some older pages lack them.)
+        for tag in ("body", "fanac-table"):
+            if re.search(f"<{tag}[^>]*>.*</{tag}>", file, flags=re.IGNORECASE|re.DOTALL) is None:
+                LogError(f"DownloadConInstancePage(): Can't find <{tag}>...</{tag}> in '{self.FTPSeriesRootPath}/{self._conname}/index.html'")
+                return False
+
         body, _=FindBracketedText2(file, "body", caseInsensitive=True)
-        if body is None:
-            LogError("DownloadConInstancePage(): Can't find <body> tag")
-            return False
-
-        fanacInstance, _=FindBracketedText2(body, "fanac-instance", caseInsensitive=True)
-        if fanacInstance is None:
-            LogError("DownloadConInstancePage(): Can't find <fanac-instance> tag")
-            return False
-
-        topButtons, _=FindBracketedText2(body, "fanac-topButtons", caseInsensitive=True)
-        if topButtons is None:
-            LogError("DownloadConInstancePage(): Can't find <fanac-topButtons> tag")
-            return False
 
         fanacstuff, _=FindBracketedText2(body, "fanac-stuff", caseInsensitive=True)
-        if fanacstuff is None:
-            LogError("DownloadConInstancePage(): Can't find <fanac-stuff> tag")
-            return False
         self.Toptext=fanacstuff
 
         fanaccredits, _=FindBracketedText2(body, "fanac-credits", caseInsensitive=True)
-        if fanaccredits is None:
-            LogError("DownloadConInstancePage(): Can't find <fanac-credits> tag")
-            return False
         m=re.match(r"^\s*Credits?:?\s*(?:Publications provided by )?(.*?)\s*(<br>)?\s*$", fanaccredits)  # Remove some debris that shows up on older pages.
         if m is not None:
             fanaccredits=m.group(1)

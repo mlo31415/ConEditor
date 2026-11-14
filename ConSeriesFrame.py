@@ -1292,7 +1292,8 @@ class ConSeriesFrame(GenConSeriesFrame):
         with ModalDialogManager(ConInstanceDialogClass, self._basedirectoryFTP+"/"+self.Seriesname, self.Seriesname, conname, prevconname, nextconname, Create=Create) as dlg:
 
             if case == 1 and len(dlg.ReturnMessage) > 0:
-                wx.MessageBox(dlg.ReturnMessage)
+                wx.MessageBox(dlg.ReturnMessage+"\n\nNothing was opened, so the page on the server is untouched. (If the page "
+                              "really is gone, Unlink this row and then double-click it to create a new one.)")
                 dlg.Destroy()
                 return
 
@@ -1747,7 +1748,9 @@ class ConSeriesFrame(GenConSeriesFrame):
                     return
                 # EditConInstancePage() will create a new con instance and populate it from the row.
 
-            self.EditConInstancePage(irow, Create=True)
+            # Only an unlinked row may open as a new, empty page. A linked row has a page on the server: if it
+            # can't be downloaded we must refuse, not open an empty editor whose upload would replace it.
+            self.EditConInstancePage(irow, Create=(url == ""))
 
             self.RefreshWindow()
 
