@@ -67,6 +67,7 @@ class ConInstanceRow(GridDataRowClass):
         self._isLink: bool=False        # Is this a link?
         self._isSubPage: bool=False     # Is this a link to a sub-page (an SP owned by this page)?
         self._pages: int=0              # Page count
+        self._headerVersion: int=0      # For a PDF file row: the PDF_HEADER_VERSION its stamped header was last brought to (0 = unknown). Stored on the page as a hidden "<!--hv=N-->" so it round-trips and is not re-done needlessly.
 
 
     def __str__(self) -> str:
@@ -105,6 +106,7 @@ class ConInstanceRow(GridDataRowClass):
         cf._isLink=self._isLink
         cf._isSubPage=self._isSubPage
         cf._pages=self._pages
+        cf._headerVersion=self._headerVersion
         return cf
 
     def __hash__(self) -> int:
@@ -193,8 +195,16 @@ class ConInstanceRow(GridDataRowClass):
             val=Int0(val)
         self._pages=val
 
+    # For a PDF file row, the PDF_HEADER_VERSION its stamped header was last brought to (0 = unknown/none).
     @property
-    def IsTextRow(self) -> bool:      
+    def HeaderVersion(self) -> int:
+        return self._headerVersion
+    @HeaderVersion.setter
+    def HeaderVersion(self, val: int) -> None:
+        self._headerVersion=Int0(val)
+
+    @property
+    def IsTextRow(self) -> bool:
         return self._isText
     @IsTextRow.setter
     def IsTextRow(self, val: bool) -> None:
@@ -374,8 +384,15 @@ class ConInstance:
             if row[0] == "li":
                 #Log(f"\n{row[1]=}")
                 conf=ConInstanceRow()
+                # A hidden "<!--hv=N-->" marks a file row's stamped-header version. Read it, then drop it from
+                # the working text so it doesn't interfere with the link/notes parsing below.
+                licontents=row[1]
+                mhv=re.search(r"<!--hv=(\d+)-->", licontents)
+                if mhv is not None:
+                    conf.HeaderVersion=Int0(mhv.group(1))
+                    licontents=licontents[:mhv.start()]+licontents[mhv.end():]
                 # We're looking for an <a></a> followed by <small>/</small>
-                a, rest=FindBracketedText2(row[1], "a", includeBrackets=True)
+                a, rest=FindBracketedText2(licontents, "a", includeBrackets=True)
                 #Log(f"{a=}   {rest=}")
                 if a == "":
                     # An <li> with no <a> is an uncreated sub-page link: plain, unlinked text (the SP has
@@ -588,7 +605,10 @@ class ConInstance:
                 parts=os.path.splitext(row.DisplayTitle)
                 if parts[1].lower() in [".pdf", ".jpg", ".png", ".doc", ".docx"]:
                     s=parts[0]
-                newtable+='    <li id="conpagetable">'+FormatLink(_EncodePathChars(row.SiteFilename), s.strip())
+                # Hidden marker: the header version this PDF was last stamped to (so a later run can tell it's
+                # already current without downloading the file). Invisible; only emitted when known.
+                hvmark=f"<!--hv={row.HeaderVersion}-->" if row.HeaderVersion > 0 else ""
+                newtable+='    <li id="conpagetable">'+hvmark+FormatLink(_EncodePathChars(row.SiteFilename), s.strip())
 
                 val=FormatSizes(row)
                 if len(val) > 0:

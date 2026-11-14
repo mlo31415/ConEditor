@@ -24,6 +24,12 @@ from PDFHelpers import GetPdfPageCount, AddStdMetadata, AddPdfPageHeader
 from WxHelpers import OnCloseHandling3, ModalDialogManager, ProgressMessage2, MessageBoxInput, SetWindowIcon
 
 
+# The version of the PDF page-header + metadata spec (what _BuildPageHeader / _BuildMetadata produce). Bump
+# this whenever that spec changes; every PDF whose recorded header version is below it is then "out of date"
+# and a future bring-up-to-date walk will re-stamp it. Each PDF's row records the version it was stamped to
+# (ConInstanceRow.HeaderVersion), set here on every stamp.
+PDF_HEADER_VERSION: int=1
+
 # The FANAC logo stamped onto uploaded PDFs' page headers. Loaded once at startup (see main() in
 # ConEditorFrame) and held here as raw image bytes; None means no logo (file missing or unreadable).
 _g_headerLogo: bytes|None=None
@@ -434,6 +440,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             conf.SourcePathname=str(os.path.join(dlg.GetDirectory(), fn))
             conf.Pages=GetPdfPageCount(conf.SourcePathname)
             conf.Size=os.path.getsize(conf.SourcePathname)/(1024**2)
+            if ExtensionMatches(conf.SourcePathname, ".pdf"):
+                conf.HeaderVersion=PDF_HEADER_VERSION       # this file will be stamped at the current version on upload
 
             if replacerow is None:
                 conf.SiteFilename=dname
@@ -491,6 +499,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 conf.SourcePathname=path
                 conf.Pages=GetPdfPageCount(path)
                 conf.Size=os.path.getsize(path)/(1024**2)
+                if ExtensionMatches(path, ".pdf"):
+                    conf.HeaderVersion=PDF_HEADER_VERSION   # this file will be stamped at the current version on upload
                 dname=self._DisplayTitleFromFilename(path, self._seriesname)
                 conf.SiteFilename=dname
                 conf.DisplayTitle=dname
@@ -1211,6 +1221,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             pages=GetPdfPageCount(tmp_path)
             if pages is not None:
                 r.Pages=pages
+            r.HeaderVersion=PDF_HEADER_VERSION      # just stamped at the current version
             return ""
         finally:
             try:
@@ -1859,6 +1870,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
             nr=r.Copy()
             nr.SiteFilename=newname
+            if ExtensionMatches(fname, ".pdf"):
+                nr.HeaderVersion=PDF_HEADER_VERSION     # just re-stamped at the current version for the target con
             try:
                 nr.Size=os.path.getsize(tmp_path)/(1024**2)
                 pages=GetPdfPageCount(tmp_path)
@@ -1912,6 +1925,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             if not (FTP().CWD(sp_dir) and FTP().PutFile(tmp_path, fname)):
                 LogError(f"Could not upload the re-stamped '{fname}' to '{sp_dir}'")
                 return False
+            row.HeaderVersion=PDF_HEADER_VERSION    # just stamped at the current version
             try:
                 row.Size=os.path.getsize(tmp_path)/(1024**2)
                 pages=GetPdfPageCount(tmp_path)
