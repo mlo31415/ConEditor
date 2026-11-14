@@ -257,7 +257,9 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.Datasource.SpecialTextColor=None
 
         self._downloaded=self.DownloadConInstancePage(pm=pm)
-        if not Create and not self._downloaded:
+        # Create mode may start from an empty page only when there is no page on the server. A page that exists
+        # but could not be read is never opened empty -- an upload would replace it.
+        if not self._downloaded and (not Create or self._pageExists):
             self._returnMessage=f"Unable to download ConInstance page {self._FTPbasedir}/{self.Conname}/index.html"
             return
 
@@ -1035,6 +1037,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     def DownloadConInstancePage(self, pm=None) -> bool:
         # Clear out any old information
         self.Datasource=ConInstanceDatasource()
+        self._pageExists=False      # Is there an index.html on the server for this page? (It may exist and still fail to load.)
 
         # Read the existing CIP
         # We have two versions, one in which DownloadConInstancePage() is called with a ProgressMessage already showing and one where it must create it
@@ -1043,12 +1046,14 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 if not FTP().FileExists(f"{self._FTPbasedir}/{self.Conname}/index.html"):
                     LogError(f"DownloadConInstancePage(): '{self._FTPbasedir}/{self.Conname}/index.html' not found")
                     return False
+                self._pageExists=True
                 ret=self.DoConInstanceDownload(pm=pm)
         else:
             pm.Update(f"Downloading {self._FTPbasedir}/{self.Conname}/index.html")
             if not FTP().FileExists(f"{self._FTPbasedir}/{self.Conname}/index.html"):
                 LogError(f"DownloadConInstancePage(): '{self._FTPbasedir}/{self.Conname}/index.html' not found")
                 return False
+            self._pageExists=True
             ret=self.DoConInstanceDownload(pm=pm)
 
         self.Title=f"Editing {self._PageBreadcrumb()}"

@@ -1291,9 +1291,13 @@ class ConSeriesFrame(GenConSeriesFrame):
         prevconname, nextconname=self.GetPrevNext(conname)
         with ModalDialogManager(ConInstanceDialogClass, self._basedirectoryFTP+"/"+self.Seriesname, self.Seriesname, conname, prevconname, nextconname, Create=Create) as dlg:
 
-            if case == 1 and len(dlg.ReturnMessage) > 0:
-                wx.MessageBox(dlg.ReturnMessage+"\n\nNothing was opened, so the page on the server is untouched. (If the page "
-                              "really is gone, Unlink this row and then double-click it to create a new one.)")
+            if len(dlg.ReturnMessage) > 0:
+                msg=dlg.ReturnMessage+"\n\nNothing was opened, so the page on the server is untouched. "
+                if case == 1:
+                    msg+="(If the page really is gone, Unlink this row and then double-click it to create a new one.)"
+                else:
+                    msg+="(This convention's folder already holds a page, but it could not be read. Try again; if it keeps failing, the page may be damaged.)"
+                wx.MessageBox(msg)
                 dlg.Destroy()
                 return
 
