@@ -233,6 +233,13 @@ class ConEditorFrame(GenConEditorFrame):
 
         self._grid.HideRowLabels()
 
+        # "Bring everything up to date" RMB item: bring the WHOLE SITE up to date -- every series, its conventions,
+        # their sub-pages and PDFs -- skipping anything already current. Added in code rather than in the generated
+        # GenConEditorFrame.py. A site-wide action, so it is always available.
+        self.m_popupBringEverythingUpToDate=wx.MenuItem(self.m_GridPopup, wx.ID_ANY, "Bring everything up to date", wx.EmptyString, wx.ITEM_NORMAL)
+        self.m_GridPopup.Append(self.m_popupBringEverythingUpToDate)
+        self.Bind(wx.EVT_MENU, self.OnPopupBringEverythingUpToDate, id=self.m_popupBringEverythingUpToDate.GetId())
+
         # Position the window on the screen it was on before.
         # If that position is now off all connected screens (e.g. a monitor was unplugged),
         # centre on the primary display instead.
@@ -444,6 +451,31 @@ class ConEditorFrame(GenConEditorFrame):
         return problems
 
     #------------------
+    # RMB "Bring everything up to date": the whole-site counterpart to the con-series page's per-con and whole-series
+    # items. Confirms (with a do-not-interrupt warning), then runs BringEverythingUpToDate -- which skips any series
+    # already current, so re-running is cheap -- and reports the outcome.
+    def OnPopupBringEverythingUpToDate(self, event):
+        msg=("Bring the WHOLE SITE up to date?\n\n"
+             "Every convention series will be checked, and any out-of-date PDF headers, pages and sub-pages "
+             "re-stamped and regenerated. Anything already current is skipped, but the first full pass over the "
+             "whole site can take a long time.\n\n"
+             "Once it has started it must run to the end. Until ConEditor says it has finished, do NOT close "
+             "ConEditor, let the computer sleep, or disconnect from the network.")
+        if wx.MessageBox(msg, "Bring everything up to date", wx.OK|wx.CANCEL|wx.CANCEL_DEFAULT|wx.ICON_WARNING) != wx.OK:
+            return
+
+        problems=self.BringEverythingUpToDate()
+        self.RefreshWindow()
+
+        if problems:
+            for p in problems:
+                Log(f"Bring everything up to date: {p}", isError=True)
+            wx.MessageBox("Finished, but some things could not be updated:\n\n    "+"\n    ".join(problems),
+                          "Bring everything up to date", wx.OK|wx.ICON_ERROR)
+        else:
+            wx.MessageBox("Finished. The whole site is up to date.", "Bring everything up to date", wx.OK|wx.ICON_INFORMATION)
+
+    #------------------
     def RefreshWindow(self) -> None:
         self._grid.RefreshWxGridFromDatasource()
         self.UpdateNeedsSavingFlag()
@@ -481,6 +513,7 @@ class ConEditorFrame(GenConEditorFrame):
             self.m_popupItemEdit.Enabled=True
             self.m_popupRename.Enabled=True
         self.m_popupItemInsertConventionSeries.Enabled=True
+        self.m_popupBringEverythingUpToDate.Enabled=True        # a site-wide action; always available
         self.PopupMenu(self.m_GridPopup, pos=self.gRowGrid.Position+event.Position)
 
     # ------------------
