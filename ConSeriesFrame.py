@@ -1375,15 +1375,17 @@ class ConSeriesFrame(GenConSeriesFrame):
             self.Datasource.Rows[irow].Name=dlg.ConInstanceName.strip()
             self.Datasource.Rows[irow].URL="index.html"
             nextcon=getattr(dlg, "_moveToConNext", "")
-            # The dialog uploaded this con's page on its way out. If every PDF in it is now stamped current,
-            # record that on this series page's roll-up marker for the con -- and persist it to the CSP now, so
-            # a later site-wide run can skip the con without re-opening it. Raise-only: never lowers a marker.
+            # Roll-up happens ONLY when the user explicitly uploaded the con's page (Upload button, or "upload"
+            # on the Close prompt) -- never from merely opening and closing to browse. If it was uploaded and
+            # every PDF in it is now stamped current, record that on this series page's roll-up marker for the
+            # con and persist it to the CSP now. Raise-only: never lowers a marker.
+            cipUploaded=dlg.Uploaded
             rollCip, rollPdf=dlg.RollupDoneVersions()
 
         # Log("ModalDialogManager(ConInstanceDialogClass() done")
 
         row=self.Datasource.Rows[irow]
-        if rollCip and rollPdf and (row.DoneCipVersion < rollCip or row.DonePdfVersion < rollPdf):
+        if cipUploaded and rollCip and rollPdf and (row.DoneCipVersion < rollCip or row.DonePdfVersion < rollPdf):
             row.DoneCipVersion=rollCip
             row.DonePdfVersion=rollPdf
             self.UploadConSeries()

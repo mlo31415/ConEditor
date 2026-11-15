@@ -35,6 +35,24 @@ PDF_HEADER_VERSION: int=1
 # marker on its con-series page records the (CIP, PDF) versions it was last fully verified at.
 CIP_FORMAT_VERSION: int=1
 
+
+# The (CIP-format, PDF-header) versions a page made of these rows can be certified complete at -- the current
+# versions only when every PDF it holds is already stamped at the current header version AND every created
+# sub-page it owns already carries a current roll-up marker of its own (trusted here, not re-opened, since a
+# sub-page's PDFs live on its separate page). Returns (0, 0) when it can't be certified. The caller must ensure
+# the page itself was just written by current code (so its CIP format is current), and uses this only to RAISE
+# a marker, never to lower one. Shared by ConInstanceDialogClass.RollupDoneVersions and the move handlers.
+def _CertifyRows(rows) -> tuple[int, int]:
+    for r in rows:
+        if r.IsTextRow or r.IsLinkRow:
+            continue
+        if r.IsSubPageRow:
+            if r.SiteFilename.strip() and (r.DoneCipVersion < CIP_FORMAT_VERSION or r.DonePdfVersion < PDF_HEADER_VERSION):
+                return (0, 0)       # a created sub-page that is not yet certified current
+        elif ExtensionMatches(r.SiteFilename, ".pdf") and r.HeaderVersion < PDF_HEADER_VERSION:
+            return (0, 0)           # a PDF not yet stamped current
+    return (CIP_FORMAT_VERSION, PDF_HEADER_VERSION)
+
 # The FANAC logo stamped onto uploaded PDFs' page headers. Loaded once at startup (see main() in
 # ConEditorFrame) and held here as raw image bytes; None means no logo (file missing or unreadable).
 _g_headerLogo: bytes|None=None
@@ -1289,6 +1307,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                         # The con instance index.html was re-uploaded with the new sizes, so it's now saved.
                         self.MarkAsSaved()
                         self.UpdateNeedsSavingFlag()    # Clear the " *" needs-saving marker in the title
+                        self.Uploaded=True              # an explicit upload -- lets the series page tag this con on close
                 except Exception as e:
                     LogError(f"OnPopupRegeneratePDFHeader: failed to re-upload index.html: {e}")
                     failures.append(f"Could not update '{self.Conname}/index.html': {e}")
@@ -1469,11 +1488,13 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 wx.MessageBox(dlg.ReturnMessage)
                 return
             dlg.ShowModal()
-            # The sub-page saved its own page on its way out. If every PDF in it (and in anything nested under it)
-            # is now current, record that on this page's roll-up marker for the sub-page row. Raise-only; the
-            # change marks this page as needing saving, so the normal save-on-close persists it to the server.
+            # Roll-up happens ONLY when the user explicitly uploaded the sub-page -- never from browsing it. If it
+            # was uploaded and every PDF in it (and in anything nested under it) is now current, record that on
+            # this page's roll-up marker for the sub-page row. Raise-only; the change marks this page as needing
+            # saving, so the ordinary (prompted) save-on-close persists it to the server -- we never auto-upload.
+            spUploaded=dlg.Uploaded
             spCip, spPdf=dlg.RollupDoneVersions()
-        if spCip and spPdf and (r.DoneCipVersion < spCip or r.DonePdfVersion < spPdf):
+        if spUploaded and spCip and spPdf and (r.DoneCipVersion < spCip or r.DonePdfVersion < spPdf):
             r.DoneCipVersion=spCip
             r.DonePdfVersion=spPdf
             self.RefreshWindow()
@@ -1572,8 +1593,17 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
             if moved:
                 pm.Update(f"Updating sub-page '{sp_display}'")
-                if not self._AppendRowsToSubPage(sp_folder, moved):
+                spci=self._AppendRowsToSubPage(sp_folder, moved)
+                if spci is None:
                     failures.append(f"(could not update sub-page '{sp_display}' page)")
+                else:
+                    # The sub-page just gained files (stamped current for it). If it is now fully current, raise
+                    # this page's roll-up marker for its sub-page row, so re-uploading this page below records it
+                    # (and this page can in turn be certified up to its own parent). Raise-only.
+                    cip, pdf=_CertifyRows(spci.ConInstanceRows)
+                    if cip and pdf and (target.DoneCipVersion < cip or target.DonePdfVersion < pdf):
+                        target.DoneCipVersion=cip
+                        target.DonePdfVersion=pdf
                 # Drop the moved rows from this page's datasource, then re-upload its index.html (plus any
                 # remaining pending file changes). The moved files' server copies are already gone / their
                 # pending adds cancelled.
@@ -1583,6 +1613,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 pm.Update(f"Updating {self.Conname}")
                 if not self.UploadConInstancePage(pm=pm):
                     failures.append(f"(could not update '{self.Conname}' page)")
+                else:
+                    self.Uploaded=True      # an explicit upload of this page (part of the move)
             pm.Update(f"Moved {len(moved)} of {len(movable)} file(s)", delay=0.5)
 
         # Refresh the grid AFTER the progress dialog has closed so the removed rows actually disappear from
@@ -1623,6 +1655,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 header_format, header_items=self._BuildSubPageHeader(sp_folder, sp_display, CleanTitle)
                 try:
                     AddPdfPageHeader(tmp_path, header_format, header_items, logo=_g_headerLogo)
+                    r.HeaderVersion=PDF_HEADER_VERSION       # just stamped at the current version, for the sub-page
                 except Exception as e:
                     LogError(f"Move to sub-page: header regen failed for '{fname}': {e}")
 
@@ -1674,12 +1707,13 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     # ------------------
     # Add the moved file rows to the sub-page's index.html: download the sub-page, append, re-upload. The
     # sub-page's own dialog is not open, so this works directly on a ConInstance (like prev/next regeneration).
-    def _AppendRowsToSubPage(self, sp_folder: str, moved: list) -> bool:
+    # Returns the uploaded ConInstance (so the caller can re-certify the sub-page from its final rows), or None.
+    def _AppendRowsToSubPage(self, sp_folder: str, moved: list) -> ConInstance|None:
         sp_basedir=f"{self._FTPbasedir}/{self.Conname}"
         ci=ConInstance(sp_basedir, self._seriesname, sp_folder)
         if not ci.Download():
             LogError(f"Move to sub-page: could not download sub-page '{sp_folder}' to update it")
-            return False
+            return None
         ci.IsSubPage=True
         ci.RootSeriesName=self._rootSeriesName
         ci.RootConName=self._rootConName
@@ -1690,8 +1724,11 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             nr.Notes=r.Notes
             nr.Size=r.Size
             nr.Pages=r.Pages
+            nr.HeaderVersion=r.HeaderVersion    # the moved PDF was just stamped current for the sub-page
             ci.ConInstanceRows.append(nr)
-        return ci.Upload(sp_folder)
+        if not ci.Upload(sp_folder):
+            return None
+        return ci
 
     # ------------------
     # "Move to different con": move the selected rows (and their files) to another created con instance in this
@@ -2032,23 +2069,10 @@ class ConInstanceDialogClass(GenConInstanceFrame):
 
     # ------------------
     # The (CIP-format, PDF-header) versions this page (a con instance, or a sub-page -- the shape is the same)
-    # can be certified complete at right now, for the roll-up marker its parent keeps for it. We can certify the
-    # current versions only when the page was just written by current code (so its CIP format is current, which
-    # the caller guarantees by calling this right after an upload) AND every PDF it holds is already stamped at
-    # the current header version AND every sub-page it owns already carries a current roll-up marker of its own
-    # (set when that sub-page was itself edited+uploaded complete). A sub-page's own PDFs live on its separate
-    # page, so we trust its marker here rather than re-opening it. Returns (0, 0) when it can't be certified; the
-    # caller uses this only to RAISE a marker, never to lower one.
+    # can be certified complete at right now, for the roll-up marker its parent keeps for it. Call it right after
+    # an upload (so the page's CIP format is current); see _CertifyRows. Used only to RAISE a marker, never lower.
     def RollupDoneVersions(self) -> tuple[int, int]:
-        for r in self.Datasource.Rows:
-            if r.IsTextRow or r.IsLinkRow:
-                continue
-            if r.IsSubPageRow:
-                if r.SiteFilename.strip() and (r.DoneCipVersion < CIP_FORMAT_VERSION or r.DonePdfVersion < PDF_HEADER_VERSION):
-                    return (0, 0)       # a created sub-page that is not yet certified current
-            elif ExtensionMatches(r.SiteFilename, ".pdf") and r.HeaderVersion < PDF_HEADER_VERSION:
-                return (0, 0)           # a PDF not yet stamped current
-        return (CIP_FORMAT_VERSION, PDF_HEADER_VERSION)
+        return _CertifyRows(self.Datasource.Rows)
 
     # ------------------
     # Copy a sub-page row's whole folder into the target con (server-side copy of every file, auto-renaming the

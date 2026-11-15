@@ -506,6 +506,7 @@ class ConEditorFrame(GenConEditorFrame):
         conserieslist=[row.Name for row in self.Datasource.Rows]
         irow=self._grid.clickedRow
         rollSeries=(0, 0, 0)
+        cspUploaded=False
         with ModalDialogManager(ConSeriesFrame, self._baseDirFTP, conseriesname, conserieslist) as dlg:
             if len(dlg.Seriesname.strip()) == 0:  # If the user didn't supply a con series name, we exit and don't show the dialog
                 return
@@ -517,14 +518,16 @@ class ConEditorFrame(GenConEditorFrame):
                 conseriesname=dlg.tConSeries.GetValue()
                 self.Datasource.Rows[irow].URL="./"+conseriesname+"/index.html"
                 self.Datasource.Rows[irow].Name=conseriesname
-                # If every con in the series now carries a current roll-up marker, the whole series is current;
+                # Roll-up happens ONLY when the user explicitly uploaded the series page -- never from browsing.
+                # If it was uploaded and every con in it now carries a current marker, the whole series is current;
                 # record that on the main con list and persist it, so a later site-wide run can skip the series.
+                cspUploaded=dlg._uploaded
                 rollSeries=dlg.SeriesRollupDoneVersions()
 
         # Raise-only: never lowers an existing marker.
         rollCsp, rollCip, rollPdf=rollSeries
         row=self.Datasource.Rows[irow]
-        if rollCsp and (row.DoneCspVersion < rollCsp or row.DoneCipVersion < rollCip or row.DonePdfVersion < rollPdf):
+        if cspUploaded and rollCsp and (row.DoneCspVersion < rollCsp or row.DoneCipVersion < rollCip or row.DonePdfVersion < rollPdf):
             row.DoneCspVersion=rollCsp
             row.DoneCipVersion=rollCip
             row.DonePdfVersion=rollPdf
