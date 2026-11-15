@@ -238,6 +238,13 @@ class ConSeriesFrame(GenConSeriesFrame):
         self.m_GridPopup.Append(self.m_popupUpdateFromFancy)
         self.Bind(wx.EVT_MENU, self.OnPopupUpdateFromFancy, id=self.m_popupUpdateFromFancy.GetId())
 
+        # "Bring up to date" RMB item: bring the selected convention(s) fully up to date -- re-stamp any out-of-date
+        # PDF headers (and those of their sub-pages), regenerate the pages, and record the roll-up markers -- so a
+        # site-wide run can later skip them. Only out-of-date work is done, so a con already current is a no-op.
+        self.m_popupBringUpToDate=wx.MenuItem(self.m_GridPopup, wx.ID_ANY, "Bring up to date", wx.EmptyString, wx.ITEM_NORMAL)
+        self.m_GridPopup.Append(self.m_popupBringUpToDate)
+        self.Bind(wx.EVT_MENU, self.OnPopupBringConUpToDate, id=self.m_popupBringUpToDate.GetId())
+
         # Show a tooltip over a cross-link row's Display Name/Extras cells naming the series + con it links to.
         self.gRowGrid.GetGridWindow().Bind(wx.EVT_MOTION, self.OnGridMotion)
 
@@ -1762,6 +1769,11 @@ class ConSeriesFrame(GenConSeriesFrame):
         if irow < self.Datasource.NumRows and self.Datasource.Rows[irow].URL is not None and self.Datasource.Rows[irow].URL != "":
             self.m_popupChangeConSeries.Enabled=True    # Enable only for rows that exist and point to a con instance
 
+        # "Bring up to date" is offered for created con pages of THIS series (not unlinked rows, not cross-links
+        # whose files live elsewhere).
+        if irow < self.Datasource.NumRows and self.Datasource.Rows[irow].URL == "index.html":
+            self.m_popupBringUpToDate.Enabled=True
+
         self.m_popupUpdateFromFancy.Enabled=True        # a series-wide action; always available
 
         self.PopupMenu(self.m_GridPopup)
@@ -1931,6 +1943,49 @@ class ConSeriesFrame(GenConSeriesFrame):
 
 
     # ------------------
+    # RMB "Bring up to date": bring the selected convention(s) fully up to date -- re-stamp any out-of-date PDF
+    # headers (theirs and their sub-pages'), regenerate the pages, and record the roll-up markers, then upload this
+    # series page. A convention already current is skipped (its marker is trusted), so re-running is cheap. This is
+    # the explicit, from-the-CSP way to advance the markers; ordinary editing never does unattended cascades.
+    def OnPopupBringConUpToDate(self, event):
+        # The selected con rows (a block, or the single right-clicked row); keep only created con pages of THIS series.
+        if self._grid.HasSelection():
+            top, _, bottom, _=self._grid.LocateSelection()
+        else:
+            top=bottom=self._grid.clickedRow
+        if top < 0:
+            return
+        if bottom >= self.Datasource.NumRows:
+            bottom=self.Datasource.NumRows-1
+        targets=[i for i in range(top, bottom+1) if self.Datasource.Rows[i].URL == "index.html"]
+        if not targets:
+            wx.MessageBox("Select one or more created conventions of this series.\n\nUnlinked rows and cross-links "
+                          "into other series cannot be brought up to date here.", "Bring up to date", wx.OK|wx.ICON_WARNING)
+            return
+
+        names="\n    ".join(self.Datasource.Rows[i].Name for i in targets)
+        msg=(f"Bring the following {len(targets)} convention(s) up to date?\n\n    {names}\n\n"
+             f"Any out-of-date PDF headers (theirs and their sub-pages') will be re-stamped, the pages regenerated, "
+             f"and this series page updated. A convention that is already current is left untouched.\n\n"
+             f"Once it has started it must run to the end. Until ConEditor says it has finished, do NOT close "
+             f"ConEditor, let the computer sleep, or disconnect from the network.")
+        if wx.MessageBox(msg, "Bring up to date", wx.OK|wx.CANCEL|wx.CANCEL_DEFAULT|wx.ICON_WARNING) != wx.OK:
+            return
+
+        title=f"Bringing {len(targets)} convention(s) in '{self.Seriesname}' up to date"
+        problems=self._WalkSeriesPdfs(onlyStale=True, skipCurrent=True, title=title, rowIndices=targets)
+        self.RefreshWindow()
+
+        if problems:
+            for p in problems:
+                Log(f"OnPopupBringConUpToDate: {p}", isError=True)
+            wx.MessageBox("Finished, but some things could not be updated:\n\n    "+"\n    ".join(problems),
+                          "Bring up to date", wx.OK|wx.ICON_ERROR)
+        else:
+            wx.MessageBox(f"Finished. {len(targets)} convention(s) are up to date.", "Bring up to date", wx.OK|wx.ICON_INFORMATION)
+
+
+    # ------------------
     # The (CSP-format, CIP-format, PDF-header) versions this whole series can be certified complete at right now,
     # for the roll-up marker the main con list keeps for it. Certified only when the series page was just written
     # by current code (so its CSP format is current, which the caller guarantees by calling this right after an
@@ -1949,7 +2004,7 @@ class ConSeriesFrame(GenConSeriesFrame):
     # otherwise open it (window never shown), re-stamp its PDFs (all, or only stale ones), regenerate its page
     # and sub-pages, and -- if that all succeeded -- stamp the con's roll-up marker to the current versions. The
     # con-series page is uploaded at the end so the markers (and, for a rename, the new name) are saved.
-    def _WalkSeriesPdfs(self, onlyStale: bool, skipCurrent: bool, title: str) -> list[str]:
+    def _WalkSeriesPdfs(self, onlyStale: bool, skipCurrent: bool, title: str, rowIndices: list[int]|None=None) -> list[str]:
         try:
             import fitz as _fitz_check  # noqa: F401
         except ImportError:
@@ -1961,6 +2016,8 @@ class ConSeriesFrame(GenConSeriesFrame):
         problems: list[str]=[]
         with ModalDialogManager(ProgressMessage2, title, parent=self) as pm:
             for irow, con in enumerate(self.Datasource.Rows):
+                if rowIndices is not None and irow not in rowIndices:
+                    continue    # restricted to a chosen subset of cons (e.g. a per-con "Bring up to date")
                 if con.URL != "index.html":
                     continue    # Unlinked, or a cross-link into another series
                 if skipCurrent and con.DoneCipVersion >= CIP_FORMAT_VERSION and con.DonePdfVersion >= PDF_HEADER_VERSION:
