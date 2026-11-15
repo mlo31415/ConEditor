@@ -2004,15 +2004,25 @@ class ConSeriesFrame(GenConSeriesFrame):
         ctl=BringUpToDateProgress(self, f"Bring up to date — {self.Seriesname}", showSeries=False)
         disabler=wx.WindowDisabler(ctl)
         ctl.Show()
+        problems=[]
+        errmsg=None
         try:
             problems=self._WalkSeriesPdfs(onlyStale=True, skipCurrent=True, title=title, rowIndices=targets, ctl=ctl)
+        except Exception as e:
+            LogError(f"Bring up to date ('{self.Seriesname}') stopped on an unexpected error: {e}")
+            errmsg=str(e)
         finally:
             del disabler
             quit=ctl.QuitRequested
             ctl.Destroy()
         self.RefreshWindow()
 
-        if quit:
+        if errmsg is not None:
+            wx.MessageBox(f"Bringing '{self.Seriesname}' up to date stopped on an unexpected error:\n\n{errmsg}\n\n"
+                          "The work finished before the error has been saved to the server, so running Bring up to "
+                          "date again will resume from where it stopped (it won't redo the PDFs already done).",
+                          "Bring up to date", wx.OK|wx.ICON_ERROR)
+        elif quit:
             wx.MessageBox("Stopped at your request. The work finished before you quit has been saved.",
                           "Bring up to date", wx.OK|wx.ICON_INFORMATION)
         elif problems:
@@ -2062,44 +2072,49 @@ class ConSeriesFrame(GenConSeriesFrame):
             done=0
             if ctl is not None:
                 ctl.SetConsRemaining(len(targetCons))
-            for irow in targetCons:
-                con=self.Datasource.Rows[irow]
-                if skipCurrent and con.DoneCipVersion >= CIP_FORMAT_VERSION and con.DonePdfVersion >= PDF_HEADER_VERSION:
+            try:
+                for irow in targetCons:
+                    con=self.Datasource.Rows[irow]
+                    if skipCurrent and con.DoneCipVersion >= CIP_FORMAT_VERSION and con.DonePdfVersion >= PDF_HEADER_VERSION:
+                        done+=1
+                        if ctl is not None:
+                            ctl.SetConsRemaining(len(targetCons)-done)
+                        continue    # already current -- don't even download it
+                    pm.Update(f"Updating {con.Name}")
+                    prevname, nextname=self.GetPrevNext(irow)
+                    # The con instance window (never shown) does the work: it knows how to build a PDF's header.
+                    dlg=ConInstanceDialogClass(f"{self._basedirectoryFTP}/{self.Seriesname}", self.Seriesname, con.Name, prevname, nextname, Create=False, pm=pm)
+                    dlg._bringCtl=ctl           # let the con dialog log PDFs, update counts, and honor Pause/Quit
+                    try:
+                        if len(dlg.ReturnMessage) > 0:
+                            problems.append(f"The page of {con.Name} could not be read, so it and its PDFs were not updated")
+                            continue
+                        dlg.ConInstanceName=con.Name
+                        if con.Dates is not None and type(con.Dates) is not str and not con.Dates.IsEmpty():
+                            dlg.ConInstanceDates=str(con.Dates)
+                        conProblems=dlg.RegeneratePageAndPdfHeaders(pm, onlyStale=onlyStale)
+                    finally:
+                        dlg.Destroy()
+                    problems.extend(conProblems)
+                    quit=ctl is not None and ctl.QuitRequested
+                    if not conProblems and not quit:
+                        # The con is now fully current: record it so a later run skips it without a download.
+                        con.DoneCipVersion=CIP_FORMAT_VERSION
+                        con.DonePdfVersion=PDF_HEADER_VERSION
                     done+=1
                     if ctl is not None:
                         ctl.SetConsRemaining(len(targetCons)-done)
-                    continue    # already current -- don't even download it
-                pm.Update(f"Updating {con.Name}")
-                prevname, nextname=self.GetPrevNext(irow)
-                # The con instance window (never shown) does the work: it knows how to build a PDF's header.
-                dlg=ConInstanceDialogClass(f"{self._basedirectoryFTP}/{self.Seriesname}", self.Seriesname, con.Name, prevname, nextname, Create=False, pm=pm)
-                dlg._bringCtl=ctl           # let the con dialog log PDFs, update counts, and honor Pause/Quit
-                try:
-                    if len(dlg.ReturnMessage) > 0:
-                        problems.append(f"The page of {con.Name} could not be read, so it and its PDFs were not updated")
-                        continue
-                    dlg.ConInstanceName=con.Name
-                    if con.Dates is not None and type(con.Dates) is not str and not con.Dates.IsEmpty():
-                        dlg.ConInstanceDates=str(con.Dates)
-                    conProblems=dlg.RegeneratePageAndPdfHeaders(pm, onlyStale=onlyStale)
-                finally:
-                    dlg.Destroy()
-                problems.extend(conProblems)
-                quit=ctl is not None and ctl.QuitRequested
-                if not conProblems and not quit:
-                    # The con is now fully current: record it so a later run skips it without a download.
-                    con.DoneCipVersion=CIP_FORMAT_VERSION
-                    con.DonePdfVersion=PDF_HEADER_VERSION
-                done+=1
-                if ctl is not None:
-                    ctl.SetConsRemaining(len(targetCons)-done)
-                if quit:
-                    break       # user quit; stop taking on new cons (what is done is saved below)
-            pm.Update(f"Saving /{self.Seriesname}/index.html")
-            if not self.UploadConSeries():
-                problems.append(f"The '{self.Seriesname}' series page could not be uploaded, so its progress was not saved.")
-            elif ctl is not None:
-                ctl.LogItem(f"Saved CSP {self.Seriesname}")
+                    if quit:
+                        break       # user quit; stop taking on new cons (what is done is saved below)
+            finally:
+                # Always save the series page -- even if a con threw partway -- so the markers for the cons that DID
+                # finish are recorded and a later run resumes cheaply (each finished con's PDFs are already saved on
+                # its own page). The original error, if any, still propagates out of this finally to the caller.
+                pm.Update(f"Saving /{self.Seriesname}/index.html")
+                if not self.UploadConSeries():
+                    problems.append(f"The '{self.Seriesname}' series page could not be uploaded, so its progress was not saved.")
+                elif ctl is not None:
+                    ctl.LogItem(f"Saved CSP {self.Seriesname}")
             return problems
 
         if ctl is not None:

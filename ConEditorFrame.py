@@ -484,15 +484,25 @@ class ConEditorFrame(GenConEditorFrame):
         ctl=BringUpToDateProgress(self, "Bring everything up to date", showSeries=True)
         disabler=wx.WindowDisabler(ctl)
         ctl.Show()
+        problems=[]
+        errmsg=None
         try:
             problems=self.BringEverythingUpToDate(ctl=ctl)
+        except Exception as e:
+            Log(f"Bring everything up to date stopped on an unexpected error: {e}", isError=True)
+            errmsg=str(e)
         finally:
             del disabler
             quit=ctl.QuitRequested
             ctl.Destroy()
         self.RefreshWindow()
 
-        if quit:
+        if errmsg is not None:
+            wx.MessageBox(f"Bringing the whole site up to date stopped on an unexpected error:\n\n{errmsg}\n\n"
+                          "The series finished before the error have been saved, so running it again will resume "
+                          "from where it stopped (it won't redo series already brought up to date).",
+                          "Bring everything up to date", wx.OK|wx.ICON_ERROR)
+        elif quit:
             wx.MessageBox("Stopped at your request. The work finished before you quit has been saved.",
                           "Bring everything up to date", wx.OK|wx.ICON_INFORMATION)
         elif problems:

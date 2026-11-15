@@ -429,8 +429,9 @@ class ConInstance:
                 if a == "":
                     # An <li> with no <a> is an uncreated sub-page link: plain, unlinked text (the SP has
                     # not been entered/created yet), exactly like an unlinked con row on a ConSeries page.
-                    # Split out a trailing "(notes)" the same way ConSeries splits an unlinked name.
-                    txt=row[1]
+                    # Split out a trailing "(notes)" the same way ConSeries splits an unlinked name. Use the
+                    # marker-stripped text (an uncreated sub-page carries no marker today, but stay consistent).
+                    txt=licontents
                     notes=""
                     mn=re.search(r"\((.*)\)\s*$", txt, flags=re.DOTALL)
                     if mn is not None:
