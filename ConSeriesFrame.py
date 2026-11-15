@@ -245,6 +245,11 @@ class ConSeriesFrame(GenConSeriesFrame):
         self.m_GridPopup.Append(self.m_popupBringUpToDate)
         self.Bind(wx.EVT_MENU, self.OnPopupBringConUpToDate, id=self.m_popupBringUpToDate.GetId())
 
+        # "Bring whole series up to date" RMB item: the same, applied to every created convention in this series.
+        self.m_popupBringSeriesUpToDate=wx.MenuItem(self.m_GridPopup, wx.ID_ANY, "Bring whole series up to date", wx.EmptyString, wx.ITEM_NORMAL)
+        self.m_GridPopup.Append(self.m_popupBringSeriesUpToDate)
+        self.Bind(wx.EVT_MENU, self.OnPopupBringSeriesUpToDate, id=self.m_popupBringSeriesUpToDate.GetId())
+
         # Show a tooltip over a cross-link row's Display Name/Extras cells naming the series + con it links to.
         self.gRowGrid.GetGridWindow().Bind(wx.EVT_MOTION, self.OnGridMotion)
 
@@ -1770,9 +1775,10 @@ class ConSeriesFrame(GenConSeriesFrame):
             self.m_popupChangeConSeries.Enabled=True    # Enable only for rows that exist and point to a con instance
 
         # "Bring up to date" is offered for created con pages of THIS series (not unlinked rows, not cross-links
-        # whose files live elsewhere).
+        # whose files live elsewhere). The whole-series variant is a series-wide action, always available.
         if irow < self.Datasource.NumRows and self.Datasource.Rows[irow].URL == "index.html":
             self.m_popupBringUpToDate.Enabled=True
+        self.m_popupBringSeriesUpToDate.Enabled=True
 
         self.m_popupUpdateFromFancy.Enabled=True        # a series-wide action; always available
 
@@ -1943,10 +1949,11 @@ class ConSeriesFrame(GenConSeriesFrame):
 
 
     # ------------------
-    # RMB "Bring up to date": bring the selected convention(s) fully up to date -- re-stamp any out-of-date PDF
-    # headers (theirs and their sub-pages'), regenerate the pages, and record the roll-up markers, then upload this
-    # series page. A convention already current is skipped (its marker is trusted), so re-running is cheap. This is
-    # the explicit, from-the-CSP way to advance the markers; ordinary editing never does unattended cascades.
+    # RMB "Bring up to date": bring the selected convention(s) fully up to date. RMB "Bring whole series up to date"
+    # does the same for every created convention in the series. Re-stamp any out-of-date PDF headers (theirs and
+    # their sub-pages'), regenerate the pages, record the roll-up markers, then upload this series page. A convention
+    # already current is skipped (its marker is trusted), so re-running is cheap. This is the explicit, from-the-CSP
+    # way to advance the markers; ordinary editing never does unattended cascades.
     def OnPopupBringConUpToDate(self, event):
         # The selected con rows (a block, or the single right-clicked row); keep only created con pages of THIS series.
         if self._grid.HasSelection():
@@ -1962,13 +1969,31 @@ class ConSeriesFrame(GenConSeriesFrame):
             wx.MessageBox("Select one or more created conventions of this series.\n\nUnlinked rows and cross-links "
                           "into other series cannot be brought up to date here.", "Bring up to date", wx.OK|wx.ICON_WARNING)
             return
+        self._BringConsUpToDate(targets, "the selected convention(s)")
 
-        names="\n    ".join(self.Datasource.Rows[i].Name for i in targets)
-        msg=(f"Bring the following {len(targets)} convention(s) up to date?\n\n    {names}\n\n"
-             f"Any out-of-date PDF headers (theirs and their sub-pages') will be re-stamped, the pages regenerated, "
-             f"and this series page updated. A convention that is already current is left untouched.\n\n"
-             f"Once it has started it must run to the end. Until ConEditor says it has finished, do NOT close "
-             f"ConEditor, let the computer sleep, or disconnect from the network.")
+
+    def OnPopupBringSeriesUpToDate(self, event):
+        targets=[i for i, r in enumerate(self.Datasource.Rows) if r.URL == "index.html"]
+        if not targets:
+            wx.MessageBox(f"'{self.Seriesname}' has no created conventions to bring up to date.", "Bring up to date", wx.OK|wx.ICON_WARNING)
+            return
+        self._BringConsUpToDate(targets, f"the whole '{self.Seriesname}' series")
+
+
+    # Shared core for the two "Bring up to date" items: confirm (with a do-not-interrupt warning), bring the given
+    # created-con rows up to date (only out-of-date work is done; already-current cons are skipped), report.
+    def _BringConsUpToDate(self, targets: list[int], scopeLabel: str) -> None:
+        header=f"Bring up to date {scopeLabel}"
+        if len(targets) <= 12:
+            names="\n    ".join(self.Datasource.Rows[i].Name for i in targets)
+            intro=f"{header}?\n\n    {names}\n\n"
+        else:
+            intro=f"{header} ({len(targets)} conventions)?\n\n"
+        msg=(intro +
+             "Any out-of-date PDF headers (theirs and their sub-pages') will be re-stamped, the pages regenerated, "
+             "and this series page updated. A convention that is already current is left untouched.\n\n"
+             "Once it has started it must run to the end. Until ConEditor says it has finished, do NOT close "
+             "ConEditor, let the computer sleep, or disconnect from the network.")
         if wx.MessageBox(msg, "Bring up to date", wx.OK|wx.CANCEL|wx.CANCEL_DEFAULT|wx.ICON_WARNING) != wx.OK:
             return
 
@@ -1978,7 +2003,7 @@ class ConSeriesFrame(GenConSeriesFrame):
 
         if problems:
             for p in problems:
-                Log(f"OnPopupBringConUpToDate: {p}", isError=True)
+                Log(f"Bring up to date: {p}", isError=True)
             wx.MessageBox("Finished, but some things could not be updated:\n\n    "+"\n    ".join(problems),
                           "Bring up to date", wx.OK|wx.ICON_ERROR)
         else:
