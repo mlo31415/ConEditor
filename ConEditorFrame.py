@@ -13,6 +13,7 @@ from GenConEditorFrame import GenConEditorFrame
 from WxDataGrid import DataGrid, GridDataSource, GridDataRowClass, ColDefinition, ColDefinitionsList, IsEditable
 from ConSeriesFrame import ConSeriesFrame, CSP_FORMAT_VERSION
 from ConInstanceFrame import SetHeaderLogo, PDF_HEADER_VERSION, CIP_FORMAT_VERSION
+from BringUpToDateProgress import BringUpToDateProgress
 from ConInstance import IsTestSeries
 from ConInstanceDeltaTracker import UpdateFTPLog
 from FTP import FTP
@@ -424,50 +425,77 @@ class ConEditorFrame(GenConEditorFrame):
     # window is never shown), bring it up to date (its cons, their PDFs and sub-pages, re-stamping only what is
     # behind), and -- only if that all succeeded -- record the series' marker and re-upload the main page, so a
     # later run resumes cheaply. Returns a list of what could not be done (empty if all OK).
-    def BringEverythingUpToDate(self) -> list[str]:
+    def BringEverythingUpToDate(self, ctl=None) -> list[str]:
         problems: list[str]=[]
         serieslist=[r.Name for r in self.Datasource.Rows]
+        targets=[r for r in self.Datasource.Rows if r.Name.strip() and r.URL.strip()]
+        done=0
+        if ctl is not None:
+            ctl.SetSeriesRemaining(len(targets))
         for conv in list(self.Datasource.Rows):
             if not conv.Name.strip() or not conv.URL.strip():
                 continue    # a blank row, or a series with no page yet
             if (conv.DoneCspVersion >= CSP_FORMAT_VERSION and conv.DoneCipVersion >= CIP_FORMAT_VERSION
                     and conv.DonePdfVersion >= PDF_HEADER_VERSION):
+                done+=1
+                if ctl is not None:
+                    ctl.SetSeriesRemaining(len(targets)-done)
                 continue    # the whole series is already current -- skip it without opening its page
             frame=ConSeriesFrame(self._baseDirFTP, conv.Name, serieslist, show=False)
             try:
                 if not frame._loadedFromServer:
                     problems.append(f"The series '{conv.Name}' could not be read, so it was not updated.")
                     continue
-                serProblems=frame.BringSeriesUpToDate()
+                serProblems=frame.BringSeriesUpToDate(ctl=ctl)
             finally:
                 frame.Destroy()
             problems.extend(serProblems)
-            if not serProblems:
+            quit=ctl is not None and ctl.QuitRequested
+            if not serProblems and not quit:
                 # The whole series is now current: record it and save the main page so this is not redone.
                 conv.DoneCspVersion=CSP_FORMAT_VERSION
                 conv.DoneCipVersion=CIP_FORMAT_VERSION
                 conv.DonePdfVersion=PDF_HEADER_VERSION
                 self.UploadMainConlist()
+                if ctl is not None:
+                    ctl.LogItem(f"Saved series {conv.Name} on the main page")
+            done+=1
+            if ctl is not None:
+                ctl.SetSeriesRemaining(len(targets)-done)
+            if quit:
+                break       # user quit; completed series are already saved, the in-progress one keeps its partial work
         return problems
 
     #------------------
     # RMB "Bring everything up to date": the whole-site counterpart to the con-series page's per-con and whole-series
-    # items. Confirms (with a do-not-interrupt warning), then runs BringEverythingUpToDate -- which skips any series
-    # already current, so re-running is cheap -- and reports the outcome.
+    # items. Confirms (with a do-not-interrupt warning), then runs BringEverythingUpToDate against a live progress
+    # dialog (log + remaining counts + Pause/Resume/Quit; the rest of the app is disabled while it runs), and reports.
     def OnPopupBringEverythingUpToDate(self, event):
         msg=("Bring the WHOLE SITE up to date?\n\n"
              "Every convention series will be checked, and any out-of-date PDF headers, pages and sub-pages "
              "re-stamped and regenerated. Anything already current is skipped, but the first full pass over the "
              "whole site can take a long time.\n\n"
-             "Once it has started it must run to the end. Until ConEditor says it has finished, do NOT close "
-             "ConEditor, let the computer sleep, or disconnect from the network.")
+             "You can Pause or Quit from the progress window; both take effect once the PDF in progress finishes, "
+             "and Quit saves the work done so far. Until then, do NOT close ConEditor, let the computer sleep, or "
+             "disconnect from the network.")
         if wx.MessageBox(msg, "Bring everything up to date", wx.OK|wx.CANCEL|wx.CANCEL_DEFAULT|wx.ICON_WARNING) != wx.OK:
             return
 
-        problems=self.BringEverythingUpToDate()
+        ctl=BringUpToDateProgress(self, "Bring everything up to date", showSeries=True)
+        disabler=wx.WindowDisabler(ctl)
+        ctl.Show()
+        try:
+            problems=self.BringEverythingUpToDate(ctl=ctl)
+        finally:
+            del disabler
+            quit=ctl.QuitRequested
+            ctl.Destroy()
         self.RefreshWindow()
 
-        if problems:
+        if quit:
+            wx.MessageBox("Stopped at your request. The work finished before you quit has been saved.",
+                          "Bring everything up to date", wx.OK|wx.ICON_INFORMATION)
+        elif problems:
             for p in problems:
                 Log(f"Bring everything up to date: {p}", isError=True)
             wx.MessageBox("Finished, but some things could not be updated:\n\n    "+"\n    ".join(problems),

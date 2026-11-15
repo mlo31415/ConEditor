@@ -297,6 +297,10 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         self.NextConInstanceName=nextconname
 
         self._valid=True
+        # The "bring up to date" progress controller, when this dialog is being driven by one of the bring-up-to-date
+        # walks (set by _WalkSeriesPdfs on each con dialog it opens). None in all ordinary editing. See
+        # BringUpToDateProgress; the walk uses it to log each PDF, update the remaining counts, and honor Pause/Quit.
+        self._bringCtl=None
         self.SetEscapeId(wx.ID_CANCEL)
 
         # A sub-page has no Convention name or Fancyclopedia URL of its own to edit -- both are derived
@@ -2001,8 +2005,10 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     # parent, which is the existing convention). Returns a list of what could not be done (empty if all OK).
     def _RegenerateSubPage(self, parent_dir: str, owning_con: str, sp_folder: str, sp_display: str, pm=None, onlyStale: bool=False) -> list[str]:
         problems: list[str]=[]
+        ctl=self._bringCtl      # bring-up-to-date progress controller, or None in ordinary flows (rename, etc.)
         sp_dir=f"{parent_dir}/{sp_folder}"
         where=sp_dir.lstrip("/")
+        skipped=0
         try:
             ci=ConInstance(parent_dir, self._seriesname, sp_folder)
             if not ci.Download():
@@ -2015,16 +2021,25 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     # A sub-page nested below this one: recurse all the way down.
                     subp=self._RegenerateSubPage(sp_dir, owning_con, row.SiteFilename.strip(), row.DisplayTitle.strip(), pm, onlyStale)
                     problems.extend(subp)
-                    if not subp:       # the nested sub-page is now current -- record it on its row's roll-up marker
+                    if not subp and not (ctl is not None and ctl.QuitRequested):   # don't claim a sub-page finished if we quit mid-way
                         row.DoneCipVersion=CIP_FORMAT_VERSION
                         row.DonePdfVersion=PDF_HEADER_VERSION
+                    if ctl is not None and ctl.QuitRequested:
+                        break
                 elif not row.IsTextRow and not row.IsLinkRow and not row.IsSubPageRow and ExtensionMatches(row.SiteFilename, ".pdf"):
                     if onlyStale and row.HeaderVersion >= PDF_HEADER_VERSION:
+                        skipped+=1
                         continue        # already at the current header version
                     if pm is not None:
                         pm.Update(f"Updating {where}/{row.SiteFilename}")
                     if not self._RestampSubPagePdf(row, sp_dir, owning_con, sp_display):
                         problems.append(f"The header of {where}/{row.SiteFilename} could not be updated")
+                    elif ctl is not None:
+                        ctl.LogItem(f"{where}/{row.SiteFilename}")
+                    if ctl is not None and ctl.Checkpoint():    # finished this PDF; now honor a Pause/Quit
+                        break
+            if ctl is not None and skipped > 0:
+                ctl.LogItem(f"  ({skipped} PDF(s) on {where} were already up to date)")
             if not ci.Upload(sp_folder):
                 problems.append(f"The sub-page {where} could not be uploaded")
         except Exception as e:
@@ -2039,7 +2054,14 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     # asked and no file rows are added or removed. Returns a list of what could not be done (empty if all OK).
     def RegeneratePageAndPdfHeaders(self, pm, onlyStale: bool=False) -> list[str]:
         problems: list[str]=[]
+        ctl=self._bringCtl      # bring-up-to-date progress controller, or None in ordinary flows (rename, etc.)
         serverdir=f"{self._FTPbasedir}/{self.Conname}"
+        where=serverdir.lstrip("/")
+        remaining=sum(1 for r in self.Datasource.Rows
+                      if not r.IsTextRow and not r.IsLinkRow and not r.IsSubPageRow and ExtensionMatches(r.SiteFilename, ".pdf"))
+        skipped=0
+        if ctl is not None:
+            ctl.SetPdfsRemaining(remaining)
         for r in self.Datasource.Rows:
             if r.IsTextRow or r.IsLinkRow:
                 continue
@@ -2047,15 +2069,30 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 if r.SiteFilename.strip():
                     subp=self._RegenerateSubPage(serverdir, self.Conname, r.SiteFilename.strip(), r.DisplayTitle.strip(), pm, onlyStale)
                     problems.extend(subp)
-                    if not subp:       # the whole sub-page is now current -- record it on its row's roll-up marker
+                    if not subp and not (ctl is not None and ctl.QuitRequested):   # don't claim a sub-page finished if we quit mid-way
                         r.DoneCipVersion=CIP_FORMAT_VERSION
                         r.DonePdfVersion=PDF_HEADER_VERSION
+                    if ctl is not None and ctl.QuitRequested:
+                        break
             elif ExtensionMatches(r.SiteFilename, ".pdf"):
                 if onlyStale and r.HeaderVersion >= PDF_HEADER_VERSION:
+                    skipped+=1
+                    remaining-=1
+                    if ctl is not None:
+                        ctl.SetPdfsRemaining(remaining)
                     continue        # already at the current header version -- don't re-stamp
                 if self.RegeneratePdfHeaderForRow(r, serverdir, pm):
                     problems.append(f"The header of {self.Conname}/{r.SiteFilename} could not be updated")
+                elif ctl is not None:
+                    ctl.LogItem(f"{where}/{r.SiteFilename}")
+                remaining-=1
+                if ctl is not None:
+                    ctl.SetPdfsRemaining(remaining)
+                if ctl is not None and ctl.Checkpoint():    # finished this PDF; now honor a Pause/Quit
+                    break
 
+        if ctl is not None and skipped > 0:
+            ctl.LogItem(f"  ({skipped} PDF(s) in {self.Conname} were already up to date)")
         pm.Update(f"Updating {self.Conname}/index.html")
         ci=ConInstance(self._FTPbasedir, self._seriesname, self.Conname)
         ci.Toptext=self.topText.GetValue()
@@ -2065,6 +2102,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         ci.ConInstanceRows=self.Datasource.Rows
         if not ci.Upload(self.Conname):
             problems.append(f"The page of {self.Conname} could not be uploaded")
+        elif ctl is not None:
+            ctl.LogItem(f"Saved CIP {self.Conname}")
         return problems
 
     # ------------------

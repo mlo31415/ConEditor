@@ -16,6 +16,7 @@ from ConSeries import ConSeries, Con
 from ConInstance import ConInstance, IsTestSeries, AddNoindex
 from WxDataGrid import DataGrid, IsEditable
 from ConInstanceFrame import ConInstanceDialogClass, PDF_HEADER_VERSION, CIP_FORMAT_VERSION
+from BringUpToDateProgress import BringUpToDateProgress
 from Settings import Settings
 
 from HelpersPackage import SubstituteHTML, FormatLink, FindBracketedText2, WikiPagenameToWikiUrlname, RemoveAccents, RemoveAllHTMLTags
@@ -1944,8 +1945,8 @@ class ConSeriesFrame(GenConSeriesFrame):
     # at the current CIP and PDF versions (no download), and for the rest re-stamp only the PDFs that are behind
     # (onlyStale=True) and regenerate the page. Records progress in the con-series page's markers as it goes, so
     # a later run resumes cheaply. Returns a list of what could not be done (empty if all OK).
-    def BringSeriesUpToDate(self) -> list[str]:
-        return self._WalkSeriesPdfs(onlyStale=True, skipCurrent=True, title=f"Bringing '{self.Seriesname}' up to date")
+    def BringSeriesUpToDate(self, ctl=None) -> list[str]:
+        return self._WalkSeriesPdfs(onlyStale=True, skipCurrent=True, title=f"Bringing '{self.Seriesname}' up to date", ctl=ctl)
 
 
     # ------------------
@@ -1997,11 +1998,24 @@ class ConSeriesFrame(GenConSeriesFrame):
         if wx.MessageBox(msg, "Bring up to date", wx.OK|wx.CANCEL|wx.CANCEL_DEFAULT|wx.ICON_WARNING) != wx.OK:
             return
 
+        # Run it against a live progress dialog (log + remaining counts + Pause/Resume/Quit). The rest of the app
+        # is disabled while it runs; the walk pumps events at each PDF so the buttons stay responsive.
         title=f"Bringing {len(targets)} convention(s) in '{self.Seriesname}' up to date"
-        problems=self._WalkSeriesPdfs(onlyStale=True, skipCurrent=True, title=title, rowIndices=targets)
+        ctl=BringUpToDateProgress(self, f"Bring up to date — {self.Seriesname}", showSeries=False)
+        disabler=wx.WindowDisabler(ctl)
+        ctl.Show()
+        try:
+            problems=self._WalkSeriesPdfs(onlyStale=True, skipCurrent=True, title=title, rowIndices=targets, ctl=ctl)
+        finally:
+            del disabler
+            quit=ctl.QuitRequested
+            ctl.Destroy()
         self.RefreshWindow()
 
-        if problems:
+        if quit:
+            wx.MessageBox("Stopped at your request. The work finished before you quit has been saved.",
+                          "Bring up to date", wx.OK|wx.ICON_INFORMATION)
+        elif problems:
             for p in problems:
                 Log(f"Bring up to date: {p}", isError=True)
             wx.MessageBox("Finished, but some things could not be updated:\n\n    "+"\n    ".join(problems),
@@ -2029,7 +2043,7 @@ class ConSeriesFrame(GenConSeriesFrame):
     # otherwise open it (window never shown), re-stamp its PDFs (all, or only stale ones), regenerate its page
     # and sub-pages, and -- if that all succeeded -- stamp the con's roll-up marker to the current versions. The
     # con-series page is uploaded at the end so the markers (and, for a rename, the new name) are saved.
-    def _WalkSeriesPdfs(self, onlyStale: bool, skipCurrent: bool, title: str, rowIndices: list[int]|None=None) -> list[str]:
+    def _WalkSeriesPdfs(self, onlyStale: bool, skipCurrent: bool, title: str, rowIndices: list[int]|None=None, ctl=None) -> list[str]:
         try:
             import fitz as _fitz_check  # noqa: F401
         except ImportError:
@@ -2038,19 +2052,28 @@ class ConSeriesFrame(GenConSeriesFrame):
             problems=[f"The page of {name} could not be updated" for name in self.RegenerateConPages()]
             return ["PyMuPDF is not installed, so the headers inside the PDFs, and the sub-pages, were not updated"]+problems
 
-        problems: list[str]=[]
-        with ModalDialogManager(ProgressMessage2, title, parent=self) as pm:
-            for irow, con in enumerate(self.Datasource.Rows):
-                if rowIndices is not None and irow not in rowIndices:
-                    continue    # restricted to a chosen subset of cons (e.g. a per-con "Bring up to date")
-                if con.URL != "index.html":
-                    continue    # Unlinked, or a cross-link into another series
+        # The created con pages of this series we will walk, in order (optionally restricted to a chosen subset).
+        targetCons=[i for i, con in enumerate(self.Datasource.Rows)
+                    if con.URL == "index.html" and (rowIndices is None or i in rowIndices)]
+
+        # The body of the loop, run either into a bring-up-to-date progress dialog (ctl) or a plain ProgressMessage2.
+        def run(pm) -> list[str]:
+            problems: list[str]=[]
+            done=0
+            if ctl is not None:
+                ctl.SetConsRemaining(len(targetCons))
+            for irow in targetCons:
+                con=self.Datasource.Rows[irow]
                 if skipCurrent and con.DoneCipVersion >= CIP_FORMAT_VERSION and con.DonePdfVersion >= PDF_HEADER_VERSION:
+                    done+=1
+                    if ctl is not None:
+                        ctl.SetConsRemaining(len(targetCons)-done)
                     continue    # already current -- don't even download it
                 pm.Update(f"Updating {con.Name}")
                 prevname, nextname=self.GetPrevNext(irow)
                 # The con instance window (never shown) does the work: it knows how to build a PDF's header.
                 dlg=ConInstanceDialogClass(f"{self._basedirectoryFTP}/{self.Seriesname}", self.Seriesname, con.Name, prevname, nextname, Create=False, pm=pm)
+                dlg._bringCtl=ctl           # let the con dialog log PDFs, update counts, and honor Pause/Quit
                 try:
                     if len(dlg.ReturnMessage) > 0:
                         problems.append(f"The page of {con.Name} could not be read, so it and its PDFs were not updated")
@@ -2062,14 +2085,27 @@ class ConSeriesFrame(GenConSeriesFrame):
                 finally:
                     dlg.Destroy()
                 problems.extend(conProblems)
-                if not conProblems:
+                quit=ctl is not None and ctl.QuitRequested
+                if not conProblems and not quit:
                     # The con is now fully current: record it so a later run skips it without a download.
                     con.DoneCipVersion=CIP_FORMAT_VERSION
                     con.DonePdfVersion=PDF_HEADER_VERSION
+                done+=1
+                if ctl is not None:
+                    ctl.SetConsRemaining(len(targetCons)-done)
+                if quit:
+                    break       # user quit; stop taking on new cons (what is done is saved below)
             pm.Update(f"Saving /{self.Seriesname}/index.html")
-        if not self.UploadConSeries():
-            problems.append(f"The '{self.Seriesname}' series page could not be uploaded, so its progress was not saved.")
-        return problems
+            if not self.UploadConSeries():
+                problems.append(f"The '{self.Seriesname}' series page could not be uploaded, so its progress was not saved.")
+            elif ctl is not None:
+                ctl.LogItem(f"Saved CSP {self.Seriesname}")
+            return problems
+
+        if ctl is not None:
+            return run(ctl)     # the progress dialog is the "pm" too (it duck-types ProgressMessage2.Update)
+        with ModalDialogManager(ProgressMessage2, title, parent=self) as pm:
+            return run(pm)
 
 
     # ------------------
