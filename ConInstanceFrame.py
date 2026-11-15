@@ -1220,16 +1220,17 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     # This may be dumped after all pdfs in conpubs are brought up to current standards.
     def RegeneratePdfHeaderForRow(self, r, serverdir, pm) -> str:
         sitename=r.SiteFilename
+        where=f"{serverdir.lstrip('/')}/{sitename}"      # dir-prefixed name, for the progress line
         CleanTitle=_CleanTitle(r.DisplayTitle)
         tmp_fd, tmp_path=tempfile.mkstemp(suffix=".pdf")
         os.close(tmp_fd)
         try:
-            pm.Update(f"Downloading {sitename}")
+            pm.Update(f"Downloading {where}")
             if not FTP().GetFile(serverdir, sitename, tmp_path):
                 msg=f"Could not download '{serverdir}/{sitename}' from the server (file not present?)."
                 LogError(msg)
                 return msg
-            pm.Update(f"Updating metadata and header for {sitename}")
+            pm.Update(f"Updating the header in {where}")
             try:
                 AddStdMetadata(tmp_path, **self._BuildMetadata(CleanTitle, self._IsInNewsletterSection(r)))
                 header_format, header_items=self._BuildPageHeader(CleanTitle)
@@ -1237,7 +1238,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             except Exception as e:
                 LogError(f"Failed to update metadata/header for '{sitename}':\n{e}")
                 return f"Failed to update metadata/header for '{sitename}':\n{e}"
-            pm.Update(f"Uploading {sitename}")
+            pm.Update(f"Uploading {where}")
             if not FTP().CWD(serverdir) or not FTP().PutFile(tmp_path, sitename):
                 msg=f"Could not upload '{sitename}' to the server."
                 LogError(msg)
@@ -1962,20 +1963,27 @@ class ConInstanceDialogClass(GenConInstanceFrame):
     # ------------------
     # Re-stamp one sub-page PDF (in the sub-page's full dir sp_dir) with the header/metadata for that sub-page,
     # and refresh the row's size/pages. Returns True if it was re-stamped and uploaded; a failure is logged.
-    def _RestampSubPagePdf(self, row, sp_dir: str, owning_con: str, sp_display: str) -> bool:
+    def _RestampSubPagePdf(self, row, sp_dir: str, owning_con: str, sp_display: str, pm=None) -> bool:
         fname=row.SiteFilename.strip()
         if not fname:
             return False
+        where=f"{sp_dir.lstrip('/')}/{fname}"        # dir-prefixed name, for the progress line
         tmp_fd, tmp_path=tempfile.mkstemp(suffix=".pdf")
         os.close(tmp_fd)
         try:
+            if pm is not None:
+                pm.Update(f"Downloading {where}")
             if not FTP().GetFile(sp_dir, fname, tmp_path):
                 LogError(f"Could not download sub-page file '{sp_dir}/{fname}' to re-stamp it")
                 return False
+            if pm is not None:
+                pm.Update(f"Updating the header in {where}")
             CleanTitle=_CleanTitle(row.DisplayTitle)
             AddStdMetadata(tmp_path, **self._BuildSubPageMetadataFor(owning_con, sp_display, CleanTitle))
             fmt, items=self._BuildSubPageHeaderForDir(sp_dir, sp_display, CleanTitle)
             AddPdfPageHeader(tmp_path, fmt, items, logo=_g_headerLogo)
+            if pm is not None:
+                pm.Update(f"Uploading {where}")
             if not (FTP().CWD(sp_dir) and FTP().PutFile(tmp_path, fname)):
                 LogError(f"Could not upload the re-stamped '{fname}' to '{sp_dir}'")
                 return False
@@ -2030,9 +2038,7 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     if onlyStale and row.HeaderVersion >= PDF_HEADER_VERSION:
                         skipped+=1
                         continue        # already at the current header version
-                    if pm is not None:
-                        pm.Update(f"Updating {where}/{row.SiteFilename}")
-                    if not self._RestampSubPagePdf(row, sp_dir, owning_con, sp_display):
+                    if not self._RestampSubPagePdf(row, sp_dir, owning_con, sp_display, pm=pm):
                         problems.append(f"The header of {where}/{row.SiteFilename} could not be updated")
                     elif ctl is not None:
                         ctl.LogItem(f"{where}/{row.SiteFilename}")

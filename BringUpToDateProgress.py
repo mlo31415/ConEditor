@@ -46,6 +46,12 @@ class BringUpToDateProgress(wx.Dialog):
         status.Add(self._pdfsText, 0, wx.ALL, 2)
         self._nowText=wx.StaticText(self, label="Now: -")
         status.Add(self._nowText, 0, wx.ALL, 2)
+        # A prominent line that acknowledges a Pause/Quit request the instant it is registered (and explains that
+        # it takes effect when the file in progress finishes). Bold + coloured so it stands out from the status.
+        self._stateText=wx.StaticText(self, label="")
+        f=self._stateText.GetFont(); f.MakeBold(); self._stateText.SetFont(f)
+        self._stateText.SetForegroundColour(wx.Colour(180, 80, 0))
+        status.Add(self._stateText, 0, wx.ALL, 2)
         outer.Add(status, 0, wx.EXPAND | wx.ALL, 8)
 
         # The scrolling log of what has been updated.
@@ -65,18 +71,38 @@ class BringUpToDateProgress(wx.Dialog):
         self._quitButton.Bind(wx.EVT_BUTTON, self.OnQuit)
         self.Bind(wx.EVT_CLOSE, self.OnQuit)     # the window's X means "quit after the current item"
 
-    # ---- button handlers: set a flag only; the walk acts on it at the next Checkpoint ----
+    # ---- button handlers: set a flag and give immediate on-screen acknowledgement; the walk acts on the flag at
+    # the next checkpoint (after the file in progress finishes). The handler runs inside a pump (see _Pump), so the
+    # label and banner it sets below repaint right away -- that is the immediate feedback the button press needs.
     def OnPause(self, event) -> None:
         if self._quit:
             return
         self._paused=not self._paused
-        self._pauseButton.SetLabel("Resume" if self._paused else "Pause")
+        if self._paused:
+            self._pauseButton.SetLabel("Resume")
+            self._SetState("Pausing — will take effect when the current file finishes"+self._nowActionParen())
+        else:
+            self._pauseButton.SetLabel("Pause")
+            self._SetState("Resuming…")
 
     def OnQuit(self, event) -> None:
+        if self._quit:
+            return
         self._quit=True
+        self._paused=False          # unblock the pause loop if we were paused, so the walk can wind down and save
         self._pauseButton.Enable(False)
         self._quitButton.SetLabel("Quitting…")
         self._quitButton.Enable(False)
+        self._SetState("Quitting — will stop and save when the current file finishes"+self._nowActionParen())
+
+    # The current action in parentheses, e.g. " (Uploading xxxTest/Con 3/program.pdf)", for the banner; "" if idle.
+    def _nowActionParen(self) -> str:
+        lbl=self._nowText.GetLabel()
+        return f" ({lbl[5:]})" if lbl.startswith("Now: ") and lbl != "Now: -" and len(lbl) > 5 else ""
+
+    def _SetState(self, text: str) -> None:
+        self._stateText.SetLabel(text)
+        self._stateText.Update()    # repaint this one control immediately, without waiting for the next idle
 
     @property
     def QuitRequested(self) -> bool:
@@ -87,10 +113,21 @@ class BringUpToDateProgress(wx.Dialog):
     def LogItem(self, text: str) -> None:
         self._log.AppendText(text+"\n")
 
-    # Transient "what is happening right now" line. Named Update so this can stand in for ProgressMessage2.
+    # Transient "what is happening right now" line. Named Update so this can stand in for ProgressMessage2. The
+    # walk calls it before each slow step (download / stamp / upload of a PDF, saving a page), and it pumps the
+    # event queue so the new "Now:" line actually paints AND a Pause/Quit click made during the previous step is
+    # picked up and acknowledged -- without this, nothing renders between one checkpoint and the next.
     def Update(self, msg: str, delay: float=0) -> None:
         self._nowText.SetLabel("Now: "+msg)
         self._RefreshElapsed()
+        self._Pump()
+
+    # Process pending UI events (button clicks, repaints) on the GUI thread. Safe with no running loop (tests).
+    def _Pump(self) -> None:
+        try:
+            wx.SafeYield(self, onlyIfNeeded=True)
+        except Exception:
+            pass
 
     def SetSeriesRemaining(self, n: int) -> None:
         if self._showSeries:
@@ -112,12 +149,13 @@ class BringUpToDateProgress(wx.Dialog):
     # loop (e.g. tests): SafeYield simply finds nothing to do.
     def Checkpoint(self) -> bool:
         self._RefreshElapsed()
-        try:
-            wx.SafeYield(self, onlyIfNeeded=True)
+        self._Pump()
+        if self._paused and not self._quit:
+            self._SetState("Paused — press Resume to continue.")
             while self._paused and not self._quit:
                 self._RefreshElapsed()
-                wx.SafeYield(self, onlyIfNeeded=True)
+                self._Pump()
                 wx.MilliSleep(100)
-        except Exception:
-            pass
+            if not self._quit:
+                self._SetState("")      # resumed
         return self._quit
