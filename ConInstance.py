@@ -68,6 +68,12 @@ class ConInstanceRow(GridDataRowClass):
         self._isSubPage: bool=False     # Is this a link to a sub-page (an SP owned by this page)?
         self._pages: int=0              # Page count
         self._headerVersion: int=0      # For a PDF file row: the PDF_HEADER_VERSION its stamped header was last brought to (0 = unknown). Stored on the page as a hidden "<!--hv=N-->" so it round-trips and is not re-done needlessly.
+        # For a sub-page row: the roll-up marker for the whole sub-page -- the (CIP format, PDF header) versions
+        # that sub-page (and anything nested under it) was last fully verified at. Stored on this page as a hidden
+        # "<!--d=cip.pdf-->" in the sub-page's <li>, exactly as a con row carries one on its con-series page, so a
+        # con that owns sub-pages can be certified complete without re-opening them. 0 = never verified.
+        self._doneCipVersion: int=0
+        self._donePdfVersion: int=0
 
 
     def __str__(self) -> str:
@@ -107,11 +113,15 @@ class ConInstanceRow(GridDataRowClass):
         cf._isSubPage=self._isSubPage
         cf._pages=self._pages
         cf._headerVersion=self._headerVersion
+        cf._doneCipVersion=self._doneCipVersion
+        cf._donePdfVersion=self._donePdfVersion
         return cf
 
     def __hash__(self) -> int:
         tot=hash(self._displayTitle.strip()+self._notes.strip()+self._localfilename.strip()+self._localpathname.strip()+self._sitefilename.strip())
-        return tot+hash(self._size)+hash(self._isText)+hash(self._isSubPage)+Int0(self.Pages)
+        # A sub-page row's roll-up marker is included so that certifying a sub-page (which raises the marker)
+        # marks this page as needing saving, and the normal save-on-close persists the new marker to the server.
+        return tot+hash(self._size)+hash(self._isText)+hash(self._isSubPage)+Int0(self.Pages)+hash(self._doneCipVersion)+hash(self._donePdfVersion)
 
     def Signature(self) -> int:
         return self.__hash__()
@@ -202,6 +212,21 @@ class ConInstanceRow(GridDataRowClass):
     @HeaderVersion.setter
     def HeaderVersion(self, val: int) -> None:
         self._headerVersion=Int0(val)
+
+    # For a sub-page row: the (CIP format, PDF header) versions the whole sub-page was last fully verified at.
+    @property
+    def DoneCipVersion(self) -> int:
+        return self._doneCipVersion
+    @DoneCipVersion.setter
+    def DoneCipVersion(self, val: int) -> None:
+        self._doneCipVersion=Int0(val)
+
+    @property
+    def DonePdfVersion(self) -> int:
+        return self._donePdfVersion
+    @DonePdfVersion.setter
+    def DonePdfVersion(self, val: int) -> None:
+        self._donePdfVersion=Int0(val)
 
     @property
     def IsTextRow(self) -> bool:
@@ -391,6 +416,13 @@ class ConInstance:
                 if mhv is not None:
                     conf.HeaderVersion=Int0(mhv.group(1))
                     licontents=licontents[:mhv.start()]+licontents[mhv.end():]
+                # A hidden "<!--d=cip.pdf-->" marks a sub-page row's roll-up version (how far that whole sub-page
+                # was last verified). Read it, then drop it from the working text so it doesn't disturb parsing.
+                md=re.search(r"<!--d=(\d+)\.(\d+)-->", licontents)
+                if md is not None:
+                    conf.DoneCipVersion=Int0(md.group(1))
+                    conf.DonePdfVersion=Int0(md.group(2))
+                    licontents=licontents[:md.start()]+licontents[md.end():]
                 # We're looking for an <a></a> followed by <small>/</small>
                 a, rest=FindBracketedText2(licontents, "a", includeBrackets=True)
                 #Log(f"{a=}   {rest=}")
@@ -594,7 +626,10 @@ class ConInstance:
                 # not yet created (no folder) -> plain unlinked text, exactly like an unlinked con row on
                 # a ConSeries page. The icon is decorative and is never parsed back.
                 if row.SiteFilename.strip():
-                    newtable+=f'    <li id="conpagetable">{_SUBPAGE_ICON}{FormatLink(_EncodePathChars(row.SiteFilename.strip())+"/index.html", row.DisplayTitle.strip())}'
+                    # Hidden roll-up marker: how far this whole sub-page has been verified (invisible; lets the
+                    # owning con be certified complete, and a site-wide run skip the sub-page, without opening it).
+                    dmark=f"<!--d={row.DoneCipVersion}.{row.DonePdfVersion}-->" if (row.DoneCipVersion or row.DonePdfVersion) else ""
+                    newtable+=f'    <li id="conpagetable">{dmark}{_SUBPAGE_ICON}{FormatLink(_EncodePathChars(row.SiteFilename.strip())+"/index.html", row.DisplayTitle.strip())}'
                 else:
                     newtable+=f'    <li id="conpagetable">{html.escape(row.DisplayTitle.strip())}'
                 if len(row.Notes) > 0:

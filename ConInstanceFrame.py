@@ -1469,6 +1469,14 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 wx.MessageBox(dlg.ReturnMessage)
                 return
             dlg.ShowModal()
+            # The sub-page saved its own page on its way out. If every PDF in it (and in anything nested under it)
+            # is now current, record that on this page's roll-up marker for the sub-page row. Raise-only; the
+            # change marks this page as needing saving, so the normal save-on-close persists it to the server.
+            spCip, spPdf=dlg.RollupDoneVersions()
+        if spCip and spPdf and (r.DoneCipVersion < spCip or r.DonePdfVersion < spPdf):
+            r.DoneCipVersion=spCip
+            r.DonePdfVersion=spPdf
+            self.RefreshWindow()
 
     # ------------------
     # RMB "Create Sub-Page": add a (not-yet-created) sub-page row. Like filling in a con row on a ConSeries
@@ -1968,7 +1976,11 @@ class ConInstanceDialogClass(GenConInstanceFrame):
             for row in ci.ConInstanceRows:
                 if row.IsSubPageRow and row.SiteFilename.strip():
                     # A sub-page nested below this one: recurse all the way down.
-                    problems.extend(self._RegenerateSubPage(sp_dir, owning_con, row.SiteFilename.strip(), row.DisplayTitle.strip(), pm, onlyStale))
+                    subp=self._RegenerateSubPage(sp_dir, owning_con, row.SiteFilename.strip(), row.DisplayTitle.strip(), pm, onlyStale)
+                    problems.extend(subp)
+                    if not subp:       # the nested sub-page is now current -- record it on its row's roll-up marker
+                        row.DoneCipVersion=CIP_FORMAT_VERSION
+                        row.DonePdfVersion=PDF_HEADER_VERSION
                 elif not row.IsTextRow and not row.IsLinkRow and not row.IsSubPageRow and ExtensionMatches(row.SiteFilename, ".pdf"):
                     if onlyStale and row.HeaderVersion >= PDF_HEADER_VERSION:
                         continue        # already at the current header version
@@ -1996,7 +2008,11 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                 continue
             if r.IsSubPageRow:
                 if r.SiteFilename.strip():
-                    problems.extend(self._RegenerateSubPage(serverdir, self.Conname, r.SiteFilename.strip(), r.DisplayTitle.strip(), pm, onlyStale))
+                    subp=self._RegenerateSubPage(serverdir, self.Conname, r.SiteFilename.strip(), r.DisplayTitle.strip(), pm, onlyStale)
+                    problems.extend(subp)
+                    if not subp:       # the whole sub-page is now current -- record it on its row's roll-up marker
+                        r.DoneCipVersion=CIP_FORMAT_VERSION
+                        r.DonePdfVersion=PDF_HEADER_VERSION
             elif ExtensionMatches(r.SiteFilename, ".pdf"):
                 if onlyStale and r.HeaderVersion >= PDF_HEADER_VERSION:
                     continue        # already at the current header version -- don't re-stamp
@@ -2015,21 +2031,23 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         return problems
 
     # ------------------
-    # The (CIP-format, PDF-header) versions this con instance can be certified complete at right now, for the
-    # roll-up marker the series page keeps for it. We can certify the current versions only when the page was
-    # just written by current code (so its CIP format is current, which the caller guarantees by calling this
-    # right after an upload) AND every PDF it holds is already stamped at the current header version. A sub-page
-    # is a separate page whose PDFs we can't see from here, so a con that has any sub-page is NOT certified by
-    # this shortcut -- the full "bring up to date" walk, which recurses into sub-pages, is what finishes those.
-    # Returns (0, 0) when it can't be certified; the caller uses this only to RAISE a marker, never to lower one.
+    # The (CIP-format, PDF-header) versions this page (a con instance, or a sub-page -- the shape is the same)
+    # can be certified complete at right now, for the roll-up marker its parent keeps for it. We can certify the
+    # current versions only when the page was just written by current code (so its CIP format is current, which
+    # the caller guarantees by calling this right after an upload) AND every PDF it holds is already stamped at
+    # the current header version AND every sub-page it owns already carries a current roll-up marker of its own
+    # (set when that sub-page was itself edited+uploaded complete). A sub-page's own PDFs live on its separate
+    # page, so we trust its marker here rather than re-opening it. Returns (0, 0) when it can't be certified; the
+    # caller uses this only to RAISE a marker, never to lower one.
     def RollupDoneVersions(self) -> tuple[int, int]:
-        if any(r.IsSubPageRow for r in self.Datasource.Rows):
-            return (0, 0)
-        pdfRows=[r for r in self.Datasource.Rows
-                 if not r.IsTextRow and not r.IsLinkRow and not r.IsSubPageRow
-                 and ExtensionMatches(r.SiteFilename, ".pdf")]
-        if not all(r.HeaderVersion >= PDF_HEADER_VERSION for r in pdfRows):
-            return (0, 0)
+        for r in self.Datasource.Rows:
+            if r.IsTextRow or r.IsLinkRow:
+                continue
+            if r.IsSubPageRow:
+                if r.SiteFilename.strip() and (r.DoneCipVersion < CIP_FORMAT_VERSION or r.DonePdfVersion < PDF_HEADER_VERSION):
+                    return (0, 0)       # a created sub-page that is not yet certified current
+            elif ExtensionMatches(r.SiteFilename, ".pdf") and r.HeaderVersion < PDF_HEADER_VERSION:
+                return (0, 0)           # a PDF not yet stamped current
         return (CIP_FORMAT_VERSION, PDF_HEADER_VERSION)
 
     # ------------------
