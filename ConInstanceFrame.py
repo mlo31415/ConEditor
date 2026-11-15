@@ -2015,6 +2015,24 @@ class ConInstanceDialogClass(GenConInstanceFrame):
         return problems
 
     # ------------------
+    # The (CIP-format, PDF-header) versions this con instance can be certified complete at right now, for the
+    # roll-up marker the series page keeps for it. We can certify the current versions only when the page was
+    # just written by current code (so its CIP format is current, which the caller guarantees by calling this
+    # right after an upload) AND every PDF it holds is already stamped at the current header version. A sub-page
+    # is a separate page whose PDFs we can't see from here, so a con that has any sub-page is NOT certified by
+    # this shortcut -- the full "bring up to date" walk, which recurses into sub-pages, is what finishes those.
+    # Returns (0, 0) when it can't be certified; the caller uses this only to RAISE a marker, never to lower one.
+    def RollupDoneVersions(self) -> tuple[int, int]:
+        if any(r.IsSubPageRow for r in self.Datasource.Rows):
+            return (0, 0)
+        pdfRows=[r for r in self.Datasource.Rows
+                 if not r.IsTextRow and not r.IsLinkRow and not r.IsSubPageRow
+                 and ExtensionMatches(r.SiteFilename, ".pdf")]
+        if not all(r.HeaderVersion >= PDF_HEADER_VERSION for r in pdfRows):
+            return (0, 0)
+        return (CIP_FORMAT_VERSION, PDF_HEADER_VERSION)
+
+    # ------------------
     # Copy a sub-page row's whole folder into the target con (server-side copy of every file, auto-renaming the
     # folder on a collision), then re-point the copied sub-page's index.html at its new parent con AND re-stamp
     # each of its PDFs' headers/metadata for that new parent. Does NOT delete the source folder. Returns the

@@ -504,6 +504,8 @@ class ConEditorFrame(GenConEditorFrame):
         Log(f"EditConSeries: {conseriesname=}", Flush=True)
         # Create list of con series required by the con series editor
         conserieslist=[row.Name for row in self.Datasource.Rows]
+        irow=self._grid.clickedRow
+        rollSeries=(0, 0, 0)
         with ModalDialogManager(ConSeriesFrame, self._baseDirFTP, conseriesname, conserieslist) as dlg:
             if len(dlg.Seriesname.strip()) == 0:  # If the user didn't supply a con series name, we exit and don't show the dialog
                 return
@@ -513,8 +515,20 @@ class ConEditorFrame(GenConEditorFrame):
             Log(f"EditConSeries: about to dlg.ShowModal()", Flush=True)
             if dlg.ShowModal() == wx.OK:
                 conseriesname=dlg.tConSeries.GetValue()
-                self.Datasource.Rows[self._grid.clickedRow].URL="./"+conseriesname+"/index.html"
-                self.Datasource.Rows[self._grid.clickedRow].Name=conseriesname
+                self.Datasource.Rows[irow].URL="./"+conseriesname+"/index.html"
+                self.Datasource.Rows[irow].Name=conseriesname
+                # If every con in the series now carries a current roll-up marker, the whole series is current;
+                # record that on the main con list and persist it, so a later site-wide run can skip the series.
+                rollSeries=dlg.SeriesRollupDoneVersions()
+
+        # Raise-only: never lowers an existing marker.
+        rollCsp, rollCip, rollPdf=rollSeries
+        row=self.Datasource.Rows[irow]
+        if rollCsp and (row.DoneCspVersion < rollCsp or row.DoneCipVersion < rollCip or row.DonePdfVersion < rollPdf):
+            row.DoneCspVersion=rollCsp
+            row.DoneCipVersion=rollCip
+            row.DonePdfVersion=rollPdf
+            self.UploadMainConlist()
 
 
 

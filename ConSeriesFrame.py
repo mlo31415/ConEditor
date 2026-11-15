@@ -1375,8 +1375,18 @@ class ConSeriesFrame(GenConSeriesFrame):
             self.Datasource.Rows[irow].Name=dlg.ConInstanceName.strip()
             self.Datasource.Rows[irow].URL="index.html"
             nextcon=getattr(dlg, "_moveToConNext", "")
+            # The dialog uploaded this con's page on its way out. If every PDF in it is now stamped current,
+            # record that on this series page's roll-up marker for the con -- and persist it to the CSP now, so
+            # a later site-wide run can skip the con without re-opening it. Raise-only: never lowers a marker.
+            rollCip, rollPdf=dlg.RollupDoneVersions()
 
         # Log("ModalDialogManager(ConInstanceDialogClass() done")
+
+        row=self.Datasource.Rows[irow]
+        if rollCip and rollPdf and (row.DoneCipVersion < rollCip or row.DonePdfVersion < rollPdf):
+            row.DoneCipVersion=rollCip
+            row.DonePdfVersion=rollPdf
+            self.UploadConSeries()
 
         # "Move to different con" closed this dialog asking us to open the target con for editing now.
         if nextcon:
@@ -1916,6 +1926,20 @@ class ConSeriesFrame(GenConSeriesFrame):
     # a later run resumes cheaply. Returns a list of what could not be done (empty if all OK).
     def BringSeriesUpToDate(self) -> list[str]:
         return self._WalkSeriesPdfs(onlyStale=True, skipCurrent=True, title=f"Bringing '{self.Seriesname}' up to date")
+
+
+    # ------------------
+    # The (CSP-format, CIP-format, PDF-header) versions this whole series can be certified complete at right now,
+    # for the roll-up marker the main con list keeps for it. Certified only when the series page was just written
+    # by current code (so its CSP format is current, which the caller guarantees by calling this right after an
+    # upload) AND every linked con instance already carries a current roll-up marker. Unlinked cons and cross-links
+    # (whose files live in another series) don't count. Returns (0, 0, 0) when it can't be certified; the caller
+    # uses this only to RAISE a marker, never to lower one.
+    def SeriesRollupDoneVersions(self) -> tuple[int, int, int]:
+        linked=[r for r in self.Datasource.Rows if r.URL == "index.html"]   # real con pages, not unlinked, not cross-links
+        if not all(r.DoneCipVersion >= CIP_FORMAT_VERSION and r.DonePdfVersion >= PDF_HEADER_VERSION for r in linked):
+            return (0, 0, 0)
+        return (CSP_FORMAT_VERSION, CIP_FORMAT_VERSION, PDF_HEADER_VERSION)
 
 
     # ------------------
