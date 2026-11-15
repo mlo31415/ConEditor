@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import sys
+import re
 import wx
 import wx.grid
 import json
@@ -10,14 +11,14 @@ from datetime import datetime
 
 from GenConEditorFrame import GenConEditorFrame
 from WxDataGrid import DataGrid, GridDataSource, GridDataRowClass, ColDefinition, ColDefinitionsList, IsEditable
-from ConSeriesFrame import ConSeriesFrame
-from ConInstanceFrame import SetHeaderLogo
+from ConSeriesFrame import ConSeriesFrame, CSP_FORMAT_VERSION
+from ConInstanceFrame import SetHeaderLogo, PDF_HEADER_VERSION, CIP_FORMAT_VERSION
 from ConInstance import IsTestSeries
 from ConInstanceDeltaTracker import UpdateFTPLog
 from FTP import FTP
 from Settings import Settings
 
-from HelpersPackage import SubstituteHTML, FindBracketedText2, FormatLink, Int, MessageBox, PyiResourcePath, FindLinkInString
+from HelpersPackage import SubstituteHTML, FindBracketedText2, FormatLink, Int, Int0, MessageBox, PyiResourcePath, FindLinkInString
 from WxHelpers import ModalDialogManager, OnCloseHandling3, ProgressMessage2, SetWindowIcon, RestoreWindowPlacement
 from Log import LogOpen, Log, LogFlush, LogSetTimestamping
 
@@ -87,6 +88,12 @@ class Convention(GridDataRowClass):
     def __init__(self, Name: str="", URL: str="") -> None:
         self._name: str=""      # The name of the convention series
         self._URL: str=""       # The location of the convention series html page relative to the main cons page; empty if no series page exists yet
+        # Roll-up "bring up to date" marker for this whole series: the (CSP format, CIP format, PDF header)
+        # versions it was last fully verified at. Stored on the main page as a hidden "<!--d=csp.cip.pdf-->"
+        # so a site-wide run can skip a finished series without opening its series page. 0 = never verified.
+        self._doneCspVersion: int=0
+        self._doneCipVersion: int=0
+        self._donePdfVersion: int=0
         self.Name=Name
         self.URL=URL
 
@@ -122,11 +129,33 @@ class Convention(GridDataRowClass):
         self._name=val
 
     @property
-    def URL(self) -> str:     
+    def URL(self) -> str:
         return self._URL
     @URL.setter
     def URL(self, val: str) -> None:
         self._URL=val
+
+    # The (CSP format, CIP format, PDF header) versions this whole series was last fully brought up to. 0 = never.
+    @property
+    def DoneCspVersion(self) -> int:
+        return self._doneCspVersion
+    @DoneCspVersion.setter
+    def DoneCspVersion(self, val: int) -> None:
+        self._doneCspVersion=int(val)
+
+    @property
+    def DoneCipVersion(self) -> int:
+        return self._doneCipVersion
+    @DoneCipVersion.setter
+    def DoneCipVersion(self, val: int) -> None:
+        self._doneCipVersion=int(val)
+
+    @property
+    def DonePdfVersion(self) -> int:
+        return self._donePdfVersion
+    @DonePdfVersion.setter
+    def DonePdfVersion(self, val: int) -> None:
+        self._donePdfVersion=int(val)
 
     @property
     def IsEmptyRow(self) -> bool:
@@ -265,7 +294,9 @@ class ConEditorFrame(GenConEditorFrame):
         self.Datasource=ConList()
 
         Log("Loading root/index.html")
-        file=FTP().GetFileAsString("", "index.html")
+        # Read the root index by absolute path: an empty directory means "stay in the current FTP directory",
+        # which after any series navigation (e.g. BringEverythingUpToDate) is left deep inside a series folder.
+        file=FTP().GetFileAsString("/", "index.html")
         if file is None:
             # Present an empty grid
             self.RefreshWindow()
@@ -273,22 +304,28 @@ class ConEditorFrame(GenConEditorFrame):
 
         table, _=FindBracketedText2(file, "fanac-table", caseInsensitive=True)
 
-        # Read every convention link inside the table, in document order. This handles both the old
-        # single-column <table> layout and the new 3-column Bootstrap layout; non-link content (the
-        # divider) has no <a> and is naturally skipped. The divider is re-synthesized on upload.
+        # Each series is an <li> holding a link, in document order (a divider is <li><hr></li> with no link and
+        # is skipped). A hidden "<!--d=csp.cip.pdf-->" in the <li> records how far that whole series was brought
+        # up to date; the divider is re-synthesized on upload.
         rows:list[Convention]=[]
-        rest=table
-        while True:
-            a, rest=FindBracketedText2(rest, "a", caseInsensitive=True, includeBrackets=True)
+        for m in re.finditer(r"<li\b[^>]*>(.*?)</li>", table, flags=re.DOTALL|re.IGNORECASE):
+            li=m.group(1)
+            a, _=FindBracketedText2(li, "a", caseInsensitive=True, includeBrackets=True)
             if a == "":
-                break
+                continue
             _, link, text, _=FindLinkInString(a)
             if link == "":
                 continue
             # Unescape both: FormatLink HTML-escapes the name and the href (e.g. '&'->'&amp;') on write, so
             # reversing it here keeps a con whose name contains '&' from drifting on the next upload. Percent
             # encoding in the href (e.g. "%20") is left untouched.
-            rows.append(Convention(html.unescape(text.strip()), html.unescape(link)))
+            conv=Convention(html.unescape(text.strip()), html.unescape(link))
+            md=re.search(r"<!--d=(\d+)\.(\d+)\.(\d+)-->", li)
+            if md is not None:
+                conv.DoneCspVersion=Int0(md.group(1))
+                conv.DoneCipVersion=Int0(md.group(2))
+                conv.DonePdfVersion=Int0(md.group(3))
+            rows.append(conv)
 
         if len(rows) > 0:
             self.Datasource.Rows=rows
@@ -342,7 +379,10 @@ class ConEditorFrame(GenConEditorFrame):
                     newtable+='    <li><hr></li>\n'
                 # A test series is written hidden: still on the page (so CE and the other tools find it) but not displayed
                 hidden=" hidden" if IsTestSeries(row.Name) else ""
-                newtable+=f'    <li{hidden}>{FormatLink(row.URL, row.Name)}</li>\n'
+                # Hidden roll-up marker: how far this whole series has been brought up to date (invisible; lets
+                # a site-wide run skip a finished series without opening its series page).
+                mark=f"<!--d={row.DoneCspVersion}.{row.DoneCipVersion}.{row.DonePdfVersion}-->" if (row.DoneCspVersion or row.DoneCipVersion or row.DonePdfVersion) else ""
+                newtable+=f'    <li{hidden}>{mark}{FormatLink(row.URL, row.Name)}</li>\n'
             newtable+='  </ul>\n'
 
             # Substitute the table into the template
@@ -372,7 +412,39 @@ class ConEditorFrame(GenConEditorFrame):
         return True
 
     #------------------
-    def RefreshWindow(self) -> None:        
+    # Bring the whole site up to date. For each series: skip it when the main-page marker already shows the whole
+    # series current at the current (CSP, CIP, PDF) versions -- no series-page download; otherwise open it (its
+    # window is never shown), bring it up to date (its cons, their PDFs and sub-pages, re-stamping only what is
+    # behind), and -- only if that all succeeded -- record the series' marker and re-upload the main page, so a
+    # later run resumes cheaply. Returns a list of what could not be done (empty if all OK).
+    def BringEverythingUpToDate(self) -> list[str]:
+        problems: list[str]=[]
+        serieslist=[r.Name for r in self.Datasource.Rows]
+        for conv in list(self.Datasource.Rows):
+            if not conv.Name.strip() or not conv.URL.strip():
+                continue    # a blank row, or a series with no page yet
+            if (conv.DoneCspVersion >= CSP_FORMAT_VERSION and conv.DoneCipVersion >= CIP_FORMAT_VERSION
+                    and conv.DonePdfVersion >= PDF_HEADER_VERSION):
+                continue    # the whole series is already current -- skip it without opening its page
+            frame=ConSeriesFrame(self._baseDirFTP, conv.Name, serieslist, show=False)
+            try:
+                if not frame._loadedFromServer:
+                    problems.append(f"The series '{conv.Name}' could not be read, so it was not updated.")
+                    continue
+                serProblems=frame.BringSeriesUpToDate()
+            finally:
+                frame.Destroy()
+            problems.extend(serProblems)
+            if not serProblems:
+                # The whole series is now current: record it and save the main page so this is not redone.
+                conv.DoneCspVersion=CSP_FORMAT_VERSION
+                conv.DoneCipVersion=CIP_FORMAT_VERSION
+                conv.DonePdfVersion=PDF_HEADER_VERSION
+                self.UploadMainConlist()
+        return problems
+
+    #------------------
+    def RefreshWindow(self) -> None:
         self._grid.RefreshWxGridFromDatasource()
         self.UpdateNeedsSavingFlag()
 

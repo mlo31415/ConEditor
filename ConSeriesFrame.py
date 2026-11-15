@@ -32,6 +32,12 @@ def _EscapeAllowStrikeout(s: str) -> str:
     return re.sub(r"&lt;(/?s)&gt;", r"<\1>", html.escape(s), flags=re.IGNORECASE)
 
 
+# The version of the con-series-page format (what UploadConSeries produces from the template). Bump this when
+# that changes; a site-wide bring-up-to-date walk then re-uploads every series page (cheap). The main con page
+# records, per series, the (CSP, CIP, PDF) versions that whole series was last fully verified at.
+CSP_FORMAT_VERSION: int=1
+
+
 # ===================================================================================================
 # Helpers for "Fill Missing Info from Fancy" -- pure functions (no wx) so they can be unit-tested.
 
