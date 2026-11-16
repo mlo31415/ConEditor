@@ -1008,7 +1008,10 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     else:
                         delta.Completed=True
                 elif delta.Verb == "delete":
-                    if not delta.Con.IsTextRow and not delta.Con.IsLinkRow:
+                    # A sub-page row's SiteFilename is a *directory*, not a file, so DeleteFile would fail
+                    # spuriously. Treat it like a text/link row: removing the row just drops the sub-page from
+                    # this page's listing; its folder is left on the server (remove it by hand if really wanted).
+                    if not delta.Con.IsTextRow and not delta.Con.IsLinkRow and not delta.Con.IsSubPageRow:
                         if pm is not None:
                             pm.Update(f"Deleting {delta.Con.SiteFilename}")
                         Log(f"delta-DELETE: {delta.Con.SiteFilename}")
@@ -1056,8 +1059,8 @@ class ConInstanceDialogClass(GenConInstanceFrame):
                     pm.Update(f"FAILED: {name}")
 
             # Only log a delta that actually performed a server operation. A failed upload/rename/delete or a
-            # no-op (e.g. a text- or link-row "delete", which does no FTP work) leaves Completed False, so the
-            # file never reaches the update log unless it was genuinely uploaded/changed/removed.
+            # no-op (e.g. a text-, link- or sub-page-row "delete", which does no FTP work) leaves Completed
+            # False, so the file never reaches the update log unless it was genuinely uploaded/changed/removed.
             if delta.Completed:
                 UpdateFTPLog.LogDelta(self._seriesname, self._PageBreadcrumb(), delta)
             if len(failures) > nfailures:
