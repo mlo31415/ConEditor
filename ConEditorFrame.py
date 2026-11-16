@@ -310,6 +310,12 @@ class ConEditorFrame(GenConEditorFrame):
             self.RefreshWindow()
             return
 
+        # Load the editable top-of-page commentary (the <fanac-stuff> block) into its text box. Without this it
+        # starts empty, and because UploadMainConlist always writes the box's contents into fanac-stuff, the next
+        # upload would wipe whatever intro text the live page has -- so it could never persist. [CE-12]
+        toptext, _=FindBracketedText2(file, "fanac-stuff", caseInsensitive=True)
+        self.m_textCtrlTopText.SetValue(toptext)
+
         table, _=FindBracketedText2(file, "fanac-table", caseInsensitive=True)
 
         # Each series is an <li> holding a link, in document order (a divider is <li><hr></li> with no link and
